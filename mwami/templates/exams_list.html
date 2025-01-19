@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% for exam in exams %}
+<div class="exam-list-item">
+    <h3>{{ exam.title }}</h3>
+    <a href="{% url 'exam' exam.id %}" class="btn btn-primary">Start Exam</a>
+    <!--{% url 'exam' exam.id 1 %}: Directs the user to the first question of the exam.-->
+</div>
+{% endfor %}
+{% endblock %}

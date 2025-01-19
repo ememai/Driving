@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% block title %}Exam{% endblock %}
+{% block content %}
+<h2>{{ exam.title }}</h2>
+<p>Question {{ question_number }} of {{ total_questions }}</p>
+<form method="post">
+    {% csrf_token %}
+    <p><strong>{{ question_number }}. {{ question.title }}</strong></p>
+    <div>
+        <input type="radio" id="a" name="answer" value="A" 
+            {% if request.session.answers and request.session.answers|get:question.id == 'A' %}checked{% endif %}>
+        <label for="a">{{ question.choice1 }}</label>
+    </div>
+    <div>
+        <input type="radio" id="b" name="answer" value="B" 
+            {% if request.session.answers and request.session.answers|get:question.id == 'B' %}checked{% endif %}>
+        <label for="b">{{ question.choice2 }}</label>
+    </div>
+    <div>
+        <input type="radio" id="c" name="answer" value="C" 
+            {% if request.session.answers and request.session.answers|get:question.id == 'C' %}checked{% endif %}>
+        <label for="c">{{ question.choice3 }}</label>
+    </div>
+    <div>
+        <input type="radio" id="d" name="answer" value="D" 
+            {% if request.session.answers and request.session.answers|get:question.id == 'D' %}checked{% endif %}>
+        <label for="d">{{ question.choice4 }}</label>
+    </div>
+    <div class="mt-3">
+        {% if question_number > 1 %}
+        <button type="submit" name="previous" class="btn btn-secondary">Previous</button>
+        {% endif %}
+        {% if question_number < total_questions %}
+        <button type="submit" name="next" class="btn btn-primary">Next</button>
+        {% endif %}
+        {% if question_number == total_questions %}
+        <button type="submit" name="submit" class="btn btn-success">Submit Exam</button>
+        {% endif %}
+    </div>
+</form>
+
+{% endblock %}

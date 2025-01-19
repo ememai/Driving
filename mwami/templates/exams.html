@@ -1,0 +1,51 @@
+{% extends "base.html" %} {% block title %}Exam{% endblock %} {% block content
+%}
+<h2>{{ exam.name }}</h2>
+<h2>{{ exam.name }}</h2>
+<p>Question {{ question_number }} of {{ total_questions }}</p>
+
+<form method="post">
+  {% csrf_token %} {% for question in exam.questions.all %}
+  <div class="mb-3">
+    <p><strong>{{ question_number }}. {{ question.question_text }}</strong></p>
+    <div>
+      <input
+        type="radio"
+        id="q{{ question.id }}_a"
+        name="question_{{ question.id }}"
+        value="A"
+      />
+      <label for="q{{ question.id }}_a">{{ question.option_a }}</label>
+    </div>
+    <div>
+      <input
+        type="radio"
+        id="q{{ question.id }}_b"
+        name="question_{{ question.id }}"
+        value="B"
+      />
+      <label for="q{{ question.id }}_b">{{ question.option_b }}</label>
+    </div>
+    <div>
+      <input
+        type="radio"
+        id="q{{ question.id }}_c"
+        name="question_{{ question.id }}"
+        value="C"
+      />
+      <label for="q{{ question.id }}_c">{{ question.option_c }}</label>
+    </div>
+    <div>
+      <input
+        type="radio"
+        id="q{{ question.id }}_d"
+        name="question_{{ question.id }}"
+        value="D"
+      />
+      <label for="q{{ question.id }}_d">{{ question.option_d }}</label>
+    </div>
+  </div>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Submit Exam</button>
+</form>
+{% endblock %}

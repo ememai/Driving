@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Online Exam{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">RWANDA DRIVERS</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="/">Ahabanza</a></li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'exams' %}">Ibizamini</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/subscription/">Kwishyura</a>
+                    </li>
+                    {% if user.is_staff %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/">Admin</a>
+                    <li class="nav-item">
+                    {% endif %}
+                        <a class="nav-link" href="/logout/">Logout</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login/">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register/">Register</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact/">Ubufasha</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="message-container mt-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            
+            {% if message.level == 40 or message.level == 30 %}
+            <h3 style="color: red;">{{ message }}</h3>
+            {% else %}
+            <h3>{{ message }}</h3>                
+            {% endif %}
+                
+            
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="container mt-4">{% block content %}{% endblock %}</div>
+
+    <footer class="bg-light text-center py-3 mt-5">
+        <p>&copy; 2025 RWANDA DRIVERS. All rights reserved.</p>
+    </footer>
+</body>
+
+</html>

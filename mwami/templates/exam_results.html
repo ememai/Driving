@@ -1,0 +1,74 @@
+<!-- templates/exam_results.html -->
+{% extends "base.html" %}
+{% block title %}Ibisubizo{% endblock %}
+{% block content %}
+<h2><strong>Amanota: </strong> {{ user_exam.score }} / {{ user_exam.exam.questions.count }},
+   <!-- <strong>Completed: </strong> {{ user_exam.completed_at|date:"F d, Y" }}-->
+
+</h2>
+<!--
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Ikibazo</th>
+            <th>Igisubizo cyawe</th>
+            <th>Igisubizo cy'ukuri</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for answer in answers %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ answer.question.title }}
+                <div>
+                {{ answer.question.choice1 }}</br>
+                {{ answer.question.choice2 }}</br>
+                {{ answer.question.choice3 }}</br>
+                {{ answer.question.choice4 }}</br>
+                    
+                {% if answer.question.image %}
+                <img src="{{ answer.question.image.url }}" alt="{{ answer.question.title }}" style="max-width: 100px;">
+                {% endif %}
+                </div>
+
+            </td>
+            <td>
+                {% if answer.selected_choice == answer.question.correct_choice%}
+                    {{ answer.selected_choice }}
+                {% else %}
+                    <em>Ntago wagisubije</em>
+                {% endif %}
+            </td>
+            <td>{{ answer.question.correct_choice }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+-->
+
+<section class="mt-5">
+<p>{{ user_exam.completed_at|timesince }} ago</p>
+    {% for answer in answers %}
+            <ul class="list-group">
+            <li class="list-group-item">{{ forloop.counter }}. {{ answer.question.title }}</li>
+                <div class="list-group-item">
+                    <span>{{ answer.question.choice1 }}</br></span>
+                    <span>{{ answer.question.choice2 }}</br></span>
+                    <span>{{ answer.question.choice3 }}</br></span>
+                    <span>{{ answer.question.choice4 }}</br></span>
+                </div>
+                <strong>{{ answer.selected_choice }}</strong>
+                {% if answer.selected_choice == answer.question.correct_choice %}
+                    <span class="badge badge-success">Correct</span>
+                {% else %}
+                    <span class="badge badge-danger">Incorrect</span>
+                {% endif %}
+            </ul>
+            
+        {% endfor %}
+</section>
+    
+
+<a href="{% url 'home' %}" class="btn btn-primary">Back to Home</a>
+{% endblock %}
