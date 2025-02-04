@@ -39,8 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app',
+    'app.apps.AppConfig',
 ]
+
+AUTH_USER_MODEL = 'app.UserProfile'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -122,18 +124,19 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static/'),
+    BASE_DIR / 'static'
 ]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-STRIPE_API_KEY = 'your_stripe_secret_key'
+MEDIA_ROOT = BASE_DIR / 'media'
+#STRIPE_API_KEY = 'your_stripe_secret_key'
 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 # Email settings    
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -146,7 +149,10 @@ EMAIL_USE_SSL = False
 #MOMO_PRIMARY_KEY = "your_primary_subscription_key"
 #MOMO_AUTH_HEADER = "base64_encoded(api_user_id:api_key)"
 MOMO_BASE_URL = "https://sandbox.momodeveloper.mtn.com"  # Use production URL for live
-MOMO_PRIMARY_KEY = "your_primary_subscription_key"
-MOMO_API_USER_ID = "your_api_user_id"
-MOMO_API_KEY = "your_api_key"
+MOMO_PRIMARY_KEY = "02365ca154ca4e35bfea59866fc0ac9c"
+MOMO_API_USER_ID = "854953b9-f22c-4ae1-b3df-904419b11add"
+MOMO_API_KEY = "dd91c02ffc7e4480833c6429cc92b9a2"
 MOMO_AUTH_HEADER = "Base64-encoded(API_USER_ID:API_KEY)"
+
+# MTN_MOMO_CALLBACK_URL=https://yourdomain.com/payment/callback/
+

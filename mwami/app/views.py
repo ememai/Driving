@@ -124,7 +124,57 @@ def exam_results(request, user_exam_id):
     context = {'user_exam': user_exam, 'answers': answers , 'question_choices': question_choices}
     return render(request, 'exam_results.html', context)
 
-# Subscription View
+
+# Contact View
+
+def contact(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        message = request.POST.get('message')
+        ContactMessage.objects.create(name=name, email=email, message=message)
+        messages.success(request, "Your message has been sent successfully!")
+        return redirect('contact')
+
+    return render(request, 'contact.html')
+
+# Login View
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            messages.success(request, "Login successful!")
+            return redirect('home')
+        else:
+            messages.error(request, "!!! imyirondoro itariyo , ongera ugerageze")
+    return render(request, 'registration/login.html')
+
+# Logout View
+def user_logout(request):
+    logout(request)
+    messages.warning(request, "You have been logged out.")
+    return redirect('home')
+
+# Registration View
+def register(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+        else:
+            user = User.objects.create_user(username=username, email=email, password=password)
+            Subscription.objects.create(user=user, active=False)
+            messages.success(request, "Registration successful! Please log in.")
+            return redirect('login')
+    return render(request, 'registration/register.html')
+
+
 @login_required(login_url='login')
 def subscription_view(request):
    # """Allow users to subscribe via MTN MoMo."""
@@ -220,53 +270,3 @@ def check_payment(request, transaction_id, duration_days):
     else:
         messages.info(request, "Payment is still pending. Please wait.")
     return redirect('subscription')
-
-# Contact View
-
-def contact(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        message = request.POST.get('message')
-        ContactMessage.objects.create(name=name, email=email, message=message)
-        messages.success(request, "Your message has been sent successfully!")
-        return redirect('contact')
-
-    return render(request, 'contact.html')
-
-# Login View
-def user_login(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user:
-            login(request, user)
-            messages.success(request, "Login successful!")
-            return redirect('home')
-        else:
-            messages.error(request, "!!! Invalid credentials")
-    return render(request, 'registration/login.html')
-
-# Logout View
-def user_logout(request):
-    logout(request)
-    messages.warning(request, "You have been logged out.")
-    return redirect('home')
-
-# Registration View
-def register(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists.")
-        else:
-            user = User.objects.create_user(username=username, email=email, password=password)
-            Subscription.objects.create(user=user, active=False)
-            messages.success(request, "Registration successful! Please log in.")
-            return redirect('login')
-    return render(request, 'registration/register.html')
-
