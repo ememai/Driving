@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import *
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,7 +28,7 @@ SECRET_KEY = 'django-insecure-+67*hv@9-&gd4g$_=pq&nbznszcgro50j+oho74qi3qf(^545h
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['545a-197-157-187-21.ngrok-free.app', '127.0.0.1']
 
 
 # Application definition
@@ -118,6 +119,11 @@ USE_I18N = True
 
 USE_TZ = True
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://545a-197-157-187-21.ngrok-free.app',  # Add your ngrok URL here
+]
+
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -143,16 +149,14 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-#EMAIL_HOST_USER = '
-#EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_SSL = False
-#MOMO_PRIMARY_KEY = "your_primary_subscription_key"
-#MOMO_AUTH_HEADER = "base64_encoded(api_user_id:api_key)"
-MOMO_BASE_URL = "https://sandbox.momodeveloper.mtn.com"  # Use production URL for live
-MOMO_PRIMARY_KEY = "02365ca154ca4e35bfea59866fc0ac9c"
-MOMO_API_USER_ID = "854953b9-f22c-4ae1-b3df-904419b11add"
-MOMO_API_KEY = "dd91c02ffc7e4480833c6429cc92b9a2"
-MOMO_AUTH_HEADER = "Base64-encoded(API_USER_ID:API_KEY)"
 
-# MTN_MOMO_CALLBACK_URL=https://yourdomain.com/payment/callback/
+read_dotenv()
+
+MTN_MOMO_SUBSCRIPTION_KEY = os.getenv("MTN_MOMO_SUBSCRIPTION_KEY")
+MTN_MOMO_API_USER_ID = os.getenv("MTN_MOMO_API_USER_ID")
+MTN_MOMO_API_KEY = os.getenv("MTN_MOMO_API_KEY")
+MTN_MOMO_CALLBACK_URL = os.getenv("MTN_MOMO_CALLBACK_URL")
+MTN_MOMO_COLLECTION_PRIMARY_KEY = os.getenv("MTN_MOMO_COLLECTION_PRIMARY_KEY")
+MTN_MOMO_BASE_URL = os.getenv("MTN_MOMO_BASE_URL")
 

@@ -1,14 +1,88 @@
 {% extends "base.html" %} {% block title %}Subscription{% endblock %} 
+
 {% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Manage Your Subscription</h1>
+
+    {% if subscription %}
+        {% if subscription.is_active %}
+            <p class="text-center text-success">
+                Your subscription is active until <strong>{{ subscription.end_date }}</strong>.
+            </p>
+        {% else %}
+            <p class="text-center text-danger">You don't have an active subscription.</p>
+        {% endif %}
+    {% else %}
+        <p class="text-center text-warning">No subscription record found.</p>
+    {% endif %}
+
+    <h2 class="text-center mt-4">Subscription Plans</h2>
+    <p class="text-center">Choose the subscription plan that suits you best.</p>
+
+    {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} text-center">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'subscription' %}" class="mt-4">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="plan">Choose a Plan:</label>
+            <select class="form-control" id="plan" name="plan" required>
+                <option value="" disabled selected>Select a Plan</option>
+                <option value="monthly">Monthly Plan - $10</option>
+                <option value="yearly">Yearly Plan - $100</option>
+            </select>
+        </div>
+
+        <div class="form-group mt-3">
+            <label for="phone_number">Enter Phone Number:</label>
+            <input 
+                type="text" 
+                class="form-control" 
+                id="phone_number" 
+                name="phone_number" 
+                placeholder="e.g., 2507XXXXXXXX" 
+                required 
+                pattern="2507\d{8}" 
+                title="Enter a valid phone number starting with '2507' followed by 8 digits (e.g., 2507XXXXXXXX)">
+                
+        </div>
+
+        <div class="form-group text-center mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">Subscribe Now</button>
+        </div>
+    </form>
+
+    <div class="mt-4 text-center">
+        <p>Already subscribed? <a href="{% url 'home' %}">Go to your home</a>.</p>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+{% comment %} {% block content %}
 <h1>Manage Your Subscription</h1>
 {% if subscription.is_active %}
-<p>Your subscription is active until {{ subscription.end_date }}.</p>
+<p>Ifatabuguzi rizarangira {{ subscription.end_date }}.</p>
 {% else %}
-<p>You currently do not have an active subscription.</p>
+<p>Ntafatabuguzi uragura.</p>
 {% endif %}
 <div class="container mt-5">
   <h2 class="text-center">Subscription Plans</h2>
-  <p class="text-center">Choose a plan to subscribe and enjoy unlimited access to exams.</p>
+  <p class="text-center">Hitampo Ifatabuguzi rikunogeye</p>
 
   {% if messages %}
       <div class="alert-messages">
@@ -21,9 +95,9 @@
   <form method="post" action="{% url 'subscription' %}" class="mt-4">
       {% csrf_token %}
       <div class="form-group">
-          <label for="plan">Select Plan:</label>
+          <label for="plan">Hitampo:</label>
           <select class="form-control" id="plan" name="plan" required>
-              <option value="" disabled selected>Select a plan</option>
+              <option value="" disabled selected>Kanda hano</option>
               <option value="monthly">Monthly Plan - $10</option>
               <option value="yearly">Yearly Plan - $100</option>
           </select>
@@ -51,4 +125,4 @@
       <p>Already subscribed? <a href="{% url 'home' %}">Go to your home</a>.</p>
   </div>
 </div>
-{% endblock %}
+{% endblock %} {% endcomment %}

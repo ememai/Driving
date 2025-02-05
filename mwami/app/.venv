@@ -1,6 +1,0 @@
-MTN_MOMO_SUBSCRIPTION_KEY=your_subscription_key
-MTN_MOMO_API_USER_ID=your_api_user_id
-MTN_MOMO_API_KEY=your_api_key
-MTN_MOMO_CALLBACK_URL=https://yourdomain.com/payment/callback/
-MTN_MOMO_COLLECTION_PRIMARY_KEY=your_primary_key
-MTN_MOMO_BASE_URL=https://sandbox.momodeveloper.mtn.com

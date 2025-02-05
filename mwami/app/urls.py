@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import momo_callback
+from .views import *
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -9,7 +9,9 @@ urlpatterns = [
     path('exam/<int:exam_id>/<int:question_number>/', views.exam, name='exam'),
     path('exam-results/<int:user_exam_id>/', views.exam_results, name='exam_results'),
     path('subscription/', views.subscription_view, name='subscription'),
-    path("momo/callback/", momo_callback, name="momo_callback"),
+    path("pay/", momo_payment, name="momo_payment"),
+    path("pay/status/<str:transaction_id>/", momo_payment_status, name="momo_payment_status"),
+    # path("momo/callback/", momo_callback, name="momo_callback"),
     path('contact/', views.contact, name='contact'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),

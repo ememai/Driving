@@ -94,6 +94,12 @@ class UserExamAnswer(models.Model):
 
 class Subscription(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+    plan = models.CharField(max_length=10, choices=[('monthly', 'Monthly'), ('yearly', 'Yearly')], null=True)
+    price = models.IntegerField(default=10)
+    duration_days = models.IntegerField(default=10)
+    phone_number = models.CharField(max_length=13, default=25078)
+    transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
+
     active = models.BooleanField(default=False)
     started_at = models.DateField(auto_now_add=True)
     expires_at = models.DateField(null=True, blank=True)

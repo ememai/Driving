@@ -9,9 +9,10 @@ from .models import *
 from django.shortcuts import get_object_or_404
 from .forms import SubscriptionForm
 import uuid
-from .momo_utils import get_access_token, request_payment, check_payment_status
+from .momo_utils import *
 from django.views.decorators.csrf import csrf_exempt
 import json
+import base64
 
 
 # Home View
@@ -177,96 +178,148 @@ def register(request):
 
 @login_required(login_url='login')
 def subscription_view(request):
-   # """Allow users to subscribe via MTN MoMo."""
+    """Allow users to subscribe via MTN MoMo."""
     subscription, created = Subscription.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
         plan = request.POST.get('plan')
-        if plan == 'monthly':
-            price = 10
-            duration_days = 30
-        elif plan == 'yearly':
-            price = 100
-            duration_days = 365
-        else:
+        phone_number = request.POST.get('phone_number')
+
+        # Validate plan
+        if plan not in ['monthly', 'yearly']:
             messages.error(request, "Invalid plan selected.")
             return redirect('subscription')
 
-        # Generate a unique transaction ID
-        transaction_id = str(uuid.uuid4())
-        phone_number = request.POST.get('phone_number')  # User's phone number
+        # Set price and duration
+        price = 10 if plan == 'monthly' else 100
+        duration_days = 30 if plan == 'monthly' else 365
 
         # Request payment
-        payment_requested = request_payment(phone_number, price, transaction_id, callback_url="your_callback_url")
+        payment_response, transaction_id = request_momo_payment(phone_number, price)
 
-        if payment_requested:
-            messages.info(request, "Payment request sent. Complete payment on your phone.")
-            # Save transaction details (optional)
-            # Redirect to check payment status
-            return redirect('check_payment', transaction_id=transaction_id, duration_days=duration_days)
-        else:
-            messages.error(request, "Payment request failed. Try again.")
+        if "error" in payment_response:
+            messages.error(request, payment_response["error"])
             return redirect('subscription')
+
+        # Save transaction details
+        subscription.plan = plan
+        subscription.price = price
+        subscription.duration_days = duration_days
+        subscription.phone_number = phone_number
+        subscription.transaction_id = transaction_id
+        subscription.save()
+
+        messages.info(request, "Payment request sent. Complete payment on your phone.")
+        return redirect('momo_payment_status', transaction_id=transaction_id)
 
     return render(request, 'subscription.html', {'subscription': subscription})
 
 
-#initializing the subscription form
-@login_required(login_url='login')
-def initiate_payment(request):
-    phone_number = request.POST.get("phone_number")
-    amount = request.POST.get("amount")
-    transaction_id = generate_transaction_id()
-    callback_url = "https://yourdomain.com/momo/callback/"  # Replace with your callback URL
+def momo_payment(request):
+    """Handle MoMo payment requests."""
+    phone_number = request.GET.get("phone")
+    amount = request.GET.get("amount")
 
-    try:
-        payment_initiated = request_payment(phone_number, amount, transaction_id, callback_url)
-        if payment_initiated:
-            return JsonResponse({"success": True, "message": "Payment initiated.", "transaction_id": transaction_id})
-        return JsonResponse({"success": False, "message": "Failed to initiate payment."})
-    except Exception as e:
-        return JsonResponse({"success": False, "message": str(e)})
+    if not phone_number or not amount:
+        return JsonResponse({"error": "Phone number and amount are required"}, status=400)
 
-# Momo Callback View
-@csrf_exempt
-def momo_callback(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            print("Callback Data:", data)
-            
-            transaction_id = data.get("externalId")
-            status = data.get("status")
+    payment_response, transaction_id = request_momo_payment(phone_number, amount)
 
-            # Update payment record
-            payment = Payment.objects.get(transaction_id=transaction_id)
-            payment.status = status
-            payment.save()
+    if "error" in payment_response:
+        return JsonResponse(payment_response, status=500)
 
-            # Send response
-            return JsonResponse({"status": "received"})
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON."}, status=400)
-        except Payment.DoesNotExist:
-            return JsonResponse({"error": "Payment record not found."}, status=404)
-    return JsonResponse({"error": "Invalid request."}, status=400)
+    return JsonResponse({"message": "Payment request sent", "transaction_id": transaction_id})
 
-# Check Payment View
-def check_payment(request, transaction_id, duration_days):
-   # """Check payment status and activate subscription."""
+
+def momo_payment_status(request, transaction_id):
+    """Check MoMo payment status."""
+    if not transaction_id or transaction_id == "None":
+        return JsonResponse({"error": "Invalid transaction ID"}, status=400)
+
     status = check_payment_status(transaction_id)
-    try:
-        duration_days = int(duration_days)
-    except ValueError:
-        messages.error(request, "Invalid subscription duration.")
-    return redirect('subscription')
-    if status.get("status") == "SUCCESSFUL":
-        subscription = Subscription.objects.get(user=request.user)
-        subscription.activate(duration_days=duration_days)
-        messages.success(request, "Payment successful! Subscription activated.")
-        return redirect('dashboard')
-    elif status.get("status") == "FAILED":
-        messages.error(request, "Payment failed. Try again.")
-    else:
-        messages.info(request, "Payment is still pending. Please wait.")
-    return redirect('subscription')
+    return JsonResponse(status)
+
+
+
+
+
+
+
+
+
+
+# def subscription_view(request):
+#     """Allow users to subscribe via MTN MoMo."""
+#     subscription, created = Subscription.objects.get_or_create(user=request.user)
+
+#     if request.method == 'POST':
+#         plan = request.POST.get('plan')
+#         phone_number = request.POST.get('phone_number')
+
+#         # Validate plan
+#         if plan not in ['monthly', 'yearly']:
+#             messages.error(request, "Invalid plan selected.")
+#             return redirect('subscription')
+
+#         # Set price and duration
+#         price = 10 if plan == 'monthly' else 100
+#         duration_days = 30 if plan == 'monthly' else 365
+
+#         # Validate and format phone number
+#         formatted_phone = format_phone_number(phone_number)
+#         if not formatted_phone:
+#             messages.error(request, "Invalid phone number. Please enter a valid number.")
+#             return redirect('subscription')
+
+#         # Generate transaction ID
+#         transaction_id = str(uuid.uuid4())
+
+#         # Request payment
+#         try:
+#             payment_requested, transaction_id = request_momo_payment(
+#                 phone_number=formatted_phone,
+#                 amount=price,                 
+#             )
+#         except Exception as e:
+#             messages.error(request, f"Error processing payment: {str(e)}")
+#             return redirect('subscription')
+
+#         if payment_requested:
+#             # Save transaction details
+#             subscription.plan = plan
+#             subscription.price = price
+#             subscription.duration_days = duration_days
+#             subscription.phone_number = formatted_phone
+#             subscription.transaction_id = transaction_id
+#             subscription.save()
+
+#             messages.info(request, "Payment request sent. Complete payment on your phone.")
+#             return redirect('momo_payment_status', transaction_id=transaction_id)
+#         else:
+#             messages.error(request, "Payment request failed. Please try again.")
+#             return redirect('subscription')
+
+#     return render(request, 'subscription.html', {'subscription': subscription})
+
+
+# def momo_payment(request):
+#     phone_number = request.GET.get("phone")
+#     amount = request.GET.get("amount")
+
+#     if not phone_number or not amount:
+#         return JsonResponse({"error": "Phone number and amount are required"}, status=400)
+
+#     status_code, transaction_id = request_momo_payment(phone_number, amount)
+
+#     if status_code == 202:
+#         return JsonResponse({"message": "Payment request sent", "transaction_id": transaction_id})
+#     return JsonResponse({"error": "Failed to initiate payment"}, status=500)
+
+# def momo_payment_status(request, transaction_id):
+#     if not transaction_id or transaction_id == "None":
+#         return JsonResponse({"error": "Invalid transaction ID"}, status=400)
+
+#     status = check_payment_status(transaction_id)
+#     return JsonResponse(status)
+
+
