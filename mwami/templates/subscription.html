@@ -36,8 +36,13 @@
             <label for="plan">Choose a Plan:</label>
             <select class="form-control" id="plan" name="plan" required>
                 <option value="" disabled selected>Select a Plan</option>
-                <option value="monthly">Monthly Plan - $10</option>
-                <option value="yearly">Yearly Plan - $100</option>
+            
+            {% for plan_value, plan_label in plans %}
+                <option value="{{ plan_value }}" name="{{ plan_value }}">
+                    {{ plan_label }}
+                </option>
+            {% endfor %}
+                
             </select>
         </div>
 

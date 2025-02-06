@@ -1,73 +1,139 @@
+ # Install this with `pip install phonenumbers`
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+import random
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.exceptions import ValidationError
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-from datetime import date, timedelta
+from django.core.mail import send_mail
+from datetime import date
+import phonenumbers
 
-from django.utils.timezone import now
+class UserProfileManager(BaseUserManager):
+    """Custom manager to allow login with either email or phone."""
 
+    def create_user(self, email=None, phone_number=None, password=None, **extra_fields):
+        if not email and not phone_number:
+            raise ValueError("Either an email or phone number is required.")
 
-# Create your models here.
+        email = self.normalize_email(email) if email else None
+        user = self.model(email=email, phone_number=phone_number, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email=None, phone_number=None, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        return self.create_user(email, phone_number, password, **extra_fields)
+
 
 class UserProfile(AbstractUser):
-    email = models.EmailField(unique=True, blank=False, null=False)  # Make email unique and required
+    username = None  # Remove default username field
+    email = models.EmailField(unique=True, blank=True, null=True)  
+    phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)  
     profile_picture = models.ImageField(upload_to='images/', null=True, blank=True)
     active = models.BooleanField(default=False)
     subscription_end_date = models.DateField(null=True, blank=True)
+    otp_code = models.CharField(max_length=6, blank=True, null=True)
+
+    USERNAME_FIELD = 'phone_number'  # Default authentication field
+    REQUIRED_FIELDS = ['email']  # Email is optional, but preferred
+
+    objects = UserProfileManager()
+
+    def clean(self):
+        """
+        Ensures that at least one of email or phone number is provided.
+        Also validates phone number format.
+        """
+        if not self.email and not self.phone_number:
+            raise ValidationError("Either an email or phone number is required.")
+
+        if self.phone_number:
+            try:
+                parsed_number = phonenumbers.parse(self.phone_number, None)
+                
+                if not phonenumbers.is_valid_number(parsed_number):
+                    raise ValidationError("Invalid phone number format")
+            except:
+                raise ValidationError("Invalid phone number format")
 
     @property
     def is_subscribed(self):
         return self.subscription_end_date and self.subscription_end_date >= date.today()
 
+    def send_otp_email(self):
+        """Generates and sends an OTP via email."""
+        if not self.email:
+            return
+        self.otp_code = str(random.randint(100000, 999999))
+        self.save()
+        send_mail(
+            'Your OTP Code',
+            f'Your OTP code is {self.otp_code}',
+            'no-reply@example.com',
+            [self.email],
+            fail_silently=False,
+        )
+
+    def verify_otp(self, otp):
+        return self.otp_code == otp
+
+    def __str__(self):
+        return self.email if self.email else self.phone_number
+
+
+
 
 class RoadSign(models.Model):
-    sign_image = models.FileField(upload_to='images/', unique=True)
+    sign_image = models.FileField(upload_to='images/')
     definition = models.CharField(max_length=100)
-    Type = models.CharField(max_length=50, null=True, blank=True)
+    type = models.CharField(max_length=50, null=True, blank=True)  # Fixed field name to lowercase
 
     def __str__(self):
         return self.definition
 
+
 class Choice(models.Model):
-    text = models.CharField(max_length=1000,null=True, blank=True, unique=True)  # Optional text for the choice
-    image_choice = models.OneToOneField(RoadSign,on_delete=models.SET_NULL, null=True, blank=True)  # Optional image for the choice
-    
+    text = models.CharField(max_length=1000, null=True, blank=True)
+    image_choice = models.OneToOneField(RoadSign, on_delete=models.SET_NULL, null=True, blank=True)
+
     def __str__(self):
         return self.text or f"Ishusho: '{self.image_choice.definition}'"
+
 
 class QuestionManager(models.Manager):
     def get_questions_with_index(self):
         return [(index + 1, question) for index, question in enumerate(self.all())]
 
+
 class Question(models.Model):
     question_text = models.TextField()
-    sign = models.ManyToManyField(to=RoadSign, related_name='questions', blank=True)
+    sign = models.ManyToManyField(RoadSign, related_name='questions', blank=True)
     choices = models.ManyToManyField(Choice, related_name='questions')
     correct_choice = models.ForeignKey(Choice, on_delete=models.CASCADE, related_name='correct_for_questions')
 
     objects = QuestionManager()
 
     def __str__(self):
-    # Fetch all questions with their indexes
-        questions_with_index = Question.objects.get_questions_with_index()
-        for index, question in questions_with_index:
-            if question.id == self.id:
-                return f"{index}. {self.question_text}"
-        return self.question_text[0:10]
-   
+        return f"{self.id}. {self.question_text[:50]}"
+
+
 class Exam(models.Model):
-    TYPE = [
+    TYPE_CHOICES = [
         ('Ibimenyetso', 'Ibimenyetso'),
         ('Ibyapa', 'Ibyapa'),
         ('Bivanze', 'Bivanze'),
-        ('Ibindi', 'Ibindi')]
-    title = models.CharField(max_length=500, choices=TYPE, blank=True)
-    questions = models.ManyToManyField(to=Question, related_name='questions')
+        ('Ibindi', 'Ibindi'),
+    ]
+    title = models.CharField(max_length=500, choices=TYPE_CHOICES, blank=True)
+    questions = models.ManyToManyField(Question, related_name='exams')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-                # duration = models.DurationField()
 
     def __str__(self):
         return self.title
-                
 
 
 class UserExam(models.Model):
@@ -77,7 +143,7 @@ class UserExam(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('user', 'exam')  # Enforce unique user-exam combination
+        unique_together = ('user', 'exam')
 
     def __str__(self):
         return f"{self.user.username} - {self.exam.title}"
@@ -86,17 +152,32 @@ class UserExam(models.Model):
 class UserExamAnswer(models.Model):
     user_exam = models.ForeignKey(UserExam, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    selected_choice = models.CharField(max_length=1, null=True, blank=True)
+    selected_choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user_exam.user.username} - {self.question.title}"
+        return f"{self.user_exam.user.username} - {self.question.question_text[:50]}"
+
+class Plan(models.Model):
+    PLAN_CHOICES = [
+        ('Daily', 'Daily'),
+        ('Weekly', 'Weekly'),
+        ('Monthly', 'Monthly'),
+        ('Super', 'Super'),
+    ]
+    plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default="Daily", null=True)
+
+    def __str__(self):
+        return self.plan
+    
 
 
 class Subscription(models.Model):
+    
+
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    plan = models.CharField(max_length=10, choices=[('monthly', 'Monthly'), ('yearly', 'Yearly')], null=True)
-    price = models.IntegerField(default=10)
-    duration_days = models.IntegerField(default=10)
+    plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True)
+    price = models.IntegerField(default=500)
+    duration_days = models.IntegerField(default=1)
     phone_number = models.CharField(max_length=13, default=25078)
     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
 

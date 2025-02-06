@@ -5,7 +5,7 @@
 {% block content %}
 
 <h2><strong>Amanota: </strong> {{ user_exam.score }} / {{ user_exam.exam.questions.count }}</h2>
-<p>{{ user_exam.completed_at|timesince }} ishize</p>
+<p>{{ user_exam.completed_at|timesince }} ago</p>
 
 <section class="mt-5">
     {% for answer in answers %}
@@ -18,13 +18,8 @@
             <!-- Display Choices for the Question -->
             {% for choice in question_choices|get:answer.question.id %}
                 <li class="list-group-item 
-                    {% if choice.id == answer.selected_choice.id and choice.id == answer.question.correct_choice.id %}
-                        list-group-item-success
-                    {% elif choice.id == answer.selected_choice.id and choice.id != answer.question.correct_choice.id %}
-                        list-group-item-danger
-                    {% elif choice.id == answer.question.correct_choice.id %}
-                        list-group-item-success
-                    {% endif %}
+                    {% if choice.id == answer.selected_choice.id %} list-group-item-warning {% endif %}
+                    {% if choice.id == answer.question.correct_choice.id %} list-group-item-success {% endif %}
                 ">
                     {% if choice.image_choice %}
                         <img src="{{ choice.image_choice.sign_image.url }}" 
@@ -34,13 +29,14 @@
                         {{ choice.text }}
                     {% endif %}
 
-                    <!-- Mark Correct and Incorrect Answers -->
-                    {% if choice.id == answer.selected_choice.id and choice.id == answer.question.correct_choice.id %}
-                        ✅ <span class="badge bg-success">Wagikoze</span>
-                    {% elif choice.id == answer.selected_choice.id and choice.id != answer.question.correct_choice.id %}
-                        ❌ <span class="badge bg-danger">Icyo wahisempo</span>
-                    {% elif choice.id == answer.question.correct_choice.id %}
-                        ✅ <span class="badge bg-success">Igisubizo cy'ukuri</span>
+                    <!-- User's selected answer -->
+                    {% if choice.id == answer.selected_choice.id %}
+                        <span class="badge bg-warning text-dark">Your Answer</span>
+                    {% endif %}
+
+                    <!-- Correct Answer -->
+                    {% if choice.id == answer.question.correct_choice.id %}
+                        <span class="badge bg-success">Correct Answer</span>
                     {% endif %}
                 </li>
             {% endfor %}

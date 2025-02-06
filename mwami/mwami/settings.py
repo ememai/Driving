@@ -28,8 +28,9 @@ SECRET_KEY = 'django-insecure-+67*hv@9-&gd4g$_=pq&nbznszcgro50j+oho74qi3qf(^545h
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['545a-197-157-187-21.ngrok-free.app', '127.0.0.1']
 
+ALLOWED_HOSTS = ['magpie-thorough-cicada.ngrok-free.app', '127.0.0.1']
+# ALLOWED_HOSTS = ['127.0.0.1']
 
 # Application definition
 
@@ -88,6 +89,12 @@ DATABASES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = [
+    'app.authentication.EmailOrPhoneBackend',  # Custom email/phone backend
+    'django.contrib.auth.backends.ModelBackend',   # Default Django backend
+]
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -120,7 +127,7 @@ USE_I18N = True
 USE_TZ = True
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://545a-197-157-187-21.ngrok-free.app',  # Add your ngrok URL here
+    'https://magpie-thorough-cicada.ngrok-free.app',  # Add your ngrok URL here
 ]
 
 
@@ -143,13 +150,16 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Email settings    
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Email for production  
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 read_dotenv()
 

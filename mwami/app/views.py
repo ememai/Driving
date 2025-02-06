@@ -7,9 +7,10 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import *
 from django.shortcuts import get_object_or_404
-from .forms import SubscriptionForm
+from .forms import *
 import uuid
 from .momo_utils import *
+from .utils import *
 from django.views.decorators.csrf import csrf_exempt
 import json
 import base64
@@ -17,26 +18,19 @@ import base64
 
 # Home View
 def home(request):
-    context = {}
-    return render(request, 'home.html', context)
+    return render(request, 'home.html')
+
 
 @login_required(login_url='login')
 def exams_list(request):
     exams = Exam.objects.all()
-    context = {'exams': exams}
-    return render(request, 'exams_list.html', context)
+    return render(request, 'exams_list.html', {'exams': exams})
 
-# Exam View
+
 @login_required(login_url='login')
 def exam(request, exam_id, question_number):
-   #exam = Exam.objects.get(id=exam_id)
-    try:
-        exam = Exam.objects.get(id=exam_id)
-    except Exam.DoesNotExist:
-        messages.error(request, "Exam not found.")
-        return redirect('home')
-
-    questions = list(exam.questions.all())
+    exam = get_object_or_404(Exam, id=exam_id)
+    questions = list(exam.questions.all().select_related('correct_choice'))
     total_questions = len(questions)
 
     # Validate question number
@@ -44,87 +38,83 @@ def exam(request, exam_id, question_number):
         messages.error(request, "Invalid question number.")
         return redirect('exam', exam_id=exam_id, question_number=1)
 
-    # Get current question
     current_question = questions[question_number - 1]
 
+    # Ensure UserExam record
     user_exam, created = UserExam.objects.get_or_create(
         user=request.user,
         exam=exam,
         defaults={'score': 0, 'completed_at': None}
     )
 
-
-    # Initialize answers in session if not present
+    # Initialize session if not set
     if 'answers' not in request.session:
         request.session['answers'] = {}
 
-    # Save user's answer for the current question
     if request.method == 'POST':
         user_answer = request.POST.get('answer')
+
         if user_answer:
             request.session['answers'][str(current_question.id)] = user_answer
-            request.session.modified = True
+            request.session.modified = True  # Mark session as modified
 
-        # Navigate to the next or previous question
+        # Navigation logic
         if 'next' in request.POST and question_number < total_questions:
             return redirect('exam', exam_id=exam_id, question_number=question_number + 1)
         elif 'previous' in request.POST and question_number > 1:
             return redirect('exam', exam_id=exam_id, question_number=question_number - 1)
         elif 'submit' in request.POST:
-            # Calculate score
+            # Calculate final score
             score = 0
             for question in questions:
                 correct_answer = question.correct_choice
                 user_answer = request.session['answers'].get(str(question.id))
-                if user_answer == correct_answer:
+
+                if user_answer and user_answer == str(correct_answer.id):
                     score += 1
-                
+
+                # Save user response in the database
+                selected_choice = Choice.objects.filter(id=user_answer).first()
                 UserExamAnswer.objects.update_or_create(
-                user_exam=user_exam,
-                question=question,
-                defaults={'selected_choice': user_answer}
-                )                
+                    user_exam=user_exam,
+                    question=question,
+                    defaults={'selected_choice': selected_choice}
+                )
 
             # Save UserExam record
             user_exam.score = score
             user_exam.completed_at = now()
             user_exam.save()
 
-            try:
-                del request.session['answers']
-            except KeyError:
-                pass
-  # Clear session answers
-            return redirect('exam_results', user_exam_id=user_exam.id)
+            # Clear session
+            request.session.pop('answers', None)
 
             messages.success(request, f"Exam submitted! Your score: {score}/{total_questions}.")
-    
-    context = {
+            return redirect('exam_results', user_exam_id=user_exam.id)
+
+    return render(request, 'exam.html', {
         'exam': exam,
         'question': current_question,
         'question_number': question_number,
         'total_questions': total_questions,
-    }
+        'questions': questions,
+    })
 
-    return render(request, 'exam.html', context)
 
-# Results View
 @login_required(login_url='login')
 def exam_results(request, user_exam_id):
     user_exam = get_object_or_404(UserExam, id=user_exam_id, user=request.user)
-    answers = UserExamAnswer.objects.filter(user_exam=user_exam).select_related('question')
-    question_choices = {
-        answer.question.id: {
-            'choice1': answer.question.choice1,
-            'choice2': answer.question.choice2,
-            'choice3': answer.question.choice3,
-            'choice4': answer.question.choice4,
-        }
-        for answer in answers
-    }
-    context = {'user_exam': user_exam, 'answers': answers , 'question_choices': question_choices}
-    return render(request, 'exam_results.html', context)
+    answers = UserExamAnswer.objects.filter(user_exam=user_exam).select_related('question', 'selected_choice')
 
+    question_choices = {
+        answer.question.id: list(answer.question.choices.all()) for answer in answers
+    }
+
+    return render(request, 'exam_results.html', {
+        'user_exam': user_exam,
+        'answers': answers,
+        'question_choices': question_choices
+    })
 
 # Contact View
 
@@ -139,60 +129,95 @@ def contact(request):
 
     return render(request, 'contact.html')
 
-# Login View
-def user_login(request):
+
+def register_view(request):
+    """Handle user registration"""
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user:
-            login(request, user)
-            messages.success(request, "Login successful!")
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data["password"])
+            user.active = False  # User remains inactive until OTP is verified
+            user.save()
+
+            if 'email' in form.cleaned_data:  # Check if email is provided
+                user.send_otp_email()  # Send OTP
+                messages.success(request, 'OTP sent to your email. Verify your account.')
+                return redirect('verify_otp', user_id=user.id)
+            else:
+                return redirect("home")
+    else:
+        form = RegisterForm()
+
+    return render(request, 'registration/register.html', {'form': form})
+
+def verify_otp(request, user_id):
+    """Handle OTP verification"""
+    user = get_object_or_404(UserProfile, id=user_id)
+    
+    if request.method == 'POST':
+        otp = request.POST.get('otp')
+        if user.verify_otp(otp):
+            user.active = True
+            user.save()
+            login(request, user)  # Log in the user after verification
+            messages.success(request, 'Account verified successfully.')
             return redirect('home')
         else:
-            messages.error(request, "!!! imyirondoro itariyo , ongera ugerageze")
-    return render(request, 'registration/login.html')
+            messages.error(request, 'Invalid OTP. Please try again.')
 
-# Logout View
+    return render(request, 'registration/verify_otp.html', {'user': user})
+
+
+def login_view(request):
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            phone_number = form.cleaned_data["phone_number"]
+            password = form.cleaned_data["password"]
+            user = authenticate(request, phone_number=phone_number, password=password)
+
+            if user:
+                login(request, user)
+                return redirect("home")
+            else:
+                form.add_error(None, "Invalid login credentials.")
+    else:
+        form = LoginForm()
+    return render(request, "registration/login.html", {"form": form})
+
+
 def user_logout(request):
+    """Handle user logout"""
     logout(request)
-    messages.warning(request, "You have been logged out.")
+    messages.success(request, "You have been logged out.")
     return redirect('home')
 
-# Registration View
-def register(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists.")
-        else:
-            user = User.objects.create_user(username=username, email=email, password=password)
-            Subscription.objects.create(user=user, active=False)
-            messages.success(request, "Registration successful! Please log in.")
-            return redirect('login')
-    return render(request, 'registration/register.html')
 
 
 @login_required(login_url='login')
 def subscription_view(request):
     """Allow users to subscribe via MTN MoMo."""
+    plans = Plan.PLAN_CHOICES  # This is a list of tuples (value, label)
     subscription, created = Subscription.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
         plan = request.POST.get('plan')
         phone_number = request.POST.get('phone_number')
 
-        # Validate plan
-        if plan not in ['monthly', 'yearly']:
+        # Validate plan (Check only the plan values)
+        if plan not in dict(plans):
             messages.error(request, "Invalid plan selected.")
             return redirect('subscription')
 
+        # Get the Plan instance (case-insensitive lookup)
+        selected_plan = Plan.objects.get(plan=plan)
+        if not selected_plan:
+            messages.error(request, "Selected plan does not exist.")
+            return redirect('subscription')
+
         # Set price and duration
-        price = 10 if plan == 'monthly' else 100
-        duration_days = 30 if plan == 'monthly' else 365
+        price, duration_days = set_price_and_duration(plan)
 
         # Request payment
         payment_response, transaction_id = request_momo_payment(phone_number, price)
@@ -202,7 +227,7 @@ def subscription_view(request):
             return redirect('subscription')
 
         # Save transaction details
-        subscription.plan = plan
+        subscription.plan = selected_plan  # ✅ Assign the Plan instance
         subscription.price = price
         subscription.duration_days = duration_days
         subscription.phone_number = phone_number
@@ -212,7 +237,13 @@ def subscription_view(request):
         messages.info(request, "Payment request sent. Complete payment on your phone.")
         return redirect('momo_payment_status', transaction_id=transaction_id)
 
-    return render(request, 'subscription.html', {'subscription': subscription})
+    context = {
+        'subscription': subscription,
+        'plans': plans,
+    }
+
+    return render(request, 'subscription.html', context)
+
 
 
 def momo_payment(request):

@@ -1,0 +1,62 @@
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from datetime import date
+import phonenumbers
+import random
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+from some_sms_service import send_sms  # Replace with actual SMS sending library
+
+class UserProfile(AbstractUser):
+    email = models.EmailField(unique=True, blank=False, null=False)  
+    phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)  
+    profile_picture = models.ImageField(upload_to='images/', null=True, blank=True)
+    active = models.BooleanField(default=False)
+    subscription_end_date = models.DateField(null=True, blank=True)
+    otp_code = models.CharField(max_length=6, blank=True, null=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'phone_number']
+
+    def clean(self):
+        if self.phone_number:
+            try:
+                parsed_number = phonenumbers.parse(self.phone_number, None)
+                if not phonenumbers.is_valid_number(parsed_number):
+                    raise ValueError("Invalid phone number format")
+            except:
+                raise ValueError("Invalid phone number format")
+
+    @property
+    def is_subscribed(self):
+        return self.subscription_end_date and self.subscription_end_date >= date.today()
+
+    def send_otp_phone(self):
+        self.otp_code = str(random.randint(100000, 999999))
+        self.save()
+        send_sms(self.phone_number, f'Your OTP code is {self.otp_code}')  # Replace with actual SMS API
+
+    def verify_otp(self, otp):
+        return self.otp_code == otp
+
+    def __str__(self):
+        return self.email
+
+
+from twilio.rest import Client
+
+# Twilio credentials
+account_sid = 'your_account_sid'
+auth_token = 'your_auth_token'
+
+# Create a Twilio client
+client = Client(account_sid, auth_token)
+
+def send_sms(phone_number, message):
+    client.messages.create(
+        body=message,
+        from_='+1234567890',  # Your Twilio number
+        to=phone_number
+    )
+
+pip install twilio

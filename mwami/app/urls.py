@@ -13,7 +13,9 @@ urlpatterns = [
     path("pay/status/<str:transaction_id>/", momo_payment_status, name="momo_payment_status"),
     # path("momo/callback/", momo_callback, name="momo_callback"),
     path('contact/', views.contact, name='contact'),
-    path('login/', views.user_login, name='login'),
-    path('logout/', views.user_logout, name='logout'),
-    path('register/', views.register, name='register'),
+    path('register/', register_view, name='register'),
+    path('verify-otp/<int:user_id>/', verify_otp, name='verify_otp'),
+    path('login/', login_view, name='login'),
+    path('logout/', user_logout, name='logout'),
+    
 ]
