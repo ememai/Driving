@@ -123,3 +123,12 @@ class LoginForm(forms.Form):
             raise forms.ValidationError("Email or Phone number is required.")
 
         return cleaned_data
+
+
+class ScheduledExamForm(forms.ModelForm):
+    class Meta:
+        model = ScheduledExam
+        fields = ['exam', 'upload_time']
+        widgets = {
+            'upload_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+        }

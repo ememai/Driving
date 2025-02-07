@@ -1,14 +1,20 @@
  # Install this with `pip install phonenumbers`
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
+
 import random
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+
 from django.core.exceptions import ValidationError
 from django.db import models
+
 from django.core.mail import send_mail
-from datetime import date
+from datetime import date, timedelta
+
 import phonenumbers
 from django.contrib import messages
+from django.utils import timezone
+
 #
 
 class UserProfileManager(BaseUserManager):
@@ -249,3 +255,17 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.name} ({self.email})"
+
+
+class ScheduledExam(models.Model):
+    exam = models.ForeignKey(Exam, on_delete=models.SET, null=True)
+    upload_time = models.DateTimeField(help_text="When should this exam be published?")
+    is_published = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.exam
+
+    def publish(self):
+        """Marks the exam as published"""
+        self.is_published = True
+        self.save()

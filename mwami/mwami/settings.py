@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app.apps.AppConfig',
+    'django_celery_beat',
 ]
 
 AUTH_USER_MODEL = 'app.UserProfile'
@@ -172,3 +173,6 @@ MTN_MOMO_CALLBACK_URL = os.getenv("MTN_MOMO_CALLBACK_URL")
 MTN_MOMO_COLLECTION_PRIMARY_KEY = os.getenv("MTN_MOMO_COLLECTION_PRIMARY_KEY")
 MTN_MOMO_BASE_URL = os.getenv("MTN_MOMO_BASE_URL")
 
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Use Redis as broker
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'

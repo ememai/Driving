@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - RWANDA DRIVERS{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Admin Dashboard</h1>
+    <p class="text-center text-muted">Welcome, {{ request.user.get_full_name|default:request.user.username }}
+        . Current time: {{ current_time|date:"Y-m-d H:i" }}</p>
+
+    <div class="row">
+        <!-- Overview Cards -->
+        <div class="col-md-4">
+            <div class="card bg-primary text-white shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <p class="display-4">{{ total_users }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Total Exams</h5>
+                    <p class="display-4">{{ total_exams }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Total Payments</h5>
+                    <p class="display-4">{{ total_payments }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Payments -->
+    <div class="card mt-4 shadow">
+        <div class="card-header bg-info text-white">
+            <h5>Recent Payments</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Transaction ID</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in recent_payments %}
+                        <tr>
+                            <td>{{ payment.user }}</td>
+                            <td>{{ payment.amount|safe }}</td>
+                            <td><span class="badge bg-secondary">{{ payment.status }}</span></td>
+                            <td>{{ payment.transaction_id }}</td>
+                            <td>{{ payment.created_at|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No recent payments.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Messages -->
+    <div class="card mt-4 shadow">
+        <div class="card-header bg-danger text-white">
+            <h5>Recent Contact Messages</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Message</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in recent_messages %}
+                        <tr>
+                            <td>{{ message.name }}</td>
+                            <td>{{ message.email }}</td>
+                            <td>{{ message.message|truncatewords:10 }}</td>
+                            <td>{{ message.created_at|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">No messages received.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Latest Exams -->
+    <div class="card mt-4 shadow">
+        <div class="card-header bg-secondary text-white">
+            <h5>Latest Exams (with question count)</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for exam in exams_with_question_counts %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ exam.title }}
+                        <span class="badge bg-primary rounded-pill">{{ exam.question_count }} questions</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-center">No exams available.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Exam  -->
+
+<div class="container mt-4">
+
+    <div class="row">
+        <!-- Schedule Exam Form -->
+        <div class="col-md-6">
+            <h2>Schedule an Exam</h2>
+            <form method="post" class="card p-4 shadow">
+                {% csrf_token %}
+                <div class="mb-3">
+                                       
+                    {% for exam in form.exam %}
+                        <label for="exam_{{ forloop.counter }}">
+                            <input type="radio" id="exam_{{ forloop.counter }}" name="exam" value="{{ exam.id }}">
+                            {{ exam }}
+                        </label>
+                    {% endfor %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Upload Time</label>
+                    {{ form.upload_time }}
+                </div>
+                <button type="submit" class="btn btn-primary">Schedule Exam</button>
+            </form>
+        </div>
+
+        <!-- Scheduled Exams List -->
+        <div class="col-md-6">
+            <h2>Scheduled Exams</h2>
+            <table class="table table-bordered table-striped shadow">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Title</th>
+                        <th>Upload Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in scheduled_exams %}
+                    <tr>
+                        <td>{{ exam.title }}</td>
+                        <td>{{ exam.upload_time|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            {% if exam.is_published %}
+                                <span class="badge bg-success">Published</span>
+                            {% else %}
+                                <span class="badge bg-warning">Scheduled</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">No scheduled exams.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

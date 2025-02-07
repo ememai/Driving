@@ -1,0 +1,119 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Admin Dashboard</h2>
+
+    <div class="row">
+        <!-- Statistics Cards -->
+        <div class="col-md-3">
+            <div class="card bg-primary text-white p-3">
+                <h5>Total Users</h5>
+                <h3 id="total-users">0</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white p-3">
+                <h5>Total Exams</h5>
+                <h3 id="total-exams">0</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white p-3">
+                <h5>Active Subscriptions</h5>
+                <h3 id="active-subscriptions">0</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white p-3">
+                <h5>Total Payments</h5>
+                <h3 id="total-payments">0</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments Table -->
+    <div class="mt-4">
+        <h4>Recent Payments</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="recent-payments">
+                <!-- Data will be loaded here via AJAX -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Schedule Exam Form -->
+    <div class="mt-4">
+        <h4>Schedule an Exam</h4>
+        <form id="schedule-exam-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Schedule Exam</button>
+        </form>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function(){
+    function updateDashboard() {
+        $.ajax({
+            url: "{% url 'admin_dashboard' %}",
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                $("#total-users").text(data.total_users);
+                $("#total-exams").text(data.total_exams);
+                $("#active-subscriptions").text(data.active_subscriptions);
+                $("#total-payments").text(data.total_payments);
+
+                // Update payments table
+                var paymentRows = "";
+                data.recent_payments.forEach(payment => {
+                    paymentRows += `<tr>
+                        <td>${payment.user__email}</td>
+                        <td>${payment.amount}</td>
+                        <td>${payment.status}</td>
+                        <td>${payment.created_at}</td>
+                    </tr>`;
+                });
+                $("#recent-payments").html(paymentRows);
+            }
+        });
+    }
+
+    // Initial data load
+    updateDashboard();
+
+    // Auto-update every 10 seconds
+    setInterval(updateDashboard, 10000);
+
+    // Handle exam scheduling
+    $("#schedule-exam-form").submit(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: "{% url 'schedule_exam' %}",
+            type: "POST",
+            data: $(this).serialize(),
+            dataType: "json",
+            success: function(response) {
+                alert(response.message);
+                $("#schedule-exam-form")[0].reset();
+            },
+            error: function(response) {
+                alert("Error: " + JSON.stringify(response.responseJSON.error));
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

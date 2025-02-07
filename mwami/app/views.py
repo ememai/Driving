@@ -374,3 +374,6 @@ def momo_payment_status(request, transaction_id):
 
     status = check_payment_status(transaction_id)
     return JsonResponse(status)
+
+
+    
