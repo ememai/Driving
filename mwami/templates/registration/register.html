@@ -1,10 +1,153 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Register{% endblock %}
 
 {% block content %}
-<h2>Register</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-</form>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow-lg p-4">
+            <h2 class="text-center mb-4">Create an Account</h2>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="mb-3 text-center">
+                    <label class="form-label fw-bold">Register with:</label>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="button" class="btn btn-outline-primary" id="usePhone">Phone</button>
+                        <button type="button" class="btn btn-outline-secondary" id="useEmail">Email</button>
+                    </div>
+                </div>
+
+                <!-- Phone Number Field (Default) -->
+                <div class="mb-3" id="phoneField">
+                    <label for="id_phone_number" class="form-label">Phone Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text">+250</span>
+                        <input type="text" name="phone_number" id="id_phone_number" class="form-control" placeholder="788123456">
+                    </div>
+                </div>
+
+                <!-- Email Field (Initially hidden) -->
+                <div class="mb-3 d-none" id="emailField">
+                    <label for="id_email" class="form-label">Email</label>
+                    <input type="email" name="email" id="id_email" class="form-control">
+                </div>
+
+                <!-- Password Fields -->
+                <div class="mb-3">
+                    <label for="id_password1" class="form-label">Password</label>
+                    <input type="password" name="password1" id="id_password1" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_password2" class="form-label">Confirm Password</label>
+                    <input type="password" name="password2" id="id_password2" class="form-control">
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Register</button>
+            </form>
+            <p class="text-center mt-3">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to Toggle Fields -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const emailField = document.getElementById("emailField");
+        const phoneField = document.getElementById("phoneField");
+        const useEmailBtn = document.getElementById("useEmail");
+        const usePhoneBtn = document.getElementById("usePhone");
+
+        useEmailBtn.addEventListener("click", function() {
+            emailField.classList.remove("d-none");
+            phoneField.classList.add("d-none");
+        });
+
+        usePhoneBtn.addEventListener("click", function() {
+            phoneField.classList.remove("d-none");
+            emailField.classList.add("d-none");
+        });
+    });
+</script>
 {% endblock %}
+
+
+
+
+{% comment %} {% extends 'base.html' %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow-lg p-4">
+            <h2 class="text-center mb-4">Create an Account</h2>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="mb-3 text-center">
+                    <label class="form-label fw-bold">Register with:</label>
+                    <div class="d-flex justify-content-center gap-3">
+                        
+                        <button type="button" class="btn btn-outline-primary" id="usePhone">Phone</button>
+                        <button type="button" class="btn btn-outline-secondary" id="useEmail">Email</button>
+                        
+                    </div>
+                </div>
+
+                <!-- Phone Number Field -->
+                <div class="mb-3 d-none" id="phoneField">
+                    <label for="id_phone_number" class="form-label">Phone Number</label>
+                    <input type="text" name="phone_number" id="id_phone_number" class="form-control">
+                </div>
+
+                <!-- Email Field -->
+                <div class="mb-3" id="emailField">
+                    <label for="id_email" class="form-label">Email</label>
+                    <input type="email" name="email" id="id_email" class="form-control">
+                </div>
+
+                
+
+                <!-- Password Fields -->
+                <div class="mb-3">
+                    <label for="id_password1" class="form-label">Password</label>
+                    <input type="password" name="password1" id="id_password1" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_password2" class="form-label">Confirm Password</label>
+                    <input type="password" name="password2" id="id_password2" class="form-control">
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Register</button>
+            </form>
+            <p class="text-center mt-3">Ufite konte? <a href="{% url 'login' %}">Injira</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to Toggle Fields -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const emailField = document.getElementById("emailField");
+        const phoneField = document.getElementById("phoneField");
+        const useEmailBtn = document.getElementById("useEmail");
+        const usePhoneBtn = document.getElementById("usePhone");
+
+        useEmailBtn.addEventListener("click", function() {
+            emailField.classList.remove("d-none");
+            phoneField.classList.add("d-none");
+        });
+
+        usePhoneBtn.addEventListener("click", function() {
+            phoneField.classList.remove("d-none");
+            emailField.classList.add("d-none");
+        });
+    });
+</script>
+{% endblock %} {% endcomment %}

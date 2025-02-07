@@ -8,6 +8,8 @@ from django.db import models
 from django.core.mail import send_mail
 from datetime import date
 import phonenumbers
+from django.contrib import messages
+#
 
 class UserProfileManager(BaseUserManager):
     """Custom manager to allow login with either email or phone."""
@@ -17,6 +19,8 @@ class UserProfileManager(BaseUserManager):
             raise ValueError("Either an email or phone number is required.")
 
         email = self.normalize_email(email) if email else None
+        phone_number = phone_number if phone_number else None  # Ensure None, not ""
+    
         user = self.model(email=email, phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -42,22 +46,47 @@ class UserProfile(AbstractUser):
 
     objects = UserProfileManager()
 
+    def save(self, *args, **kwargs):
+        """Normalize phone number before saving to ensure consistency."""
+        if self.phone_number:
+
+            if self.phone_number == '':
+                self.phone_number = None
+            else:
+                self.phone_number = self.normalize_phone_number(self.phone_number)
+        super().save(*args, **kwargs)
+
+
+    # def save(self, *args, **kwargs):
+    #     # Ensure phone_number is never an empty string
+    #     if self.phone_number == '':
+    #         self.phone_number = None
+    #     super().save(*args, **kwargs)
+
     def clean(self):
-        """
-        Ensures that at least one of email or phone number is provided.
-        Also validates phone number format.
-        """
+        """Ensure phone number is in the correct format before saving."""
         if not self.email and not self.phone_number:
             raise ValidationError("Either an email or phone number is required.")
 
         if self.phone_number:
+            self.phone_number = self.normalize_phone_number(self.phone_number)
+
+            # Validate phone number format
             try:
-                parsed_number = phonenumbers.parse(self.phone_number, None)
-                
+                parsed_number = phonenumbers.parse(self.phone_number, "RW")
                 if not phonenumbers.is_valid_number(parsed_number):
-                    raise ValidationError("Invalid phone number format")
-            except:
-                raise ValidationError("Invalid phone number format")
+                    raise ValidationError("Invalid phone number format for Rwanda (+250).")
+            except phonenumbers.NumberParseException:
+                raise ValidationError("Invalid phone number format.")
+
+    def normalize_phone_number(self, phone_number):
+        """Ensures phone numbers are always stored in the format: +2507XXXXXXXX."""
+        try:
+            parsed_number = phonenumbers.parse(phone_number, "RW")
+            return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
+        except phonenumbers.NumberParseException:
+            return phone_number  # If invalid, return as-is
+
 
     @property
     def is_subscribed(self):
@@ -72,7 +101,7 @@ class UserProfile(AbstractUser):
         send_mail(
             'Your OTP Code',
             f'Your OTP code is {self.otp_code}',
-            'no-reply@example.com',
+            'ememaiid@gmail.com',
             [self.email],
             fail_silently=False,
         )

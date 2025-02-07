@@ -14,6 +14,13 @@ from .utils import *
 from django.views.decorators.csrf import csrf_exempt
 import json
 import base64
+from .decorators import * 
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import get_backends
+from django.db.models import Q
+from .authentication import EmailOrPhoneBackend  # Adjust if needed
+
+
 
 
 # Home View
@@ -129,62 +136,160 @@ def contact(request):
 
     return render(request, 'contact.html')
 
-
+@redirect_authenticated_users
 def register_view(request):
-    """Handle user registration"""
+    
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.set_password(form.cleaned_data["password"])
-            user.active = False  # User remains inactive until OTP is verified
+            user.set_password(form.cleaned_data["password1"])  
+            user.active = True  # User remains inactive until OTP is verified
             user.save()
 
-            if 'email' in form.cleaned_data:  # Check if email is provided
+            if 'email' in form.cleaned_data and form.cleaned_data["email"]:
+                user.active = False
                 user.send_otp_email()  # Send OTP
                 messages.success(request, 'OTP sent to your email. Verify your account.')
                 return redirect('verify_otp', user_id=user.id)
             else:
-                return redirect("home")
+                messages.success(request, 'Account created successfully. Please login.')
+                return redirect("login")
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.capitalize()}: {error}")
+
     else:
         form = RegisterForm()
 
     return render(request, 'registration/register.html', {'form': form})
 
+
+@redirect_authenticated_users
 def verify_otp(request, user_id):
-    """Handle OTP verification"""
-    user = get_object_or_404(UserProfile, id=user_id)
-    
+    # Fetch the UserProfile instance
+    user_profile = get_object_or_404(UserProfile, id=user_id)
+
     if request.method == 'POST':
         otp = request.POST.get('otp')
-        if user.verify_otp(otp):
-            user.active = True
-            user.save()
-            login(request, user)  # Log in the user after verification
-            messages.success(request, 'Account verified successfully.')
+        if user_profile.verify_otp(otp):  # Verify the OTP
+            user_profile.active = True
+            user_profile.save()
+
+            # Authenticate the user (this sets the backend attribute)
+            authenticated_user = authenticate(
+                request,
+                username=user_profile.phone_number or user_profile.email,
+                password=user_profile.password  # Ensure the correct password is stored
+            )
+
+            backend = get_backends()[0]
+            user_profile.backend = f"{backend.__module__}.{backend.__class__.__name__}"
+            login(request, user_profile)
+            
+            # Keep session active
+            update_session_auth_hash(request, user_profile)
+
+            messages.success(request, 'Account verified successfully. Welcome!')
             return redirect('home')
         else:
             messages.error(request, 'Invalid OTP. Please try again.')
 
-    return render(request, 'registration/verify_otp.html', {'user': user})
+    return render(request, 'registration/verify_otp.html', {'user': user_profile})
 
-
+@redirect_authenticated_users
 def login_view(request):
     if request.method == "POST":
         form = LoginForm(request.POST)
         if form.is_valid():
-            phone_number = form.cleaned_data["phone_number"]
+            username = form.cleaned_data["username"]
             password = form.cleaned_data["password"]
-            user = authenticate(request, phone_number=phone_number, password=password)
+
+            # Fetch user by email or phone number
+             # Normalize phone number if needed
+            if "@" not in username:  
+                username = EmailOrPhoneBackend().normalize_phone_number(username)
+
+            # Fetch user by email or phone number
+            user = UserProfile.objects.filter(Q(phone_number=username) | Q(email=username)).first()
+
 
             if user:
-                login(request, user)
-                return redirect("home")
+                # Ensure phone_number is set to None if empty
+                if user.phone_number == "":
+                    user.phone_number = None
+                    user.save(update_fields=["phone_number"])
+                
+                if not user.active:
+                    messages.error(request, "Please verify your OTP before logging in.")
+                    return redirect("verify_otp", user_id=user.id)
+
+
+                # Authenticate user
+                authenticated_user = authenticate(request, username=username, password=password)
+
+                if authenticated_user:
+                    login(request, authenticated_user)
+                    messages.success(request, "Login successful! Welcome back.")
+                    return redirect("home")
+                else:
+                    messages.error(request, "Invalid password. Please try again.")
             else:
-                form.add_error(None, "Invalid login credentials.")
+                messages.error(request, "User not found. Please register first.")
+
+        # Handle form validation errors
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f"{field.capitalize()}: {error}")
+
     else:
         form = LoginForm()
+
     return render(request, "registration/login.html", {"form": form})
+
+
+# @redirect_authenticated_users
+# def login_view(request):
+    
+#     if request.method == "POST":
+#         form = LoginForm(request.POST)
+#         if form.is_valid():
+#             username = form.cleaned_data["username"]
+#             password = form.cleaned_data["password"]
+
+#             # # Normalize phone number before authentication
+#             # if "@" not in username:
+#             #     username = EmailOrPhoneBackend().normalize_phone_number(username)
+#             if user.phone_number == "":
+#                 user.phone_number = None
+#                 user.save(update_fields=["phone_number"])
+
+
+
+#             user = UserProfile.objects.filter(email=username).first() or \
+#                    UserProfile.objects.filter(phone_number=username).first()
+
+#             if user:
+#                 authenticated_user = authenticate(request, username=username, password=password)
+
+#                 if authenticated_user:
+#                     login(request, authenticated_user)
+#                     messages.success(request, "Login successful! Welcome back.")
+#                     return redirect("home")
+#                 else:
+#                     messages.error(request, "Invalid password. Please try again.")
+#             else:
+#                 messages.error(request, "User not found. Please register first.")
+
+#         for field, errors in form.errors.items():
+#             for error in errors:
+#                 messages.error(request, f"{field.capitalize()}: {error}")
+
+#     else:
+#         form = LoginForm()
+
+#     return render(request, "registration/login.html", {"form": form})
 
 
 def user_logout(request):
@@ -269,88 +374,3 @@ def momo_payment_status(request, transaction_id):
 
     status = check_payment_status(transaction_id)
     return JsonResponse(status)
-
-
-
-
-
-
-
-
-
-
-# def subscription_view(request):
-#     """Allow users to subscribe via MTN MoMo."""
-#     subscription, created = Subscription.objects.get_or_create(user=request.user)
-
-#     if request.method == 'POST':
-#         plan = request.POST.get('plan')
-#         phone_number = request.POST.get('phone_number')
-
-#         # Validate plan
-#         if plan not in ['monthly', 'yearly']:
-#             messages.error(request, "Invalid plan selected.")
-#             return redirect('subscription')
-
-#         # Set price and duration
-#         price = 10 if plan == 'monthly' else 100
-#         duration_days = 30 if plan == 'monthly' else 365
-
-#         # Validate and format phone number
-#         formatted_phone = format_phone_number(phone_number)
-#         if not formatted_phone:
-#             messages.error(request, "Invalid phone number. Please enter a valid number.")
-#             return redirect('subscription')
-
-#         # Generate transaction ID
-#         transaction_id = str(uuid.uuid4())
-
-#         # Request payment
-#         try:
-#             payment_requested, transaction_id = request_momo_payment(
-#                 phone_number=formatted_phone,
-#                 amount=price,                 
-#             )
-#         except Exception as e:
-#             messages.error(request, f"Error processing payment: {str(e)}")
-#             return redirect('subscription')
-
-#         if payment_requested:
-#             # Save transaction details
-#             subscription.plan = plan
-#             subscription.price = price
-#             subscription.duration_days = duration_days
-#             subscription.phone_number = formatted_phone
-#             subscription.transaction_id = transaction_id
-#             subscription.save()
-
-#             messages.info(request, "Payment request sent. Complete payment on your phone.")
-#             return redirect('momo_payment_status', transaction_id=transaction_id)
-#         else:
-#             messages.error(request, "Payment request failed. Please try again.")
-#             return redirect('subscription')
-
-#     return render(request, 'subscription.html', {'subscription': subscription})
-
-
-# def momo_payment(request):
-#     phone_number = request.GET.get("phone")
-#     amount = request.GET.get("amount")
-
-#     if not phone_number or not amount:
-#         return JsonResponse({"error": "Phone number and amount are required"}, status=400)
-
-#     status_code, transaction_id = request_momo_payment(phone_number, amount)
-
-#     if status_code == 202:
-#         return JsonResponse({"message": "Payment request sent", "transaction_id": transaction_id})
-#     return JsonResponse({"error": "Failed to initiate payment"}, status=500)
-
-# def momo_payment_status(request, transaction_id):
-#     if not transaction_id or transaction_id == "None":
-#         return JsonResponse({"error": "Invalid transaction ID"}, status=400)
-
-#     status = check_payment_status(transaction_id)
-#     return JsonResponse(status)
-
-
