@@ -1,5 +1,9 @@
 from django.contrib import admin
 from .models import *
+
+from django.urls import reverse
+from django.utils.html import format_html
+from django.contrib.admin import AdminSite
 # Register your models here.
 # class:
 #   pass
@@ -83,10 +87,10 @@ class UserExamAdmin(admin.ModelAdmin):
     list_display = ('user', 'exam', 'score', 'completed_at')
     search_fields = ('user__email', 'exam__title')
 
-@admin.register(UserExamAnswer)
-class UserExamAnswerAdmin(admin.ModelAdmin):
-    list_display = ('user_exam', 'question', 'selected_choice')
-    search_fields = ('user_exam__user__email', 'question__question_text')
+# @admin.register(UserExamAnswer)
+# class UserExamAnswerAdmin(admin.ModelAdmin):
+#     list_display = ('user_exam', 'question', 'selected_choice')
+#     search_fields = ('user_exam__user__email', 'question__question_text')
 
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
@@ -117,6 +121,23 @@ def activate_subscriptions(modeladmin, request, queryset):
 
 @admin.register(ScheduledExam)
 class ScheduledExamAdmin(admin.ModelAdmin):
-    list_display = ('exam', 'is_published')
+    list_display = ('exam', 'scheduled_datetime', 'is_published')
     list_filter = ('is_published',)
-    ordering = ('upload_time',)
+    ordering = ('scheduled_datetime',)
+    actions = ['publish_exam']
+
+    def publish_exam(self, request, queryset):
+        for scheduled_exam in queryset:
+            scheduled_exam.publish()
+    publish_exam.short_description = "Publish Scheduled Exams"
+
+@admin.register(UserActivity)
+class UserActivityAdmin(admin.ModelAdmin):
+    list_display = ('user', 'activity_type', 'timestamp', 'details')
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'message', 'timestamp', 'is_read')
+    list_filter = ('is_read',)
+

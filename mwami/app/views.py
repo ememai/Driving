@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
+
 from django.utils.timezone import now
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -18,7 +19,11 @@ from .decorators import *
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_backends
 from django.db.models import Q
-from .authentication import EmailOrPhoneBackend  # Adjust if needed
+from .authentication import EmailOrPhoneBackend  # Import the custom backend
+from django.utils.timezone import now
+from django.http import JsonResponse
+from .models import ScheduledExam
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 
@@ -106,6 +111,14 @@ def exam(request, exam_id, question_number):
         'total_questions': total_questions,
         'questions': questions,
     })
+
+def exam_timer(request, exam_id):
+    try:
+        scheduled_exam = ScheduledExam.objects.get(exam_id=exam_id)
+        time_remaining = (scheduled_exam.scheduled_datetime - now()).total_seconds()
+        return JsonResponse({'time_remaining': max(time_remaining, 0)})
+    except ScheduledExam.DoesNotExist:
+        return JsonResponse({'error': 'Exam not found'}, status=404)
 
 
 @login_required(login_url='login')

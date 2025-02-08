@@ -1,9 +1,9 @@
-# project/celery.py
-import os
-from celery import Celery
+# # project/celery.py
+# import os
+# from celery import Celery
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mwami.settings')
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mwami.settings')
 
-app = Celery('mwami')
-app.config_from_object('django.conf:settings', namespace='CELERY')
-app.autodiscover_tasks()
+# app = Celery('mwami')
+# app.config_from_object('django.conf:settings', namespace='CELERY')
+# app.autodiscover_tasks()

@@ -257,17 +257,65 @@ class ContactMessage(models.Model):
         return f"Message from {self.name} ({self.email})"
 
 
-class ScheduledExam(models.Model):
-    exam = models.ForeignKey(Exam, on_delete=models.SET, null=True)
-    scheduled_datetime = models.DateTimeField(help_text="Date & time when the exam should be published")
 
-    upload_time = models.DateTimeField(help_text="When should this exam be published?")
+class ScheduledExam(models.Model):
+    exam = models.ForeignKey("Exam", on_delete=models.CASCADE)  # Ensure CASCADE to avoid null exams
+    scheduled_datetime = models.DateTimeField(help_text="Date & time when the exam should be published")
     is_published = models.BooleanField(default=False)
 
-    def __str__(self):
-        return self.exam
 
     def publish(self):
         """Marks the exam as published"""
-        self.is_published = True
-        self.save()
+        if not self.is_published and self.scheduled_datetime <= timezone.now():
+            self.is_published = True
+            self.exam.is_active = True  # Activate the exam
+            self.exam.save()
+            self.save()
+
+            # Send email to all users (or you can send it to specific ones)
+            self.send_notification()
+            
+            print(f"Exam '{self.exam.title}' has been published!")
+
+            # Notify all subscribed users
+    def send_notification(self):
+        """Send an email notification to all users when the exam goes live"""
+        subject = f"New Exam is Live: {self.exam.title}"
+        message = f"The exam titled '{self.exam.title}' is now live! You can take it now."
+        
+        # Here, you would fetch the users who should receive the notification
+        # Assuming you have a way to fetch them from the `UserProfile` model:
+        users = UserProfile.objects.all()  # You can filter by specific users if needed
+        for user in users:
+            if user.email:  # Ensure the user has an email
+                send_mail(
+                    subject,
+                    message,
+                    'noreply@yourdomain.com',  # This can be your business email
+                    [user.email],
+                    fail_silently=False,
+                )
+            
+            print(f"Exam '{self.exam.title}' has been published and users have been notified!")
+
+    def __str__(self):
+        return f"Scheduled: {self.exam.title} at {self.scheduled_datetime}"
+
+class UserActivity(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    activity_type = models.CharField(max_length=255)
+    details = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.activity_type} by {self.user.username} on {self.timestamp}"
+
+class Notification(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    message = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification for {self.user.username}"
+

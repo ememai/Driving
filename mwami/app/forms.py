@@ -126,6 +126,7 @@ class LoginForm(forms.Form):
 
 
 
+
 class ScheduledExamForm(forms.ModelForm):
     class Meta:
         model = ScheduledExam

@@ -1,0 +1,50 @@
+<!-- exam_detail.html -->
+{% block content %}
+  <h1>{{ exam.title }}</h1>
+
+  <!-- Add countdown timer here -->
+  <div id="countdown-timer"></div>
+
+  <script type="text/javascript">
+    var examStartTime = new Date("{{ exam.scheduled_datetime|date:'Y/m/d H:i:s' }}").getTime();
+
+    var countdownFunction = setInterval(function() {
+        var now = new Date().getTime();
+        var distance = examStartTime - now;
+
+        var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        // Display the result in the HTML
+        document.getElementById("countdown-timer").innerHTML = 
+            days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+
+        if (distance < 0) {
+            clearInterval(countdownFunction);
+            document.getElementById("countdown-timer").innerHTML = "EXAM STARTED!";
+            // You can trigger additional logic here, like automatically opening the exam
+        }
+    }, 1000);
+  </script>
+{% endblock %}
+
+
+# views.py
+from django.shortcuts import render
+from .models import Exam
+
+def exam_detail(request, exam_id):
+    exam = Exam.objects.get(id=exam_id)
+    return render(request, 'exam_detail.html', {'exam': exam})
+
+
+    Explanation of JavaScript Code:
+    examStartTime is the date when the exam is scheduled to go live.
+    setInterval updates the countdown every second.
+    If the distance (difference between current time and exam start time) is less than 0, it means the exam has started, so you display "EXAM STARTED!" and can trigger additional actions (like showing the exam).
+    Optional: Automate Exam Open When Countdown Hits Zero
+    If you want the exam to open automatically when the countdown hits zero, you could add a view to open the exam once it becomes live and modify the front-end to redirect or show a link to start the exam.
+    
+    

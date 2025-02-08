@@ -1,15 +1,17 @@
-from celery import shared_task
+from apscheduler.schedulers.background import BackgroundScheduler
 from django.utils.timezone import now
 from .models import ScheduledExam
 
-@shared_task
 def publish_scheduled_exams():
-    """Activate exams that are scheduled for now or earlier."""
-    exams = ScheduledExam.objects.filter(scheduled_datetime__lte=now())
+    """Activates exams that are scheduled for the current time."""
+    current_time = now()
+    exams_to_publish = ScheduledExam.objects.filter(scheduled_datetime__lte=current_time, is_published=False)
 
-    for scheduled_exam in exams:
-        print(f"Publishing exam: {scheduled_exam.exam.title}")
-        # Here you can add logic to mark the exam as published, notify users, etc.
-        scheduled_exam.delete()  # Remove after publishing
+    for scheduled_exam in exams_to_publish:
+        scheduled_exam.publish()
 
-    return f"{exams.count()} exams published."
+def start_scheduler():
+    """Starts the APScheduler to check exams every minute."""
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(publish_scheduled_exams, 'interval', minutes=1)  # Runs every minute
+    scheduler.start()

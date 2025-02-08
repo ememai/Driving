@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, admin_views
+from . import views
 from .views import *
 
 urlpatterns = [
@@ -21,11 +21,5 @@ urlpatterns = [
     path('register/', register_view, name='register'),
     path('verify-otp/<int:user_id>/', verify_otp, name='verify_otp'),
     path('login/', login_view, name='login'),
-    path('logout/', user_logout, name='logout'),
-
-    #admin views
-    path('admin-dashboard/', admin_views.admin_dashboard, name='admin_dashboard'),
-    path('schedule-exam/', admin_views.schedule_exam, name='schedule_exam'),
-
-    
+    path('logout/', user_logout, name='logout'),   
 ]
