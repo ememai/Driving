@@ -52,68 +52,53 @@
     </div>
 
     <!-- Schedule Exam Form -->
-    <div class="mt-4">
-        <h4>Schedule an Exam</h4>
-        <form id="schedule-exam-form">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Schedule Exam</button>
-        </form>
-    </div>
-</div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Schedule Exam Form -->
+<h3>Schedule an Exam</h3>
+<form id="scheduleExamForm">
+    {{ form.as_p }}
+    <button type="submit">Schedule Exam</button>
+</form>
+
+<!-- Scheduled Exams List -->
+<h3>Scheduled Exams</h3>
+<table>
+    <tr>
+        <th>Exam</th>
+        <th>Scheduled Time</th>
+    </tr>
+    {% for exam in scheduled_exams %}
+    <tr>
+        <td>{{ exam.exam.title }}</td>
+        <td>{{ exam.scheduled_datetime }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
 <script>
-$(document).ready(function(){
-    function updateDashboard() {
-        $.ajax({
-            url: "{% url 'admin_dashboard' %}",
-            type: "GET",
-            dataType: "json",
-            success: function(data) {
-                $("#total-users").text(data.total_users);
-                $("#total-exams").text(data.total_exams);
-                $("#active-subscriptions").text(data.active_subscriptions);
-                $("#total-payments").text(data.total_payments);
+document.getElementById("scheduleExamForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+    
+    var formData = new FormData(this);
 
-                // Update payments table
-                var paymentRows = "";
-                data.recent_payments.forEach(payment => {
-                    paymentRows += `<tr>
-                        <td>${payment.user__email}</td>
-                        <td>${payment.amount}</td>
-                        <td>${payment.status}</td>
-                        <td>${payment.created_at}</td>
-                    </tr>`;
-                });
-                $("#recent-payments").html(paymentRows);
-            }
-        });
-    }
-
-    // Initial data load
-    updateDashboard();
-
-    // Auto-update every 10 seconds
-    setInterval(updateDashboard, 10000);
-
-    // Handle exam scheduling
-    $("#schedule-exam-form").submit(function(e){
-        e.preventDefault();
-        $.ajax({
-            url: "{% url 'schedule_exam' %}",
-            type: "POST",
-            data: $(this).serialize(),
-            dataType: "json",
-            success: function(response) {
-                alert(response.message);
-                $("#schedule-exam-form")[0].reset();
-            },
-            error: function(response) {
-                alert("Error: " + JSON.stringify(response.responseJSON.error));
-            }
-        });
+    fetch("{% url 'schedule_exam' %}", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert("Exam Scheduled Successfully!");
+            location.reload();
+        } else {
+            alert("Error: " + JSON.stringify(data.error));
+        }
     });
 });
 </script>
+
+   
 {% endblock %}

@@ -259,6 +259,8 @@ class ContactMessage(models.Model):
 
 class ScheduledExam(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.SET, null=True)
+    scheduled_datetime = models.DateTimeField(help_text="Date & time when the exam should be published")
+
     upload_time = models.DateTimeField(help_text="When should this exam be published?")
     is_published = models.BooleanField(default=False)
 

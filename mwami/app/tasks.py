@@ -2,28 +2,14 @@ from celery import shared_task
 from django.utils.timezone import now
 from .models import ScheduledExam
 
-#periodic task
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
-import json
-
 @shared_task
 def publish_scheduled_exams():
-    """Publish exams that have reached their upload time."""
-    exams = ScheduledExam.objects.filter(is_published=False, upload_time__lte=now())
-    for exam in exams:
-        exam.publish()
-    return f"Published {exams.count()} exams"
+    """Activate exams that are scheduled for now or earlier."""
+    exams = ScheduledExam.objects.filter(scheduled_datetime__lte=now())
 
-# Create schedule if it doesn't exist
-schedule, created = IntervalSchedule.objects.get_or_create(
-    every=1,
-    period=IntervalSchedule.MINUTES,  # Runs every minute
-)
+    for scheduled_exam in exams:
+        print(f"Publishing exam: {scheduled_exam.exam.title}")
+        # Here you can add logic to mark the exam as published, notify users, etc.
+        scheduled_exam.delete()  # Remove after publishing
 
-# Create task
-PeriodicTask.objects.create(
-    interval=schedule,
-    name="Publish Scheduled Exams",
-    task="exams.tasks.publish_scheduled_exams",
-    args=json.dumps([]),
-)
+    return f"{exams.count()} exams published."

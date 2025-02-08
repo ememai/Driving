@@ -125,10 +125,11 @@ class LoginForm(forms.Form):
         return cleaned_data
 
 
+
 class ScheduledExamForm(forms.ModelForm):
     class Meta:
         model = ScheduledExam
-        fields = ['exam', 'upload_time']
+        fields = ['exam', 'scheduled_datetime']
         widgets = {
-            'upload_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'scheduled_datetime': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
         }
