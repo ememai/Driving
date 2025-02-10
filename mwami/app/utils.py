@@ -21,9 +21,39 @@ def set_price_and_duration(plan):
         price = 2000
         duration = 7
     elif plan == 'Monthly':
-        price = 3500
+        price = 3000
         duration = 30
     else:
         price = 10000
         duration = None
     return price, duration
+
+# app/utils.py
+
+from django.utils import timezone
+from .models import ScheduledExam
+
+def check_exam_availability(hour):
+    """
+    Determine whether an exam is available at a given hour.
+
+    This function checks for any ScheduledExam objects scheduled on the current day
+    whose scheduled_datetime falls within the provided hour (24-hour format). If at
+    least one such exam exists, the function returns True.
+
+    Args:
+        hour (int): The hour (in 24-hour format) to check for an available exam.
+
+    Returns:
+        bool: True if at least one exam is scheduled for that hour today, otherwise False.
+    """
+    # Get the current date.
+    today = timezone.now().date()
+    
+    # Query for scheduled exams on today's date where the scheduled hour matches.
+    exam_exists = ScheduledExam.objects.filter(
+        scheduled_datetime__date=today,
+        scheduled_datetime__hour=hour
+    ).exists()
+
+    return exam_exists

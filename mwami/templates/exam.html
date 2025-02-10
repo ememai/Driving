@@ -1,73 +1,38 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load custom_filters %}
 
-{% block title %}Exam{% endblock %}
-
+{% block title %}Exam - {{ exam.title }}{% endblock %}
 {% block content %}
-<div class="container text-left mt-4">
-    <h2>{{ exam.title }}</h2>
-    <p>Ikibazo cya {{ question_number }} muri {{ total_questions }}</p>
-
-    <!-- Countdown Timer -->
-    <div id="timer" class="alert alert-info fw-bold">Time Left: <span id="time">20:00</span></div>
-
-    <form method="post" id="exam-form">
-        {% csrf_token %}
-        <p class="fw-bold fs-5">{{ question_number }}. {{ question.question_text }}</p>
-
-        <div class="d-flex flex-column align-items-left">
-            {% for choice in question.choices.all %}
-                <div class="mb-2">
-                    <input type="radio" id="choice_{{ choice.id }}" name="answer" value="{{ choice.id }}"
-                        {% if request.session.answers and request.session.answers|get:question.id == choice.id %}checked{% endif %}>
-                    <label for="choice_{{ choice.id }}">
-                        {% if choice.image_choice %}
-                            <img src="{{ choice.image_choice.sign_image.url }}" alt="{{ choice.image_choice.definition }}" class="img-fluid" style="max-width: 150px;">
-                        {% else %}
+<div class="card">
+    <div class="card-header">
+        <h3>{{ exam.title }} - Question {{ question_number }} of {{ total_questions }}</h3>
+    </div>
+    <div class="card-body">
+        <p class="mb-4">{{ question.question_text }}</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                {% for choice in question.choices.all %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="answer" id="choice{{ choice.id }}" value="{{ choice.id }}"
+                        {% if request.session.answers and request.session.answers|get:question.id|stringformat:"s" == choice.id|stringformat:"s" %}checked{% endif %}>
+                        <label class="form-check-label" for="choice{{ choice.id }}">
                             {{ choice.text }}
-                        {% endif %}
-                    </label>
-                </div>
-            {% endfor %}
-        </div>
-
-        <div class="mt-4">
-            {% if question_number > 1 %}
-            <button type="submit" name="previous" class="btn btn-secondary">Previous</button>
-            {% endif %}
-            {% if question_number < total_questions %}
-            <button type="submit" name="next" class="btn btn-primary">Next</button>
-            {% endif %}
-            {% if question_number == total_questions %}
-            <button type="submit" name="submit" id="submit-exam" class="btn btn-success">Submit Exam</button>
-            {% endif %}
-        </div>
-    </form>
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="d-flex justify-content-between">
+                {% if question_number > 1 %}
+                    <button type="submit" name="previous" class="btn btn-secondary">Previous</button>
+                {% endif %}
+                {% if question_number < total_questions %}
+                    <button type="submit" name="next" class="btn btn-primary">Next</button>
+                {% else %}
+                    <button type="submit" name="submit" class="btn btn-success">Submit Exam</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
 </div>
-
-<!-- JavaScript for Exam Timer -->
-<script>
-    let examId = "{{ exam.id }}";  // Get current exam ID
-    let timerKey = `exam_timer_${examId}`;  // Unique timer key for this exam
-    let timeLeft = sessionStorage.getItem(timerKey) ? parseInt(sessionStorage.getItem(timerKey)) : 60;  // 20 minutes
-
-    function updateTimer() {
-        let minutes = Math.floor(timeLeft / 60);
-        let seconds = timeLeft % 60;
-        document.getElementById("time").innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-        
-        if (timeLeft <= 0) {
-            document.getElementById("exam-form").submit();  // Auto-submit when time is up
-            sessionStorage.removeItem(timerKey);
-        } else {
-            timeLeft--;
-            sessionStorage.setItem(timerKey, timeLeft);
-            setTimeout(updateTimer, 1000);
-        }
-    }
-
-    window.onload = function () {
-        updateTimer();
-    };
-</script>
 {% endblock %}

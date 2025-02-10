@@ -1,0 +1,32 @@
+<!-- templates/exams_schedule.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mobile-exam-times">
+  <div class="container-fluid">
+      <div class="scrollable-times">
+          <!-- Debug: Show current time -->
+          <p>Current Time: {{ current_time|date:"H:i" }}</p>
+          
+          <!-- Debug: Show raw queryset -->
+          <p>Exams Scheduled: {{ exams_scheduled }}</p>
+
+          {% for exam in exams_scheduled %}
+              <div class="exam-hour">
+                  {% if exam.is_published %}
+                      <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link">
+                          {{ exam.scheduled_datetime|time:"H:i" }}
+                      </a>
+                  {% else %}
+                      <span class="hour-link disabled">
+                          {{ exam.scheduled_datetime|time:"H:i" }}
+                      </span>
+                  {% endif %}
+              </div>
+          {% empty %}
+              <p>No exams scheduled for today.</p>
+          {% endfor %}
+      </div>
+  </div>
+</div>
+{% endblock %}

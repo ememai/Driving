@@ -58,8 +58,8 @@ from django.contrib.admin import AdminSite
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('email', 'phone_number',  'active')
-    search_fields = ('email', 'phone_number')
+    list_display = ('name','email', 'phone_number',  'active')
+    search_fields = ('name','email', 'phone_number')
     list_filter = [('active')]
 
 @admin.register(RoadSign)

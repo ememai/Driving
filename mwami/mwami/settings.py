@@ -13,7 +13,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from dotenv import *
+from apscheduler.triggers.cron import CronTrigger
 read_dotenv()
+# from django_apscheduler.jobstores import register_events, register_job
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+67*hv@9-&gd4g$_=pq&nbznszcgro50j+oho74qi3qf(^545h'
+SECRET_KEY = os.getenv('PROJECT_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -45,16 +48,40 @@ INSTALLED_APPS = [
     'app.apps.AppConfig',
     'channels',
     'dashboard.apps.DashboardConfig',
+    'django_apscheduler',
    
 ]
 
-ASGI_APPLICATION = 'mwami.routing.application'
+# ASGI_APPLICATION = 'mwami.routing.application'
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    },
-}
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
+#     },
+# }
+
+# APSCHEDULER_TASKS = {
+#     'check_subscriptions': {
+#         'task': 'app.subscription_checks.check_subscription_expiry',
+#         'schedule': crontab(hour=0, minute=0),  # Daily at midnight
+#         'replace_existing': True
+#     },
+# }
+
+# Keep only this APSCHEDULER configuration
+APSCHEDULER_JOBS = [
+    {
+        'id': 'subscription_check',
+        'func': 'app.subscription_checks:check_subscription_expiry',
+        'trigger': 'cron',
+        'hour': 0,
+        'minute': 0
+    }
+]
+
+# settings.py
+APSCHEDULER_RUN_NOW_TIMEOUT = 300  # 5 minutes
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
 
 AUTH_USER_MODEL = 'app.UserProfile'
 
@@ -83,6 +110,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'app.context_processors.exams_slider_context',
             ],
         },
     },
@@ -132,7 +160,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Kigali'
 
 USE_I18N = True
 
@@ -148,6 +176,8 @@ CSRF_TRUSTED_ORIGINS = [
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]
@@ -182,3 +212,5 @@ MTN_MOMO_API_KEY = os.getenv("MTN_MOMO_API_KEY")
 MTN_MOMO_CALLBACK_URL = os.getenv("MTN_MOMO_CALLBACK_URL")
 MTN_MOMO_COLLECTION_PRIMARY_KEY = os.getenv("MTN_MOMO_COLLECTION_PRIMARY_KEY")
 MTN_MOMO_BASE_URL = os.getenv("MTN_MOMO_BASE_URL")
+
+LOGIN_URL = 'login'

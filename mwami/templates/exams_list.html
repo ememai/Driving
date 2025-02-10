@@ -1,0 +1,41 @@
+{% for exam in exams %}
+<div class="exam-card">
+    {% if user.is_subscribed %}
+        <a href="{% url 'exam_detail' exam.pk %}" class="btn btn-success">
+            Tangira Ijazo
+        </a>
+    {% else %}
+        <div class="subscription-required">
+            <button class="btn btn-secondary" disabled>
+                Tangira Ijazo
+            </button>
+            <div class="hover-message">
+                Kwishyura kugirango ukomeze
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endfor %}
+
+<style>
+.subscription-required {
+    position: relative;
+}
+
+.hover-message {
+    display: none;
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 5px;
+    border-radius: 4px;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+.subscription-required:hover .hover-message {
+    display: block;
+}
+</style>

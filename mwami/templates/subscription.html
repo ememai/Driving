@@ -1,23 +1,23 @@
-{% extends "base.html" %} {% block title %}Subscription{% endblock %} 
+{% extends "base.html" %} {% block title %}Ifatabuguzi{% endblock %} 
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="text-center">Manage Your Subscription</h1>
+    <h1 class="text-center">Ifatabuguzi</h1>
 
     {% if subscription %}
-        {% if subscription.is_active %}
+        {% if subscription.active %}
             <p class="text-center text-success">
-                Your subscription is active until <strong>{{ subscription.end_date }}</strong>.
+                Ifatabuguzi ufite rizangira <strong>{{ subscription.expires_at }}</strong>.
             </p>
         {% else %}
-            <p class="text-center text-danger">You don't have an active subscription.</p>
+            <p class="text-center text-danger">Ntafatabuguzi ufite.</p>
         {% endif %}
     {% else %}
-        <p class="text-center text-warning">No subscription record found.</p>
+        <p class="text-center text-warning">Ntafatabuguzi riboneka.</p>
     {% endif %}
 
-    <h2 class="text-center mt-4">Subscription Plans</h2>
-    <p class="text-center">Choose the subscription plan that suits you best.</p>
+    <h2 class="text-center mt-4">Ibiciro</h2>
+    <p class="text-center">Hitampo ifatabuguzi rikunogeye.</p>
 
     {% if messages %}
         <div class="alert-messages">
@@ -33,14 +33,29 @@
         {% csrf_token %}
         
         <div class="form-group">
-            <label for="plan">Choose a Plan:</label>
+            <label for="plan">Hitampo:</label>
             <select class="form-control" id="plan" name="plan" required>
-                <option value="" disabled selected>Select a Plan</option>
+                <option value="" disabled selected>Kanda hano</option>
             
             {% for plan_value, plan_label in plans %}
-                <option value="{{ plan_value }}" name="{{ plan_value }}">
-                    {{ plan_label }}
+                {% if plan_value == 'Daily' %}
+                <option value="{{plan_value}}" name="plan">
+                    500 - Umunsi wose 
                 </option>
+                
+                {% elif plan_value == 'Weekly' %}
+                <option value="{{plan_value}}" name="plan">
+                    2000 - Icyumweru cyose
+                </option>
+                {% elif plan_value == 'Monthly' %}
+                <option value="{{plan_value}}" name="plan">
+                    3000 - Ukwezi kose
+                </option>
+                {% elif plan_value == 'Super' %}
+                <option value="{{plan_value}}" name="plan">
+                    10000 - ubutarangira 
+                </option>
+                {% endif %}
             {% endfor %}
                 
             </select>

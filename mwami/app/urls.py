@@ -1,14 +1,23 @@
 from django.urls import path
 from . import views
 from .views import *
+from .decorators import subscription_required
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('exams/', views.exams_list, name='exams'),
-    path('exam/<int:exam_id>/', views.exam, {'question_number': 1}, name='exam'),
 
-    path('exam/<int:exam_id>/<int:question_number>/', views.exam, name='exam'),
-    path('exam-results/<int:user_exam_id>/', views.exam_results, name='exam_results'),
+
+    path('exams/', views.exams_list, name='exams'),
+   path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
+
+    path('exam/<int:exam_id>/<int:question_number>/', subscription_required(views.exam), name='exam'),
+    path('exam-results/<int:user_exam_id>/', subscription_required(views.exam_results), name='exam_results'),
+
+     path('exam-timer/<int:exam_id>/', subscription_required(views.exam_timer), name='exam_timer'),
+    path('exam/schedule/', subscription_required(views.exam_schedule_view), name='exam_schedule'),
+
+    # path('scheduled_hours/', views.scheduled_hours, name='scheduled_hours'),
+
 
     #subscription and payment
     path('subscription/', views.subscription_view, name='subscription'),
@@ -20,6 +29,6 @@ urlpatterns = [
     #authentications
     path('register/', register_view, name='register'),
     path('verify-otp/<int:user_id>/', verify_otp, name='verify_otp'),
-    path('login/', login_view, name='login'),
-    path('logout/', user_logout, name='logout'),   
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.user_logout, name='logout'),   
 ]

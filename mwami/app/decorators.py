@@ -2,6 +2,8 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from functools import wraps
 
+from django.contrib.auth.decorators import login_required, permission_required
+
 def superuser_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
@@ -17,6 +19,14 @@ from django.contrib.auth.decorators import login_required, permission_required
 def edit_view(request):
     return render(request, 'edit_page.html')
 
+
+def subscription_required(view_func):
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_subscribed:
+            return redirect('subscription')
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 def redirect_authenticated_users(view_func):

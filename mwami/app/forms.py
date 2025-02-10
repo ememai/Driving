@@ -29,10 +29,11 @@ class RegisterForm(forms.ModelForm):
     
     class Meta:
         model = UserProfile
-        fields = ['email', 'phone_number']
+        fields = ['name', 'email', 'phone_number']
 
     def clean(self):
         cleaned_data = super().clean()
+        name = cleaned_data.get("name")
         email = cleaned_data.get("email")
         phone_number = cleaned_data.get("phone_number")
 

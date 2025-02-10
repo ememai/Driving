@@ -2,6 +2,8 @@
 from django.urls import path
 from . import views
 
+# app_name = 'dashboard'
+
 urlpatterns = [
     path('', views.admin_dashboard, name='admin_dashboard'),
     path('schedule-exam/', views.schedule_exam, name='schedule_exam'),

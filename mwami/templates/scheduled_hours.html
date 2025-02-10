@@ -1,0 +1,22 @@
+<!-- exams_slider.html -->
+<div class="mobile-exam-times">
+  <div class="container-fluid">
+      <div class="scrollable-times">
+          {% for exam in exams_scheduled %}
+              <div class="exam-hour">
+                  {% if exam.is_published %}
+                      <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link">
+                          {{ exam.scheduled_datetime|time:"H:00" }}  <!-- 24-hour format (e.g., 14:00) -->
+                      </a>
+                  {% else %}
+                      <span class="hour-link disabled">
+                          {{ exam.scheduled_datetime|time:"H:00" }}  <!-- Same format for disabled -->
+                      </span>
+                  {% endif %}
+              </div>
+          {% empty %}
+              <p>No exams scheduled for today.</p>
+          {% endfor %}
+      </div>
+  </div>
+</div>

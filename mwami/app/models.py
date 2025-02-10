@@ -40,9 +40,11 @@ class UserProfileManager(BaseUserManager):
 
 class UserProfile(AbstractUser):
     username = None  # Remove default username field
+    name = models.CharField(max_length=16, unique=True)
     email = models.EmailField(unique=True, blank=True, null=True)  
     phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)  
     profile_picture = models.ImageField(upload_to='images/', null=True, blank=True)
+    # is_subscribed = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
     subscription_end_date = models.DateField(null=True, blank=True)
     otp_code = models.CharField(max_length=6, blank=True, null=True)
@@ -62,12 +64,6 @@ class UserProfile(AbstractUser):
                 self.phone_number = self.normalize_phone_number(self.phone_number)
         super().save(*args, **kwargs)
 
-
-    # def save(self, *args, **kwargs):
-    #     # Ensure phone_number is never an empty string
-    #     if self.phone_number == '':
-    #         self.phone_number = None
-    #     super().save(*args, **kwargs)
 
     def clean(self):
         """Ensure phone number is in the correct format before saving."""
@@ -96,7 +92,13 @@ class UserProfile(AbstractUser):
 
     @property
     def is_subscribed(self):
-        return self.subscription_end_date and self.subscription_end_date >= date.today()
+        if not hasattr(self, 'subscription'):
+            return False
+        return (
+            self.subscription.expires_at and 
+            self.subscription.expires_at >= timezone.now().date() and
+            self.subscription.active
+        )
 
     def send_otp_email(self):
         """Generates and sends an OTP via email."""
@@ -179,6 +181,18 @@ class UserExam(models.Model):
 
     class Meta:
         unique_together = ('user', 'exam')
+    
+    
+    def save(self, *args, **kwargs):
+        if not self.user.is_subscribed:
+            raise ValidationError(
+                "Umukoresha ntabwo yishyuye kugirango akore ijazo."
+            )
+        if self.completed_at and self.completed_at < timezone.now() - timedelta(hours=24):
+            raise ValidationError(
+                "You cannot modify exams older than 24 hours"
+            )
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} - {self.exam.title}"
@@ -192,6 +206,7 @@ class UserExamAnswer(models.Model):
     def __str__(self):
         return f"{self.user_exam.user.username} - {self.question.question_text[:50]}"
 
+#instances should be first created
 class Plan(models.Model):
     PLAN_CHOICES = [
         ('Daily', 'Daily'),
@@ -212,28 +227,29 @@ class Subscription(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True)
     price = models.IntegerField(default=500)
-    duration_days = models.IntegerField(default=1)
-    phone_number = models.CharField(max_length=13, default=25078)
+    duration_days = models.IntegerField(default=1, null=True)
+    phone_number = models.CharField(max_length=13, default="25078")
     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
 
     active = models.BooleanField(default=False)
     started_at = models.DateField(auto_now_add=True)
     expires_at = models.DateField(null=True, blank=True)
 
-    def activate(self, duration_days=30):
-        # """Activate the subscription for a given duration."""
-        self.start_date = now()
-        self.end_date = now() + timedelta(days=duration_days)
-        self.is_active = True
+    def activate(self, duration_days):
+        #  """Activate the subscription for the given duration."""
+        self.started_at = timezone.now()  # Fixed from 'start_date'
+        self.expires_at = timezone.now() + timezone.timedelta(days=duration_days)
+        self.active = True  # Changed from is_active
         self.save()
 
     def deactivate(self):
         #  """Deactivate the subscription."""
-        self.is_active = False
+        self.active = False
         self.save()
 
+    
     def __str__(self):
-        return f"{self.user.username} - {'Active' if self.active else 'Inactive'}"
+        return f"{self.user.name} - {'Active' if self.active else 'Inactive'}"
 
 
 class Payment(models.Model):
@@ -244,7 +260,7 @@ class Payment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.status}"
+        return f"{self.user.name} - {self.status}"
 
 
 class ContactMessage(models.Model):
@@ -276,6 +292,18 @@ class ScheduledExam(models.Model):
             self.send_notification()
             
             print(f"Exam '{self.exam.title}' has been published!")
+            
+    def save(self, *args, **kwargs):
+        """Auto-publish if scheduled time has passed (Kigali time)"""
+        now = timezone.localtime(timezone.now())
+        scheduled_time = timezone.localtime(self.scheduled_datetime)
+        
+        if scheduled_time <= now:
+            self.is_published = True
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Scheduled: {self.exam.title} at {self.scheduled_datetime}"
 
             # Notify all subscribed users
     def send_notification(self):
