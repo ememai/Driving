@@ -52,7 +52,7 @@ def exam(request, exam_id, question_number):
 
     current_question = questions[question_number - 1]
 
-    # Ensure UserExam record
+    # Ensure a UserExam record exists
     user_exam, created = UserExam.objects.get_or_create(
         user=request.user,
         exam=exam,
