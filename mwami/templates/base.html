@@ -3,27 +3,36 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}RWANDA DRIVERS{% endblock %}</title>
-    <meta name="description" content="Rwanda Drivers License Portal - Your official source for driver's license services in Rwanda">
+    <meta name="description"
+        content="Rwanda Drivers License Portal - Your official source for driver's license services in Rwanda" />
 
     <!-- Favicon Links -->
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
-    <link rel="icon" type="image/png" href="{% static 'favicon.png' %}">
-    <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
-    <link rel="manifest" href="{% static 'site.webmanifest' %}">
-    <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="{% static 'mstile-144x144.png' %}">
-    <meta name="theme-color" content="#ffffff">
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}" />
+    <link rel="manifest" href="{% static 'site.webmanifest' %}" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="{% static 'mstile-144x144.png' %}" />
+    <meta name="theme-color" content="#ffffff" />
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
 
     <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        main {
+            background-color: rgb(219, 242, 218);
+        }
+
         :root {
             --dark-yellow: #b8860b;
             --dark-yellow-hover: #a0720a;
@@ -127,14 +136,14 @@
     </style>
 </head>
 
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 ">
     {% block navbar %}
-    <nav class="navbar navbar-expand-lg">
+    <nav class="navbar navbar-expand-lg fixed mb-5">
         <div class="container-fluid flex-column align-items-stretch">
             <div class="d-flex justify-content-between w-100 align-items-center">
                 <a class="navbar-brand bold-logo" href="/">
                     <img src="{% static 'img/logo.png' %}" alt="Logo" width="30" height="30"
-                        class="d-inline-block align-top">
+                        class="d-inline-block align-top" />
                     RWANDA DC
                 </a>
 
@@ -143,9 +152,7 @@
                     <span class="navbar-text">{{ user.name }}</span>
                     <a class="btn btn-outline-secondary ms-2" href="{% url 'logout' %}">Logout</a>
                 </div>
-                {% endif %}
-
-                {% if user.is_authenticated %}
+                {% endif %} {% if user.is_authenticated %}
                 <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
                     data-bs-target="#profileCollapse" aria-controls="profileCollapse" aria-expanded="false"
                     aria-label="Toggle navigation">
@@ -172,14 +179,12 @@
                 <a class="btn btn-dark-yellow" href="{% url 'contact' %}">Ubufasha</a>
                 {% if user.is_staff %}
                 <a class="btn btn-dark-yellow" href="{% url 'admin_dashboard' %}">Admin</a>
-                {% endif %}
-                {% endif %}
+                {% endif %} {% endif %}
             </div>
         </div>
     </nav>
 
-    {% include 'scheduled_hours.html' %}
-    {% endblock %}
+    {% include 'scheduled_hours.html' %} {% endblock %}
 
     <main class="flex-grow-1">
         <div class="message-container container mt-3">
@@ -218,22 +223,25 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             // Time slot scrolling
-            const activeSlot = document.querySelector('.time-slot.active');
+            const activeSlot = document.querySelector(".time-slot.active");
             activeSlot?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest',
-                inline: 'center'
+                behavior: "smooth",
+                block: "nearest",
+                inline: "center",
             });
 
             // Time slot interactions
-            document.querySelectorAll('.time-slot').forEach(slot => {
-                slot.addEventListener('click', (e) => {
+            document.querySelectorAll(".time-slot").forEach((slot) => {
+                slot.addEventListener("click", (e) => {
                     e.preventDefault();
-                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('active'));
-                    slot.classList.add('active');
+                    document
+                        .querySelectorAll(".time-slot")
+                        .forEach((s) => s.classList.remove("active"));
+                    slot.classList.add("active");
                 });
             });
         });
     </script>
 </body>
+
 </html>

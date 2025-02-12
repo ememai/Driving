@@ -1,7 +1,4 @@
-{% extends 'base.html' %}
-
-{% block title %}Register{% endblock %}
-
+{% extends 'base.html' %} {% block title %} Register {% endblock %}
 {% block content %}
 <div class="row justify-content-center mt-5">
     <div class="col-md-6">
@@ -14,15 +11,13 @@
                 <div class="mb-3 text-center">
                     <label class="form-label fw-bold">Register with:</label>
                     <div class="d-flex justify-content-center gap-3">
-                        <button type="button" class="btn btn-outline-primary" id="usePhone">Phone</button>
-                        <button type="button" class="btn btn-outline-secondary" id="useEmail">Email</button>
+                        <button type="button" class="btn btn-outline-primary" id="usePhone">
+                            Phone
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="useEmail">
+                            Email
+                        </button>
                     </div>
-                </div>
-
-                <!-- Name field -->
-                <div class="mb-3">
-                    <label for="name" class="form-label">Username</label>
-                    <input type="text" name="name" id="name" class="form-control" required>
                 </div>
 
                 <!-- Phone Number Field (Default) -->
@@ -31,14 +26,19 @@
                     <div class="input-group">
                         <span class="input-group-text">+250</span>
                         <input type="text" name="phone_number" id="id_phone_number" class="form-control"
-                            placeholder="788123456">
+                            placeholder="788123456" />
                     </div>
                 </div>
 
                 <!-- Email Field (Initially hidden) -->
                 <div class="mb-3 d-none" id="emailField">
                     <label for="id_email" class="form-label">Email</label>
-                    <input type="email" name="email" id="id_email" class="form-control">
+                    <input type="email" name="email" id="id_email" class="form-control" placeholder="urugero: umuhanda@gmail.com"/>
+                </div>
+                <!-- Name field -->
+                <div class="mb-3">
+                    <label for="name" class="form-label">Username</label>
+                    <input type="text" name="name" id="name" class="form-control" placeholder="izina " />
                 </div>
 
                 <!-- Password Fields -->
@@ -46,7 +46,7 @@
                     <label for="id_password1" class="form-label">Password</label>
                     <div class="input-group">
                         <input type="password" name="password1" id="id_password1" class="form-control js-password"
-                            placeholder="Enter your password">
+                            placeholder="Enter your password" />
                         <button class="btn btn-outline-secondary toggle-password" type="button"
                             title="Show/Hide Password">
                             <i class="bi bi-eye"></i>
@@ -58,7 +58,7 @@
                     <label for="id_password2" class="form-label">Confirm Password</label>
                     <div class="input-group">
                         <input type="password" name="password2" id="id_password2" class="form-control js-password"
-                            placeholder="Confirm your password">
+                            placeholder="Confirm your password" />
                         <button class="btn btn-outline-secondary toggle-password" type="button"
                             title="Show/Hide Password">
                             <i class="bi bi-eye"></i>
@@ -66,28 +66,49 @@
                     </div>
                 </div>
 
+
                 <button type="submit" class="btn btn-primary w-100">Register</button>
             </form>
-            <p class="text-center mt-3">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+            <p class="text-center mt-3">
+                Already have an account? <a href="{% url 'login' %}">Login</a>
+            </p>
         </div>
     </div>
 </div>
 
 <!-- JavaScript to Toggle Fields -->
 <script>
-    document.querySelectorAll('.toggle-password').forEach(button => {
-        button.addEventListener('click', function () {
+    document.addEventListener("DOMContentLoaded", function () {
+        const emailField = document.getElementById("emailField");
+        const phoneField = document.getElementById("phoneField");
+        const useEmailBtn = document.getElementById("useEmail");
+        const usePhoneBtn = document.getElementById("usePhone");
+        useEmailBtn.addEventListener("click", function () {
+            emailField.classList.remove("d-none");
+            phoneField.classList.add("d-none");
+        });
+        usePhoneBtn.addEventListener("click", function () {
+            phoneField.classList.remove("d-none");
+            emailField.classList.add("d-none");
+        });
+    });
+
+    // JavaScript to Toggle Password Visibility
+
+    document.querySelectorAll(".toggle-password").forEach((button) => {
+        button.addEventListener("click", function () {
             // Find the associated password input
-            const input = this.parentNode.querySelector('.js-password');
-            const icon = this.querySelector('i');
+            const input = this.parentNode.querySelector(".js-password");
+            const icon = this.querySelector("i");
 
             // Toggle password visibility
-            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-            input.setAttribute('type', type);
+            const type =
+                input.getAttribute("type") === "password" ? "text" : "password";
+            input.setAttribute("type", type);
 
             // Toggle eye icon
-            icon.classList.toggle('bi-eye');
-            icon.classList.toggle('bi-eye-slash');
+            icon.classList.toggle("bi-eye");
+            icon.classList.toggle("bi-eye-slash");
         });
     });
 </script>

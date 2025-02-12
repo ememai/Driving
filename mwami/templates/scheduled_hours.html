@@ -1,5 +1,12 @@
 <!-- exams_slider.html -->
-<div class="mobile-exam-times">
+ <style>
+    .hours {
+        background-color: cyan;
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+ </style>
+<div class="mobile-exam-times hours">
   <div class="container-fluid">
       <div class="scrollable-times">
           {% for exam in exams_scheduled %}
