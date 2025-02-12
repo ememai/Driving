@@ -433,3 +433,14 @@ def custom_page_not_found(request, exception):
     # You can add extra context if needed
     context = {}
     return render(request, '404.html', context, status=404)
+
+class PrivacyPolicyView(View):
+    def get(self, request):
+        return render(request, 'privacy_policy.html')
+
+# Add this to your existing views
+def base_view(request):
+    context = {
+        'current_year': datetime.datetime.now().year,
+    }
+    return render(request, 'base.html', context)

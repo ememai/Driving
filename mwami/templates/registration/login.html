@@ -1,75 +1,95 @@
-{% extends 'base.html' %}
-
-{% block title %}Login{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% block title %}Login{% endblock %} {% block content %}
 <div class="row justify-content-center mt-5">
-    <div class="col-md-5">
-        <div class="card shadow-lg p-4">
-            <h2 class="text-center mb-3">Welcome Back</h2>
-            <p class="text-center text-muted">Sign in to your account</p>
+  <div class="col-md-5">
+    <div class="card shadow-lg p-4">
+      <h2 class="text-center mb-3">Welcome Back</h2>
+      <p class="text-center text-muted">Sign in to your account</p>
 
-            <!-- Display Messages -->
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
+      <!-- Display Messages -->
+      {% if messages %} {% for message in messages %}
+      <div
+        class="alert alert-{{ message.tags }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+      {% endfor %} {% endif %}
 
-            <form method="post">
-                {% csrf_token %}
+      <form method="post">
+        {% csrf_token %}
 
-                <!-- Email or Phone Field -->
-                <div class="mb-3">
-                    <label for="id_username" class="form-label">Email or Phone</label>
-                    <input type="text" name="username" id="id_username" class="form-control" placeholder="Enter email or phone" required>
-                </div>
-
-                <!-- Password Field -->
-                <div class="mb-3 position-relative">
-                    <label for="id_password" class="form-label">Password</label>
-                    <div class="input-group">
-                        <input type="password" name="password" id="id_password" class="form-control" placeholder="Enter your password" required>
-                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100">Login</button>
-
-                <div class="text-center mt-3">
-                    <a href="#" class="text-decoration-none">Forgot Password?</a>
-                </div>
-            </form>
-
-            <p class="text-center mt-3">Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+        <!-- Email or Phone Field -->
+        <div class="mb-3">
+          <label for="id_username" class="form-label">Email or Phone</label>
+          <input
+            type="text"
+            name="username"
+            id="id_username"
+            class="form-control"
+            placeholder="Enter email or phone"
+            required
+          />
         </div>
+
+        <!-- Password Field -->
+        <div class="mb-3 position-relative">
+          <label for="id_password" class="form-label">Password</label>
+          <div class="input-group">
+            <input
+              type="password"
+              name="password"
+              id="id_password"
+              class="form-control"
+              placeholder="Enter your password"
+              required
+            />
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              id="togglePassword"
+            >
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+
+        <div class="text-center mt-3">
+          <a href="#" class="text-decoration-none">Forgot Password?</a>
+        </div>
+      </form>
+
+      <p class="text-center mt-3">
+        Don't have an account? <a href="{% url 'register' %}">Register here</a>
+      </p>
     </div>
+  </div>
 </div>
 
 <!-- Toggle Password Visibility -->
 <script>
-    document.getElementById("togglePassword").addEventListener("click", function() {
-        let passwordInput = document.getElementById("id_password");
-        let icon = this.querySelector("i");
+  document
+    .getElementById("togglePassword")
+    .addEventListener("click", function () {
+      let passwordInput = document.getElementById("id_password");
+      let icon = this.querySelector("i");
 
-        if (passwordInput.type === "password") {
-            
-            passwordInput.type = "text";
-            icon.innerHTML = 'Hash';
-            icon.classList.remove("bi-eye");
-            icon.classList.add("bi-eye-slash");
-            
-        } else {
-            passwordInput.type = "password";
-            icon.classList.remove("bi-eye-slash");
-            icon.classList.add("bi-eye");
-            icon.innerHTML = 'View';
-        }
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        icon.classList.remove("bi-eye");
+        icon.classList.add("bi-eye-slash");
+      } else {
+        passwordInput.type = "password";
+        icon.classList.remove("bi-eye-slash");
+        icon.classList.add("bi-eye");
+      }
     });
 </script>
 {% endblock %}

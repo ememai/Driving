@@ -34,5 +34,7 @@ urlpatterns = [
     path('register/', register_view, name='register'),
     path('verify-otp/<int:user_id>/', verify_otp, name='verify_otp'),
     path('login/', views.login_view, name='login'),
-    path('logout/', views.user_logout, name='logout'),   
+    path('logout/', views.user_logout, name='logout'),  
+    
+    path('privacy-policy/', views.PrivacyPolicyView.as_view(), name='privacy_policy'), 
 ]
