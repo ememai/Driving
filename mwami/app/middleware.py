@@ -11,3 +11,19 @@ class SubscriptionMiddleware:
                 return redirect('login')
             if not request.user.is_subscribed():
                 return redirect('subscription')
+
+
+# class ExamSecurityMiddleware:
+#     def __init__(self, get_response):
+#         self.get_response = get_response
+
+#     def __call__(self, request):
+#         response = self.get_response(request)
+        
+#         if request.path.startswith('/exam/'):
+#             # Prevent back button after submission
+#             response['Cache-Control'] = 'no-store, must-revalidate'
+#             response['Pragma'] = 'no-cache'
+#             response['Expires'] = '0'
+            
+#         return response

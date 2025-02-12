@@ -79,9 +79,12 @@ APSCHEDULER_JOBS = [
     }
 ]
 
-# settings.py
+
 APSCHEDULER_RUN_NOW_TIMEOUT = 300  # 5 minutes
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+
+SESSION_COOKIE_AGE = 3600  # 1 hour
+SESSION_SAVE_EVERY_REQUEST = True
 
 AUTH_USER_MODEL = 'app.UserProfile'
 
@@ -93,6 +96,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    # 'app.middleware.ExamSecurityMiddleware',
+
 ]
 
 ROOT_URLCONF = 'mwami.urls'

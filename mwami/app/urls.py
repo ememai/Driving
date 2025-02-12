@@ -8,10 +8,14 @@ urlpatterns = [
 
 
     path('exams/', views.exams_list, name='exams'),
-   path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
+    path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
 
     path('exam/<int:exam_id>/<int:question_number>/', subscription_required(views.exam), name='exam'),
     path('exam-results/<int:user_exam_id>/', subscription_required(views.exam_results), name='exam_results'),
+
+    path('exam/<int:exam_id>/retake/', views.retake_exam, name='retake_exam'),
+
+
 
      path('exam-timer/<int:exam_id>/', subscription_required(views.exam_timer), name='exam_timer'),
     path('exam/schedule/', subscription_required(views.exam_schedule_view), name='exam_schedule'),

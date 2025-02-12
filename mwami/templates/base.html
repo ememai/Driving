@@ -66,7 +66,11 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100">
-    <!-- Responsive Navbar -->
+   
+   
+   {% block navbar %}
+
+     <!-- Responsive Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light py-2">
         <div class="container">
             <!-- Brand/Logo -->
@@ -102,7 +106,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <!-- Collapse containing Profile and Logout -->
-                <div class="collapse navbar-collapse" id="profileCollapse">
+                <div class="collapse navbar-collapse justify-content-end ml-0" id="profileCollapse">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
                             <a class="nav-link" href="#">{{request.user.name}}</a>
@@ -117,6 +121,8 @@
     </nav>
 
     {% include 'scheduled_hours.html' %}
+
+    {% endblock %}
 
     <style>
         .mobile-exam-times {
@@ -178,7 +184,12 @@
     <!-- Footer -->
     <footer class="bg-light py-2 mt-auto">
         <div class="container">
-            <p class="text-center text-muted small mb-0">&copy; 2025 RWANDA DRIVERS. All rights reserved.</p>
+            <span>Twandikire:</span>
+            <a href="https://wa.me/250785287885" class="text-right medium mb-4"> Whatsapp</a><br>
+            <a href="" class="text-muted">Privacy Policy</a>
+            <p class="text-center text-muted small mb-0">&copy; 2025 RWANDA DRIVERS. All rights reserved.
+            </p>
+
         </div>
     </footer>
 

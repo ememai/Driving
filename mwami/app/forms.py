@@ -15,9 +15,9 @@ from django.core.exceptions import ValidationError
 from .models import UserProfile
 
 class RegisterForm(forms.ModelForm):
-    password1 = forms.CharField(widget=forms.PasswordInput, max_length=50, min_length=8, required=True, label="Password")
+    password1 = forms.CharField(widget=forms.PasswordInput, max_length=50, min_length=4, required=True, label="Password")
 
-    password2 = forms.CharField(widget=forms.PasswordInput, max_length=50, min_length=8, required=True, label="Confirm Password")
+    password2 = forms.CharField(widget=forms.PasswordInput, max_length=50, min_length=4,required=True, label="Confirm Password")
 
     phone_number = forms.CharField(
         max_length=15,
@@ -42,7 +42,7 @@ class RegisterForm(forms.ModelForm):
 
 
         if not email and not phone_number:
-            raise forms.ValidationError("You must provide either an email or phone number.")
+            raise forms.ValidationError("Uzuza Email cyangwa Telefone.")
 
         if email:
             try:
@@ -125,7 +125,16 @@ class LoginForm(forms.Form):
 
         return cleaned_data
 
+class ExamForm(forms.ModelForm):
+    class Meta:
+        model = Exam
+        fields = '__all__'  # or list your fields explicitly
 
+    def clean_questions(self):
+        questions = self.cleaned_data.get('questions')
+        if questions and questions.count() > 20:
+            raise ValidationError("An exam cannot have more than 20 questions.")
+        return questions
 
 
 class ScheduledExamForm(forms.ModelForm):
@@ -135,3 +144,16 @@ class ScheduledExamForm(forms.ModelForm):
         widgets = {
             'scheduled_datetime': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
         }
+
+
+class QuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        choices = cleaned_data.get('choices')
+        if choices and len(choices) > 4:
+            raise ValidationError("A question can have max of 4 choices.")
+        return cleaned_data

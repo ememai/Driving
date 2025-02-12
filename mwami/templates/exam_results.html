@@ -1,53 +1,207 @@
-{% extends "base.html" %}
-{% load custom_filters %}  <!-- Load custom template filter -->
+{% extends 'base.html' %}
+{% load static custom_filters %}
+{% block title %}Exam Results - {{ user_exam.exam.title }}{% endblock %}
 
-{% block title %}Ibisubizo{% endblock %}
 {% block content %}
+<style>
+  .img-thumbnail { 
+    width: 120px; 
+    height: 120px; 
+  }
+  .correct-img, .incorrect-img { 
+    display: inline-block; 
+    padding: 1rem; 
+  }
+  .correct-img { background-color: green; }
+  .incorrect-img { background-color: red; }
+  .choice-item { 
+    margin-bottom: 1rem; 
+  }
+  .choice-letter { 
+    font-weight: bold; 
+    margin-right: 0.5rem; 
+  }
+  .choice-content { 
+    display: inline-block; 
+    vertical-align: middle;
+  }
+  
+  /* Mobile Styles */
+  @media (max-width: 768px) {
+    .desktop-view { display: none; }
+    .mobile-view { display: block; }
+  }
 
-<h2><strong>Amanota: </strong> {{ user_exam.score }} / {{ user_exam.exam.questions.count }}</h2>
-<p>{{ user_exam.completed_at|timesince }} ishize</p>
+  /* Desktop Styles */
+  @media (min-width: 769px) {
+    .desktop-view { display: block; }
+    .mobile-view { display: none; }
+  }
+</style>
 
-<section class="mt-5">
-    {% for answer in answers %}
-        <ul class="list-group mb-4">
-            <!-- Question -->
-            <li class="list-group-item list-group-item-secondary">
-                <strong>{{ forloop.counter }}. {{ answer.question.question_text }}</strong>
-            </li>
+<div class="container mt-5">
+  <h2 class="text-center">Exam Results</h2>
+  <p class="text-center"><strong>{{ user_exam.exam.title }}</strong></p>
+  <p class="text-center">Score: <strong>{{ score }}/{{ total_questions }}</strong></p>
 
-            <!-- Display Choices for the Question -->
-            {% for choice in question_choices|get:answer.question.id %}
-                <li class="list-group-item 
-                    {% if choice.id == answer.selected_choice.id and choice.id == answer.question.correct_choice.id %}
-                        list-group-item-success
-                    {% elif choice.id == answer.selected_choice.id and choice.id != answer.question.correct_choice.id %}
-                        list-group-item-danger
-                    {% elif choice.id == answer.question.correct_choice.id %}
-                        list-group-item-success
-                    {% endif %}
-                ">
-                    {% if choice.image_choice %}
-                        <img src="{{ choice.image_choice.sign_image.url }}" 
-                             alt="{{ choice.image_choice.definition }}" 
-                             class="img-fluid" style="max-width: 150px;">
+  <!-- Desktop View (Table Layout) -->
+  <div class="desktop-view">
+    <table class="table table-striped mt-4">
+      <thead>
+        <tr>
+          <th>Question</th>
+          <th>Your Answer</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for answer in answers %}
+        <tr>
+          <td>
+            {{ answer.question.question_text }}
+            {% if answer.question.sign.exists %}
+            <div class="mt-2">
+              {% for sign in answer.question.sign.all %}
+                <img src="{{ sign.sign_image.url }}" alt="{{ sign.definition }}" class="img-thumbnail">
+              {% endfor %}
+            </div>
+            {% endif %}
+          </td>
+          <td>
+            {% if not answer.selected_choice %}
+              <div style="color:red; font-weight:bold;">No selection</div>
+            {% endif %}
+            {% for choice in answer.question.choices.all %}
+            <div class="choice-item">
+              <span class="choice-letter">{{ forloop.counter0|letter }})</span>
+              <span class="choice-content">
+                {% if choice.image_choice %}
+                  {% if answer.selected_choice == choice %}
+                    {% if answer.question.correct_choice == choice %}
+                      <div class="correct-img">
+                        <img src="{{ choice.image_choice.sign_image.url }}" class="img-thumbnail">
+                      </div>
+                      <span style="color:green;">✅</span>
                     {% else %}
-                        {{ choice.text }}
+                      <div class="incorrect-img">
+                        <img src="{{ choice.image_choice.sign_image.url }}" class="img-thumbnail">
+                      </div>
+                      <span style="color:red;">❌</span>
                     {% endif %}
-
-                    <!-- Mark Correct and Incorrect Answers -->
-                    {% if choice.id == answer.selected_choice.id and choice.id == answer.question.correct_choice.id %}
-                        ✅ <span class="badge bg-success">Wagikoze</span>
-                    {% elif choice.id == answer.selected_choice.id and choice.id != answer.question.correct_choice.id %}
-                        ❌ <span class="badge bg-danger">Icyo wahisempo</span>
-                    {% elif choice.id == answer.question.correct_choice.id %}
-                        ✅ <span class="badge bg-success">Igisubizo cy'ukuri</span>
+                  {% elif answer.question.correct_choice == choice %}
+                    <div class="correct-img">
+                      <img src="{{ choice.image_choice.sign_image.url }}" class="img-thumbnail">
+                    </div>
+                  {% else %}
+                    <div class="mt-2">
+                      <img src="{{ choice.image_choice.sign_image.url }}" class="img-thumbnail">
+                    </div>
+                  {% endif %}
+                {% else %}
+                  {% if answer.selected_choice == choice %}
+                    {% if answer.question.correct_choice == choice %}
+                      <span style="color:green;">✅ {{ choice.text }}</span>
+                    {% else %}
+                      <span style="color:red;">❌ {{ choice.text }}</span>
                     {% endif %}
-                </li>
+                  {% elif answer.question.correct_choice == choice %}
+                    <span style="background-color:green;">{{ choice.text }}</span>
+                  {% else %}
+                    <span>{{ choice.text }}</span>
+                  {% endif %}
+                {% endif %}
+              </span>
+            </div>
             {% endfor %}
-        </ul>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile View (Card Layout) -->
+  <div class="mobile-view">
+    {% for answer in answers %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">{{forloop.counter}}. {{ answer.question.question_text }}</h5>
+        
+        {% if answer.question.sign.exists %}
+        <div class="mt-2">
+          {% for sign in answer.question.sign.all %}
+            <img src="{{ sign.sign_image.url }}" alt="{{ sign.definition }}" class="img-thumbnail">
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="mt-3">
+          {% if not answer.selected_choice %}
+            <div style="color:red; font-weight:bold;">No selection</div>
+          {% endif %}
+          {% for choice in answer.question.choices.all %}
+          <div class="card choice-item p-2 {% if choice == answer.selected_choice and choice == answer.question.correct_choice %}border border-success{% elif choice == answer.selected_choice %}border border-danger{% endif %}">
+            <span class="choice-letter">{{ forloop.counter0|letter }})</span>
+            <span class="choice-content">
+              {% if choice.image_choice %}
+                {% if answer.selected_choice == choice %}
+                  {% if answer.question.correct_choice == choice %}
+                    <div class="correct-img">
+                      <img src="{{ choice.image_choice.sign_image.url }}" class="img-thumbnail">
+                    </div>
+                    <span style="color:green;">✅</span>
+                  {% else %}
+                    <div class="incorrect-img">
+                      <img src="{{ choice.image_choice.sign_image.url }}" class="img-thumbnail">
+                    </div>
+                    <span style="color:red;">❌</span>
+                  {% endif %}
+                {% elif answer.question.correct_choice == choice %}
+                  <div class="correct-img">
+                    <img src="{{ choice.image_choice.sign_image.url }}" class="img-thumbnail">
+                  </div>
+                {% else %}
+                  <div class="mt-2">
+                    <img src="{{ choice.image_choice.sign_image.url }}" class="img-thumbnail">
+                  </div>
+                {% endif %}
+              {% else %}
+                {% if answer.selected_choice == choice %}
+                  {% if answer.question.correct_choice == choice %}
+                    <span style="color:green;">✅ {{ choice.text }}</span>
+                  {% else %}
+                    <span style="color:red;">❌ {{ choice.text }}</span>
+                  {% endif %}
+                {% elif answer.question.correct_choice == choice %}
+                  <span style="background-color:green;">{{ choice.text }}</span>
+                {% else %}
+                  <span>{{ choice.text }}</span>
+                {% endif %}
+              {% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
     {% endfor %}
-</section>
+  </div>
 
-<a href="{% url 'home' %}" class="btn btn-primary">Back to Home</a>
+  <div class="text-center mt-4">
+    <a href="#" class="btn btn-primary">Back to Exams</a>
+  </div>
+</div>
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  document.querySelectorAll('.choice-content').forEach(function(content) {
+    if (content.querySelector('img')) {
+      content.childNodes.forEach(function(node) {
+        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== "") {
+          node.remove();
+        }
+      });
+    }
+  });
+});
+</script>
 {% endblock %}

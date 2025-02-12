@@ -147,11 +147,17 @@ class QuestionManager(models.Manager):
 
 class Question(models.Model):
     question_text = models.TextField()
-    sign = models.ManyToManyField(RoadSign, related_name='questions', blank=True)
-    choices = models.ManyToManyField(Choice, related_name='questions')
+    sign = models.ManyToManyField(RoadSign, related_name='road_sign_questions', blank=True)
+    choices = models.ManyToManyField(Choice, related_name='choice_questions')
     correct_choice = models.ForeignKey(Choice, on_delete=models.CASCADE, related_name='correct_for_questions')
+    order = models.PositiveIntegerField(help_text="Order of the question in the exam")
+
 
     objects = QuestionManager()
+
+    # def clean(self):
+    #     if self.choices.count() > 4:
+    #         raise ValidationError("Exam must have max of 4 choices")
 
     def __str__(self):
         return f"{self.id}. {self.question_text[:50]}"
@@ -166,8 +172,17 @@ class Exam(models.Model):
     ]
     title = models.CharField(max_length=500, choices=TYPE_CHOICES, blank=True)
     questions = models.ManyToManyField(Question, related_name='exams')
+    duration = models.PositiveIntegerField(default=20,help_text="Duration of the exam in minutes")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    is_active = models.BooleanField(default=False)
+    # max_attempts = models.PositiveIntegerField(default=1)
+
+
+    # def remaining_attempts(self, user):
+    #     attempts = UserExam.objects.filter(user=user, exam=self).count()
+    #     return self.max_attempts - attempts
 
     def __str__(self):
         return self.title
@@ -177,6 +192,7 @@ class UserExam(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     score = models.IntegerField(default=0)
+    started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:

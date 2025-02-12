@@ -88,6 +88,15 @@ def scheduled_hours(request):
 
     return render(request, 'scheduled_hours.html',context)
 
+def exam_timer(request, exam_id):
+    try:
+        scheduled_exam = ScheduledExam.objects.get(exam_id=exam_id)
+        time_remaining = (scheduled_exam.scheduled_datetime - timezone.now()).total_seconds()
+        return JsonResponse({'time_remaining': max(time_remaining, 0)})
+    except ScheduledExam.DoesNotExist:
+        return JsonResponse({'error': 'Exam not found'}, status=404)
+
+
 
 # ---------------------
 # Exam / Question Views
@@ -100,21 +109,30 @@ def exam(request, exam_id, question_number):
     questions = list(exam.questions.all().select_related('correct_choice'))
     total_questions = len(questions)
 
-    # Validate question number
-    if question_number < 1 or question_number > total_questions:
-        messages.error(request, "Invalid question number.")
-        return redirect('exam', exam_id=exam_id, question_number=1)
-
-    current_question = questions[question_number - 1]
-
-    # Ensure a UserExam record exists
+    # Get or create the UserExam record for the current user and exam.
+    # (Remember: the unique_together constraint means only one record exists per exam.)
     user_exam, created = UserExam.objects.get_or_create(
         user=request.user,
         exam=exam,
         defaults={'score': 0, 'completed_at': None}
     )
 
-    # Prepare session storage for answers
+    # --- NEW: Reset exam attempt if already submitted -------------------------
+    if user_exam.completed_at:
+       return redirect('retake_exam', exam_id=exam_id)
+    # --------------------------------------------------------------------------
+
+    # Validate the question number
+    if question_number < 1 or question_number > total_questions:
+        messages.error(request, "Invalid question number.")
+        return redirect('exam', exam_id=exam_id, question_number=1)
+
+    current_question = questions[question_number - 1]
+
+    # Calculate the exam end time based on the (possibly reset) started_at time.
+    exam_end_time = (user_exam.started_at + timedelta(minutes=exam.duration)).timestamp()
+
+    # Prepare session storage for answers if not already in session.
     if 'answers' not in request.session:
         request.session['answers'] = {}
 
@@ -130,7 +148,7 @@ def exam(request, exam_id, question_number):
         elif 'previous' in request.POST and question_number > 1:
             return redirect('exam', exam_id=exam_id, question_number=question_number - 1)
         elif 'submit' in request.POST:
-            # Calculate the score and save answers
+            # Calculate the score and record the answers.
             score = 0
             for question in questions:
                 correct_choice = question.correct_choice
@@ -144,7 +162,7 @@ def exam(request, exam_id, question_number):
                     defaults={'selected_choice': selected_choice}
                 )
 
-            # Save UserExam record
+            # Mark the exam as completed and save the score.
             user_exam.score = score
             user_exam.completed_at = timezone.now()
             try:
@@ -153,42 +171,64 @@ def exam(request, exam_id, question_number):
                 messages.error(request, str(e))
                 return redirect('subscription')
 
-            # Clear saved answers from session
+            # Clear saved answers from the session.
             request.session.pop('answers', None)
             messages.success(request, f"Exam submitted! Your score: {score}/{total_questions}.")
-            return redirect('exam_results', user_exam_id=user_exam.id)
+            return redirect('exam_results', user_exam_id=user_exam.id) 
 
-    return render(request, 'exam.html', {
+    context = {
         'exam': exam,
         'question': current_question,
         'question_number': question_number,
         'total_questions': total_questions,
         'questions': questions,
-    })
-
-
-def exam_timer(request, exam_id):
-    try:
-        scheduled_exam = ScheduledExam.objects.get(exam_id=exam_id)
-        time_remaining = (scheduled_exam.scheduled_datetime - timezone.now()).total_seconds()
-        return JsonResponse({'time_remaining': max(time_remaining, 0)})
-    except ScheduledExam.DoesNotExist:
-        return JsonResponse({'error': 'Exam not found'}, status=404)
+        'exam_end_time': exam_end_time,
+        'exam_duration': exam.duration * 60,  # Convert minutes to seconds
+        'user_exam': user_exam,
+    }
+    return render(request, 'exam.html', context)
 
 
 @login_required(login_url='login')
 def exam_results(request, user_exam_id):
     user_exam = get_object_or_404(UserExam, id=user_exam_id, user=request.user)
     answers = UserExamAnswer.objects.filter(user_exam=user_exam).select_related('question', 'selected_choice')
-    question_choices = {
-        answer.question.id: list(answer.question.choices.all()) for answer in answers
-    }
-    return render(request, 'exam_results.html', {
+    
+    context = {
         'user_exam': user_exam,
         'answers': answers,
-        'question_choices': question_choices
-    })
+        'total_questions': user_exam.exam.questions.count(),
+        'score': user_exam.score,
+    }
+    return render(request, 'exam_results.html', context)
 
+@login_required(login_url='login')
+@subscription_required
+def retake_exam(request, exam_id):
+    exam = get_object_or_404(Exam, id=exam_id)
+    user_exam = get_object_or_404(UserExam, exam=exam, user=request.user)
+    
+    # If the exam is not completed, no need for retake confirmation.
+    if not user_exam.completed_at:
+        return redirect('exam', exam_id=exam_id, question_number=1)
+    
+    if request.method == 'POST':
+        # Reset the exam attempt.
+        user_exam.started_at = timezone.now()
+        user_exam.completed_at = None
+        user_exam.score = 0
+        user_exam.save()
+        # Clear any saved answers from the session.
+        if 'answers' in request.session:
+            del request.session['answers']
+        messages.info(request, "Your exam has been reset. Good luck!")
+        return redirect('exam', exam_id=exam_id, question_number=1)
+    
+    context = {
+        'exam': exam,
+        'user_exam': user_exam,
+    }
+    return render(request, 'confirm_retake_exam.html', context)
 
 # ---------------------
 # Contact / Registration / Login Views

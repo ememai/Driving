@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import *
+from .forms import *
 
 from django.urls import reverse
 from django.utils.html import format_html
@@ -74,11 +75,13 @@ class ChoiceAdmin(admin.ModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
+    form = QuestionForm
     list_display = ('question_text', 'correct_choice')
     filter_horizontal = ('sign', 'choices')
  
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
+    form = ExamForm
     list_display = ('title', 'created_at', 'updated_at')
     filter_horizontal = ('questions',)
 
