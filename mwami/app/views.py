@@ -254,17 +254,17 @@ def register_view(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password1"])
-            user.active = True  # Mark active initially; may change if OTP is needed.
+            user.otp_verified = True  # Mark active initially; may change if OTP is needed.
             user.save()
 
             if form.cleaned_data.get("email"):
-                user.active = False
+                user.otp_verified = False
                 user.send_otp_email()
                 messages.success(request, 'OTP sent to your email. Verify your account.')
                 return redirect('verify_otp', user_id=user.id)
             else:
                 messages.success(request, 'Account created successfully. Please login.')
-                return redirect("login")
+                return redirect("subscription")
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -281,7 +281,7 @@ def verify_otp(request, user_id):
     if request.method == 'POST':
         otp = request.POST.get('otp')
         if user_profile.verify_otp(otp):
-            user_profile.active = True
+            user_profile.otp_verified = True
             user_profile.save()
             authenticated_user = authenticate(
                 request,
@@ -329,7 +329,7 @@ def login_view(request):
                     user.phone_number = None
                     user.save(update_fields=["phone_number"])
                 
-                if not user.active:
+                if user.email and not user.otp_verified:
                     messages.error(request, "Please verify your OTP before logging in.")
                     return redirect("verify_otp", user_id=user.id)
                 authenticated_user = authenticate(request, username=username, password=password)

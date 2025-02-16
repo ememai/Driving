@@ -128,11 +128,19 @@ WSGI_APPLICATION = 'mwami.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+          'ENGINE': 'django.db.backends.mysql',  # Use the MySQL backend
+          'NAME': config('DB_NAME'),                # Your database name
+          'USER':   config('DB_USER'),                # Your database user
+          'PASSWORD': config('DB_PASSWORD'),           # Your database password
+          'HOST': config('DB_HOST'),                   # Typically 'localhost' on Windows
+          'PORT': config('DB_PORT'),                        # Default MySQL port
+          'OPTIONS': {
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+          },
+     }
 }
 
 AUTHENTICATION_BACKENDS = [
@@ -191,7 +199,8 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 #STRIPE_API_KEY = 'your_stripe_secret_key'
 
 

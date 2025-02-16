@@ -1,4 +1,7 @@
-{% extends 'base.html' %} {% block title %} Register {% endblock %}
+{% extends 'base.html' %} 
+
+{% block title %} Register {% endblock %}
+
 {% block content %}
 <div class="row justify-content-center mt-5">
     <div class="col-md-6">
@@ -33,7 +36,8 @@
                 <!-- Email Field (Initially hidden) -->
                 <div class="mb-3 d-none" id="emailField">
                     <label for="id_email" class="form-label">Email</label>
-                    <input type="email" name="email" id="id_email" class="form-control" placeholder="urugero: umuhanda@gmail.com"/>
+                    <input type="email" name="email" id="id_email" class="form-control"
+                        placeholder="urugero: umuhanda@gmail.com" />
                 </div>
                 <!-- Name field -->
                 <div class="mb-3">
@@ -65,8 +69,19 @@
                         </button>
                     </div>
                 </div>
-
-
+                <div class="mb-3 text-center">
+                    <label class="form-label fw-bold">Gender</label>
+                    <div class="d-flex justify-content-center gap-3">
+                        {% for value, label in form.gender.field.choices %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="gender" id="gender_{{ value }}"
+                                value="{{ value }}"/>
+                            <label class="form-check-label" for="gender_{{ value }}">{{ label }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- Remove unnecessary option -->
                 <button type="submit" class="btn btn-primary w-100">Register</button>
             </form>
             <p class="text-center mt-3">

@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}RWANDA DRIVERS{% endblock %} | Rwanda DC </title>
+  <title>{% block title %}RWANDA DRIVERS{% endblock %} | Rwanda DC</title>
   <meta name="description"
     content="Rwanda Drivers License Portal - Your official source for driver's license services in Rwanda" />
 
@@ -28,22 +28,43 @@
     body {
       font-family: Arial, Helvetica, sans-serif;
       background-color: #d7ebff;
-
     }
 
-    :root {
-      --dark-yellow: #b8860b;
-      --dark-yellow-hover: #a0720a;
-    }
 
     .bold-logo {
       font-weight: 700;
       font-size: 1.2rem;
     }
 
-    .btn-dark-yellow {
-      background-color: var(--dark-yellow);
-      color: white;
+    .btn-dark {
+      border-radius: 50px;
+    }
+
+    .btn-dark:hover,
+    .admin-dashboard-link:hover {
+      color: #00ff00;
+      animation: colorChange 1s forwards;
+    }
+
+    @keyframes colorChange {
+      from {
+        color: #343a40;
+      }
+
+      to {
+        color: #00ff00;
+      }
+    }
+
+    /* .btn-dark:active {
+      background-color: #343a40;
+      color: #ffffff;
+    } */
+
+
+    .green-btn {
+      background-color: black;
+      color: greenyellow;
       border: none;
       font-size: 1.1rem;
       padding: 0.5rem 1rem;
@@ -53,9 +74,9 @@
       white-space: nowrap;
     }
 
-    .btn-dark-yellow:hover {
-      background-color: var(--dark-yellow-hover);
-      color: white;
+    .green-btn:hover {
+      background-color: rgb(39, 38, 38);
+      color: greenyellow;
     }
 
     footer a:not(:last-child)::after {
@@ -68,94 +89,106 @@
       color: greenyellow;
     }
 
-    a:hover {
-      background-color: rgba(58, 58, 58, 0.6);
-      transition: 2ms;
+    footer a:hover {
+      font-weight: bold;
     }
 
-    /* Example: If you want a dark dropdown like the YouTube screenshot,
-         you can use .dropdown-menu-dark in Bootstrap 5:
-         .dropdown-menu.dropdown-menu-dark { background-color: #212121; }
-         Adjust as you wish.
-      */
+    main {
+      padding-top: 100px;
+      /* Adjust this value based on the height of your fixed content */
+    }
   </style>
 </head>
 
-<body class="d-flex flex-column min-vh-100 ">
+<body class="d-flex flex-column min-vh-100">
   {% block navbar %}
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg mb-5">
-    <div class="container-fluid">
-      <!-- Logo/Brand -->
-      <a class="navbar-brand bold-logo" href="/">
-        <img src="{% static 'img/logo.png' %}" alt="Logo" width="30" height="30" class="d-inline-block align-top" />
-        RWANDA DC
-      </a>
+  <div class="bg-success fixed-top">
+    <nav class="navbar navbar-expand-md ">
+      <div class="container-fluid">
+        <!-- Logo/Brand -->
+        <a class="navbar-brand bold-logo" href="/">
+          <img src="{% static 'img/logo.png' %}" alt="Logo" width="30" height="30" class="d-inline-block align-top" />
+          RWANDA DC
+        </a>
 
-      <!-- Right-side Nav Items -->
-      <div class="d-flex flex-nowrap gap-2 ms-auto">
-        {% if not user.is_authenticated %}
-        <!-- If user is not logged in -->
-        <a class="btn btn-dark-yellow" href="{% url 'register' %}">Konti nshya</a>
-        <a class="btn btn-dark-yellow" href="{% url 'login' %}">Konti isanzwe</a>
-        {% else %}
-        <!-- If user is logged in -->
-        <a class="btn btn-dark-yellow" href="{% url 'subscription' %}">Ifatabuguzi</a>
+        <!-- Right-side Nav Items -->
+        <div class="d-flex flex-nowrap gap-2 ms-auto">
+          {% if not user.is_authenticated %}
+          <!-- If user is not logged in -->
+          <a class="btn green-btn" href="{% url 'register' %}">Konti nshya</a>
+          <a class="btn green-btn" href="{% url 'login' %}">Konti isanzwe</a>
+          {% else %}
+          <!-- If user is logged in -->
+          <div class="flex">
+            {% if user.is_subscribed %}
+            <a class="btn btn-dark bg-success " href="{% url 'subscription' %}">Ifatabuguzi |
+              {{user.subscription.plan}}</a>
 
-        {% if user.is_staff %}
-        <a class="btn btn-dark-yellow" href="{% url 'admin_dashboard' %}">Admin</a>
-        {% endif %}
+            {% else %}
+            <a class="btn btn-dark text-message" href="{% url 'subscription' %}">Gura ifatabuguzi</a>
+            {% endif %}
 
-        <!-- Dropdown for user menu -->
-        <div class="dropdown">
-          <button class="btn btn-link dropdown-toggle text-dark fs-5" type="button" data-bs-toggle="dropdown"
-            aria-expanded="false"></button>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <!-- Add any extra profile/account links here -->
-            <li>
-              <!-- <a class="dropdown-item" href="#"> </a> -->
+            {% if user.is_staff %}
+            <a class="text-decoration-none text-dark fs-5 admin-dashboard-link" href="{% url 'admin_dashboard' %}">
+              <i class="bi bi-speedometer2"></i>
+              Dashboard
+            </a>
+            <style>
 
-              <div class="d-flex align-items-center">
-                {% if user.profile_picture %}
-                <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="rounded-circle me-2"
-                  style="width: 80px; height: 80px; object-fit: cover" />
-                {% else %}
-                <i class="bi bi-person-circle fs-1 text-secondary m-2"></i>
-                {% endif %}
+            </style>
+            {% endif %}
+          </div>
 
-                <div>
-                  {{ user.name }}
-                  {% if user.email %} {{ user.email }}
+          <!-- Dropdown for user menu -->
+          <div class="dropdown">
+            <button class="btn btn-link dropdown-toggle text-dark fs-5" type="button" data-bs-toggle="dropdown"
+              aria-expanded="false"></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <!-- Add any extra profile/account links here -->
+              <li>
+                <!-- <a class="dropdown-item" href="#"> </a> -->
+
+                <div class="d-flex align-items-center">
+                  {% if user.profile_picture %}
+                  <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="rounded-circle me-2"
+                    style="width: 80px; height: 80px; object-fit: cover" />
                   {% else %}
-                  {{user.phone_number}}
+                  <i class="bi bi-person-circle fs-1 text-secondary m-2"></i>
                   {% endif %}
+
+                  <div>
+                    {{ user.name }} {% if user.email %} {{ user.email }} {% else
+                    %} {{user.phone_number}} {% endif %}
+                  </div>
                 </div>
-              </div>
-            </li>
+              </li>
 
-            <li>
-              <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                <i class="bi bi-box-arrow-right"></i> Logout
-              </a>
-            </li>
-          </ul>
+              <li>
+                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                  <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+              </li>
+            </ul>
+          </div>
+          {% endif %}
         </div>
-        {% endif %}
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <!-- Include scheduled hours (if needed) -->
-  {% include 'scheduled_hours.html' %} {% endblock %}
+    <!-- Include scheduled hours (if needed) -->
+    {% include 'scheduled_hours.html' %}
+    {% endblock %}
+  </div>
 
   <!-- Main Content -->
   <main class="flex-grow-1">
     <div class="message-container container mt-3">
       {% for message in messages %}
-      <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-2 py-2" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
+      {% if message.tags == 'success' %}
+
+      {% include 'flash_message.html' %}
+      {% endif %}
       {% endfor %}
     </div>
 

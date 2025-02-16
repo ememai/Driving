@@ -49,15 +49,14 @@ class UserProfile(AbstractUser):
     username = None  # Remove default username field
     name = models.CharField(max_length=16, unique=True)
     email = models.EmailField(unique=True, blank=True, null=True)  
-    phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)  
-    
+    phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)     
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
-    profile_picture = models.ImageField(upload_to='images/', default='avatar.jpg',null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='images/', default='images/avatar.png',null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     # is_subscribed = models.BooleanField(default=False)
-    active = models.BooleanField(default=False)
     subscription_end_date = models.DateField(null=True, blank=True)
     otp_code = models.CharField(max_length=6, blank=True, null=True)
+    otp_verified = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'phone_number'  # Default authentication field
     REQUIRED_FIELDS = ['email']  # Email is optional, but preferred
@@ -107,7 +106,7 @@ class UserProfile(AbstractUser):
         return (
             self.subscription.expires_at and 
             self.subscription.expires_at >= timezone.now().date() and
-            self.subscription.active
+            self.subscription.active_subscription
         )
 
     def send_otp_email(self):
@@ -144,7 +143,7 @@ class RoadSign(models.Model):
 
 class Choice(models.Model):
     text = models.CharField(max_length=1000, null=True, blank=True)
-    image_choice = models.OneToOneField(RoadSign, on_delete=models.SET_NULL, null=True, blank=True)
+    image_choice = models.OneToOneField(RoadSign, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.text or f"Ishusho: '{self.image_choice.definition}'"
@@ -247,8 +246,7 @@ class Plan(models.Model):
     
 
 
-class Subscription(models.Model):
-    
+class Subscription(models.Model):    
 
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True)
@@ -257,7 +255,7 @@ class Subscription(models.Model):
     phone_number = models.CharField(max_length=13, default="25078")
     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
 
-    active = models.BooleanField(default=False)
+    active_subscription = models.BooleanField(default=False)
     started_at = models.DateField(auto_now_add=True)
     expires_at = models.DateField(null=True, blank=True)
 
@@ -265,17 +263,17 @@ class Subscription(models.Model):
         #  """Activate the subscription for the given duration."""
         self.started_at = timezone.now()  # Fixed from 'start_date'
         self.expires_at = timezone.now() + timezone.timedelta(days=duration_days)
-        self.active = True  # Changed from is_active
+        self.active_subscription = True  # Changed from is_active
         self.save()
 
     def deactivate(self):
         #  """Deactivate the subscription."""
-        self.active = False
+        self.active_subscription = False
         self.save()
 
     
     def __str__(self):
-        return f"{self.user.name} - {'Active' if self.active else 'Inactive'}"
+        return f"{self.user.name} - {'Active' if self.active_subscription else 'Inactive'}"
 
 
 class Payment(models.Model):

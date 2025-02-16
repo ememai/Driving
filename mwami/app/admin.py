@@ -59,9 +59,9 @@ from django.contrib.admin import AdminSite
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('name','email', 'phone_number',  'active')
+    list_display = ('name','email', 'phone_number',  'otp_verified')
     search_fields = ('name','email', 'phone_number')
-    list_filter = [('active')]
+    list_filter = [('otp_verified')]
 
 @admin.register(RoadSign)
 class RoadSignAdmin(admin.ModelAdmin):
@@ -102,7 +102,7 @@ class PlanAdmin(admin.ModelAdmin):
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'plan', 'price', 'active', 'expires_at')
+    list_display = ('user', 'plan', 'price', 'active_subscription', 'expires_at')
     search_fields = ('user__email', 'plan__plan')
 
 @admin.register(Payment)
@@ -119,7 +119,7 @@ class ContactMessageAdmin(admin.ModelAdmin):
 
 @admin.action(description='Activate selected subscriptions')
 def activate_subscriptions(modeladmin, request, queryset):
-    queryset.update(active=True)
+    queryset.update(active_subscription=True)
 
 
 @admin.register(ScheduledExam)

@@ -28,8 +28,8 @@ class RegisterForm(forms.ModelForm):
 
     
     class Meta:
-        model = UserProfile
-        fields = ['name', 'email', 'phone_number']
+        model = UserProfile 
+        fields = ['name', 'email', 'phone_number', 'gender']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -113,7 +113,7 @@ class LoginForm(forms.Form):
     username = forms.CharField(label="Email or Phone")
     password = forms.CharField(widget=forms.PasswordInput, label="Enter your password",
     max_length=50,
-    min_length=8,
+    min_length=4,
     required=True)
 
     def clean(self):
