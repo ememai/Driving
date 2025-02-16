@@ -1,29 +1,66 @@
-<!-- exams_slider.html -->
- <style>
+<style>
     .hours {
-        background-color: cyan;
+        background-color: rgba(00, 255, 255, 0.5);
         font-weight: 700;
         font-size: 1.5rem;
     }
- </style>
+
+    /* Scrollable container styling */
+    .scrollable-times {
+        display: flex;
+        flex-wrap: nowrap;
+        /* Force items to stay on one line */
+        overflow-x: auto;
+        gap: 1rem;
+        /* Space between hour items */
+        padding: 0 1rem;
+        /* Optional horizontal padding */
+        -ms-overflow-style: none;
+        /* IE/Edge hide scrollbar */
+        scrollbar-width: none;
+        /* Firefox hide scrollbar */
+    }
+
+    .scrollable-times::-webkit-scrollbar {
+        display: none;
+        /* Chrome/Safari hide scrollbar */
+    }
+
+    /* Each exam-hour is a flex item that doesn't shrink */
+    .exam-hour {
+        flex: 0 0 auto;
+    }
+
+    /* Basic styling for hour links */
+    .hour-link {
+        color: #0000ff;
+
+    }
+
+    .hour-link.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+</style>
+
 <div class="mobile-exam-times hours">
-  <div class="container-fluid">
-      <div class="scrollable-times">
-          {% for exam in exams_scheduled %}
-              <div class="exam-hour">
-                  {% if exam.is_published %}
-                      <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link">
-                          {{ exam.scheduled_datetime|time:"H:00" }}  <!-- 24-hour format (e.g., 14:00) -->
-                      </a>
-                  {% else %}
-                      <span class="hour-link disabled">
-                          {{ exam.scheduled_datetime|time:"H:00" }}  <!-- Same format for disabled -->
-                      </span>
-                  {% endif %}
-              </div>
-          {% empty %}
-              <p>No exams scheduled for today.</p>
-          {% endfor %}
-      </div>
-  </div>
+    <div class="container-fluid">
+        <div class="scrollable-times">
+            {% for exam in exams_scheduled %}
+            <div class="exam-hour">
+                {% if exam.is_published %}
+                <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link">
+                    {{ exam.scheduled_datetime|time:"H:00" }}
+                </a>
+                {% else %}
+                <span class="hour-link disabled">
+                    {{ exam.scheduled_datetime|time:"H:00" }}
+                </span>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p>No exams scheduled for today.</p>
+            {% endfor %}
+        </div>
+    </div>
 </div>

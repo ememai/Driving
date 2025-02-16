@@ -12,9 +12,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import *
+from decouple import config
 from apscheduler.triggers.cron import CronTrigger
-read_dotenv()
+
 # from django_apscheduler.jobstores import register_events, register_job
 
 
@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('PROJECT_SECRET_KEY')
+SECRET_KEY = config('PROJECT_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -182,6 +182,8 @@ CSRF_TRUSTED_ORIGINS = [
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+#for deployment
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_DIRS = [
@@ -206,17 +208,17 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
-MTN_MOMO_SUBSCRIPTION_KEY = os.getenv("MTN_MOMO_SUBSCRIPTION_KEY")
-MTN_MOMO_API_USER_ID = os.getenv("MTN_MOMO_API_USER_ID")
-MTN_MOMO_API_KEY = os.getenv("MTN_MOMO_API_KEY")
-MTN_MOMO_CALLBACK_URL = os.getenv("MTN_MOMO_CALLBACK_URL")
-MTN_MOMO_COLLECTION_PRIMARY_KEY = os.getenv("MTN_MOMO_COLLECTION_PRIMARY_KEY")
-MTN_MOMO_BASE_URL = os.getenv("MTN_MOMO_BASE_URL")
+MTN_MOMO_SUBSCRIPTION_KEY = config("MTN_MOMO_SUBSCRIPTION_KEY")
+MTN_MOMO_API_USER_ID = config("MTN_MOMO_API_USER_ID")
+MTN_MOMO_API_KEY = config("MTN_MOMO_API_KEY")
+MTN_MOMO_CALLBACK_URL = config("MTN_MOMO_CALLBACK_URL")
+MTN_MOMO_COLLECTION_PRIMARY_KEY = config("MTN_MOMO_COLLECTION_PRIMARY_KEY")
+MTN_MOMO_BASE_URL = config("MTN_MOMO_BASE_URL")
 
 LOGIN_URL = 'login'

@@ -1,0 +1,16 @@
+ /* Add to your existing CSS */
+ .modal-backdrop.show {
+  opacity: 0.8 !important;
+}
+
+.modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header .btn-close {
+  font-size: 0.8rem;
+  margin-top: -0.5rem;
+}
+

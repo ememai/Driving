@@ -25,6 +25,8 @@ from django.http import JsonResponse
 from .models import ScheduledExam
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.views import View
+from django.views.decorators.http import require_POST
+
 
 
 
@@ -350,6 +352,7 @@ def login_view(request):
     return render(request, "registration/login.html", {"form": form})
 
 
+@require_POST
 @login_required(login_url='login')
 def user_logout(request):
     logout(request)

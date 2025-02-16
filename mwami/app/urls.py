@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, user_profile_view
 from .views import *
 from .decorators import subscription_required
 
@@ -35,6 +35,10 @@ urlpatterns = [
     path('verify-otp/<int:user_id>/', verify_otp, name='verify_otp'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.user_logout, name='logout'),  
+    
+    #user profile
+    path('profile/', user_profile_view.profile_view, name='profile'),
+    path('mark-notification-read/', user_profile_view.mark_notification_read, name='mark_notification_read'),
     
     path('privacy-policy/', views.PrivacyPolicyView.as_view(), name='privacy_policy'), 
 ]
