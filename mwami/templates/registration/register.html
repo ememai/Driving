@@ -1,50 +1,199 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 
 {% block title %} Register {% endblock %}
 
+{% block navbar %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Overall body style */
+    body {
+        background: #000;
+        color: #fff;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    /* Centering container adjustments */
+    .row {
+        min-height: 100vh;
+        align-items: center;
+    }
+
+    /* Card styling */
+    .card {
+        background: #181818;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+        border: 1px solid #333;
+    }
+
+    .card h2 {
+        color: #fff;
+        font-size: 2rem;
+        letter-spacing: 1px;
+    }
+
+    /* Form labels and text */
+    .form-label,
+    .form-check-label {
+        color: #ccc;
+        font-weight: 500;
+    }
+
+    /* Input fields */
+    .form-control {
+        background: #333;
+        border: none;
+        color: #fff;
+        border-radius: 5px;
+        padding: 0.75rem;
+    }
+
+    .form-control::placeholder {
+        color: #bbb;
+        opacity: 0.8;
+    }
+
+    .form-control:focus {
+        box-shadow: none;
+        border: 1px solid cyan;
+        background-color: #000;
+        color: #fff;
+    }
+
+    /* Input group addon */
+    .input-group-text {
+        background: #333;
+        border: none;
+        color: #0e0d0d;
+        border-radius: 5px 0 0 5px;
+    }
+
+    /* Button styles */
+    .btn-primary {
+        background: cyan;
+        color: #055c00;
+        border: none;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: rgb(170, 255, 255);
+        color: #055c00;
+    }
+
+    .btn-outline-primary,
+    .btn-outline-secondary {
+        background: transparent;
+        border: 1px solid cyan;
+        color: cyan;
+        border-radius: 5px;
+        transition: background 0.3s, color 0.3s;
+    }
+
+
+    .btn-focus,
+    .btn-outline-primary:hover,
+    .btn-outline-secondary:hover {
+        background-color: rgb(0, 255, 0);
+        color: #000;
+    }
+
+    .btn-focus:hover {
+        background-color: rgb(150, 243, 150);
+    }
+
+    /* Toggle password button */
+    .toggle-password {
+        background: #333;
+        color: #fff;
+        border: none;
+        border-radius: 0 5px 5px 0;
+    }
+
+    .toggle-password:hover {
+        background: #444;
+    }
+
+    /* Link styles */
+    a {
+        font-size: 14px;
+        color: cyan;
+        text-decoration: none;
+        position: relative;
+        display: inline-block;
+    }
+
+    /* a:hover {
+        text-decoration: underline;
+        transition: width 0.3s ease;
+    } */
+
+    a::after {
+        content: '';
+        display: block;
+        width: 0;
+        height: 2px;
+        background-color: cyan;
+        transition: width 0.3s ease;
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+    }
+
+    a:hover::after {
+        width: 100%;
+    }
+
+    p {
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center mt-5">
+<div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card shadow-lg p-4">
             <h2 class="text-center mb-4">Create an Account</h2>
-
             <form method="post" novalidate>
                 {% csrf_token %}
-
                 <div class="mb-3 text-center">
                     <label class="form-label fw-bold">Register with:</label>
-                    <div class="d-flex justify-content-center gap-3">
-                        <button type="button" class="btn btn-outline-primary" id="usePhone">
+                    <div class="d-flex justify-content-center gap-3" id="js-switch">
+                        <button type="button" class="btn btn-outline-primary btn-focus" id="usePhone">
                             Phone
                         </button>
-                        <button type="button" class="btn btn-outline-secondary" id="useEmail">
+                        <button type="button" class="btn btn-outline-secondary " id="useEmail">
                             Email
                         </button>
                     </div>
                 </div>
-
+                {% include "flash_message.html" %}
                 <!-- Phone Number Field (Default) -->
                 <div class="mb-3" id="phoneField">
                     <label for="id_phone_number" class="form-label">Phone Number</label>
                     <div class="input-group">
-                        <span class="input-group-text">+250</span>
+                        <span class="input-group-text text-white">+250</span>
                         <input type="text" name="phone_number" id="id_phone_number" class="form-control"
                             placeholder="788123456" />
                     </div>
                 </div>
-
                 <!-- Email Field (Initially hidden) -->
                 <div class="mb-3 d-none" id="emailField">
                     <label for="id_email" class="form-label">Email</label>
                     <input type="email" name="email" id="id_email" class="form-control"
-                        placeholder="urugero: umuhanda@gmail.com" />
+                        placeholder="example: umuhanda@gmail.com" />
                 </div>
-                <!-- Name field -->
+                <!-- Name Field -->
                 <div class="mb-3">
                     <label for="name" class="form-label">Username</label>
-                    <input type="text" name="name" id="name" class="form-control" placeholder="izina " />
+                    <input type="text" name="name" id="name" class="form-control" placeholder="Your username" />
                 </div>
-
                 <!-- Password Fields -->
                 <div class="mb-3 position-relative">
                     <label for="id_password1" class="form-label">Password</label>
@@ -57,7 +206,6 @@
                         </button>
                     </div>
                 </div>
-
                 <div class="mb-3 position-relative">
                     <label for="id_password2" class="form-label">Confirm Password</label>
                     <div class="input-group">
@@ -69,19 +217,20 @@
                         </button>
                     </div>
                 </div>
+                <!-- Gender Selection -->
                 <div class="mb-3 text-center">
                     <label class="form-label fw-bold">Gender</label>
                     <div class="d-flex justify-content-center gap-3">
                         {% for value, label in form.gender.field.choices %}
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="gender" id="gender_{{ value }}"
-                                value="{{ value }}"/>
+                                value="{{ value }}" />
                             <label class="form-check-label" for="gender_{{ value }}">{{ label }}</label>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
-                <!-- Remove unnecessary option -->
+                <!-- Register Button -->
                 <button type="submit" class="btn btn-primary w-100">Register</button>
             </form>
             <p class="text-center mt-3">
@@ -91,39 +240,72 @@
     </div>
 </div>
 
-<!-- JavaScript to Toggle Fields -->
+<!-- JavaScript to Toggle Fields and Password Visibility -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const emailField = document.getElementById("emailField");
         const phoneField = document.getElementById("phoneField");
         const useEmailBtn = document.getElementById("useEmail");
         const usePhoneBtn = document.getElementById("usePhone");
-        useEmailBtn.addEventListener("click", function () {
-            emailField.classList.remove("d-none");
-            phoneField.classList.add("d-none");
+
+
+
+
+        function handleEvent(e) {
+
+            const target = e.target;
+            const sibling = target.id === "usePhone" ? useEmailBtn : usePhoneBtn;
+
+            switch (e.type) {
+                case "click":
+                case "mouseenter":
+                    // Show email field, hide phone field
+                    if (target === useEmailBtn) {
+
+                        emailField.classList.remove("d-none");
+                        phoneField.classList.add("d-none");
+                    } else if (target === usePhoneBtn) {
+                        // Show phone field, hide email field
+                        phoneField.classList.remove("d-none");
+                        emailField.classList.add("d-none");
+                    }
+                    // Toggle active classes on buttons
+                    sibling.classList.remove("btn-focus");
+                    target.classList.add("btn-focus");
+
+                    break;
+
+                case "focus":
+                    console.log(`${target.id} is focused`);
+                    break;
+                case "blur":
+                    console.log(`${target.id} lost focus`);
+                    break;
+                // If you plan to listen for input events on any input fields, you can add a case here
+                case "input":
+                    console.log(`${e.target.id} input changed:`, e.target.value);
+                    break;
+            }
+        }
+
+        // Attach multiple event listeners to each button
+        [useEmailBtn, usePhoneBtn].forEach(btn => {
+            ["click", "mouseenter", "focus", "blur"].forEach(eventName => {
+                btn.addEventListener(eventName, handleEvent);
+            });
         });
-        usePhoneBtn.addEventListener("click", function () {
-            phoneField.classList.remove("d-none");
-            emailField.classList.add("d-none");
-        });
-    });
 
-    // JavaScript to Toggle Password Visibility
 
-    document.querySelectorAll(".toggle-password").forEach((button) => {
-        button.addEventListener("click", function () {
-            // Find the associated password input
-            const input = this.parentNode.querySelector(".js-password");
-            const icon = this.querySelector("i");
-
-            // Toggle password visibility
-            const type =
-                input.getAttribute("type") === "password" ? "text" : "password";
-            input.setAttribute("type", type);
-
-            // Toggle eye icon
-            icon.classList.toggle("bi-eye");
-            icon.classList.toggle("bi-eye-slash");
+        // Toggle Password Visibility
+        document.querySelectorAll(".toggle-password").forEach((button) => {
+            button.addEventListener("click", function () {
+                const input = this.parentNode.querySelector(".js-password");
+                const icon = this.querySelector("i");
+                const type = input.getAttribute("type") === "password" ? "text" : "password";
+                input.setAttribute("type", type);
+                icon.classList.toggle("bi-eye");
+                icon.classList.toggle("bi-eye-slash");
+            });
         });
     });
 </script>

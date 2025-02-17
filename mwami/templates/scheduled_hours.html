@@ -1,3 +1,4 @@
+
 <style>
     .hours {
         background-color: rgba(00, 255, 255, 0.5);
@@ -13,7 +14,8 @@
         overflow-x: auto;
         gap: 1rem;
         /* Space between hour items */
-        padding: 0 1rem;
+        padding: 0.1rem 1rem;
+        padding-bottom: 0px;
         /* Optional horizontal padding */
         -ms-overflow-style: none;
         /* IE/Edge hide scrollbar */
@@ -25,10 +27,12 @@
         display: none;
         /* Chrome/Safari hide scrollbar */
     }
+    
 
     /* Each exam-hour is a flex item that doesn't shrink */
     .exam-hour {
         flex: 0 0 auto;
+        
     }
 
     /* Basic styling for hour links */
@@ -47,7 +51,7 @@
     <div class="container-fluid">
         <div class="scrollable-times">
             {% for exam in exams_scheduled %}
-            <div class="exam-hour">
+            <div class="exam-hour ">
                 {% if exam.is_published %}
                 <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link">
                     {{ exam.scheduled_datetime|time:"H:00" }}
@@ -59,7 +63,7 @@
                 {% endif %}
             </div>
             {% empty %}
-            <p>No exams scheduled for today.</p>
+            <p>Ntakizamini gihari</p>
             {% endfor %}
         </div>
     </div>

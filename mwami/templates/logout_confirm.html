@@ -20,7 +20,7 @@
                 </p>
             </div>
             <div class="modal-footer border-0">
-                <form method="POST" action="{% url 'logout' %}" class="w-100">
+                <form method="POST" action="{% url 'logout' %}" class="w-100 bg-light p-3 rounded">
                     {% csrf_token %}
                     <div class="d-flex gap-3 justify-content-end">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">

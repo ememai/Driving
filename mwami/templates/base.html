@@ -24,172 +24,115 @@
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
 
+  {% block extra_css %}
   <style>
     body {
       font-family: Arial, Helvetica, sans-serif;
       background-color: #d7ebff;
     }
 
-
-    .bold-logo {
-      font-weight: 700;
-      font-size: 1.2rem;
+    form {
+      background-color: rgb(0, 128, 255);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      color: rgb(0, 0, 0);
+      font: bold 1rem/1.5 "Roboto", sans-serif;
     }
 
-    .btn-dark {
-      border-radius: 50px;
+    form .form-group {
+      margin-bottom: 15px;
     }
 
-    .btn-dark:hover,
-    .admin-dashboard-link:hover {
-      color: #00ff00;
-      animation: colorChange 1s forwards;
+    form .form-control {
+      border-radius: 5px;
+      border: 1px solid #ced4da;
+      padding: 10px;
     }
 
-    @keyframes colorChange {
-      from {
-        color: #343a40;
-      }
-
-      to {
-        color: #00ff00;
-      }
+    form .form-control:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
     }
 
-    /* .btn-dark:active {
-      background-color: #343a40;
-      color: #ffffff;
-    } */
-
-
-    .green-btn {
-      background-color: black;
-      color: greenyellow;
-      border: none;
-      font-size: 1.1rem;
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem;
-      text-decoration: none;
-      transition: background-color 0.2s ease;
-      white-space: nowrap;
-    }
-
-    .green-btn:hover {
-      background-color: rgb(39, 38, 38);
-      color: greenyellow;
-    }
-
-    footer a:not(:last-child)::after {
-      content: "|";
-      margin: 0 0.5rem;
-      color: #ffffff;
-    }
-
-    .text-green {
-      color: greenyellow;
-    }
-
-    footer a:hover {
+    form .form-label {
       font-weight: bold;
+      margin-bottom: 5px;
     }
+
+    form .btn {
+      border-radius: 5px;
+      padding: 10px 20px;
+    }
+
+    form .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+
+    form .btn-primary:hover {
+      background-color: #0056b3;
+      border-color: #004085;
+    }
+
+    
+
+    /* footer a:hover {
+      font-weight: bold;
+    } */
 
     main {
       padding-top: 100px;
       /* Adjust this value based on the height of your fixed content */
     }
+
+    /* footer styles */
+
+    footer a {
+      font-size: 14px;
+      color: cyan;
+      text-decoration: none;
+      position: relative;
+      display: inline-block;
+    }
+
+    /* a:hover {
+        text-decoration: underline;
+        transition: width 0.3s ease;
+    } */
+
+    footer a::after {
+      content: '';
+      display: block;
+      width: 0;
+      height: 2px;
+      background-color: cyan;
+      transition: width 0.3s ease;
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+    }
+
+    footer a:hover::after {
+      width: 100%;
+    }
   </style>
+
+  {% endblock %}
 </head>
 
 <body class="d-flex flex-column min-vh-100">
   {% block navbar %}
   <!-- Navbar -->
-  <div class="bg-success fixed-top">
-    <nav class="navbar navbar-expand-md ">
-      <div class="container-fluid">
-        <!-- Logo/Brand -->
-        <a class="navbar-brand bold-logo" href="/">
-          <img src="{% static 'img/logo.png' %}" alt="Logo" width="30" height="30" class="d-inline-block align-top" />
-          RWANDA DC
-        </a>
-
-        <!-- Right-side Nav Items -->
-        <div class="d-flex flex-nowrap gap-2 ms-auto">
-          {% if not user.is_authenticated %}
-          <!-- If user is not logged in -->
-          <a class="btn green-btn" href="{% url 'register' %}">Konti nshya</a>
-          <a class="btn green-btn" href="{% url 'login' %}">Konti isanzwe</a>
-          {% else %}
-          <!-- If user is logged in -->
-          <div class="flex">
-            {% if user.is_subscribed %}
-            <a class="btn btn-dark bg-success " href="{% url 'subscription' %}">Ifatabuguzi |
-              {{user.subscription.plan}}</a>
-
-            {% else %}
-            <a class="btn btn-dark text-message" href="{% url 'subscription' %}">Gura ifatabuguzi</a>
-            {% endif %}
-
-            {% if user.is_staff %}
-            <a class="text-decoration-none text-dark fs-5 admin-dashboard-link" href="{% url 'admin_dashboard' %}">
-              <i class="bi bi-speedometer2"></i>
-              Dashboard
-            </a>
-            <style>
-
-            </style>
-            {% endif %}
-          </div>
-
-          <!-- Dropdown for user menu -->
-          <div class="dropdown">
-            <button class="btn btn-link dropdown-toggle text-dark fs-5" type="button" data-bs-toggle="dropdown"
-              aria-expanded="false"></button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <!-- Add any extra profile/account links here -->
-              <li>
-                <!-- <a class="dropdown-item" href="#"> </a> -->
-
-                <div class="d-flex align-items-center">
-                  {% if user.profile_picture %}
-                  <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="rounded-circle me-2"
-                    style="width: 80px; height: 80px; object-fit: cover" />
-                  {% else %}
-                  <i class="bi bi-person-circle fs-1 text-secondary m-2"></i>
-                  {% endif %}
-
-                  <div>
-                    {{ user.name }} {% if user.email %} {{ user.email }} {% else
-                    %} {{user.phone_number}} {% endif %}
-                  </div>
-                </div>
-              </li>
-
-              <li>
-                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                  <i class="bi bi-box-arrow-right"></i> Logout
-                </a>
-              </li>
-            </ul>
-          </div>
-          {% endif %}
-        </div>
-      </div>
-    </nav>
-
-    <!-- Include scheduled hours (if needed) -->
-    {% include 'scheduled_hours.html' %}
-    {% endblock %}
-  </div>
+  {% include 'default-navbar.html' %}
+  {% endblock %}
 
   <!-- Main Content -->
   <main class="flex-grow-1">
     <div class="message-container container mt-3">
-      {% for message in messages %}
-      {% if message.tags == 'success' %}
-
-      {% include 'flash_message.html' %}
-      {% endif %}
-      {% endfor %}
+      <!-- {% for message in messages %} {% if message.tags == 'success' %} {%
+      include 'flash_message.html' %} {% endif %} {% endfor %} -->
     </div>
 
     <div class="container mt-3 mt-md-4 mb-4">
