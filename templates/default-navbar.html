@@ -1,0 +1,96 @@
+{% load static %}
+<nav class="fixed-top">
+  <div class="navbar navbar-expand-md">
+    <div class="container-fluid">
+      <!-- Logo/Brand with proper alt text and aria-label -->
+      <a class="navbar-brand bold-logo d-flex align-items-center gap-2" href="/" aria-label="Rwanda DC Home">
+        <img src="{% static 'img/logo.png' %}" alt="Rwanda DC Logo" width="30" height="30" class="d-inline-block" />
+        <span class="text-theme">RWANDA DC</span>
+      </a>
+
+      <!-- Right-side Nav Items with proper spacing and accessibility -->
+      <div class="d-flex flex-nowrap gap-3 align-items-center ms-auto">
+        {% if not user.is_authenticated %}
+        <a class="green-btn text-decoration-none" href="{% url 'register' %}" role="button">
+          Hanga Konti
+        </a>
+        <span class="text-theme">Niba ntayo ufite!</span>
+
+         <!-- Theme Toggle with proper accessibility -->
+         <div class="theme-toggle">
+          <button class="btn btn-link p-0 text-theme" id="themeToggle" aria-label="Toggle theme" type="button">
+            <i id="themeIcon" class="bi bi-moon fs-5"></i>
+            <span class="visually-hidden">Toggle dark mode</span>
+          </button>
+        </div>
+        {% else %}
+        <div class="d-flex align-items-center gap-3">
+          {% if user.is_subscribed %}
+          <a class="btn btn-success" href="{% url 'subscription' %}" role="button">
+            Ifatabuguzi | {{ user.subscription.plan|default:"Basic" }}
+          </a>
+          {% else %}
+          <a class="green-btn" href="{% url 'subscription' %}" role="button">
+            Gura ifatabuguzi
+          </a>
+          {% endif %}
+
+          {% if user.is_staff %}
+          <a class="text-decoration-none text-theme d-flex align-items-center gap-1" href="{% url 'admin_dashboard' %}"
+            aria-label="Admin Dashboard">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+          </a>
+          {% endif %}
+
+          <!-- Theme Toggle with proper accessibility -->
+          <div class="theme-toggle">
+            <button class="btn btn-link p-0 text-theme" id="themeToggle" aria-label="Toggle theme" type="button">
+              <i id="themeIcon" class="bi bi-moon fs-5"></i>
+              <span class="visually-hidden">Toggle dark mode</span>
+            </button>
+          </div>
+
+          <!-- User Menu Dropdown with proper accessibility -->
+          <div class="dropdown">
+            <button class="btn btn-link dropdown-toggle text-theme p-0" type="button" id="userMenu"
+              data-bs-toggle="dropdown" aria-expanded="false" aria-label="User menu">
+              <i class="bi bi-person-circle fs-5"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-theme" aria-labelledby="userMenu">
+              <li class="px-3 py-2">
+                <div class="d-flex align-items-center gap-2">
+                  {% if user.profile_picture %}
+                  <img src="{{ user.profile_picture.url }}" alt="" class="rounded-circle"
+                    style="width: 40px; height: 40px; object-fit: cover"
+                    onerror="this.src='{% static 'img/default-avatar.png' %}'" />
+                  {% else %}
+                  <i class="bi bi-person-circle fs-1 text-secondary"></i>
+                  {% endif %}
+                  <div class="text-truncate">
+                    <div class="fw-bold">{{ user.name|default:"User"|escape }}</div>
+                    <div class="small text-muted text-truncate">
+                      {{ user.email|default:user.phone_number|escape }}
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li>
+                <button class="dropdown-item text-danger d-flex align-items-center gap-2" type="button"
+                  data-bs-toggle="modal" data-bs-target="#logoutModal">
+                  <i class="bi bi-box-arrow-right"></i>
+                  <span>Logout</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% include 'scheduled_hours.html' %}
+</nav>

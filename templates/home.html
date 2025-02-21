@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<style>
+  /* .bg-image {
+    background-image: url("{% static 'img/main.jpg' %}");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  } */
+</style>
+
+<div class="bg-image">
+
+  {% include "flash_message.html" %}
+  <div class="jumbotron text-center">
+    <h1 class="display-4">Ikaze muri RWANDA DRIVING COLLEGE HUB</h1>
+    <p class="lead">Igana natwe, Wongere ubumenyi, Intsinzi iri mu biganza.</p>
+  </div>
+  <!-- <div class="row">
+    <div class="col-md-4">
+      <div class="card">
+         <!-- <div class="card-body">
+        
+          <!-- <h5 class="card-title">Ibyo dutanga</h5>
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item"><a class="nav-link" href="#"> > Amasomo</a></li>
+            <li><a class="nav-link" href="#"> > Ibizamini</a></li>
+            <li><a class="nav-link" href="#"> > Kwiga live</a></li>
+          </ul> 
+        </div> 
+      </div>
+    </div>
+  </div> -->
+
+
+  {% if not user.is_authenticated %}
+<hr>
+  <div class=" text-center pt-2">
+    <a class="btn btn-primary" href="/login/">Injira</a> <span style="font-family:sans-serif; font-weight: bolder;">
+      Cyangwa </span>
+    <a class="btn btn-primary" href="/register/">Iyandikishe</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

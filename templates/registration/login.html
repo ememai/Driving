@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Global Styles */
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  .bold-logo {
+    color: rgb(255, 255, 255) !important;
+  }
+
+  /* Center the login card vertically */
+  .row {
+    min-height: 100vh;
+    align-items: center;
+  }
+
+  /* Login card styling */
+  .login-card {
+    background: #181818;
+    border: none;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+    text-align: center;
+  }
+
+  .login-card h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #fff;
+  }
+
+  .login-card p {
+    color: #bbb;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  /* Input styling */
+  .login-input {
+    background: #333;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 14px;
+    padding: 9px 12px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .login-input::placeholder {
+    color: #bbb;
+  }
+
+  .login-input:focus {
+    outline: none;
+    box-shadow: 0 0 8px rgb(0, 255, 255);
+    border: 1px solid cyan;
+  }
+
+  /* Password field container */
+  .password-field {
+    position: relative;
+  }
+
+  /* Toggle password visibility button */
+  .toggle-button {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+  }
+
+  /* Login button */
+  .login-button {
+    background-color: rgb(1, 223, 223);
+    border: none;
+    border-radius: 5px;
+    color: #000000;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 10px;
+    width: 100%;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+  .login-button:hover {
+    background-color: cyan;
+  }
+
+  /* Footer link styling */
+  .login-footer,
+  footer a {
+    font-size: 14px;
+    color: cyan;
+    text-decoration: underline;
+    position: relative;
+    display: inline-block;
+  }
+
+  .login-footer::after,
+  footer a::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background-color: cyan;
+    transition: width 0.3s ease;
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+  }
+
+  .login-footer:hover::after,
+  footer a:hover::after {
+    width: 100%;
+  }
+
+  /* navbar styles */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="login-card">
+      <h2 class="bold-logo">Rwanda DC</h2>
+      <p class="text-info"><strong>Uzuza neza Konti</strong></p>
+
+      {% include "flash_message.html" %}
+
+      <form method="post">
+        {% csrf_token %}
+        <!-- Username Field -->
+        <input type="text" name="username" id="id_username" class="login-input" placeholder="Telefone cg Imeyili"
+          required />
+
+        <!-- Password Field with Toggle -->
+        <div class="password-field">
+          <input type="password" name="password" id="id_password" class="login-input" placeholder="Ijambo banga"
+            required />
+          <button type="button" id="togglePassword" class="toggle-button">
+            <i class="bi bi-eye d-flex pb-3"></i>
+          </button>
+        </div>
+
+        <button type="submit" class="login-button">Injira</button>
+      </form>
+
+      <p class="mt-3 text-white">
+        Nta Konti Ufite?
+        <a href="{% url 'register' %}" class="login-footer">HANGA KONTI</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Toggle Password Visibility -->
+<script>
+  const passwordInput = document.getElementById("id_password");
+  const toggleButton = document.getElementById("togglePassword");
+
+  toggleButton.addEventListener("click", function () {
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+      this.querySelector("i").classList.replace("bi-eye", "bi-eye-slash");
+    } else {
+      passwordInput.type = "password";
+      this.querySelector("i").classList.replace("bi-eye-slash", "bi-eye");
+    }
+  });
+</script>
+{% endblock %}

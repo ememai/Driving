@@ -1,0 +1,229 @@
+{% comment %} <style>
+  .bold-logo {
+    font-family: "Billabong", cursive;
+    color: #262626;
+    color: var(--bs-body-color);
+    font-weight: bold;
+  }
+
+  .btn-dark {
+    border-radius: 50px;
+  }
+
+  .btn-dark:hover,
+  .admin-dashboard-link:hover {
+    color: #00ff00;
+    animation: colorChange 1s linear forwards;
+  }
+
+  @keyframes colorChange {
+    from {
+      color: #343a40;
+    }
+
+    to {
+      color: #00ff00;
+    }
+  }
+
+  /* .btn-dark:active {
+    background-color: #343a40;
+    color: #ffffff;
+  } */
+
+  .green-btn {
+    background-color: black;
+    color: greenyellow;
+    border: 1px solid #00ff00;
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .green-btn:hover {
+    background-color: rgb(39, 38, 38);
+    color: greenyellow;
+  }
+
+  /* footer a:not(:last-child)::after {
+    content: "|";
+    margin: 0 0.5rem;
+    color: #ffffff;
+  } */
+
+  .text-green {
+    color: greenyellow;
+  }
+</style> {% endcomment %}
+
+<style>
+  .bold-logo {
+  font-family: "Billabong", cursive;
+  color: var(--bs-body-color); /* Adapts to light/dark mode */
+  font-weight: bold;
+}
+
+/* Buttons */
+.btn-dark {
+  border-radius: 50px;
+  background-color: var(--bs-dark); /* Ensures dark mode support */
+  color: var(--bs-body-color);
+  border: 1px solid var(--bs-body-color);
+}
+
+.btn-dark:hover,
+.admin-dashboard-link:hover {
+  color: var(--bs-success); /* Adapts hover to Bootstrap success color */
+  animation: colorChange 1s linear forwards;
+}
+
+@keyframes colorChange {
+  from {
+    color: var(--bs-body-color);
+  }
+  to {
+    color: var(--bs-success);
+  }
+}
+
+/* Green button should also change based on theme */
+.green-btn {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-success);
+  border: 1px solid var(--bs-success);
+  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.green-btn:hover {
+  background-color: var(--bs-secondary-bg);
+  color: var(--bs-success);
+}
+
+/* Icon color adapts */
+#themeIcon {
+  color: var(--bs-body-color);
+}
+
+/* Ensure text-green adapts dynamically */
+.text-green {
+  color: var(--bs-success);
+}
+
+</style>
+
+{% load static %}
+<div class="fixed-top">
+  <nav class="navbar navbar-expand-md">
+    <div class="container-fluid">
+      <!-- Logo/Brand -->
+      <a class="navbar-brand bold-logo" href="/">
+        <img
+        src="{% static 'img/logo.png' %}"
+        alt="Logo"
+        width="30"
+        height="30"
+        class="d-inline-block align-top"
+        />
+        RWANDA DC
+      </a>
+      
+      <!-- Right-side Nav Items -->
+      <div class="d-flex flex-nowrap gap-2 ms-auto">
+        {% if not user.is_authenticated %}
+        <!-- If user is not logged in -->
+        <a class="btn green-btn" href="{% url 'register' %}">Hanga Konti</a>
+        <span class="d-flex align-items-center">Niba ntayo ufite!</span>
+        
+        {% else %}
+        <!-- If user is logged in -->
+        <div class="flex">
+          {% if user.is_subscribed %}
+          <a class="btn btn-dark bg-success" href="{% url 'subscription' %}"
+          >Ifatabuguzi | {{user.subscription.plan}}</a
+          >
+          
+          {% else %}
+          <a class="btn btn-dark text-message" href="{% url 'subscription' %}"
+          >Gura ifatabuguzi</a
+          >
+          {% endif %} {% if user.is_staff %}
+          <a
+          class="text-decoration-none text-dark fs-5 admin-dashboard-link"
+          href="{% url 'admin_dashboard' %}"
+          >
+          <i class="bi bi-speedometer2"></i>
+          Dashboard
+        </a>
+        <style></style>
+        {% endif %}
+        <div class="form-check form-switch ms-auto mb-3 d-inline-block">
+            <input class="form-check-input d-none" type="checkbox" id="themeToggle"/>
+          <label class="form-check-label" for="themeToggle">
+            <i id="themeIcon" class="bi bi-moon"></i>
+          </label>
+        </div>
+        
+        {% comment %} <div class="container-fluid bg-light py-2 d-inline-block justify-content-end px-3">
+        </div> {% endcomment %}
+        </div>
+
+        <!-- Dropdown for user menu -->
+        <div class="dropdown">
+          <button
+            class="btn btn-link dropdown-toggle text-dark fs-5"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          ></button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <!-- Add any extra profile/account links here -->
+            <li>
+              <!-- <a class="dropdown-item" href="#"> </a> -->
+
+              <div class="d-flex align-items-center">
+                {% if user.profile_picture %}
+                <img
+                  src="{{ user.profile_picture.url }}"
+                  alt="Profile Picture"
+                  class="rounded-circle me-2"
+                  style="width: 80px; height: 80px; object-fit: cover"
+                />
+                {% else %}
+                <i class="bi bi-person-circle fs-1 text-secondary m-2"></i>
+                {% endif %}
+
+                <div>
+                  {{ user.name }} {% if user.email %} {{ user.email }} {% else
+                  %} {{user.phone_number}} {% endif %}
+                </div>
+              </div>
+            </li>
+
+            <li>
+              <a
+                class="dropdown-item text-danger"
+                href="#"
+                data-bs-toggle="modal"
+                data-bs-target="#logoutModal"
+              >
+                <i class="bi bi-box-arrow-right"></i> Logout
+              </a>
+            </li>
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Include scheduled hours (if needed) -->
+  {% include 'scheduled_hours.html' %}
+</div>
