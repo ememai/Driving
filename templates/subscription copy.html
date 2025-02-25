@@ -22,17 +22,22 @@
 
     {% include 'flash_message.html'%}
     <!-- Subscription Form -->
-    <form method="post" action="{% url 'subscription' %}" action="/ajax-submit" data-ajax="true">
+    <form method="post" action="{% url 'subscription' %}">
         {% csrf_token %}
         <div class="form-group mb-3">
             <label for="plan">Hitampo:</label>
             <select class="form-control" id="plan" name="plan" required>
                 <option value="" disabled selected>Kanda hano</option>
                 {% for plan_value, plan_label in plans %}
-                    
-                    <option value="{{ plan_value }}">
-                        {{ plan_value|get_plan_description }}
-                    </option>
+                    {% if plan_value == 'Daily' %}
+                    <option value="{{ plan_value }}">500 - Umunsi wose</option>
+                    {% elif plan_value == 'Weekly' %}
+                    <option value="{{ plan_value }}">2000 - Icyumweru cyose</option>
+                    {% elif plan_value == 'Monthly' %}
+                    <option value="{{ plan_value }}">3000 - Ukwezi kose</option>
+                    {% elif plan_value == 'Super' %}
+                    <option value="{{ plan_value }}">10000 - ubutarangira</option>
+                    {% endif %}
                 {% endfor %}
             </select>
         </div>

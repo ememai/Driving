@@ -52,3 +52,12 @@ def percentage(value, total):
 @register.filter
 def current_date(value):
     return timezone.now().date()
+
+@register.filter
+def get_plan_description(plan_value):
+    return {
+        'Daily': '500 - Umunsi wose',
+        'Weekly': '2000 - Icyumweru cyose',
+        'Monthly': '3000 - Ukwezi kose',
+        'Super': '10000 - ubutarangira',
+    }.get(plan_value, '')

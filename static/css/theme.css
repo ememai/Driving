@@ -1,0 +1,91 @@
+:root {
+  /* Base colors */
+  --primary-rgb: 0, 255, 255;
+  --success-rgb: 40, 167, 69;
+  --danger-rgb: 220, 53, 69;
+  --warning-rgb: 255, 193, 7;
+  --info-rgb: 23, 162, 184;
+  
+  /* Theme-specific colors */
+  --background-light: 255, 255, 255;
+  --background-dark: 0, 0, 0;
+  --text-light: 33, 37, 41;
+  --text-dark: 255, 255, 255;
+  
+  /* Default light theme */
+  --background-rgb: var(--background-light);
+  --text-rgb: var(--text-light);
+  --border-rgb: 206, 212, 218;
+  
+  /* Semantic colors */
+  --surface-rgb: 248, 249, 250;
+  --surface-accent-rgb: 233, 236, 239;
+  
+  /* Component-specific */
+  --nav-bg-rgb: 255, 255, 255;
+  --card-bg-rgb: 255, 255, 255;
+  --btn-bg-rgb: var(--primary-rgb);
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] {
+  --background-rgb: var(--background-dark);
+  --text-rgb: var(--text-dark);
+  --border-rgb: 73, 80, 87;
+  --surface-rgb: 52, 58, 64;
+  --surface-accent-rgb: 73, 80, 87;
+  --nav-bg-rgb: 33, 37, 41;
+  --card-bg-rgb: 52, 58, 64;
+}
+
+/* Utility classes */
+.bg-theme {
+  background-color: rgba(var(--background-rgb), 1);
+}
+
+.text-theme {
+  color: rgba(var(--text-rgb), 1);
+}
+
+.border-theme {
+  border-color: rgba(var(--border-rgb), 1);
+}
+
+/* Component styles */
+.navbar {
+  background-color: rgba(var(--nav-bg-rgb), 0.95);
+  -webkit-backdrop-filter: blur(10px); /* For Safari support */
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(var(--border-rgb), 0.1);
+}
+
+.card {
+  background-color: rgba(var(--card-bg-rgb), 1);
+  border: 1px solid rgba(var(--border-rgb), 0.1);
+}
+
+
+
+.green-btn:hover {
+  background-color: rgba(var(--success-rgb), 0.1);
+  border-color: rgba(var(--success-rgb), 1);
+}
+
+/* Form styles */
+.form-control {
+  background-color: rgba(var(--surface-rgb), 1);
+  color: rgba(var(--text-rgb), 1);
+  border: 1px solid rgba(var(--border-rgb), 0.2);
+}
+
+.form-control:focus {
+  background-color: rgba(var(--surface-rgb), 1);
+  border-color: rgba(var(--primary-rgb), 0.5);
+  box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25);
+}
+
+.centered-form {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}

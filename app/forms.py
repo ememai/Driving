@@ -15,9 +15,9 @@ from django.core.exceptions import ValidationError
 from .models import UserProfile
 
 class RegisterForm(forms.ModelForm):
-    password1 = forms.CharField(widget=forms.PasswordInput, max_length=15, min_length=4, required=True, label="Password")
+    password1 = forms.CharField(widget=forms.PasswordInput, max_length=255, min_length=4, required=True, label="Password")
 
-    password2 = forms.CharField(widget=forms.PasswordInput, max_length=15, min_length=4,required=True, label="Confirm Password")
+    password2 = forms.CharField(widget=forms.PasswordInput, max_length=255, min_length=4,required=True, label="Confirm Password")
 
     phone_number = forms.CharField(
         max_length=15,

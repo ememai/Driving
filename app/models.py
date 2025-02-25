@@ -139,10 +139,10 @@ class UserProfile(AbstractUser):
 #instances should be first created
 class Plan(models.Model):
     PLAN_CHOICES = [
-        ('Daily', 'Daily'),
-        ('Weekly', 'Weekly'),
-        ('Monthly', 'Monthly'),
-        ('Super', 'Super'),
+        ('Daily', 'Umunsi'),
+        ('Weekly', 'Icyumweru'),
+        ('Monthly', 'Ukwezi'),
+        ('Super', 'Rihoraho'),
     ]
     plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default="Daily", null=True)
 

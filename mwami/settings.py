@@ -14,6 +14,8 @@ from pathlib import Path
 import os
 from decouple import config
 from apscheduler.triggers.cron import CronTrigger
+import dj_database_url
+
 
 # from django_apscheduler.jobstores import register_events, register_job
 
@@ -30,11 +32,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('PROJECT_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 
-ALLOWED_HOSTS = ['magpie-thorough-cicada.ngrok-free.app', '127.0.0.1']
-# ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: v.split(','))
 
 # Application definition
 
@@ -52,22 +53,6 @@ INSTALLED_APPS = [
    
 ]
 
-# ASGI_APPLICATION = 'mwami.routing.application'
-
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels.layers.InMemoryChannelLayer',
-#     },
-# }
-
-# APSCHEDULER_TASKS = {
-#     'check_subscriptions': {
-#         'task': 'app.subscription_checks.check_subscription_expiry',
-#         'schedule': crontab(hour=0, minute=0),  # Daily at midnight
-#         'replace_existing': True
-#     },
-# }
-
 # Keep only this APSCHEDULER configuration
 APSCHEDULER_JOBS = [
     {
@@ -83,8 +68,8 @@ APSCHEDULER_JOBS = [
 APSCHEDULER_RUN_NOW_TIMEOUT = 300  # 5 minutes
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
 
-SESSION_COOKIE_AGE = 3600  # 1 hour
-SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 60*60*24*30  # 30 days
+SESSION_SAVE_EVERY_REQUEST = config('SESSION_SAVE_EVERY_REQUEST', default=True, cast=bool)
 
 AUTH_USER_MODEL = 'app.UserProfile'
 
@@ -131,16 +116,9 @@ WSGI_APPLICATION = 'mwami.wsgi.application'
 
 DATABASES = {
     'default': {
-          'ENGINE': 'django.db.backends.mysql',  # Use the MySQL backend
-          'NAME': config('DB_NAME'),                # Your database name
-          'USER':   config('DB_USER'),                # Your database user
-          'PASSWORD': config('DB_PASSWORD'),           # Your database password
-          'HOST': config('DB_HOST'),                   # Typically 'localhost' on Windows
-          'PORT': config('DB_PORT'),                        # Default MySQL port
-          'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-          },
-     }
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 AUTHENTICATION_BACKENDS = [
@@ -180,10 +158,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://magpie-thorough-cicada.ngrok-free.app',  # Add your ngrok URL here
-]
-
+# CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # Static files (CSS, JavaScript, Images)

@@ -30,7 +30,7 @@
             Ifatabuguzi | {{ user.subscription.plan|default:"Basic" }}
           </a>
           {% else %}
-          <a class="green-btn" href="{% url 'subscription' %}" role="button">
+          <a class="btn btn-link text-danger fs-5" href="{% url 'subscription' %}" role="button">
             Gura ifatabuguzi
           </a>
           {% endif %}
