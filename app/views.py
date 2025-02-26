@@ -263,12 +263,13 @@ def register_view(request):
                 messages.success(request, 'OTP sent to your email. Verify your account.')
                 return redirect('verify_otp', user_id=user.id)
             else:
-                messages.success(request, 'Account created successfully. Please login.')
+                messages.success(request, 'Guhanga konti byagenze neza. Ushobora kwinjira.')
                 return redirect("subscription")
         else:
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f"{field.capitalize()}: {error}")
+                    # messages.error(request, f"{field.capitalize()}: {error}")
+                    messages.error(request, f"!!! 🙇🏼‍♂️ {error}")
     else:
         form = RegisterForm()
     return render(request, 'registration/register.html', {'form': form})

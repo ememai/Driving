@@ -39,46 +39,30 @@ class RegisterForm(forms.ModelForm):
 
         password1 = cleaned_data.get("password1")
         password2 = cleaned_data.get("password2")
+        
+        required_errors ={
+            "name" : "Izina rirakenewe.",
+            "password1" : "Ijambo banga rirakenewe.",
+            "password2" : "Kwemeza ijambo banga birakenewe."
+        }
 
+        for key, error in required_errors.items():
+            if not cleaned_data.get(key):
+                self._errors[key] = self.error_class([error])          
 
-        if not email and not phone_number:
-            raise forms.ValidationError("Uzuza Email cyangwa Telefone.")
-
-        if email:
-            try:
-                validate_email(email)
-            except ValidationError:
-                raise forms.ValidationError("Enter a valid email address.")
-
-            if UserProfile.objects.filter(email=email).exists():
-                raise forms.ValidationError("This email is already registered.")
+        
+        
+        if email and UserProfile.objects.filter(email=email).exists():
+            raise forms.ValidationError("Iyi email isanzweho.")
 
         if phone_number:
-            # Normalize phone number (prepend +250 if not already included)
-            if not phone_number.startswith('+250'):
-                phone_number = '+250' + phone_number.strip()
-
-            # Validate phone number format
-            try:
-                parsed_number = phonenumbers.parse(phone_number, None)
-                if not phonenumbers.is_valid_number(parsed_number):
-                    raise forms.ValidationError("Invalid phone number format")
-            except phonenumbers.phonenumberutil.NumberParseException:
-                raise forms.ValidationError("Invalid phone number format")
-            
-            # Strip country code (+250) to check the last digits
+        #     phone_number = self.normalize_phone_number(phone_number)
             stripped_number = phone_number[4:]  # Remove '+250'
-
-            # Check if phone number exists based on the last digits (without country code)
             if UserProfile.objects.filter(phone_number__endswith=stripped_number).exists():
-                raise forms.ValidationError(f"A user with this phone number already exists.")
-
+                raise forms.ValidationError("Iyi telefone isanzweho.")
 
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Passwords do not match.")
-
-        
-        
+            raise forms.ValidationError("Ijambo banga rigomba gusa aho warishyize hose.")
 
         return cleaned_data
 
@@ -102,9 +86,9 @@ class RegisterForm(forms.ModelForm):
             try:
                 parsed_number = phonenumbers.parse(phone, "RW")
                 if not phonenumbers.is_valid_number(parsed_number):
-                    raise forms.ValidationError("Invalid Rwandan phone number.")
+                    raise forms.ValidationError("Kurikiza nimero y'inyarwanda urg:7812345 cg 0781234567.")
             except phonenumbers.phonenumberutil.NumberParseException:
-                raise forms.ValidationError("Invalid phone number format.")
+                raise forms.ValidationError("Telefone wayujuje nabi kurikiza urugero.")
 
         return phone
 
@@ -121,7 +105,7 @@ class LoginForm(forms.Form):
         username = cleaned_data.get("username")
 
         if not username:
-            raise forms.ValidationError("Email or Phone number is required.")
+            raise forms.ValidationError("Imeyili cg telefone uzuza kimwe.")
 
         return cleaned_data
 

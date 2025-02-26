@@ -76,7 +76,7 @@ class UserProfile(AbstractUser):
     def clean(self):
         """Ensure phone number is in the correct format before saving."""
         if not self.email and not self.phone_number:
-            raise ValidationError("Either an email or phone number is required.")
+            raise ValidationError("Telefone cg Imeyili ugomba hitampo kimwe wuzuze neza.")
 
         if self.phone_number:
             self.phone_number = self.normalize_phone_number(self.phone_number)
@@ -85,9 +85,9 @@ class UserProfile(AbstractUser):
             try:
                 parsed_number = phonenumbers.parse(self.phone_number, "RW")
                 if not phonenumbers.is_valid_number(parsed_number):
-                    raise ValidationError("Invalid phone number format for Rwanda (+250).")
+                    raise ValidationError("Telefone nyarwanda yujujwe nabi (+250).")
             except phonenumbers.NumberParseException:
-                raise ValidationError("Invalid phone number format.")
+                raise ValidationError("Telefone nyarwanda yujujwe nabi.")
 
     def normalize_phone_number(self, phone_number):
         """Ensures phone numbers are always stored in the format: +2507XXXXXXXX."""
