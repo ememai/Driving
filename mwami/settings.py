@@ -16,7 +16,6 @@ from decouple import config
 from apscheduler.triggers.cron import CronTrigger
 import dj_database_url
 
-
 # from django_apscheduler.jobstores import register_events, register_job
 
 
@@ -28,14 +27,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('PROJECT_SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# SECURITY WARNING: keep the secret key used in production secret!# 
+# SECURITY SETTINGS
+SECRET_KEY = config('DJANGO_SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
-
-
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: v.split(','))
+
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=lambda v: v.split(','))
 
 # Application definition
 
@@ -68,8 +67,11 @@ APSCHEDULER_JOBS = [
 APSCHEDULER_RUN_NOW_TIMEOUT = 300  # 5 minutes
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
 
-SESSION_COOKIE_AGE = 60*60*24*30  # 30 days
+# SESSION SETTINGS
+SESSION_COOKIE_AGE = 60*60*24*30 # 30 days
+
 SESSION_SAVE_EVERY_REQUEST = config('SESSION_SAVE_EVERY_REQUEST', default=True, cast=bool)
+
 
 AUTH_USER_MODEL = 'app.UserProfile'
 
@@ -155,7 +157,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-# CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # Static files (CSS, JavaScript, Images)
@@ -172,8 +173,6 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-#STRIPE_API_KEY = 'your_stripe_secret_key'
 
 
 # Default primary key field type
@@ -194,7 +193,7 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-
+# MTN MOMO API CONFIGURATION
 MTN_MOMO_SUBSCRIPTION_KEY = config("MTN_MOMO_SUBSCRIPTION_KEY")
 MTN_MOMO_API_USER_ID = config("MTN_MOMO_API_USER_ID")
 MTN_MOMO_API_KEY = config("MTN_MOMO_API_KEY")
@@ -203,3 +202,20 @@ MTN_MOMO_COLLECTION_PRIMARY_KEY = config("MTN_MOMO_COLLECTION_PRIMARY_KEY")
 MTN_MOMO_BASE_URL = config("MTN_MOMO_BASE_URL")
 
 LOGIN_URL = 'login'
+
+
+# Set a value for SECURE_HSTS_SECONDS
+SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
+
+# Enable HTTP Strict Transport Security
+SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
+SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=True, cast=bool)
+
+# Redirect all HTTP connections to HTTPS
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+
+# Use secure-only session cookies
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
+
+# Use secure-only CSRF cookies
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)

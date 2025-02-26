@@ -1,135 +1,9 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Login{% endblock %}
 
 {% block extra_css %}
-<style>
-  /* Global Styles */
-  body {
-    background: #000;
-    color: #fff;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  }
-
-  .bold-logo {
-    color: rgb(255, 255, 255) !important;
-  }
-
-  /* Center the login card vertically */
-  .row {
-    min-height: 100vh;
-    align-items: center;
-  }
-
-  /* Login card styling */
-  .login-card {
-    background: #181818;
-    border: none;
-    border-radius: 15px;
-    padding: 40px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
-    text-align: center;
-  }
-
-  .login-card h2 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-    color: #fff;
-  }
-
-  .login-card p {
-    color: #bbb;
-    font-size: 14px;
-    margin-bottom: 20px;
-  }
-
-  /* Input styling */
-  .login-input {
-    background: #333;
-    border: none;
-    border-radius: 5px;
-    color: #fff;
-    font-size: 14px;
-    padding: 9px 12px;
-    width: 100%;
-    margin-bottom: 20px;
-  }
-
-  .login-input::placeholder {
-    color: #bbb;
-  }
-
-  .login-input:focus {
-    outline: none;
-    box-shadow: 0 0 8px rgb(0, 255, 255);
-    border: 1px solid cyan;
-  }
-
-  /* Password field container */
-  .password-field {
-    position: relative;
-  }
-
-  /* Toggle password visibility button */
-  .toggle-button {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: #fff;
-  }
-
-  /* Login button */
-  .login-button {
-    background-color: rgb(1, 223, 223);
-    border: none;
-    border-radius: 5px;
-    color: #000000;
-    font-weight: bold;
-    font-size: 14px;
-    padding: 10px;
-    width: 100%;
-    margin-top: 10px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-
-  .login-button:hover {
-    background-color: cyan;
-  }
-
-  /* Footer link styling */
-  .login-footer,
-  footer a {
-    font-size: 14px;
-    color: cyan;
-    text-decoration: underline;
-    position: relative;
-    display: inline-block;
-  }
-
-  .login-footer::after,
-  footer a::after {
-    content: '';
-    display: block;
-    width: 0;
-    height: 2px;
-    background-color: cyan;
-    transition: width 0.3s ease;
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-  }
-
-  .login-footer:hover::after,
-  footer a:hover::after {
-    width: 100%;
-  }
-
-  /* navbar styles */
-</style>
+ <link rel="stylesheet" href="{% static 'css/login.css' %}" />
 {% endblock %}
 
 {% block content %}
@@ -161,7 +35,7 @@
 
       <p class="mt-3 text-white">
         Nta Konti Ufite?
-        <a href="{% url 'register' %}" class="login-footer">HANGA KONTI</a>
+        <a href="{% url 'register' %}" class="cy-link">HANGA KONTI</a>
       </p>
     </div>
   </div>
