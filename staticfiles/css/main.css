@@ -1,0 +1,239 @@
+ /* Add to your existing CSS */
+ .modal-backdrop.show {
+  opacity: 0.8 !important;
+}
+
+.modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header .btn-close {
+  font-size: 0.8rem;
+  margin-top: -0.5rem;
+}
+
+
+/* Custom button theme class */
+.btn-outline-theme {
+  color: rgba(var(--text-rgb), 1);
+  border-color: rgba(var(--text-rgb), 1);
+  background-color: transparent;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-outline-theme:hover {
+  background-color: rgba(var(--text-rgb), 0.1);
+  border-color: rgba(var(--text-rgb), 1);
+}
+
+.btn-outline-theme:active {
+  background-color: rgba(var(--text-rgb), 0.2);
+}
+
+/* Dark theme adaptation */
+[data-bs-theme="dark"] .btn-outline-theme {
+  color: rgba(var(--text-dark), 1);
+  border-color: rgba(var(--text-dark), 1);
+}
+
+[data-bs-theme="dark"] .btn-outline-theme:hover {
+  background-color: rgba(var(--text-dark), 0.1);
+}
+
+ /* Global Loading Spinner Styles */
+
+    /* Loading Spinner System */
+    .global-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(var(--background-rgb), 0.9);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .global-loader.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .spinner {
+        width: 3.5rem;
+        height: 3.5rem;
+        border: 4px solid rgba(var(--primary-rgb), 0.1);
+        border-top-color: rgba(var(--primary-rgb), 1);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Status Icons */
+    .status-icon {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10000;
+        font-size: 3rem;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        pointer-events: none;
+    }
+
+    .status-icon.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .checkmark-icon {
+        color: #28a745;
+        /* Green for success */
+        animation: scaleUp 0.3s ease;
+    }
+
+    .error-icon {
+        color: #dc3545;
+        /* Red for error */
+        animation: shake 0.5s ease;
+    }
+
+    @keyframes scaleUp {
+        0% {
+            transform: translate(-50%, -50%) scale(0);
+        }
+
+        80% {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        100% {
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
+
+    @keyframes shake {
+
+        0%,
+        100% {
+            transform: translate(-50%, -50%) translateX(0);
+        }
+
+        25% {
+            transform: translate(-50%, -50%) translateX(10px);
+        }
+
+        75% {
+            transform: translate(-50%, -50%) translateX(-10px);
+        }
+    }
+
+    /* Optimized Base Styles */
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: rgba(var(--background-rgb), 1);
+        color: rgba(var(--text-rgb), 1);
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    main {
+        padding-top: 100px;
+        flex: 1;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* Removed duplicate form styles - keep only .rdc-form specific styles */
+    .rdc-form {
+        background-color: rgba(var(--surface-rgb), 1);
+        border-radius: 20px;
+        padding: 40px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(var(--border-rgb), 0.1);
+    }
+
+    /* Footer optimization */
+    footer.bg-dark {
+        background-color: rgba(var(--surface-rgb), 1);
+        border-top: 1px solid rgba(var(--border-rgb), 0.1);
+    }
+/* 
+   
+  footer a {
+    font-size: 14px;
+    color: cyan;
+    text-decoration: underline;
+    position: relative;
+    display: inline-block;
+  }
+
+  footer::after,
+  footer a::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background-color: cyan;
+    transition: width 0.3s ease;
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+  }
+
+  footer a:hover::after {
+    width: 100%;
+  } */
+
+   /* Link styles */
+   .cy-link {
+    font-size: 14px;
+    color: cyan;
+    text-decoration: none;
+    position: relative;
+    display: inline-block;
+}
+
+/* a:hover {
+    text-decoration: underline;
+    transition: width 0.3s ease;
+} */
+
+.cy-link::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background-color: cyan;
+    transition: width 0.3s ease;
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+}
+
+.cy-link:hover::after {
+    width: 100%;
+}

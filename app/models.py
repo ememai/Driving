@@ -76,7 +76,7 @@ class UserProfile(AbstractUser):
     def clean(self):
         """Ensure phone number is in the correct format before saving."""
         if not self.email and not self.phone_number:
-            raise ValidationError("Telefone cg Imeyili ugomba hitampo kimwe wuzuze neza.")
+            raise ValidationError("Telefone cg Imeyili hitampo kimwe wuzuze neza.")
 
         if self.phone_number:
             self.phone_number = self.normalize_phone_number(self.phone_number)
