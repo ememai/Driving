@@ -20,6 +20,9 @@ COPY . /app/
 # Install Python dependencies
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
+# Ensure gunicorn is installed
+RUN pip install gunicorn
+
 # Expose port and start the Django server
 EXPOSE 8000
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "mwami.wsgi:application"]
