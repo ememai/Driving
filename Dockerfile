@@ -22,4 +22,4 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Expose port and start the Django server
 EXPOSE 8000
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "myproject.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "mwami.wsgi:application"]
