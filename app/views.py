@@ -329,17 +329,17 @@ def login_view(request):
                     user.save(update_fields=["phone_number"])
                 
                 if user.email and not user.otp_verified:
-                    messages.error(request, "Please verify your OTP before logging in.")
+                    messages.error(request, "Please banza wuzuze kode yoherejwe yemeza ko email ari yawe.")
                     return redirect("verify_otp", user_id=user.id)
                 authenticated_user = authenticate(request, username=username, password=password)
                 if authenticated_user:
                     login(request, authenticated_user)
-                    messages.success(request, "Login successful! Welcome back.")
+                    messages.success(request, "Kwinjira bikozwe neza cyane! Welcome back.")
                     return redirect("home")
                 else:
-                    messages.error(request, "Invalid password. Please try again.")
+                    messages.error(request, "Ijambobanga ritariryo, ongera ugerageze.")
             else:
-                messages.error(request, "User not found. Please register first.")
+                messages.error(request, "Iyi konti ntago ibaho, Gusa wayihanga.")
 
         # Handle form validation errors
         for field, errors in form.errors.items():
@@ -355,7 +355,7 @@ def login_view(request):
 @login_required(login_url='login')
 def user_logout(request):
     logout(request)
-    messages.success(request, "You have been logged out.")
+    messages.success(request, "Gusohoka bigenze neza.")
     return redirect('home')
 
 
@@ -374,13 +374,13 @@ def subscription_view(request):
         phone_number = request.POST.get('phone_number')
 
         if plan_choice not in dict(plans):
-            messages.error(request, "Invalid plan selected.")
+            messages.error(request, "Ikiciro kitaricyo.")
             return redirect('subscription')
 
         try:
             selected_plan = Plan.objects.get(plan=plan_choice)
         except Plan.DoesNotExist:
-            messages.error(request, "Selected plan does not exist.")
+            messages.error(request, "Ikiciro wahisempo ntikibaho.")
             return redirect('subscription')
 
         # This function should return (price, duration_days) for the selected plan.
@@ -400,7 +400,7 @@ def subscription_view(request):
         subscription.save()
 
 
-        messages.info(request, "Payment request sent. Complete payment on your phone.")
+        messages.info(request, "Kwemeza ubwishyu byoherejwe. reba kuri telefone wemeze.")
         return redirect('momo_payment_status', transaction_id=transaction_id)
 
     context = {
@@ -416,7 +416,7 @@ def momo_payment(request):
     phone_number = request.GET.get("phone")
     amount = request.GET.get("amount")
     if not phone_number or not amount:
-        return JsonResponse({"error": "Phone number and amount are required"}, status=400)
+        return JsonResponse({"error": "Telefone n'igiciro birakenewe"}, status=400)
 
     payment_response, transaction_id = request_momo_payment(phone_number, amount)
     if "error" in payment_response:
