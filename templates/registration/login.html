@@ -1,13 +1,20 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block title %}Login{% endblock %}
-
+{% extends 'base.html' %} {% load static %} {% block title %}Login{% endblock %}
 {% block extra_css %}
- <link rel="stylesheet" href="{% static 'css/login.css' %}" />
-{% endblock %}
-
-{% block content %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}" />
+{% endblock %} {% block content %}
 <div class="row justify-content-center">
+  {% comment %} <div class="col-md-5">
+    <div class="embed-responsive embed-responsive-16by9">
+      <iframe
+        src="https://www.youtube.com/embed/xq6o-Gh0nNo"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        class="embed-responsive-item">
+      </iframe>
+    </div>
+  </div> {% endcomment %}
+  
   <div class="col-md-5">
     <div class="login-card">
       <h2 class="bold-logo">Rwanda DC</h2>
@@ -18,13 +25,25 @@
       <form method="post">
         {% csrf_token %}
         <!-- Username Field -->
-        <input type="text" name="username" id="id_username" class="login-input" placeholder="Telefone cg Imeyili"
-          required />
+        <input
+          type="text"
+          name="username"
+          id="id_username"
+          class="login-input"
+          placeholder="Telefone cg Imeyili"
+          required
+        />
 
         <!-- Password Field with Toggle -->
         <div class="password-field">
-          <input type="password" name="password" id="id_password" class="login-input" placeholder="Ijambo banga"
-            required />
+          <input
+            type="password"
+            name="password"
+            id="id_password"
+            class="login-input"
+            placeholder="Ijambo banga"
+            required
+          />
           <button type="button" id="togglePassword" class="toggle-button">
             <i class="bi bi-eye d-flex pb-3"></i>
           </button>

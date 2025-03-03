@@ -27,9 +27,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from django.views import View
 from django.views.decorators.http import require_POST
 
-
-
-
+# ---------------------
 
 # Home View
 def home(request):

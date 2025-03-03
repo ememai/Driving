@@ -52,7 +52,7 @@
             href="{% url 'subscription' %}"
             role="button"
           >
-            Ifatabuguzi | {{ user.subscription.plan|default:"Basic" }}
+            Ifatabuguzi rimara | {{ user.subscription.plan.get_plan_display|default:"None" }}
           </a>
           {% else %}
           <a
