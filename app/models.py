@@ -121,8 +121,8 @@ class UserProfile(AbstractUser):
         self.otp_code = str(random.randint(100000, 999999))
         self.save()
         send_mail(
-            'Your OTP Code',
-            f'Your OTP code is {self.otp_code}',
+            'OTP Code yawe',
+            f"Koresha iyi code y'isuzuma👉 {self.otp_code}",
             'ememaiid@gmail.com',
             [self.email],
             fail_silently=False,
