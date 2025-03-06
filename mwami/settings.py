@@ -52,6 +52,9 @@ INSTALLED_APPS = [
    
 ]
 
+INSTALLED_APPS += ['django_celery_beat']
+
+
 # Keep only this APSCHEDULER configuration
 APSCHEDULER_JOBS = [
     {
@@ -182,6 +185,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+
 # Email for production  
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -219,3 +223,8 @@ SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
 
 # Use secure-only CSRF cookies
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
+
+# Use Redis for Celery
+CELERY_BROKER_URL = config('REDIS_URL')  # Store your Railway Redis URL in .env
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
