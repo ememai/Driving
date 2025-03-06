@@ -9,5 +9,8 @@ def publish_scheduled_exams():
     exams_to_publish = ScheduledExam.objects.filter(scheduled_datetime__lte=current_time, is_published=False)
 
     for exam in exams_to_publish:
-        exam.publish()
-        print(f"Published exam: {exam.name} at {current_time}")  # Debugging
+        try:
+            exam.publish()
+            logger.info(f"Published exam: {exam.name} at {current_time}")
+        except Exception as e:
+            logger.error(f"Error publishing exam {exam.name}: {e}")

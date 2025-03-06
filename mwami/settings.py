@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from decouple import config
-from apscheduler.triggers.cron import CronTrigger
+# from apscheduler.triggers.cron import CronTrigger
 import dj_database_url
 
 # from django_apscheduler.jobstores import register_events, register_job
@@ -56,19 +56,19 @@ INSTALLED_APPS += ['django_celery_beat']
 
 
 # Keep only this APSCHEDULER configuration
-APSCHEDULER_JOBS = [
-    {
-        'id': 'subscription_check',
-        'func': 'app.subscription_checks:check_subscription_expiry',
-        'trigger': 'cron',
-        'hour': 0,
-        'minute': 0
-    }
-]
+# APSCHEDULER_JOBS = [
+#     {
+#         'id': 'subscription_check',
+#         'func': 'app.subscription_checks:check_subscription_expiry',
+#         'trigger': 'cron',
+#         'hour': 0,
+#         'minute': 0
+#     }
+# ]
 
 
-APSCHEDULER_RUN_NOW_TIMEOUT = 300  # 5 minutes
-APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+# APSCHEDULER_RUN_NOW_TIMEOUT = 300  # 5 minutes
+# APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
 
 # SESSION SETTINGS
 SESSION_COOKIE_AGE = 60*60*24*30 # 30 days
@@ -225,6 +225,7 @@ SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
 
 # Use Redis for Celery
-CELERY_BROKER_URL = config('REDIS_URL')  # Store your Railway Redis URL in .env
+CELERY_BROKER_URL = config('REDIS_URL')
+CELERY_RESULT_BACKEND = config('REDIS_URL')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'

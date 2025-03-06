@@ -1,3 +1,3 @@
-web: gunicorn mwami.wsgi
+web: python manage.py migrate && gunicorn mwami.wsgi
 worker: celery -A mwami worker --loglevel=info
-worker: celery -A mwami beat --loglevel=info
+beat: celery -A mwami beat --loglevel=info
