@@ -96,18 +96,14 @@
     const whatsappForm = document.getElementById('whatsapp-form');
     const finishedButton = document.getElementById('js-finished');
     const callButton = document.getElementById('callButton');
-    let selectedPlan = document.querySelector('input[name="plan"]:checked');
-
+    
     callButton.addEventListener('click', () => {
-      if (!selectedPlan) {
-        alert("Banza uhitempo ifatabuguzi.");
-        return;
-      }
-      
-      const planValue = document.getElementById('js-plan').innerText;
+     const alertMessage = "Banza uhitempo ifatabuguzi wifuza kwishyura.";
+      selectedPlan(alertMessage);
+      let planPrice = selectedPlan.value;
 
       // Construct the USSD code
-      const ussdCode = `*182*8*1*187756*${planValue}#`;
+      const ussdCode = `*182*8*1*187756*${planPrice}#`;
   
       // Redirect to the tel: link
       window.location.href = 'tel:' + encodeURIComponent(ussdCode);
@@ -130,12 +126,9 @@
     let phoneNumber = "250785287885"; // Replace with actual recipient number
     let userPhone = document.getElementById("phone").value;
     let userName = document.getElementById("name").value;
-    let selectedPlan = document.querySelector('input[name="plan"]:checked');
-    
-    if (!selectedPlan) {
-      alert("Hitamo ifatabuguzi mbere yo kwemeza ubwishyu.");
-      return;
-    }
+
+    let alertMessage = "Hitamo ifatabuguzi wishyuye mbere yo kwemeza ubwishyu.";
+    selectedPlan(alertMessage);
 
     let planPrice = selectedPlan.value;
     let planDescription = selectedPlan.nextElementSibling.innerText;
@@ -151,6 +144,14 @@
     let whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
     window.location.href = whatsappURL;
+  }
+
+  function selectedPlan(message) {
+    let selectedPlan = document.querySelector('input[name="plan"]:checked');
+    if (!selectedPlan) {
+      alert(message);
+      return;
+    }
   }
 </script>
 {% endblock %}
