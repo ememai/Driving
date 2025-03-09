@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% block title %}Ifatabuguzi{% endblock %}
+{% block extra_css %}
+<style>
+  .underline {
+    text-decoration: underline;
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  hr {
+    border: 2px solid;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h1 class="text-center mb-4">Ifatabuguzi</h1>
+
+  <div class="text-center">
+    {% if user.is_subscribed %}
+    <p class="fw-bold text-success">
+      Ifatabuguzi ryawe riracyariho kugeza ku itariki ya
+      <strong>{{ subscription.expires_at }}</strong>.
+    </p>
+    {% elif user.has_ended_subscription %}
+    <p class="fw-bold text-danger">
+      Ifatabuguzi ryawe ryararangiye ku itariki ya
+      <strong>{{ subscription.expires_at }}</strong>.
+    </p>
+    {% else %}
+    <p class="fw-bold text-warning">Ntafatabuguzi ufite.</p>
+    {% endif %}
+  </div>
+
+  <div class="alert alert-success text-center fs-5" role="alert">
+    <p class="fw-bold">Hitamo Ifatabuguzi rikunogeye ubundi wishyure.</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="d-flex justify-content-center flex-wrap gap-4 mt-4 mb-2 fs-5">
+        {% for plan_value, plan_label in plans %}
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input cursor-pointer"
+              type="radio"
+              name="plan"
+              id="plan_{{ plan_value }}"
+              value="{{ plan_value|get_plan_price }}"
+              {% if plan_value == user.subscription.plan %} checked {% endif %}>
+            <label class="form-check-label cursor-pointer" for="plan_{{ plan_value }}">
+              {{ plan_value|get_plan_description }}
+            </label>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="alert alert-warning text-center fs-5 mt-4">
+        <h2 class="fw-bold">Uburyo bwo kwishyura:</h2>
+
+        <h4 class="underline">Koresha code:</h4>
+        <strong>*182*8*1*187756*<strong id="js-plan">0</strong>#</strong><br>
+        <h4 class="underline">Niba ukoresha nimero:</h4>
+        <strong>0785287885</strong><hr class="text-theme">
+        <h2 class="">Hose amazina ni: "Mwami Modeste IHIRWE"</h2>
+      </div>
+    </form>
+  </div>
+
+  <button type="button" class="btn btn-primary d-block mx-auto" id='js-finished'>
+    Nasoje kwishyura
+  </button>
+  <form id="whatsapp-form" class="visually-hidden">
+    <fieldset>
+      <legend>Telefone n'amazina by'uwishyuye:</legend>
+      <div class="d-flex justify-content-center mt-4 gap-2">
+        <input type="text" id="phone" class="form-control" placeholder="Nimero wishyuriyeho" required>
+        <input type="text" id="name" class="form-control" placeholder="Amazina" required>
+        <button type="button" class="btn btn-success" onclick="sendToWhatsApp()">Emeza ubwishyu</button>
+      </div>
+    </fieldset>
+  </form>
+  
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const plans = document.querySelectorAll('input[name="plan"]');
+    const planLabel = document.getElementById('js-plan');
+    const whatsappForm = document.getElementById('whatsapp-form');
+    const finishedButton = document.getElementById('js-finished');
+
+    finishedButton.addEventListener('click', () => {
+      whatsappForm.classList.toggle('visually-hidden');
+    });
+
+
+    plans.forEach((plan) => {
+      plan.addEventListener('change', () => {
+        planLabel.textContent = plan.value;
+      });
+    });
+  });
+
+  function sendToWhatsApp() {
+    let phoneNumber = "250785287885"; // Replace with actual recipient number
+    let userPhone = document.getElementById("phone").value;
+    let userName = document.getElementById("name").value;
+    let selectedPlan = document.querySelector('input[name="plan"]:checked');
+    
+    if (!selectedPlan) {
+      alert("Hitamo ifatabuguzi mbere yo kwemeza ubwishyu.");
+      return;
+    }
+
+    let planPrice = selectedPlan.value;
+    let planDescription = selectedPlan.nextElementSibling.innerText;
+
+    // Construct the message
+    let message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n` +
+                  `📌 Izina: ${userName}\n` +
+                  `📞 Numero: ${userPhone}\n` +
+                  `💳 Ifatabuguzi: ${planDescription} - ${planPrice} RWF\n\n` +
+                  `🔹Murakoze!`;
+
+    let encodedMessage = encodeURIComponent(message);
+    let whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+    window.location.href = whatsappURL;
+  }
+</script>
+{% endblock %}

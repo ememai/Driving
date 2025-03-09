@@ -360,6 +360,14 @@ def user_logout(request):
 
 
 # ---------------------
+@login_required(login_url='login')
+def payment(request):
+    plans = Plan.PLAN_CHOICES
+    context = {
+        'plans': plans,
+    }
+    return render(request, 'payment.html', context)
+# ---------------------
 # Subscription and Payment Views
 # ---------------------
 

@@ -24,9 +24,9 @@ urlpatterns = [
 
 
     #subscription and payment
-    path('subscription/', views.subscription_view, name='subscription'),
-    path("pay/", momo_payment, name="momo_payment"),
-    path("pay/status/<str:transaction_id>/", momo_payment_status, name="momo_payment_status"),
+    path('subscription/', views.payment, name='subscription'),
+    # path("pay/", momo_payment, name="momo_payment"),
+    # path("pay/status/<str:transaction_id>/", momo_payment_status, name="momo_payment_status"),
     
     path('contact/', views.contact, name='contact'),
 

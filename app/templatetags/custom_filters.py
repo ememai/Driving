@@ -61,3 +61,12 @@ def get_plan_description(plan_value):
         'Monthly': '3000 - Ukwezi kose',
         'Super': '10000 - ubutarangira',
     }.get(plan_value, '')
+
+@register.filter
+def get_plan_price(value):
+    return {
+        'Daily': '500',
+        'Weekly': '2000',
+        'Monthly': '3000',
+        'Super': '10000',
+    }.get(value, '')
