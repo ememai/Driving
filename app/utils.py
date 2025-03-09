@@ -21,7 +21,7 @@ def set_price_and_duration(plan):
         price = 2000
         duration = 7
     elif plan == 'Monthly':
-        price = 3000
+        price = 4000
         duration = 30
     else:
         price = 10000

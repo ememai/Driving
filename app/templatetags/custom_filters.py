@@ -58,7 +58,7 @@ def get_plan_description(plan_value):
     return {
         'Daily': '500 - Umunsi wose',
         'Weekly': '2000 - Icyumweru cyose',
-        'Monthly': '3000 - Ukwezi kose',
+        'Monthly': '4000 - Ukwezi kose',
         'Super': '10000 - ubutarangira',
     }.get(plan_value, '')
 
@@ -67,6 +67,6 @@ def get_plan_price(value):
     return {
         'Daily': '500',
         'Weekly': '2000',
-        'Monthly': '3000',
+        'Monthly': '4000',
         'Super': '10000',
     }.get(value, '')
