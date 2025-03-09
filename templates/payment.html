@@ -61,6 +61,9 @@
 
         <h4 class="underline">Koresha code:</h4>
         <strong>*182*8*1*187756*<strong id="js-plan">0</strong>#</strong><br>
+        <button id="callButton" class="btn btn-outline-primary">
+          <i class="bi bi-telephone"></i> Hamagara
+        </button>
         <h4 class="underline">Niba ukoresha nimero:</h4>
         <strong>0785287885</strong><hr class="text-theme">
         <h2 class="">Hose amazina ni: "Mwami Modeste IHIRWE"</h2>
@@ -92,6 +95,24 @@
     const planLabel = document.getElementById('js-plan');
     const whatsappForm = document.getElementById('whatsapp-form');
     const finishedButton = document.getElementById('js-finished');
+    const callButton = document.getElementById('callButton');
+    let selectedPlan = document.querySelector('input[name="plan"]:checked');
+
+    callButton.addEventListener('click', () => {
+      if (!selectedPlan) {
+        alert("Banza uhitempo ifatabuguzi.");
+        return;
+      }
+      
+      const planValue = document.getElementById('js-plan').innerText;
+
+      // Construct the USSD code
+      const ussdCode = `*182*8*1*187756*${planValue}#`;
+  
+      // Redirect to the tel: link
+      window.location.href = 'tel:' + encodeURIComponent(ussdCode);
+
+    });
 
     finishedButton.addEventListener('click', () => {
       whatsappForm.classList.toggle('visually-hidden');
