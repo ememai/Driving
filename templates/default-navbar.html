@@ -105,17 +105,17 @@
             >
               <li class="px-3 py-2">
                 <div class="d-flex align-items-center gap-2">
-                  {% if user.profile_picture %}
+                  {% comment %} {% if user.profile_picture %}
                   <img
                     src="{{ user.profile_picture.url }}"
                     alt=""
                     class="rounded-circle"
                     style="width: 40px; height: 40px; object-fit: cover"
                     onerror="this.src='{% static 'img/default-avatar.png' %}'"
-                  />
-                  {% else %}
-                  <i class="bi bi-person-circle fs-1 text-secondary"></i>
-                  {% endif %}
+                  /> {% endcomment %}
+                  {% comment %} {% else %} {% endcomment %}
+                  <i class="bi bi-person-circle fs-3"></i>
+                  {% comment %} {% endif %} {% endcomment %}
                   <div class="text-truncate">
                     <div class="fw-bold">
                       {{ user.name|default:"User"|escape }}
