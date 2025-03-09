@@ -13,12 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from decouple import config
-# from apscheduler.triggers.cron import CronTrigger
 import dj_database_url
-
-# from django_apscheduler.jobstores import register_events, register_job
-
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -53,22 +48,6 @@ INSTALLED_APPS = [
 ]
 
 INSTALLED_APPS += ['django_celery_beat']
-
-
-# Keep only this APSCHEDULER configuration
-# APSCHEDULER_JOBS = [
-#     {
-#         'id': 'subscription_check',
-#         'func': 'app.subscription_checks:check_subscription_expiry',
-#         'trigger': 'cron',
-#         'hour': 0,
-#         'minute': 0
-#     }
-# ]
-
-
-# APSCHEDULER_RUN_NOW_TIMEOUT = 300  # 5 minutes
-# APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
 
 # SESSION SETTINGS
 SESSION_COOKIE_AGE = 60*60*24*30 # 30 days
@@ -225,7 +204,23 @@ SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
 
 # Celery Configuration
-CELERY_BROKER_URL = config('REDIS_URL')  # Change this to Railway Redis URL
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-broker_connection_retry_on_startup = True
+CELERY_BROKER_URL = config('REDIS_URL')
+CELERY_RESULT_BACKEND = config('REDIS_URL')  # Optional, if you need to store task results
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Africa/Kigali'  # Set the timezone for Celery tasks
+
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'max_retries': 3,
+    'interval_start': 0,
+    'interval_step': 0.2,
+    'interval_max': 0.5,
+}
+
+# Celery Beat settings for periodic tasks
+CELERY_BEAT_SCHEDULE = {
+    'task_name': {
+        'task': 'app.tasks.some_task',
+        'schedule': crontab(minute='*', hour='*'),  # Example: runs daily at midnight
+    },
+}
