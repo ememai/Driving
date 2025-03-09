@@ -5,6 +5,8 @@ from .forms import *
 from django.urls import reverse
 from django.utils.html import format_html
 from django.contrib.admin import AdminSite
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+
 # Register your models here.
 # class:
 #   pass
