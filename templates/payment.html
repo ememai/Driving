@@ -99,7 +99,11 @@
     
     callButton.addEventListener('click', () => {
      const alertMessage = "Banza uhitempo ifatabuguzi wifuza kwishyura.";
-      selectedPlan(alertMessage);
+     let selectedPlan = document.querySelector('input[name="plan"]:checked');
+     if (!selectedPlan) {
+       alert(alertMessage);
+       return;
+     }
       let planPrice = selectedPlan.value;
 
       // Construct the USSD code
