@@ -48,7 +48,7 @@ class UserProfile(AbstractUser):
     username = None  # Remove default username field
     name = models.CharField(max_length=16, unique=True)
     email = models.EmailField(unique=True, blank=True, null=True)  
-    phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)     
+    phone_number = models.CharField(max_length=15,default=None, unique=True, null=True, blank=True)     
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
     profile_picture = models.ImageField(upload_to='images/', default='images/avatar.png',null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
