@@ -46,7 +46,7 @@ class UserProfile(AbstractUser):
     ]
     
     username = None  # Remove default username field
-    name = models.CharField(max_length=16, unique=True)
+    name = models.CharField(max_length=25, unique=True)
     email = models.EmailField(unique=True, blank=True, null=True)  
     phone_number = models.CharField(max_length=15,default=None, unique=True, null=True, blank=True)     
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
@@ -66,10 +66,10 @@ class UserProfile(AbstractUser):
         """Normalize phone number before saving to ensure consistency."""
         if self.phone_number:
 
-            if self.phone_number == '':
-                self.phone_number = None
-            else:
-                self.phone_number = self.normalize_phone_number(self.phone_number)
+            # if self.phone_number == '':
+            #     self.phone_number = None
+            # else:
+            self.phone_number = self.normalize_phone_number(self.phone_number)
         super().save(*args, **kwargs)
 
 
@@ -89,6 +89,8 @@ class UserProfile(AbstractUser):
             except phonenumbers.NumberParseException:
                 raise ValidationError("Telefone nyarwanda yujujwe nabi.")
 
+        else:
+            self.phone_number = None
     def normalize_phone_number(self, phone_number):
         """Ensures phone numbers are always stored in the format: +2507XXXXXXXX."""
         try:
