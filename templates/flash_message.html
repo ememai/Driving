@@ -12,6 +12,14 @@
     class="btn-close"
     data-bs-dismiss="alert"
     aria-label="Close"
+    id="close-button-{{ forloop.counter }}"
+
   ></button>
 </div>
+<script>
+  
+  setTimeout(function() {
+    document.getElementById('close-button-{{ forloop.counter }}').click();
+  }, {{ messages|length }} <= 2 ? 5000 : 60000);
+</script>
 {% endfor %} {% endif %}
