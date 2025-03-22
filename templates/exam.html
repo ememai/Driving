@@ -80,9 +80,9 @@
 
     {% if question.sign.exists %}
     <div class="mb-3">
-      <div class="d-flex flex-wrap gap-2">
+      <div class="d-flex flex-wrap gap-2 flex-row">
         {% for sign in question.sign.all %}
-        <img src="{{ sign.sign_image.url }}" alt="{{ sign.definition }}" class="img-thumbnail" style="width: 360px; height: 240px;" title="{{ sign.definition }}">
+        <img src="{{ sign.sign_image.url }}" alt="{{ sign.definition }}" class="img-thumbnail" style="width: 360px; height: 203px;" title="{{ sign.definition }}">
         {% endfor %}
       </div>
     </div>

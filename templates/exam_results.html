@@ -40,35 +40,35 @@
 </style>
 
 <div class="container mt-5">
-  <h2 class="text-center">Exam Results</h2>
+  <h2 class="text-center">Ibisubizo</h2>
   <p class="text-center"><strong>{{ user_exam.exam.title }}</strong></p>
-  <p class="text-center">Score: <strong>{{ score }}/{{ total_questions }}</strong></p>
+  <p class="text-center">Amanota: <strong>{{ score }}/{{ total_questions }}</strong></p>
 
   <!-- Desktop View (Table Layout) -->
   <div class="desktop-view">
     <table class="table table-striped mt-4">
       <thead>
         <tr>
-          <th>Question</th>
-          <th>Your Answer</th>
+          <th>Ikibazo</th>
+          <th>Ibisubizo</th>
         </tr>
       </thead>
       <tbody>
         {% for answer in answers %}
         <tr>
           <td>
-            {{ answer.question.question_text }}
+            <h4>{{forloop.counter}}. {{ answer.question.question_text }}</h4>
             {% if answer.question.sign.exists %}
             <div class="mt-2">
               {% for sign in answer.question.sign.all %}
-                <img src="{{ sign.sign_image.url }}" style="width: 360px; height: 240px; alt="{{ sign.definition }}" class="img-thumbnail">
+                <img src="{{ sign.sign_image.url }}" style="width: 360px; height: 203px; alt="{{ sign.definition }}" class="img-thumbnail">
               {% endfor %}
             </div>
             {% endif %}
           </td>
           <td>
             {% if not answer.selected_choice %}
-              <div style="color:red; font-weight:bold;">No selection</div>
+              <div style="color:red; font-weight:bold;">Nta gisubizo wahisempo</div>
             {% endif %}
             {% for choice in answer.question.choices.all %}
             <div class="choice-item">
