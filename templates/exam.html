@@ -75,7 +75,8 @@
   <form method="POST" id="examForm" class="card p-3 shadow-sm">
     {% csrf_token %}
     <div class="mb-4">
-      <p class="fs-1">{{ question_number }}. {{ question.question_text }}</p>
+      <p class="fs-1 d-none d-md-block">{{ question_number }}. {{ question.question_text }}</p>
+      <h4 class="fs-3 d-block d-md-none">{{ question_number }}. {{ question.question_text }}</h4>
     </div>
 
     {% if question.sign.exists %}
