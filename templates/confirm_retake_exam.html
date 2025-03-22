@@ -10,7 +10,7 @@
         <p>Iki kizamini wagikozeho. Ushaka kugisubirampo?</p>
         <form method="POST" action="{% url 'retake_exam' exam.id %}">
             {% csrf_token %}
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between gap-2 mt-4">
                 <!-- Cancel button redirects to exam results -->
                 <a href="{% url 'exam_results' user_exam.id %}" class="btn btn-secondary">
                     Oya, reba amanota

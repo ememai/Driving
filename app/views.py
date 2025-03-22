@@ -21,6 +21,7 @@ from django.contrib.auth import get_backends
 from django.db.models import Q
 from .authentication import EmailOrPhoneBackend  # Import the custom backend
 from django.utils.timezone import now
+from django.utils.dateparse import parse_datetime
 from django.http import JsonResponse
 from .models import ScheduledExam
 from apscheduler.schedulers.background import BackgroundScheduler
