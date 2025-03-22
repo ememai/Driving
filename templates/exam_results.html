@@ -61,7 +61,7 @@
             {% if answer.question.sign.exists %}
             <div class="mt-2">
               {% for sign in answer.question.sign.all %}
-                <img src="{{ sign.sign_image.url }}" alt="{{ sign.definition }}" class="img-thumbnail">
+                <img src="{{ sign.sign_image.url }}" style="width: 360px; height: 240px; alt="{{ sign.definition }}" class="img-thumbnail">
               {% endfor %}
             </div>
             {% endif %}
@@ -122,7 +122,7 @@
   <!-- Mobile View (Card Layout) -->
   <div class="mobile-view">
     {% for answer in answers %}
-    <div class="card mb-3">
+    <div class="card mb-3 shadow-sm p-3 border border-primary rounded ">
       <div class="card-body">
         <h5 class="card-title">{{forloop.counter}}. {{ answer.question.question_text }}</h5>
         
