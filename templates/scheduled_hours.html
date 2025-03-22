@@ -50,8 +50,9 @@
 <div class="mobile-exam-times hours">
     <div class="container-fluid">
         <div class="scrollable-times">
-                        {% for exam in exams_scheduled|dictsort:"scheduled_datetime" %}
-                         {% if exam.is_published %}
+            {% for exam in exams_scheduled %}
+            <div class="exam-hour ">
+                {% if exam.is_published %}
                 <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link">
                     {{ exam.scheduled_datetime|time:"H:00" }}
                 </a>
