@@ -61,7 +61,7 @@
             {% if answer.question.sign.exists %}
             <div class="mt-2">
               {% for sign in answer.question.sign.all %}
-                <img src="{{ sign.sign_image.url }}" style="width: 360px; height: 203px; alt="{{ sign.definition }}" class="img-thumbnail">
+                <img src="{{ sign.sign_image.url }}" style="width: 360px; height: 330px; alt="{{ sign.definition }}" class="img-thumbnail">
               {% endfor %}
             </div>
             {% endif %}
@@ -136,7 +136,7 @@
 
         <div class="mt-3">
           {% if not answer.selected_choice %}
-            <div style="color:red; font-weight:bold;">No selection</div>
+            <div style="color:red; font-weight:bold;">Nta gisubizo wahisempo</div>
           {% endif %}
           {% for choice in answer.question.choices.all %}
           <div class="card choice-item p-2 {% if choice == answer.selected_choice and choice == answer.question.correct_choice %}border border-success{% elif choice == answer.selected_choice %}border border-danger{% endif %}">
