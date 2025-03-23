@@ -16,6 +16,12 @@ class UserProfileAdmin(admin.ModelAdmin):
     search_fields = ('name','email', 'phone_number')
     list_filter = [('otp_verified')]
 
+@admin.register(SignType)
+class SignTypeAdmin(admin.ModelAdmin):
+    list_display = ('name')
+    search_fields = ('name')
+    
+
 @admin.register(RoadSign)
 class RoadSignAdmin(admin.ModelAdmin):
     list_display = ('definition', 'type')
