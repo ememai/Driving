@@ -209,7 +209,7 @@ class RoadSign(models.Model):
 
 
 class Choice(models.Model):
-    text = models.CharField(max_length=1000, null=True, blank=True)
+    text = models.CharField(max_length=1000, null=True, blank=True, unique=True)
     image_choice = models.OneToOneField(RoadSign, on_delete=models.CASCADE, null=True, blank=True)
     date_added =  models.DateField(auto_now_add=True)
     date_updated = models.DateField(auto_now=True)
