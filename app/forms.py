@@ -1,5 +1,3 @@
-from django import forms
-
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
 from .models import *
@@ -8,11 +6,9 @@ from django import forms
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-from django import forms
 from django.contrib.auth.hashers import make_password
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from .models import UserProfile
 
 class RegisterForm(forms.ModelForm):
     password1 = forms.CharField(widget=forms.PasswordInput, max_length=255, min_length=4, required=True, label="Password")
@@ -141,3 +137,4 @@ class QuestionForm(forms.ModelForm):
         if choices and len(choices) > 4:
             raise ValidationError("A question can have max of 4 choices.")
         return cleaned_data
+    

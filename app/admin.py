@@ -1,6 +1,7 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from .models import *
 from .forms import *
+from django.shortcuts import redirect
 
 from django.urls import reverse
 from django.utils.html import format_html
@@ -8,56 +9,6 @@ from django.contrib.admin import AdminSite
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 # Register your models here.
-# class:
-#   pass
-#       class ExamAdmin(admin.ModelAdmin):
-#         list_display = ('name', 'date_created')
-#         search_fields = ('name',)
-
-#       class RoadSignAdmin(admin.ModelAdmin):
-#         list_display = ('name', 'description')
-#         search_fields = ('name',)
-
-#       class ChoiceAdmin(admin.ModelAdmin):
-#         list_display = ('question', 'choice_text', 'is_correct')
-#         search_fields = ('choice_text',)
-
-#       class QuestionAdmin(admin.ModelAdmin):
-#         list_display = ('text', 'exam')
-#         search_fields = ('text',)
-
-#       class UserProfileAdmin(admin.ModelAdmin):
-#         list_display = ('user', 'bio')
-#         search_fields = ('user__username',)
-
-#       class UserExamAdmin(admin.ModelAdmin):
-#         list_display = ('user', 'exam', 'score')
-#         search_fields = ('user__username', 'exam__name')
-
-#       class PaymentAdmin(admin.ModelAdmin):
-#         list_display = ('user', 'amount', 'date')
-#         search_fields = ('user__username',)
-
-#       class SubscriptionAdmin(admin.ModelAdmin):
-#         list_display = ('user', 'start_date', 'end_date')
-#         search_fields = ('user__username',)
-
-#       class ContactMessageAdmin(admin.ModelAdmin):
-#         list_display = ('name', 'email', 'message')
-#         search_fields = ('name', 'email')
-
-
-#       admin.site.register(Exam)
-#       admin.site.register(RoadSign)
-#       admin.site.register(Choice)
-#       admin.site.register(Question)
-#       admin.site.register(UserProfile)
-#       admin.site.register(UserExam)
-#       admin.site.register(Payment)
-#       admin.site.register(Subscription)
-#       admin.site.register(ContactMessage)
-#       admin.site.register(Plan)
-
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
@@ -74,6 +25,8 @@ class RoadSignAdmin(admin.ModelAdmin):
 class ChoiceAdmin(admin.ModelAdmin):
     list_display = ('text', 'image_choice')
     search_fields = ('text',)
+
+
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):

@@ -193,11 +193,16 @@ class Payment(models.Model):
     def __str__(self):
         return f"{self.user.name} - {self.status}"
 
+class SignType(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
 
 class RoadSign(models.Model):
     sign_image = models.FileField(upload_to='images/')
     definition = models.CharField(max_length=100)
-    type = models.CharField(max_length=50, null=True, blank=True)  # Fixed field name to lowercase
+    type = models.ForeignKey(SignType, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.definition
