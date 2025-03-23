@@ -127,6 +127,10 @@ class ScheduledExamForm(forms.ModelForm):
 
 
 class QuestionForm(forms.ModelForm):
+    choices = forms.ModelMultipleChoiceField(
+        queryset=Choice.objects.order_by("date_added"),  # Order choices
+        widget=forms.CheckboxSelectMultiple,  # Optional: Display as checkboxes
+    )
     class Meta:
         model = Question
         fields = '__all__'

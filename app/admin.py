@@ -23,7 +23,8 @@ class RoadSignAdmin(admin.ModelAdmin):
 
 @admin.register(Choice)
 class ChoiceAdmin(admin.ModelAdmin):
-    list_display = ('text', 'image_choice')
+    list_display = ('text', 'image_choice', 'date_added', 'date_updated')
+    ordering = ('date_added','date_updated')
     search_fields = ('text',)
 
 

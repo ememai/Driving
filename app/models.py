@@ -211,6 +211,8 @@ class RoadSign(models.Model):
 class Choice(models.Model):
     text = models.CharField(max_length=1000, null=True, blank=True)
     image_choice = models.OneToOneField(RoadSign, on_delete=models.CASCADE, null=True, blank=True)
+    date_added =  models.DateField(auto_now_add=True)
+    date_updated = models.DateField(auto_now=True)
 
     def __str__(self):
         return self.text or f"Ishusho: '{self.image_choice.definition}'"
