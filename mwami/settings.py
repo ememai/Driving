@@ -98,8 +98,6 @@ WSGI_APPLICATION = 'mwami.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-
-
 if DEBUG:
     DATABASES = {
         'default': {
@@ -111,6 +109,8 @@ else:
     DATABASES = {
         'default': dj_database_url.config(default=config('DB_URL'))
     }
+      
+print(DEBUG)
 AUTHENTICATION_BACKENDS = [
     'app.authentication.EmailOrPhoneBackend',  # Custom email/phone backend
     'django.contrib.auth.backends.ModelBackend',   # Default Django backend
