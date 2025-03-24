@@ -1,6 +1,6 @@
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
-from .models import *
+from .models import *  # Import all models
 
 from django import forms
 from django.contrib.auth import get_user_model
@@ -9,6 +9,29 @@ User = get_user_model()
 from django.contrib.auth.hashers import make_password
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+
+from django import forms
+import os
+from django.conf import settings
+from django.core.exceptions import ValidationError
+
+from .widgets import *
+
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+
+
+
+class ImageLabelMixin:
+    def get_image_choice_label(self, obj, label_field="definition", image_field="sign_image", max_height=50, max_width=100):
+        
+        label = getattr(obj, label_field, "")
+        image_url = getattr(obj, image_field).url if getattr(obj, image_field, None) else ""
+        return format_html(
+            
+            f'{label}<br><img src="{image_url}" style="max-height:{max_height}px; max-width:{max_width}px; margin:5px 0;">',
+        )
+
 
 class RegisterForm(forms.ModelForm):
     password1 = forms.CharField(widget=forms.PasswordInput, max_length=255, min_length=4, required=True, label="Password")
@@ -105,10 +128,17 @@ class LoginForm(forms.Form):
 
         return cleaned_data
 
+
 class ExamForm(forms.ModelForm):
     class Meta:
         model = Exam
         fields = '__all__'  # or list your fields explicitly
+    
+    questions = forms.ModelMultipleChoiceField(
+        queryset=Question.objects.order_by("date_added"),  # Order questions
+        widget=forms.CheckboxSelectMultiple,
+        label="Questions"
+    )
 
     def clean_questions(self):
         questions = self.cleaned_data.get('questions')
@@ -126,19 +156,187 @@ class ScheduledExamForm(forms.ModelForm):
         }
 
 
-class QuestionForm(forms.ModelForm):
-    choices = forms.ModelMultipleChoiceField(
-        queryset=Choice.objects.order_by("date_added"),  # Order choices
-        widget=forms.CheckboxSelectMultiple,  # Optional: Display as checkboxes
+import os
+from django import forms
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.utils.safestring import mark_safe
+from .models import RoadSign
+
+class RoadSignAdminForm(forms.ModelForm):
+    USE_EXISTING = 'existing'
+    UPLOAD_NEW = 'upload'
+    
+    image_choice = forms.ChoiceField(
+        choices=[
+            (UPLOAD_NEW, 'Upload new image'),
+            (USE_EXISTING, 'Select existing image')
+        ],
+        widget=forms.RadioSelect(attrs={'class': 'image-choice-radio'}),
+        initial=UPLOAD_NEW,
+        label="Image Selection Method"
     )
+    
+    existing_image = forms.ChoiceField(
+        choices=[],
+        required=False,
+        widget=forms.RadioSelect(attrs={'class': 'existing-image-radio'}),
+        label="Select from existing images"
+    )
+    
+    class Meta:
+        model = RoadSign
+        fields = '__all__'
+        widgets = {
+            'sign_image': forms.ClearableFileInput(attrs={'class': 'upload-image-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['existing_image'].choices = self._get_existing_images()
+        
+        if self.instance and self.instance.pk and self.instance.sign_image:
+            self.fields['image_choice'].initial = self.USE_EXISTING
+            self.fields['existing_image'].initial = self.instance.sign_image.name
+            self.fields['sign_image'].required = False
+
+    def _get_existing_images(self):
+        """Get all images from the upload directory with preview HTML"""
+        upload_dir = os.path.join(settings.MEDIA_ROOT, 'road_signs')
+        images = []
+        
+        if os.path.exists(upload_dir):
+            for filename in sorted(os.listdir(upload_dir)):
+                if filename.lower().endswith(('.jpg', '.png', '.webp')):
+                    filepath = os.path.join('road_signs', filename)
+                    images.append((filepath, self._get_image_preview_html(filepath, filename)))
+        
+        return images
+
+    def _get_image_preview_html(self, filepath, filename):
+        """Generate HTML for image preview with radio button"""
+        return mark_safe(
+            f'<div class="image-radio-item">'
+            f'<img src="{settings.MEDIA_URL}{filepath}" '
+            f'style="max-height: 50px; max-width: 100px; vertical-align: middle; margin-right: 10px;">'
+            f'{filename}'
+            f'</div>'
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        choice = cleaned_data.get('image_choice')
+        
+        # Clear validation errors that might have been set automatically
+        self.errors.pop('sign_image', None)
+        
+        if choice == self.USE_EXISTING:
+            existing_image = cleaned_data.get('existing_image')
+            if not existing_image:
+                raise ValidationError("Please select an existing image.")
+            cleaned_data['sign_image'] = existing_image
+        else:
+            if not cleaned_data.get('sign_image'):
+                raise ValidationError("Please upload an image.")
+        
+        return cleaned_data
+
+    def full_clean(self):
+        """Override to prevent automatic sign_image validation"""
+        super().full_clean()
+        # Remove any automatic required field validation for sign_image
+        if 'sign_image' in self._errors and self.cleaned_data.get('image_choice') == self.USE_EXISTING:
+            del self._errors['sign_image']
+
+
+class ChoiceForm(forms.ModelForm, ImageLabelMixin):
+    class Meta:
+        model = Choice
+        fields = '__all__'
+    
+    image_choice = forms.ModelChoiceField(
+        queryset=RoadSign.objects.all(), 
+        required=False,
+        widget=forms.RadioSelect,
+        label="Image Choice",
+        help_text="Select an image to use as the choice."
+        )
+        
+            
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        if 'image_choice' in self.fields:
+            self.fields['image_choice'].label_from_instance = lambda obj: self.get_image_choice_label(
+                obj, label_field="definition", image_field="sign_image", max_height=50, max_width=100
+            )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        text = cleaned_data.get("text")
+        image_choice = cleaned_data.get("image_choice")
+        
+        if not text and not image_choice:
+            raise forms.ValidationError("Enter either text or an image for the choice.")
+        else:
+            return cleaned_data
+
+
+class QuestionForm(forms.ModelForm, ImageLabelMixin):
     class Meta:
         model = Question
         fields = '__all__'
+        
+    choices= forms.ModelMultipleChoiceField(
+        queryset=Choice.objects.order_by("date_added"),  # Order choices
+        widget=forms.CheckboxSelectMultiple,
+        label="Choices"
+    )
+    
+    sign= forms.ModelMultipleChoiceField(
+        queryset=RoadSign.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        label="Question Image"
+    )
+    
+    correct_choice = forms.ModelChoiceField(
+        queryset=Choice.objects.none(),
+        widget=forms.RadioSelect,
+        label="Correct Choice",
+        help_text="Select the correct choice for this question."
+    )
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Dynamically set the queryset for correct_choice based on selected choices
+        if self.instance.pk:  # If editing an existing question
+            self.fields['correct_choice'].queryset = self.instance.choices.all()
+        elif 'choices' in self.data:  # If choices are submitted in the form
+            try:
+                choice_ids = self.data.getlist('choices')
+                self.fields['correct_choice'].queryset = Choice.objects.filter(id__in=choice_ids)
+            except (ValueError, TypeError):
+                pass
+        else:
+            self.fields['correct_choice'].queryset = Choice.objects.none()
+        
+        if 'sign' or 'choices' in self.fields:
+            self.fields['sign'].label_from_instance = lambda obj: self.get_image_choice_label(
+                obj, label_field="definition", image_field="sign_image", max_height=75, max_width=150
+            )        
 
     def clean(self):
         cleaned_data = super().clean()
         choices = cleaned_data.get('choices')
+        correct_choice = cleaned_data.get('correct_choice')
+
+        # Ensure correct_choice is one of the selected choices
+        if correct_choice and choices and correct_choice not in choices:
+            raise ValidationError("The correct choice must be one of the selected choices.")
+
         if choices and len(choices) > 4:
-            raise ValidationError("A question can have max of 4 choices.")
+            raise ValidationError("A question can have a maximum of 4 choices.")
+
         return cleaned_data
-    
+

@@ -99,10 +99,18 @@ WSGI_APPLICATION = 'mwami.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
-DATABASES = {
-     'default': dj_database_url.config(default=config('DB_URL'))
-}
 
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(default=config('DB_URL'))
+    }
 AUTHENTICATION_BACKENDS = [
     'app.authentication.EmailOrPhoneBackend',  # Custom email/phone backend
     'django.contrib.auth.backends.ModelBackend',   # Default Django backend

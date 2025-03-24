@@ -20,43 +20,131 @@ class UserProfileAdmin(admin.ModelAdmin):
 class SignTypeAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
-    
+
+
 
 @admin.register(RoadSign)
 class RoadSignAdmin(admin.ModelAdmin):
-    list_display = ('definition', 'type')
-    search_fields = ('definition', 'type')
+    form = RoadSignAdminForm
+    
+    class Media:
+        js = ('admin/js/roadsign_admin.js',)
+        css = {'all': ('admin/css/roadsign_admin.css',)}
+    
+    list_display = ('definition', 'image_preview', 'type', 'uploaded_at', 'date_updated')
+    search_fields = ('definition', 'type__name')
+    list_filter = ('type', 'is_active')
+    readonly_fields = ('image_preview', 'uploaded_at', 'date_updated')
+    
+    def get_fieldsets(self, request, obj=None):
+        # Different fieldsets for add vs change forms
+        if obj:  # Change form
+            fieldsets = (
+                (None, {
+                    'fields': ('definition', 'type', 'is_active')
+                }),
+                ('Image Management', {
+                    'fields': ('image_preview', 'image_choice', 'existing_image', 'sign_image')
+                }),
+                ('Dates', {
+                    'classes': ('collapse',),
+                    'fields': ('uploaded_at', 'date_updated')
+                }),
+            )
+        else:  # Add form
+            fieldsets = (
+                (None, {
+                    'fields': ('definition', 'type', 'is_active')
+                }),
+                ('Image Management', {
+                    'fields': ('image_choice', 'existing_image', 'sign_image')
+                }),
+            )
+        return fieldsets
+    
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        if obj:  # Editing existing instance
+            return readonly_fields + ('image_choice', 'existing_image')
+        return readonly_fields
+    
+    def save_model(self, request, obj, form, change):
+        if form.cleaned_data['image_choice'] == form.USE_EXISTING:
+            existing_image_name = form.cleaned_data['existing_image']
+            obj.sign_image = existing_image_name
+        super().save_model(request, obj, form, change)
+    
+    def image_preview(self, obj):
+        return obj.image_preview()
+    image_preview.short_description = 'Preview'
+    image_preview.allow_tags = True
 
+
+
+  
 @admin.register(Choice)
 class ChoiceAdmin(admin.ModelAdmin):
-    list_display = ('text', 'image_choice', 'date_added', 'date_updated')
+    form = ChoiceForm
+    
+    class Media:
+        css = {
+            'all': ('css/admin/image_choices.css',)
+        }
+        
+    list_display = ('choice_content','date_added', 'date_updated')
     ordering = ('date_added','date_updated')
     search_fields = ('text',)
+    
+    def image_choice_preview(self, obj):
+        if obj.image_choice:
+            return obj.image_choice.image_preview()
+        return "No image"
+    image_choice_preview.allow_tags = True
+    
+    def choice_content(self, obj):
+        return obj.text or self.image_choice_preview(obj) # Show text or image preview
 
+    choice_content.short_description = 'Choice'
 
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     form = QuestionForm
-    list_display = ('question_text', 'correct_choice')
+    list_display = ('question_text', 'get_choices', 'correct_choice')  # Use a custom method for choices
     filter_horizontal = ('sign', 'choices')
+
+    class Media:
+        js = ('admin/js/dynamic_correct_choice.js',)
+
+    # Custom method to display choices
+    def get_choices(self, obj):
+        # Generate HTML for each choice, showing text or an image if available
+        choices_html = [
+            choice.text if choice.text else (
+                f'<img src="{choice.image_choice.sign_image.url}" alt="Choice Image" style="height: 5em; width: 5em;"/>'
+            )
+            for choice in obj.choices.all()
+        ]
+        # Join the choices with line breaks for better display
+        return format_html("<br><br>".join(choices_html))
+
+    get_choices.short_description = "Choices"  # Set column header in admin
  
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
     form = ExamForm
-    list_display = ('title', 'created_at', 'updated_at')
+    list_display = ('title','question_count', 'created_at', 'updated_at')
+    search_fields = ('title',)
     filter_horizontal = ('questions',)
+    
+    def question_count(self, obj):
+        return obj.questions.count()
 
 @admin.register(UserExam)
 class UserExamAdmin(admin.ModelAdmin):
     list_display = ('user', 'exam', 'score', 'completed_at')
     search_fields = ('user__email', 'exam__title')
-
-# @admin.register(UserExamAnswer)
-# class UserExamAnswerAdmin(admin.ModelAdmin):
-#     list_display = ('user_exam', 'question', 'selected_choice')
-#     search_fields = ('user_exam__user__email', 'question__question_text')
-
+    list_filter = ('completed_at',)
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
     list_display = ('plan',)

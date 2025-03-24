@@ -14,6 +14,8 @@ from datetime import date, timedelta
 import phonenumbers
 from django.contrib import messages
 from django.utils import timezone
+from django.utils.html import format_html
+from django.core.validators import FileExtensionValidator
 
 #
 
@@ -199,23 +201,58 @@ class SignType(models.Model):
     def __str__(self):
         return self.name
 
+# models.py
+class ImagePreviewMixin:
+    def image_preview(self, field_name='image', height=100, width=150):
+        image = getattr(self, field_name)
+        if image:
+            return format_html(
+                '<img src="{}" style="max-height: {}px; max-width: {}px;" />',
+                image.url,
+                height,
+                width
+            )
+        return "No Image"
+    image_preview.allow_tags = True
+
+
 class RoadSign(models.Model):
-    sign_image = models.FileField(upload_to='images/')
-    definition = models.CharField(max_length=100)
-    type = models.ForeignKey(SignType, on_delete=models.SET_NULL, null=True)
+    sign_image = models.ImageField(
+    upload_to='road_signs/',
+    validators=[FileExtensionValidator(['jpg', 'png', 'webp'])]
+)
+    definition = models.CharField(max_length=100, unique=True)
+    type = models.ForeignKey(SignType, on_delete=models.SET_NULL, null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    
+
+    def image_preview(self):
+        """Generates HTML for image preview"""
+        if self.sign_image:
+            return format_html(
+                f'<img src="{self.sign_image.url}" style="max-height: 100px; max-width: 150px;" />'               
+            )
+        return "No Image"
+    image_preview.allow_tags = True  # For Django admin
 
     def __str__(self):
         return self.definition
 
-
+    @property
+    def image_url(self):
+        """Returns full URL or None"""
+        return self.sign_image.url if self.sign_image else None
+    
 class Choice(models.Model):
     text = models.CharField(max_length=1000, null=True, blank=True, unique=True)
     image_choice = models.OneToOneField(RoadSign, on_delete=models.CASCADE, null=True, blank=True)
-    date_added =  models.DateField(auto_now_add=True)
-    date_updated = models.DateField(auto_now=True)
+    date_added =  models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.text or f"Ishusho: '{self.image_choice.definition}'"
+        return self.text or f"Ishusho: '{self.image_choice}'"
 
 
 class QuestionManager(models.Manager):
@@ -228,15 +265,12 @@ class Question(models.Model):
     sign = models.ManyToManyField(RoadSign, related_name='road_sign_questions', blank=True)
     choices = models.ManyToManyField(Choice, related_name='choice_questions')
     correct_choice = models.ForeignKey(Choice, on_delete=models.CASCADE, related_name='correct_for_questions')
-    order = models.PositiveIntegerField(help_text="Order of the question in the exam")
+    order = models.PositiveIntegerField(help_text="Order of the question in the exam", null=True, blank=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
 
 
     objects = QuestionManager()
-
-    # def clean(self):
-    #     if self.choices.count() > 4:
-    #         raise ValidationError("Exam must have max of 4 choices")
-
     def __str__(self):
         return f"{self.id}. {self.question_text[:50]}"
 
