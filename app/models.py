@@ -219,7 +219,7 @@ class ImagePreviewMixin:
 class RoadSign(models.Model):
     sign_image = models.ImageField(
     upload_to='road_signs/',
-    validators=[FileExtensionValidator(['jpg', 'png', 'webp'])]
+    validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])]
 )
     definition = models.CharField(max_length=100, unique=True)
     type = models.ForeignKey(SignType, on_delete=models.SET_NULL, null=True, blank=True)
