@@ -97,8 +97,8 @@ WSGI_APPLICATION = 'mwami.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-if DEBUG:
+LOCAL_DB = config('LOCAL_DB', default=False, cast=bool)
+if LOCAL_DB == True:
    DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -118,7 +118,7 @@ else:
         'default': dj_database_url.config(default=config('DB_URL'))
     }
       
-print(DEBUG)
+print(LOCAL_DB)
 AUTHENTICATION_BACKENDS = [
     'app.authentication.EmailOrPhoneBackend',  # Custom email/phone backend
     'django.contrib.auth.backends.ModelBackend',   # Default Django backend
