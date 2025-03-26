@@ -19,17 +19,25 @@ from .widgets import *
 
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+import json
 
 
 
 class ImageLabelMixin:
-    def get_image_choice_label(self, obj, label_field="definition", image_field="sign_image", max_height=50, max_width=100):
-        
+    def get_image_label(self, obj, label_field="definition", image_field="sign_image", max_height=50, max_width=100):
         label = getattr(obj, label_field, "")
         image_url = getattr(obj, image_field).url if getattr(obj, image_field, None) else ""
         return format_html(
+            '''
+            <style>
+            </style>
             
-            f'{label}<br><img src="{image_url}" style="max-height:{max_height}px; max-width:{max_width}px; margin:5px 0;">',
+            <div class="flex-images"> 
+            <img src="{}" style="max-height:{}px; max-width:{}px; margin:5px;">
+            <span>{}</span> 
+            </div>
+            ''',
+            image_url, max_height, max_width, label
         )
 
 
@@ -156,13 +164,6 @@ class ScheduledExamForm(forms.ModelForm):
         }
 
 
-import os
-from django import forms
-from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.utils.safestring import mark_safe
-from .models import RoadSign
-
 class RoadSignAdminForm(forms.ModelForm):
     USE_EXISTING = 'existing'
     UPLOAD_NEW = 'upload'
@@ -267,7 +268,7 @@ class ChoiceForm(forms.ModelForm, ImageLabelMixin):
         super().__init__(*args, **kwargs)
         
         if 'image_choice' in self.fields:
-            self.fields['image_choice'].label_from_instance = lambda obj: self.get_image_choice_label(
+            self.fields['image_choice'].label_from_instance = lambda obj: self.get_image_label(
                 obj, label_field="definition", image_field="sign_image", max_height=50, max_width=100
             )
 
@@ -281,62 +282,68 @@ class ChoiceForm(forms.ModelForm, ImageLabelMixin):
         else:
             return cleaned_data
 
-
 class QuestionForm(forms.ModelForm, ImageLabelMixin):
     class Meta:
         model = Question
-        fields = '__all__'
+        fields = [
+            'question_text',
+            'question_sign',
+            'choice1_text', 'choice2_text', 'choice3_text', 'choice4_text',
+            'choice1_signs', 'choice2_signs', 'choice3_signs', 'choice4_signs',
+            'correct_choice', 'order'
+        ]
+        widgets = {
+            'question_sign': forms.RadioSelect,
+            'choice1_signs': forms.RadioSelect,
+            'choice2_signs': forms.RadioSelect,
+            'choice3_signs': forms.RadioSelect,
+            'choice4_signs': forms.RadioSelect,
+            
+        }
         
-    choices= forms.ModelMultipleChoiceField(
-        queryset=Choice.objects.order_by("date_added"),  # Order choices
-        widget=forms.CheckboxSelectMultiple,
-        label="Choices"
-    )
-    
-    sign= forms.ModelMultipleChoiceField(
-        queryset=RoadSign.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
-        label="Question Image"
-    )
-    
-    correct_choice = forms.ModelChoiceField(
-        queryset=Choice.objects.none(),
-        widget=forms.RadioSelect,
-        label="Correct Choice",
-        help_text="Select the correct choice for this question."
-    )
-        
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Dynamically set the queryset for correct_choice based on selected choices
-        if self.instance.pk:  # If editing an existing question
-            self.fields['correct_choice'].queryset = self.instance.choices.all()
-        elif 'choices' in self.data:  # If choices are submitted in the form
-            try:
-                choice_ids = self.data.getlist('choices')
-                self.fields['correct_choice'].queryset = Choice.objects.filter(id__in=choice_ids)
-            except (ValueError, TypeError):
-                pass
-        else:
-            self.fields['correct_choice'].queryset = Choice.objects.none()
+        # Add image preview for sign fields
+        for i in range(1, 5):
+            signs_field = f'choice{i}_signs'
+            if signs_field in self.fields:
+                self.fields[signs_field].label_from_instance = lambda obj: self.get_image_label(
+                    obj, label_field="definition", image_field="sign_image", max_height=75, max_width=150
+                )
         
-        if 'sign' or 'choices' in self.fields:
-            self.fields['sign'].label_from_instance = lambda obj: self.get_image_choice_label(
-                obj, label_field="definition", image_field="sign_image", max_height=75, max_width=150
-            )        
-
+        if 'question_sign' in self.fields:
+            self.fields['question_sign'].label_from_instance = lambda obj: self.get_image_label(
+                obj, label_field="definition", image_field="sign_image", max_height=75, max_width=150)
+        
     def clean(self):
         cleaned_data = super().clean()
-        choices = cleaned_data.get('choices')
+
+        # Validate that each choice has either text or signs, but not both/neither
+        errors = {}
+        for i in range(1, 5):
+            text_field = f'choice{i}_text'
+            signs_field = f'choice{i}_signs'
+
+            has_text = bool(cleaned_data.get(text_field))
+            signs_instance = cleaned_data.get(signs_field)  # This will be a single RoadSign object or None
+            has_signs = signs_instance is not None  # Check if a RoadSign object is selected
+
+            if has_text and has_signs:
+                errors[text_field] = f"Choice {i} cannot have both text and signs."
+                errors[signs_field] = f"Choice {i} cannot have both text and signs."
+            elif not has_text and not has_signs:
+                errors[text_field] = f"Choice {i} must have either text or signs."
+                errors[signs_field] = f"Choice {i} must have either text or signs."
+
+        if errors:
+            raise ValidationError(errors)
+
+        # Ensure the correct choice is valid
         correct_choice = cleaned_data.get('correct_choice')
-
-        # Ensure correct_choice is one of the selected choices
-        if correct_choice and choices and correct_choice not in choices:
-            raise ValidationError("The correct choice must be one of the selected choices.")
-
-        if choices and len(choices) > 4:
-            raise ValidationError("A question can have a maximum of 4 choices.")
+        if correct_choice:
+            if not cleaned_data.get(f'choice{correct_choice}_text') and not cleaned_data.get(f'choice{correct_choice}_signs'):
+                raise ValidationError(f"Correct choice {correct_choice} must have valid text or signs.")
 
         return cleaned_data
-

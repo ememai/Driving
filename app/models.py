@@ -16,6 +16,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.utils.html import format_html
 from django.core.validators import FileExtensionValidator
+import json  # Import the json module
 
 #
 
@@ -220,7 +221,7 @@ class RoadSign(models.Model):
     sign_image = models.ImageField(
     upload_to='road_signs/',
     validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])]
-)
+    )
     definition = models.CharField(max_length=100, unique=True)
     type = models.ForeignKey(SignType, on_delete=models.SET_NULL, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -245,8 +246,9 @@ class RoadSign(models.Model):
         """Returns full URL or None"""
         return self.sign_image.url if self.sign_image else None
     
+
 class Choice(models.Model):
-    text = models.CharField(max_length=1000, null=True, blank=True, unique=True)
+    text = models.CharField(max_length=255, null=True, blank=True, unique=True)
     image_choice = models.OneToOneField(RoadSign, on_delete=models.CASCADE, null=True, blank=True)
     date_added =  models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
@@ -260,19 +262,118 @@ class QuestionManager(models.Manager):
         return [(index + 1, question) for index, question in enumerate(self.all())]
 
 
+
 class Question(models.Model):
-    question_text = models.TextField()
-    sign = models.ManyToManyField(RoadSign, related_name='road_sign_questions', blank=True)
-    choices = models.ManyToManyField(Choice, related_name='choice_questions')
-    correct_choice = models.ForeignKey(Choice, on_delete=models.CASCADE, related_name='correct_for_questions')
-    order = models.PositiveIntegerField(help_text="Order of the question in the exam", null=True, blank=True)
+    QUESTION_CHOICES = [(i, f"Choice {i}") for i in range(1, 5)]
+    
+    question_text = models.TextField(verbose_name="Question Text")
+    question_sign = models.ForeignKey(
+        'RoadSign', related_name='questions', on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name="Question Image")
+    
+    # Text choices
+    choice1_text = models.CharField(max_length=200, blank=True, verbose_name="Choice 1 Text")
+    choice2_text = models.CharField(max_length=200, blank=True, verbose_name="Choice 2 Text")
+    choice3_text = models.CharField(max_length=200, blank=True, verbose_name="Choice 3 Text")
+    choice4_text = models.CharField(max_length=200, blank=True, verbose_name="Choice 4 Text")
+    
+    
+    choice1_signs = models.ForeignKey(
+        'RoadSign',
+        blank=True,
+        verbose_name="Choice 1 Signs",
+        related_name="choice1_questions",
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    choice2_signs = models.ForeignKey(
+        'RoadSign',
+        blank=True,
+        verbose_name="Choice 2 Signs",
+        related_name="choice2_questions",
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    choice3_signs = models.ForeignKey(
+        'RoadSign',
+        blank=True,
+        verbose_name="Choice 3 Signs",
+        related_name="choice3_questions",
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    choice4_signs = models.ForeignKey(
+        'RoadSign',
+        blank=True,
+        verbose_name="Choice 4 Signs",
+        related_name="choice4_questions",
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    
+    correct_choice = models.PositiveSmallIntegerField(
+        choices=QUESTION_CHOICES,
+        verbose_name="Correct Choice Number"
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name="Display Order")
     date_added = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['order']
+        verbose_name = "Question"
+        verbose_name_plural = "Questions"
 
+    # def clean(self):
+    #     """Validate that each choice has either text OR signs (not both/neither)"""
+    #     errors = {}
+        
+    #     for i in range(1, 5):
+    #         text_field = f'choice{i}_text'
+    #         signs_field = f'choice{i}_signs'
+            
+    #         has_text = bool(getattr(self, text_field))
+    #         has_signs = getattr(self, signs_field).exists() if self.pk else False
+            
+    #         if has_text and has_signs:
+    #             errors[text_field] = f"Choice {i} cannot have both text and signs"
+    #             errors[signs_field] = f"Choice {i} cannot have both text and signs"
+    #         elif not has_text and not has_signs:
+    #             errors[text_field] = f"Choice {i} must have either text or signs"
+    #             errors[signs_field] = f"Choice {i} must have either text or signs"
+        
+    #     if errors:
+    #         raise ValidationError(errors)
 
-    objects = QuestionManager()
+    def get_choices(self):
+        """
+        Returns choices in format:
+        [
+            {'type': 'text', 'content': "Text", 'is_correct': True},
+            {'type': 'image', 'content': [sign1, sign2], 'is_correct': False},
+            ...
+        ]
+        """
+        choices = []
+        for i in range(1, 5):
+            text = getattr(self, f'choice{i}_text')
+            signs = list(getattr(self, f'choice{i}_signs').all())
+            
+            if text:
+                choices.append({
+                    'type': 'text',
+                    'content': text,
+                    'is_correct': i == self.correct_choice
+                })
+            elif signs:
+                choices.append({
+                    'type': 'image',
+                    'content': signs,
+                    'is_correct': i == self.correct_choice
+                })
+        return choices
+
     def __str__(self):
-        return f"{self.id}. {self.question_text[:50]}"
+        return f"Q{self.order}: {self.question_text[:50]}..."
 
 
 class Exam(models.Model):
@@ -343,8 +444,7 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.name} ({self.email})"
-
-
+    
 
 class ScheduledExam(models.Model):
     exam = models.ForeignKey("Exam", on_delete=models.CASCADE)  # Ensure CASCADE to avoid null exams
