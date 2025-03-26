@@ -293,12 +293,21 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
             'correct_choice', 'order'
         ]
         widgets = {
-            'question_sign': forms.RadioSelect,
-            'choice1_signs': forms.RadioSelect,
-            'choice2_signs': forms.RadioSelect,
-            'choice3_signs': forms.RadioSelect,
-            'choice4_signs': forms.RadioSelect,
+            'question_sign': forms.RadioSelect(attrs={'class': 'question-sign-radio'}),
             
+            'choice1_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 1 text', 'class': 'choice-text'}),
+            
+            'choice2_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 2 text', 'class': 'choice-text'}),
+            
+            'choice3_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 3 text', 'class': 'choice-text'}),
+            
+            'choice4_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 4 text', 'class': 'choice-text'}),
+            
+            #sign
+            'choice1_signs': forms.RadioSelect(attrs={'class': 'choice1-sign-radio'}),
+            'choice2_signs': forms.RadioSelect(attrs={'class': 'choice2-sign-radio'}),
+            'choice3_signs': forms.RadioSelect(attrs={'class': 'choice3-sign-radio'}),
+            'choice4_signs': forms.RadioSelect(attrs={'class': 'choice4-sign-radio'}),
         }
         
 
