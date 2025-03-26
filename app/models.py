@@ -236,7 +236,6 @@ class RoadSign(models.Model):
                 f'<img src="{self.sign_image.url}" style="max-height: 100px; max-width: 150px;" />'               
             )
         return "No Image"
-    image_preview.allow_tags = True  # For Django admin
 
     def __str__(self):
         return self.definition

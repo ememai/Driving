@@ -40,9 +40,6 @@ class RoadSignAdmin(admin.ModelAdmin):
         # Different fieldsets for add vs change forms
         if obj:  # Change form
             fieldsets = (
-                (None, {
-                    'fields': ('definition', 'type', 'is_active')
-                }),
                 ('Image Management', {
                     'fields': ('image_preview', 'image_choice', 'existing_image', 'sign_image')
                 }),
@@ -50,14 +47,17 @@ class RoadSignAdmin(admin.ModelAdmin):
                     'classes': ('collapse',),
                     'fields': ('uploaded_at', 'date_updated')
                 }),
-            )
-        else:  # Add form
-            fieldsets = (
                 (None, {
                     'fields': ('definition', 'type', 'is_active')
                 }),
+            )
+        else:  # Add form
+            fieldsets = (
                 ('Image Management', {
                     'fields': ('image_choice', 'existing_image', 'sign_image')
+                }),
+                (None, {
+                    'fields': ('definition', 'type', 'is_active')
                 }),
             )
         return fieldsets
