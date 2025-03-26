@@ -319,12 +319,12 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
             signs_field = f'choice{i}_signs'
             if signs_field in self.fields:
                 self.fields[signs_field].label_from_instance = lambda obj: self.get_image_label(
-                    obj, label_field="definition", image_field="sign_image", max_height=75, max_width=150
+                    obj, label_field="definition", image_field="sign_image", max_height=30, max_width=30
                 )
         
         if 'question_sign' in self.fields:
             self.fields['question_sign'].label_from_instance = lambda obj: self.get_image_label(
-                obj, label_field="definition", image_field="sign_image", max_height=75, max_width=150)
+                obj, label_field="definition", image_field="sign_image", max_height=30, max_width=30)
         
     def clean(self):
         cleaned_data = super().clean()
