@@ -26,6 +26,7 @@ flex-wrap: wrap;
 align-content: center;
 justify-content: space-between;
 align-items: center;
+max-width: 80vmax !important;
 }
 
 .choice-sign-radio.hidden {
