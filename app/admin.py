@@ -124,7 +124,7 @@ class QuestionAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('question_text','question_sign','order', 'correct_choice')
+            'fields': ('question_text','question_sign')
         }),
         ('Choice 1', {
             'fields': ('choice1_text', 'choice1_signs'),
@@ -137,6 +137,9 @@ class QuestionAdmin(admin.ModelAdmin):
         }),
         ('Choice 4', {
             'fields': ('choice4_text', 'choice4_signs'),
+        }),
+        (None, {
+            'fields': ('order', 'correct_choice')
         }),
     )
 

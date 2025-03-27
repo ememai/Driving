@@ -8,7 +8,7 @@
 }
 
 .choice-text:hover, .question_text_input:hover {
-    transform: scale(1.02);
+    /* transform: scale(1.02); */
     transition: all 0.3s ease-in-out;
 }
 
@@ -44,4 +44,10 @@ align-items: center;
 }
 .choose-image-btn:hover {
     background-color: #0056b3;
+}
+
+.image-label {
+    font-size: large;
+    font-weight: bold;
+    margin: 10px;
 }

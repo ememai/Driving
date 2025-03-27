@@ -324,7 +324,8 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
                 })
                 self.fields[signs_field].label = mark_safe(
                     f'''
-                    <button type="button" class="choose-image-btn" data-choice="choice{i}">Choose Image</button>
+                    <strong>Choice {i} is image?</strong>
+                    <button type="button" class="choose-image-btn" data-choice="choice{i}">Select from Images</button>
                     '''
                 )
                 self.fields[signs_field].empty_label = None
@@ -341,7 +342,8 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
             })
             self.fields['question_sign'].label = mark_safe(
                 '''
-                <button type="button" class="choose-image-btn" data-choice="question">Choose Image</button>
+                <span class="image-label">Question has image?</span>
+                <button type="button" class="choose-image-btn" data-choice="question">Select from Images</button>
                 '''
             )
             self.fields['question_sign'].empty_label = None
