@@ -271,10 +271,10 @@ class Question(models.Model):
         verbose_name="Question Image")
     
     # Text choices
-    choice1_text = models.CharField(max_length=200, blank=True, verbose_name="Choice 1 Text")
-    choice2_text = models.CharField(max_length=200, blank=True, verbose_name="Choice 2 Text")
-    choice3_text = models.CharField(max_length=200, blank=True, verbose_name="Choice 3 Text")
-    choice4_text = models.CharField(max_length=200, blank=True, verbose_name="Choice 4 Text")
+    choice1_text = models.CharField(max_length=700, blank=True, verbose_name="Choice 1 Text")
+    choice2_text = models.CharField(max_length=500, blank=True, verbose_name="Choice 2 Text")
+    choice3_text = models.CharField(max_length=255, blank=True, verbose_name="Choice 3 Text")
+    choice4_text = models.CharField(max_length=255, blank=True, verbose_name="Choice 4 Text")
     
     
     choice1_signs = models.ForeignKey(
