@@ -119,6 +119,8 @@ class QuestionAdmin(admin.ModelAdmin):
         css = {
             'all': ('admin/css/admin_custom_styles.css',)  # Include the custom CSS file
         }
+        
+        js = ('admin/js/custom_admin.js',) # Include the custom JavaScript file
 
     fieldsets = (
         (None, {

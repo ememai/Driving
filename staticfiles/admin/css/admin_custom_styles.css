@@ -1,5 +1,33 @@
 .choice-text {
-    max-width: 150px;
     max-height: 100px;
     min-height: 50px;
+}
+
+.question_text_input {
+height: 10px;
+width: 100px;
+max-width: 100px;
+max-height: 10px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.choice-sign-radio.hidden {
+    display: none;
+}
+
+.choose-image-btn {
+   
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 5px;
+
+}
+.choose-image-btn:hover {
+    background-color: #0056b3;
 }

@@ -29,13 +29,9 @@ class ImageLabelMixin:
         image_url = getattr(obj, image_field).url if getattr(obj, image_field, None) else ""
         return format_html(
             '''
-            <style>
-            </style>
-            
-            <div class="flex-images"> 
-            <img src="{}" style="max-height:{}px; max-width:{}px; margin:5px;">
+             <img src="{}" style="max-height:{}px; max-width:{}px; margin:5px;">
             <span>{}</span> 
-            </div>
+            
             ''',
             image_url, max_height, max_width, label
         )
@@ -282,6 +278,7 @@ class ChoiceForm(forms.ModelForm, ImageLabelMixin):
         else:
             return cleaned_data
 
+
 class QuestionForm(forms.ModelForm, ImageLabelMixin):
     class Meta:
         model = Question
@@ -293,23 +290,22 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
             'correct_choice', 'order'
         ]
         widgets = {
-            'question_sign': forms.RadioSelect(attrs={'class': 'question-sign-radio'}),
+            'question_text': forms.Textarea(attrs={'class': 'question_text_input', 'placeholder': 'Enter question text'}),
+            
+            'question_sign': forms.RadioSelect(attrs={'class': 'question-sign-radio hidden', 'data-choice': 'question'}),
             
             'choice1_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 1 text', 'class': 'choice-text'}),
-            
             'choice2_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 2 text', 'class': 'choice-text'}),
-            
             'choice3_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 3 text', 'class': 'choice-text'}),
-            
             'choice4_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 4 text', 'class': 'choice-text'}),
             
-            #sign
-            'choice1_signs': forms.RadioSelect(attrs={'class': 'choice1-sign-radio'}),
-            'choice2_signs': forms.RadioSelect(attrs={'class': 'choice2-sign-radio'}),
-            'choice3_signs': forms.RadioSelect(attrs={'class': 'choice3-sign-radio'}),
-            'choice4_signs': forms.RadioSelect(attrs={'class': 'choice4-sign-radio'}),
+            
+            # Initially hidden radio buttons
+            'choice1_signs': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice1'}),
+            'choice2_signs': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice2'}),
+            'choice3_signs': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice3'}),
+            'choice4_signs': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice4'}),
         }
-        
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -321,11 +317,35 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
                 self.fields[signs_field].label_from_instance = lambda obj: self.get_image_label(
                     obj, label_field="definition", image_field="sign_image", max_height=30, max_width=30
                 )
-        
+                self.fields[signs_field].widget.attrs.update({
+                    'class': 'choice-sign-radio hidden',
+                    'data-choice': f'choice{i}',
+                    'style': 'display: none;',  # Force it to be hidden initially
+                })
+                self.fields[signs_field].label = mark_safe(
+                    f'''
+                    <button type="button" class="choose-image-btn" data-choice="choice{i}">Choose Image</button>
+                    '''
+                )
+                self.fields[signs_field].empty_label = None
+
+        # Add image preview for question_sign
         if 'question_sign' in self.fields:
             self.fields['question_sign'].label_from_instance = lambda obj: self.get_image_label(
-                obj, label_field="definition", image_field="sign_image", max_height=30, max_width=30)
-        
+                obj, label_field="definition", image_field="sign_image", max_height=30, max_width=30
+            )
+            self.fields['question_sign'].widget.attrs.update({
+                'class': 'question-sign-radio hidden',
+                'data-choice': 'question',
+                'style': 'display: none;',  # Force it to be hidden initially
+            })
+            self.fields['question_sign'].label = mark_safe(
+                '''
+                <button type="button" class="choose-image-btn" data-choice="question">Choose Image</button>
+                '''
+            )
+            self.fields['question_sign'].empty_label = None
+
     def clean(self):
         cleaned_data = super().clean()
 
@@ -356,3 +376,4 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
                 raise ValidationError(f"Correct choice {correct_choice} must have valid text or signs.")
 
         return cleaned_data
+

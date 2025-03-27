@@ -1,4 +1,43 @@
 .choice-text {
+    min-height: 20px;
+    min-width: 50%;
     max-height: 100px;
-    min-height: 50px;
+    max-width: 80%;
+}
+
+.question_text_input {
+min-height: 10vh;
+min-width: 50%;
+max-height: 30vh;
+max-width: 50vw;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.custom-flex {
+display: flex;
+flex-wrap: wrap;
+align-content: center;
+justify-content: space-between;
+align-items: center;
+}
+
+.choice-sign-radio.hidden {
+    display: none;
+}
+
+.choose-image-btn {
+   
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 5px;
+
+}
+.choose-image-btn:hover {
+    background-color: #0056b3;
 }
