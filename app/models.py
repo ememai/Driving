@@ -305,12 +305,14 @@ class Question(models.Model):
             
             if text:
                 choices.append({
+                    'id': i,  # Add the choice ID
                     'type': 'text',
                     'content': text,
                     'is_correct': i == self.correct_choice
                 })
             elif sign:
                 choices.append({
+                    'id': i,  # Add the choice ID
                     'type': 'image',
                     'content': sign.image_url if sign else None,
                     'is_correct': i == self.correct_choice

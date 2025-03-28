@@ -70,3 +70,52 @@ def get_plan_price(value):
         'Monthly': '4000',
         'Super': '10000',
     }.get(value, '')
+
+@register.filter
+def choice_class(answer, choice):
+    """
+    Returns the appropriate CSS class based on the answer and choice.
+    """
+    if answer.selected_choice_number == choice['id'] and not choice['is_correct']:
+        return "border-danger border bg-danger text-white"
+    elif choice['is_correct']:
+        return "border-success border bg-success text-white"
+    return ""
+
+@register.filter
+def choice_condition(answer, choice):
+    """
+    Returns True if the selected choice is incorrect, False otherwise.
+    """
+    return answer.selected_choice_number == choice['id'] and not choice['is_correct']
+
+@register.filter
+def to_int(value):
+    """
+    Converts a value to an integer.
+    """
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return 0
+
+@register.filter
+def has_attribute(obj, attr):
+    """
+    Checks if the given object has the specified attribute.
+    """
+    return hasattr(obj, attr)
+
+@register.filter
+def all(iterable, attr):
+    """
+    Custom filter to check if all elements in an iterable have a specific attribute value.
+    Example: {% if choices|all:"type=image" %}
+    """
+    try:
+        key, value = attr.split("=")
+        result = all(item.get(key) == value for item in iterable)
+        print(f"Checking if all elements in {iterable} have {key}={value}: {result}")  # Debug output
+        return result
+    except ValueError:
+        return False

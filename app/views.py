@@ -44,7 +44,6 @@ class SubscriptionRequiredView(View):
 @login_required
 def exam_detail(request, pk):
     exam_obj = get_object_or_404(Exam, pk=pk)
-    
     if not request.user.is_authenticated or not request.user.is_subscribed:
         messages.warning(request, "Your subscription has expired. Please subscribe to continue.")
         return redirect('subscription')
