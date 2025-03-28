@@ -44,6 +44,7 @@ class SubscriptionRequiredView(View):
 @login_required
 def exam_detail(request, pk):
     exam_obj = get_object_or_404(Exam, pk=pk)
+    
     if not request.user.is_authenticated or not request.user.is_subscribed:
         messages.warning(request, "Your subscription has expired. Please subscribe to continue.")
         return redirect('subscription')
@@ -103,37 +104,31 @@ def exam_timer(request, exam_id):
 # Exam / Question Views
 # ---------------------
 
+
 @login_required(login_url='login')
 @subscription_required
 def exam(request, exam_id, question_number):
     exam = get_object_or_404(Exam, id=exam_id)
-    questions = list(exam.questions.all().select_related('correct_choice'))
+    questions = list(exam.questions.all())
     total_questions = len(questions)
 
-    # Get or create the UserExam record for the current user and exam.
-    # (Remember: the unique_together constraint means only one record exists per exam.)
     user_exam, created = UserExam.objects.get_or_create(
         user=request.user,
         exam=exam,
-        defaults={'score': 0, 'completed_at': None}
+        defaults={'score': 0, 'completed_at': None, 'started_at': timezone.now()}
     )
 
-    # --- NEW: Reset exam attempt if already submitted -------------------------
     if user_exam.completed_at:
-       return redirect('retake_exam', exam_id=exam_id)
-    # --------------------------------------------------------------------------
+        return redirect('retake_exam', exam_id=exam_id)
 
-    # Validate the question number
     if question_number < 1 or question_number > total_questions:
         messages.error(request, "Invalid question number.")
         return redirect('exam', exam_id=exam_id, question_number=1)
 
     current_question = questions[question_number - 1]
 
-    # Calculate the exam end time based on the (possibly reset) started_at time.
     exam_end_time = (user_exam.started_at + timedelta(minutes=exam.duration)).timestamp()
 
-    # Prepare session storage for answers if not already in session.
     if 'answers' not in request.session:
         request.session['answers'] = {}
 
@@ -143,27 +138,23 @@ def exam(request, exam_id, question_number):
             request.session['answers'][str(current_question.id)] = user_answer
             request.session.modified = True
 
-        # Navigation logic
         if 'next' in request.POST and question_number < total_questions:
             return redirect('exam', exam_id=exam_id, question_number=question_number + 1)
         elif 'previous' in request.POST and question_number > 1:
             return redirect('exam', exam_id=exam_id, question_number=question_number - 1)
         elif 'submit' in request.POST:
-            # Calculate the score and record the answers.
             score = 0
             for question in questions:
                 correct_choice = question.correct_choice
-                user_choice_id = request.session['answers'].get(str(question.id))
-                if user_choice_id and user_choice_id == str(correct_choice.id):
+                user_choice = request.session['answers'].get(str(question.id))
+                if user_choice and int(user_choice) == correct_choice:
                     score += 1
-                selected_choice = Choice.objects.filter(id=user_choice_id).first()
                 UserExamAnswer.objects.update_or_create(
                     user_exam=user_exam,
                     question=question,
-                    defaults={'selected_choice': selected_choice}
+                    defaults={'selected_choice_number': user_choice}
                 )
 
-            # Mark the exam as completed and save the score.
             user_exam.score = score
             user_exam.completed_at = timezone.now()
             try:
@@ -172,19 +163,27 @@ def exam(request, exam_id, question_number):
                 messages.error(request, str(e))
                 return redirect('subscription')
 
-            # Clear saved answers from the session.
             request.session.pop('answers', None)
             messages.success(request, f"Exam submitted! Your score: {score}/{total_questions}.")
-            return redirect('exam_results', user_exam_id=user_exam.id) 
+            return redirect('exam_results', user_exam_id=user_exam.id)
+
+    choices = []
+    for i in range(1, 5):
+        choice_text = getattr(current_question, f'choice{i}_text', None)
+        choice_sign = getattr(current_question, f'choice{i}_sign', None)
+        if choice_text:
+            choices.append({'type': 'text', 'content': choice_text, 'id': i})
+        elif choice_sign:
+            choices.append({'type': 'image', 'content': choice_sign.image_url, 'id': i})
 
     context = {
         'exam': exam,
         'question': current_question,
         'question_number': question_number,
         'total_questions': total_questions,
-        'questions': questions,
+        'choices': choices,
         'exam_end_time': exam_end_time,
-        'exam_duration': exam.duration * 60,  # Convert minutes to seconds
+        'exam_duration': exam.duration * 60,
         'user_exam': user_exam,
     }
     return render(request, 'exam.html', context)
@@ -193,8 +192,8 @@ def exam(request, exam_id, question_number):
 @login_required(login_url='login')
 def exam_results(request, user_exam_id):
     user_exam = get_object_or_404(UserExam, id=user_exam_id, user=request.user)
-    answers = UserExamAnswer.objects.filter(user_exam=user_exam).select_related('question', 'selected_choice')
-    
+    answers = UserExamAnswer.objects.filter(user_exam=user_exam).select_related('question')
+
     context = {
         'user_exam': user_exam,
         'answers': answers,
@@ -208,23 +207,22 @@ def exam_results(request, user_exam_id):
 def retake_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
     user_exam = get_object_or_404(UserExam, exam=exam, user=request.user)
-    
-    # If the exam is not completed, no need for retake confirmation.
+
     if not user_exam.completed_at:
         return redirect('exam', exam_id=exam_id, question_number=1)
-    
+
     if request.method == 'POST':
-        # Reset the exam attempt.
         user_exam.started_at = timezone.now()
         user_exam.completed_at = None
         user_exam.score = 0
         user_exam.save()
-        # Clear any saved answers from the session.
+
         if 'answers' in request.session:
             del request.session['answers']
+
         messages.info(request, "Your exam has been reset. Good luck!")
         return redirect('exam', exam_id=exam_id, question_number=1)
-    
+
     context = {
         'exam': exam,
         'user_exam': user_exam,

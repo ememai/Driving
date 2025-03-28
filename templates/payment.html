@@ -104,7 +104,7 @@
        alert(alertMessage);
        return;
      }
-      let planPrice = selectedPlan.value;
+      let planPrice = selectedPlan ? selectedPlan.value : 0;
 
       // Construct the USSD code
       const ussdCode = `*182*8*1*187756*${planPrice}#`;
@@ -130,11 +130,17 @@
     let phoneNumber = "250785287885"; // Replace with actual recipient number
     let userPhone = document.getElementById("phone").value;
     let userName = document.getElementById("name").value;
+    let selectedPlan = document.querySelector('input[name="plan"]:checked');
 
     let alertMessage = "Hitamo ifatabuguzi wishyuye mbere yo kwemeza ubwishyu.";
-    selectedPlan(alertMessage);
+    selectPlan(alertMessage);
 
-    let planPrice = selectedPlan.value;
+    if (!userPhone || !userName) {
+      alert("Nimero ya telefone n'amazina by'uwishyuye birakenewe!!!.");
+      return;
+    }
+
+    let planPrice = selectedPlan ? selectedPlan.value : 0;
     let planDescription = selectedPlan.nextElementSibling.innerText;
 
     // Construct the message
@@ -147,10 +153,10 @@
     let encodedMessage = encodeURIComponent(message);
     let whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
-    window.location.href = whatsappURL;
+     window.location.href = whatsappURL;
   }
 
-  function selectedPlan(message) {
+  function selectPlan(message) {
     let selectedPlan = document.querySelector('input[name="plan"]:checked');
     if (!selectedPlan) {
       alert(message);

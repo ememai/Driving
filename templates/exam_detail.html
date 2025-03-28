@@ -8,10 +8,10 @@
         <h3>{{ exam.title }}</h3>
     </div>
     <div class="card-body">
-        <p><strong>Created at:</strong> {{ exam.created_at|date:"M d, Y" }}</p>
-        <p><strong>Updated at:</strong> {{ exam.updated_at|date:"M d, Y" }}</p>
+        <p>Ugiye gukora ikizamini, ibibazo 20 mu minota makumyabiri </p>
+        <p><strong>Ikizamini cya:</strong> {{ exam.scheduled_datetime }}</p>
         <!-- You can add more exam details or instructions here -->
-        <a href="{% url 'exam' exam.id 1 %}" class="btn btn-success">Start Exam</a>
+        <a href="{% url 'exam' exam.id 1 %}" class="btn btn-success">Tangira ikizamini</a>
     </div>
 </div>
 {% endblock %}

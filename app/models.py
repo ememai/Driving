@@ -1,4 +1,4 @@
- # Install this with `pip install phonenumbers`
+# Install this with `pip install phonenumbers`
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 
@@ -246,15 +246,6 @@ class RoadSign(models.Model):
         return self.sign_image.url if self.sign_image else None
     
 
-class Choice(models.Model):
-    text = models.CharField(max_length=255, null=True, blank=True, unique=True)
-    image_choice = models.OneToOneField(RoadSign, on_delete=models.CASCADE, null=True, blank=True)
-    date_added =  models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.text or f"Ishusho: '{self.image_choice}'"
-
 
 class QuestionManager(models.Manager):
     def get_questions_with_index(self):
@@ -268,51 +259,35 @@ class Question(models.Model):
     question_text = models.TextField(verbose_name="Question Text")
     question_sign = models.ForeignKey(
         'RoadSign', related_name='questions', on_delete=models.SET_NULL, null=True, blank=True,
-        verbose_name="Question Image")
+        verbose_name="Question Image"
+    )
     
-    # Text choices
+    # Choices as separate fields
     choice1_text = models.CharField(max_length=700, blank=True, verbose_name="Choice 1 Text")
     choice2_text = models.CharField(max_length=500, blank=True, verbose_name="Choice 2 Text")
     choice3_text = models.CharField(max_length=255, blank=True, verbose_name="Choice 3 Text")
     choice4_text = models.CharField(max_length=255, blank=True, verbose_name="Choice 4 Text")
     
-    
-    choice1_signs = models.ForeignKey(
-        'RoadSign',
-        blank=True,
-        verbose_name="Choice 1 Signs",
-        related_name="choice1_questions",
-        on_delete=models.SET_NULL,
-        null=True
+    # Choices as related RoadSigns
+    choice1_sign = models.ForeignKey(
+        'RoadSign', blank=True, null=True, verbose_name="Choice 1 Sign",
+        related_name="choice1_questions", on_delete=models.SET_NULL
     )
-    choice2_signs = models.ForeignKey(
-        'RoadSign',
-        blank=True,
-        verbose_name="Choice 2 Signs",
-        related_name="choice2_questions",
-        on_delete=models.SET_NULL,
-        null=True
+    choice2_sign = models.ForeignKey(
+        'RoadSign', blank=True, null=True, verbose_name="Choice 2 Sign",
+        related_name="choice2_questions", on_delete=models.SET_NULL
     )
-    choice3_signs = models.ForeignKey(
-        'RoadSign',
-        blank=True,
-        verbose_name="Choice 3 Signs",
-        related_name="choice3_questions",
-        on_delete=models.SET_NULL,
-        null=True
+    choice3_sign = models.ForeignKey(
+        'RoadSign', blank=True, null=True, verbose_name="Choice 3 Sign",
+        related_name="choice3_questions", on_delete=models.SET_NULL
     )
-    choice4_signs = models.ForeignKey(
-        'RoadSign',
-        blank=True,
-        verbose_name="Choice 4 Signs",
-        related_name="choice4_questions",
-        on_delete=models.SET_NULL,
-        null=True
+    choice4_sign = models.ForeignKey(
+        'RoadSign', blank=True, null=True, verbose_name="Choice 4 Sign",
+        related_name="choice4_questions", on_delete=models.SET_NULL
     )
     
     correct_choice = models.PositiveSmallIntegerField(
-        choices=QUESTION_CHOICES,
-        verbose_name="Correct Choice Number"
+        choices=QUESTION_CHOICES, verbose_name="Correct Choice Number"
     )
     order = models.PositiveIntegerField(default=0, verbose_name="Display Order")
     date_added = models.DateTimeField(auto_now_add=True)
@@ -322,40 +297,11 @@ class Question(models.Model):
         verbose_name = "Question"
         verbose_name_plural = "Questions"
 
-    # def clean(self):
-    #     """Validate that each choice has either text OR signs (not both/neither)"""
-    #     errors = {}
-        
-    #     for i in range(1, 5):
-    #         text_field = f'choice{i}_text'
-    #         signs_field = f'choice{i}_signs'
-            
-    #         has_text = bool(getattr(self, text_field))
-    #         has_signs = getattr(self, signs_field).exists() if self.pk else False
-            
-    #         if has_text and has_signs:
-    #             errors[text_field] = f"Choice {i} cannot have both text and signs"
-    #             errors[signs_field] = f"Choice {i} cannot have both text and signs"
-    #         elif not has_text and not has_signs:
-    #             errors[text_field] = f"Choice {i} must have either text or signs"
-    #             errors[signs_field] = f"Choice {i} must have either text or signs"
-        
-    #     if errors:
-    #         raise ValidationError(errors)
-
     def get_choices(self):
-        """
-        Returns choices in format:
-        [
-            {'type': 'text', 'content': "Text", 'is_correct': True},
-            {'type': 'image', 'content': [sign1, sign2], 'is_correct': False},
-            ...
-        ]
-        """
         choices = []
         for i in range(1, 5):
             text = getattr(self, f'choice{i}_text')
-            signs = list(getattr(self, f'choice{i}_signs').all())
+            sign = getattr(self, f'choice{i}_sign')
             
             if text:
                 choices.append({
@@ -363,10 +309,10 @@ class Question(models.Model):
                     'content': text,
                     'is_correct': i == self.correct_choice
                 })
-            elif signs:
+            elif sign:
                 choices.append({
                     'type': 'image',
-                    'content': signs,
+                    'content': sign.image_url if sign else None,
                     'is_correct': i == self.correct_choice
                 })
         return choices
@@ -429,10 +375,12 @@ class UserExam(models.Model):
 class UserExamAnswer(models.Model):
     user_exam = models.ForeignKey(UserExam, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    selected_choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True, blank=True)
+    selected_choice_number = models.PositiveSmallIntegerField(
+        choices=Question.QUESTION_CHOICES, verbose_name="Selected Choice Number", null=True, blank=True
+    )
 
     def __str__(self):
-        return f"{self.user_exam.user.username} - {self.question.question_text[:50]}"
+        return f"{self.user_exam.user.username} - {self.question.question_text[:50]} - Choice {self.selected_choice_number}"
 
 
 class ContactMessage(models.Model):

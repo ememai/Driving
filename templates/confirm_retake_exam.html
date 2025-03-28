@@ -8,6 +8,7 @@
     <div class="card p-4 shadow-sm">
         <h3 class="mb-3">Emeza gusubirampo ikizamini</h3>
         <p>Iki kizamini wagikozeho. Ushaka kugisubirampo?</p>
+        <p> Ushobora gusubiramo ikizamini igihe cyose, ariko uzahabwa amanota mashya.</p>
         <form method="POST" action="{% url 'retake_exam' exam.id %}">
             {% csrf_token %}
             <div class="d-flex justify-content-between gap-2 mt-4">

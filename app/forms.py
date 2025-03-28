@@ -246,38 +246,6 @@ class RoadSignAdminForm(forms.ModelForm):
             del self._errors['sign_image']
 
 
-class ChoiceForm(forms.ModelForm, ImageLabelMixin):
-    class Meta:
-        model = Choice
-        fields = '__all__'
-    
-    image_choice = forms.ModelChoiceField(
-        queryset=RoadSign.objects.all(), 
-        required=False,
-        widget=forms.RadioSelect,
-        label="Image Choice",
-        help_text="Select an image to use as the choice."
-        )
-        
-            
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        if 'image_choice' in self.fields:
-            self.fields['image_choice'].label_from_instance = lambda obj: self.get_image_label(
-                obj, label_field="definition", image_field="sign_image", max_height=50, max_width=100
-            )
-
-    def clean(self):
-        cleaned_data = super().clean()
-        text = cleaned_data.get("text")
-        image_choice = cleaned_data.get("image_choice")
-        
-        if not text and not image_choice:
-            raise forms.ValidationError("Enter either text or an image for the choice.")
-        else:
-            return cleaned_data
-
 
 class QuestionForm(forms.ModelForm, ImageLabelMixin):
     class Meta:
@@ -286,7 +254,7 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
             'question_text',
             'question_sign',
             'choice1_text', 'choice2_text', 'choice3_text', 'choice4_text',
-            'choice1_signs', 'choice2_signs', 'choice3_signs', 'choice4_signs',
+            'choice1_sign', 'choice2_sign', 'choice3_sign', 'choice4_sign',
             'correct_choice', 'order'
         ]
         widgets = {
@@ -301,10 +269,10 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
             
             
             # Initially hidden radio buttons
-            'choice1_signs': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice1'}),
-            'choice2_signs': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice2'}),
-            'choice3_signs': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice3'}),
-            'choice4_signs': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice4'}),
+            'choice1_sign': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice1'}),
+            'choice2_sign': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice2'}),
+            'choice3_sign': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice3'}),
+            'choice4_sign': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice4'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -312,23 +280,23 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
 
         # Add image preview for sign fields
         for i in range(1, 5):
-            signs_field = f'choice{i}_signs'
-            if signs_field in self.fields:
-                self.fields[signs_field].label_from_instance = lambda obj: self.get_image_label(
-                    obj, label_field="definition", image_field="sign_image", max_height=30, max_width=30
+            sign_field = f'choice{i}_sign'
+            if sign_field in self.fields:
+                self.fields[sign_field].label_from_instance = lambda obj: self.get_image_label(
+                    obj, label_field="definition", image_field="sign_image", max_height=50, max_width=50
                 )
-                self.fields[signs_field].widget.attrs.update({
+                self.fields[sign_field].widget.attrs.update({
                     'class': 'choice-sign-radio hidden',
                     'data-choice': f'choice{i}',
                     'style': 'display: none;',  # Force it to be hidden initially
                 })
-                self.fields[signs_field].label = mark_safe(
+                self.fields[sign_field].label = mark_safe(
                     f'''
                     <strong>Choice {i} is image?</strong>
                     <button type="button" class="choose-image-btn" data-choice="choice{i}">Select from Images</button>
                     '''
                 )
-                self.fields[signs_field].empty_label = None
+                self.fields[sign_field].empty_label = None
 
         # Add image preview for question_sign
         if 'question_sign' in self.fields:
@@ -351,22 +319,21 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
     def clean(self):
         cleaned_data = super().clean()
 
-        # Validate that each choice has either text or signs, but not both/neither
+        # Validate that each choice has either text or a sign, but not both/neither
         errors = {}
         for i in range(1, 5):
             text_field = f'choice{i}_text'
-            signs_field = f'choice{i}_signs'
+            sign_field = f'choice{i}_sign'
 
             has_text = bool(cleaned_data.get(text_field))
-            signs_instance = cleaned_data.get(signs_field)  # This will be a single RoadSign object or None
-            has_signs = signs_instance is not None  # Check if a RoadSign object is selected
+            has_sign = bool(cleaned_data.get(sign_field))
 
-            if has_text and has_signs:
-                errors[text_field] = f"Choice {i} cannot have both text and signs."
-                errors[signs_field] = f"Choice {i} cannot have both text and signs."
-            elif not has_text and not has_signs:
-                errors[text_field] = f"Choice {i} must have either text or signs."
-                errors[signs_field] = f"Choice {i} must have either text or signs."
+            if has_text and has_sign:
+                errors[text_field] = f"Choice {i} cannot have both text and a sign."
+                errors[sign_field] = f"Choice {i} cannot have both text and a sign."
+            elif not has_text and not has_sign:
+                errors[text_field] = f"Choice {i} must have either text or a sign."
+                errors[sign_field] = f"Choice {i} must have either text or a sign."
 
         if errors:
             raise ValidationError(errors)
@@ -374,8 +341,8 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
         # Ensure the correct choice is valid
         correct_choice = cleaned_data.get('correct_choice')
         if correct_choice:
-            if not cleaned_data.get(f'choice{correct_choice}_text') and not cleaned_data.get(f'choice{correct_choice}_signs'):
-                raise ValidationError(f"Correct choice {correct_choice} must have valid text or signs.")
+            if not cleaned_data.get(f'choice{correct_choice}_text') and not cleaned_data.get(f'choice{correct_choice}_sign'):
+                raise ValidationError(f"Correct choice {correct_choice} must have valid text or a sign.")
 
         return cleaned_data
 
