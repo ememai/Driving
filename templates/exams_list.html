@@ -1,8 +1,8 @@
-{% for exam in exams %}
+{% for exam in titled_exams %}
 <div class="exam-card">
     {% if user.is_subscribed %}
         <a href="{% url 'exam_detail' exam.pk %}" class="btn btn-success">
-            Tangira Ijazo
+            Kora ikizamini
         </a>
     {% else %}
         <div class="subscription-required">

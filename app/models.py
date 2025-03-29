@@ -338,8 +338,9 @@ class Exam(models.Model):
 
     is_active = models.BooleanField(default=False)
     # max_attempts = models.PositiveIntegerField(default=1)
-
-
+    @property
+    def total_questions(self):
+        return self.questions.count()
     # def remaining_attempts(self, user):
     #     attempts = UserExam.objects.filter(user=user, exam=self).count()
     #     return self.max_attempts - attempts

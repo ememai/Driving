@@ -23,7 +23,6 @@ from .authentication import EmailOrPhoneBackend  # Import the custom backend
 from django.utils.timezone import now
 from django.utils.dateparse import parse_datetime
 from django.http import JsonResponse
-from .models import ScheduledExam
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.views import View
 from django.views.decorators.http import require_POST
@@ -32,7 +31,11 @@ from django.views.decorators.http import require_POST
 
 # Home View
 def home(request):
-    return render(request, 'home.html')
+    exams = Exam.objects.all()
+    context = {
+        'exams': exams,
+    }
+    return render(request, 'home.html', context)
 
 
 class SubscriptionRequiredView(View):
@@ -68,10 +71,10 @@ def exam_schedule_view(request):
     return render(request, 'exam_schedule.html', context)
 
 
-@login_required(login_url='login')
-def exams_list(request):
-    exams = Exam.objects.all()
-    return render(request, 'exams_list.html', {'exams': exams})
+# @login_required(login_url='login')
+# def exams_list(request):
+#     exams = Exam.objects.all()
+#     return render(request, 'exams_list.html', {'exams': exams})
 
 def scheduled_hours(request):
     now = timezone.localtime(timezone.now())
@@ -97,8 +100,15 @@ def exam_timer(request, exam_id):
     except ScheduledExam.DoesNotExist:
         return JsonResponse({'error': 'Exam not found'}, status=404)
 
-
-
+def exams_by_title(request, exam_title):
+    titled_exams = Exam.objects.filter(title=exam_title)
+    counted_exams = titled_exams.count()
+    context = {
+        'exam_title' : exam_title,
+        'titled_exams' : titled_exams,
+        'counted_exams' : counted_exams,
+    }    
+    return render(request, "exams.html", context )
 # ---------------------
 # Exam / Question Views
 # ---------------------

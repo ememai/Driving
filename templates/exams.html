@@ -1,0 +1,29 @@
+<!-- filepath: c:\Users\user\OneDrive\Desktop\$\@WORK\Site\GitHub\Driving\templates\exams.html -->
+{% extends "base.html" %} {% load static %} {% block title %}Exams{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <div class="text-center mb-4">
+   <h2> Ibizamini bifite ibibazo byo mu bwoko "{{ exam_title }}"
+  </h2>
+    <p class="lead">Wumubare w'ibibonetse: {{ counted_exams }}</p>
+  </div>
+  <div class="row">
+    {% if titled_exams %} {% for exam in titled_exams %}
+    <div class="col-md-4 col-sm-5 mb-3">
+      <div class="card shadow-sm ">
+        <div class="card-body">
+          <h2 class="card-title text-center text-muted">{{ forloop.counter }}</h2>
+          <p class="card-text"> <strong>Cyateguwe:</strong> {{ exam.created_at|date:"M d, Y" }}</p>
+          <p class="card-text"><strong >Umubare w'ibibazo:</strong> {{ exam.total_questions }}</p>
+          <a href="{% url 'exam_detail' exam.id %}" class="btn btn-primary"
+            >Gikore</a
+          >
+        </div>
+      </div>
+    </div>
+    {% endfor %} {% else %}
+    <p class="text-center">No exams found for this category.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

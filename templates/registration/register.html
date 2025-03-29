@@ -1,21 +1,43 @@
-{% extends 'base.html' %} {% load static %} {% block title %} Register {% endblock %} {% block navbar %} {% endblock %} {% block extra_css %}
+{% extends 'base.html' %} {% load static %} {% block title %} Register {% endblock %}
+
+
+{% block navbar %}
+<div class="d-flex align-items-center justify-content-between border-bottom ">
+  <div>
+    <a class="text-decoration-none fs-3 text-theme p-2" href="{% url 'home' %}">
+      <img src="{% static "img/logo.png" %}" style="width: 25px; height: auto;" alt=""> Ahabanza</a>
+  </div>
+  <div class="theme-toggle m-2">
+    <button class="btn btn-link p-0 text-theme" id="themeToggle" aria-label="Toggle theme" type="button">
+      <i id="themeIcon" class="bi bi-moon fs-4"></i>
+      <span class="visually-hidden">Toggle dark mode</span>
+    </button>
+  </div>
+</div>
+{% endblock %} {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/register.css' %}" />
 
 {% endblock %} {% block content %}
-<div class="row ">
+<style>
+  #main-content{
+    margin-top: 16px;
+    }
+</style>
+<div class="d-flex justify-content-center mt-0">
+  <h2>
+    KIGALI DRIVING SCHOOL
+  </h2>
+</div>
+<div class="row">
   {% comment %} <div class="col-md-5 m-4 video-container">
     <div class="embed-responsive embed-responsive-16by9">
-      <iframe
-        src="https://www.youtube.com/embed/xq6o-Gh0nNo"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-        class="embed-responsive-item"
-      >
+      <iframe src="https://www.youtube.com/embed/xq6o-Gh0nNo" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+        class="embed-responsive-item">
       </iframe>
     </div>
   </div> {% endcomment %}
-  <div class="col-md-6">
+  <div class="col-md-6 d-flex justify-content-center">
     <div class="card shadow-lg p-4">
       <h2 class="text-center mb-4">Hanga Konti</h2>
       <form method="post" novalidate>
@@ -23,18 +45,10 @@
         <div class="mb-3 text-center">
           <label class="form-label fw-bold">Koresha:</label>
           <div class="d-flex justify-content-center gap-3" id="js-switch">
-            <button
-              type="button"
-              class="btn btn-outline-primary btn-focus"
-              id="usePhone"
-            >
+            <button type="button" class="btn btn-outline-primary btn-focus" id="usePhone">
               Telefone
             </button>
-            <button
-              type="button"
-              class="btn btn-outline-secondary"
-              id="useEmail"
-            >
+            <button type="button" class="btn btn-outline-secondary" id="useEmail">
               Imeyili
             </button>
           </div>
@@ -45,74 +59,38 @@
           <label for="id_phone_number" class="form-label">Nimero: </label>
           <div class="input-group">
             <span class="input-group-text text-white">+250</span>
-            <input
-              type="text"
-              name="phone_number"
-              id="id_phone_number"
-              class="form-control"
-              placeholder="Urugero: 788123456"
-            />
+            <input type="text" name="phone_number" id="id_phone_number" class="form-control"
+              placeholder="Urugero: 788123456" />
           </div>
         </div>
         <!-- Email Field (Initially hidden) -->
         <div class="mb-3 d-none" id="emailField">
           <label for="id_email" class="form-label">Email</label>
-          <input
-            type="email"
-            name="email"
-            id="id_email"
-            class="form-control"
-            placeholder="example: umuhanda@gmail.com"
-          />
+          <input type="email" name="email" id="id_email" class="form-control"
+            placeholder="example: umuhanda@gmail.com" />
         </div>
         <!-- Name Field -->
         <div class="mb-3">
           <label for="name" class="form-label">Izina:</label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            class="form-control"
-            placeholder="Uzuza izina"
-          />
+          <input type="text" name="name" id="name" class="form-control" placeholder="Uzuza izina" />
         </div>
         <!-- Password Fields -->
         <div class="mb-3 position-relative">
           <label for="id_password1" class="form-label">Ijambo banga:</label>
           <div class="input-group">
-            <input
-              type="password"
-              name="password1"
-              id="id_password1"
-              class="form-control js-password"
-              placeholder="Uzuza ijambo banga uzibuka"
-            />
-            <button
-              class="btn btn-outline-secondary toggle-password"
-              type="button"
-              title="Show/Hide Password"
-            >
+            <input type="password" name="password1" id="id_password1" class="form-control js-password"
+              placeholder="Uzuza ijambo banga uzibuka" />
+            <button class="btn btn-outline-secondary toggle-password" type="button" title="Show/Hide Password">
               <i class="bi bi-eye"></i>
             </button>
           </div>
         </div>
         <div class="mb-3 position-relative">
-          <label for="id_password2" class="form-label"
-            >Ijambo banga nanone:</label
-          >
+          <label for="id_password2" class="form-label">Ijambo banga nanone:</label>
           <div class="input-group">
-            <input
-              type="password"
-              name="password2"
-              id="id_password2"
-              class="form-control js-password"
-              placeholder="Ijambo banga nanone"
-            />
-            <button
-              class="btn btn-outline-secondary toggle-password"
-              type="button"
-              title="Show/Hide Password"
-            >
+            <input type="password" name="password2" id="id_password2" class="form-control js-password"
+              placeholder="Ijambo banga nanone" />
+            <button class="btn btn-outline-secondary toggle-password" type="button" title="Show/Hide Password">
               <i class="bi bi-eye"></i>
             </button>
           </div>
@@ -122,14 +100,8 @@
           <div class="d-flex justify-content-center gap-3">
             {% for value, label in form.gender.field.choices %} {% if value == 'male' or value == 'female' %}
             <div class="form-check">
-              <input
-                class="form-check-input"
-                type="radio"
-                name="gender"
-                id="gender_{{ value }}"
-                value="{{ value }}"
-                required
-              />
+              <input class="form-check-input" type="radio" name="gender" id="gender_{{ value }}" value="{{ value }}"
+                required />
               <label class="form-check-label" for="gender_{{ value }}">
                 {{ label }}
               </label>

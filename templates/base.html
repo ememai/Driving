@@ -7,9 +7,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description"
-        content="Rwanda Drivers License Portal - Your official source for driver's license services in Rwanda" />
+        content="Kigali Driving School License Portal - Your official source for driver's license services in Kigali Driving School" />
 
-    <title>{% block title %}RWANDA DRIVERS{% endblock %} | Rwanda DC</title>
+    <title>{% block title %}Kigali Driving School{% endblock %} | KDS</title>
 
     <!-- Favicon Configuration -->
     <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
@@ -176,7 +176,7 @@
     {% endblock %}
 </head>
 
-<body class="d-flex flex-column min-vh-100 bg-theme text-theme">
+<body class="d-flex flex-column min-vh-100 bg-theme text-theme gap-2">
     <!-- Global Loader -->
     <div class="global-loader" id="global-loader" aria-hidden="true">
         <div class="spinner" role="status"></div>
@@ -197,7 +197,17 @@
 
     <!-- Main Content -->
     <main class="flex-grow-1">
-        <div class="container mt-5">
+        <div class="container" id="main-content">
+            <style>
+                #main-content {
+                    margin-top: 50px; /* Adjust the value as needed */
+                    }
+            @media (max-width: 712px) {
+                #main-content {
+                margin-top: 100px; /* Adjust the value as needed */
+                }
+            }
+            </style>
             {% block content %}{% endblock %}
         </div>
     </main>
@@ -219,7 +229,7 @@
                 </a>
             </div>
             <p class="text-center text-light opacity-75 small mb-0">
-                &copy; {% now "Y" %} RWANDA DRIVERS. All rights reserved.
+                &copy; {% now "Y" %} Kigali Driving School. All rights reserved.
             </p>
         </div>
     </footer>

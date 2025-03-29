@@ -1,75 +1,177 @@
-{% extends "base.html" %}
-{% load static %}
-{% block title %}Home{% endblock %}
-
+{% extends "base.html" %} {% load static %} {% block title %}Home{% endblock %}
 {% block content %}
 
 <style>
-  .bg-video-container {
+  .hero-container {
+    display: flex;
+    min-height: 80vh;
+    align-items: center;
+    padding: 2rem;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.8) 0%,
+      rgba(0, 0, 0, 0.6) 100%
+    );
+    color: white;
     position: relative;
-    width: 100%;
-    height: 100vh;
     overflow: hidden;
   }
 
-  .bg-video-container video {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: translate(-50%, -50%);
-  }
-
-  .bg-video-overlay {
+  .hero-container::before {
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: white;
-    z-index: 2;
-    background: rgba(0, 0, 0, 0.4); /* Optional: Dark overlay for readability */
+    right: 0;
+    bottom: 0;
+    /* background: url('{% static "img/logo.png" %}') ; */
+    background-size: cover;
+    z-index: -1;
+    opacity: 0.7;
   }
 
-  .bg-video-overlay h1,
-  .bg-video-overlay p {
-    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+  .hero-content {
+    flex: 1;
+    padding: 2rem;
+    max-width: 600px;
+  }
+
+  .action-panel {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+
+  .welcome-card {
+    background-color: rgba(var(--surface-rgb), 1);
+    color: rgba(var(--text-rgb), 1);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    padding: 2rem;
+    width: 100%;
+    max-width: 500px;
   }
 
   .auth-buttons {
-    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+  }
+
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    margin: 1rem 0;
+    color: #666;
+    font-weight: 500;
+  }
+
+  .auth-divider::before,
+  .auth-divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .auth-divider::before {
+    margin-right: 1rem;
+  }
+
+  .auth-divider::after {
+    margin-left: 1rem;
+  }
+
+  .btn-auth {
+    padding: 0.75rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .exam-types {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .exam-card {
+    /* background: white; */
+    border: 1px solid;
+    border-color: rgba(var(--text-rgb), 1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .exam-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (max-width: 768px) {
+    .hero-container {
+      flex-direction: column;
+      padding: 1rem;
+    }
+
+    .hero-content,
+    .action-panel {
+      padding: 1rem;
+      width: 100%;
+    }
   }
 </style>
 
-<div class="bg-video-container">
-  <video autoplay loop muted>
-    {% if user.is_authenticated %}
-    <source src="{% static 'videos/2.mp4' %}" type="video/mp4" />
-    {% else %}
-    <source src="{% static 'videos/bg-video.mp4' %}" type="video/mp4" />
-    {% endif %}
-    Your browser does not support the video tag.
-  </video>
+{% include "flash_message.html" %}
 
-  <div class="bg-video-overlay">
-    {% include "flash_message.html" %}
-    <h1 class="display-4">Ikaze muri RWANDA DRIVING COLLEGE HUB</h1>
-    <p class="lead">Igana natwe, Wongere ubumenyi, Intsinzi iri mu biganza.</p>
+<div class="hero-container">
+  <div class="hero-content">
+    <h2 class="display-4 fw-bold mb-4 text-center">
+      Ikaze muri Kigali Driving School
+    </h2>
+    <!-- <p class="lead fs-3 mb-4">"Kwitoza cyane bikugira inzobere".</p> -->
+  </div>
 
-    {% if not user.is_authenticated %}
-    <div class="auth-buttons">
-      <a class="btn btn-primary" href="/login/">Injira</a>
-      <span style="font-family: sans-serif; font-weight: bolder"> Cyangwa </span>
-      <a class="btn btn-primary" href="/register/">Iyandikishe</a>
+  <div class="action-panel">
+    <div class="welcome-card">
+      {% if not user.is_authenticated %}
+      <div class="auth-buttons">
+        <!-- <h3 class="text-center mb-4">Tangira ubu</h3> -->
+        <a class="btn btn-primary btn-auth" href="/login/">Injira</a>
+        <div class="auth-divider">Cyangwa</div>
+        <a class="btn btn-success btn-auth" href="/register/">Uhange Konti</a>
+      </div>
+      {% else %}
+      <div class="text-center">
+        <h3 class="mb-4">Hitamo ubwoko bw'ibibazo</h3>
+        <div class="exam-types">
+          {% for exam in exams %}
+          <div class="exam-card">
+            <h4 class="mb-2">{{ exam.title }}</h4>
+            <a
+              href="{% url 'exams' exam.title %}"
+              class="btn btn-outline-primary"
+              >Fungura</a
+            >
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 </div>
 

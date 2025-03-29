@@ -1,21 +1,21 @@
 {% load static %}
 <nav class="fixed-top">
   <div class="navbar navbar-expand-md">
-    <div class="container-fluid">
+    <div class="container-fluid d-flex flex-wrap align-items-center justify-content-center gap-3">
       <!-- Logo/Brand with proper alt text and aria-label -->
       <a
         class="navbar-brand bold-logo d-flex align-items-center gap-2"
         href="/"
-        aria-label="Rwanda DC Home"
+        aria-label="Kigali Driving School"
       >
         <img
           src="{% static 'img/logo.png' %}"
-          alt="Rwanda DC Logo"
+          alt="Kigali Driving School Logo"
           width="30"
           height="30"
           class="d-inline-block"
         />
-        <span class="text-theme">RWANDA DC</span>
+        <span class="text-theme">Kigali Driving School</span>
       </a>
 
       <!-- Right-side Nav Items with proper spacing and accessibility -->
@@ -148,5 +148,5 @@
       </div>
     </div>
   </div>
-  {% include 'scheduled_hours.html' %}
+    {% include 'scheduled_hours.html' %}
 </nav>

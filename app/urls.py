@@ -7,7 +7,7 @@ urlpatterns = [
     path('', views.home, name='home'),
 
 
-    path('exams/', views.exams_list, name='exams'),
+    path('exams/<str:exam_title>/', exams_by_title, name='exams'),
     path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
 
     path('exam/<int:exam_id>/<int:question_number>/', subscription_required(views.exam), name='exam'),

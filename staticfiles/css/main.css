@@ -165,6 +165,7 @@
         margin: 0 auto;
     }
 
+    
     /* Removed duplicate form styles - keep only .rdc-form specific styles */
     .rdc-form {
         background-color: rgba(var(--surface-rgb), 1);
