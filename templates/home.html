@@ -4,14 +4,14 @@
 <style>
   .hero-container {
     display: flex;
-    min-height: 80vh;
+    min-height: 50vh;
     align-items: center;
-    padding: 2rem;
-    background: linear-gradient(
+    {% comment %} padding: 2rem; {% endcomment %}
+    {% comment %} background: linear-gradient(
       135deg,
       rgba(0, 0, 0, 0.8) 0%,
       rgba(0, 0, 0, 0.6) 100%
-    );
+    ); {% endcomment %}
     color: white;
     position: relative;
     overflow: hidden;
@@ -65,7 +65,7 @@
   .auth-divider {
     display: flex;
     align-items: center;
-    margin: 1rem 0;
+    {% comment %} margin: 1rem 0; {% endcomment %}
     color: #666;
     font-weight: 500;
   }
@@ -137,24 +137,26 @@
 
 {% include "flash_message.html" %}
 
-<div class="hero-container">
+<div class="hero-container py-0">
+  
+
   <div class="hero-content">
-    <h2 class="display-4 fw-bold mb-4 text-center">
+    <h3 class="display-5  fw-bold mb-0 text-center">
       Ikaze muri Kigali Driving School
-    </h2>
+    </h3>
     <!-- <p class="lead fs-3 mb-4">"Kwitoza cyane bikugira inzobere".</p> -->
   </div>
-
-  <div class="action-panel">
-    <div class="welcome-card">
+  <div class="action-panel py-0">
+    <div class="welcome-card py-3">
       {% if not user.is_authenticated %}
       <div class="auth-buttons">
         <!-- <h3 class="text-center mb-4">Tangira ubu</h3> -->
-        <a class="btn btn-primary btn-auth" href="/login/">Injira</a>
+        <a class="btn btn-success btn-auth" href="/register/">Hanga Konti</a>
         <div class="auth-divider">Cyangwa</div>
-        <a class="btn btn-success btn-auth" href="/register/">Uhange Konti</a>
+        <a class="btn btn-primary btn-auth" href="/login/">Konti isanzwe</a>
       </div>
       {% else %}
+      
       <div class="text-center">
         <h3 class="mb-4">Hitamo ubwoko bw'ibibazo</h3>
         <div class="exam-types">

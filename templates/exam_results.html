@@ -191,7 +191,11 @@
                 {% if choice.type == 'image' %}
                 <img src="{{ choice.content }}" class="img-thumbnail">
                 {% if choice.is_correct %}
-                <div style="color:green;">✅Igisubizo Cy'ukuri</div>
+                <div style="color:green;">
+                  {% if answer.selected_choice_number == answer.question.correct_choice %}✅
+                  {% endif %}
+                  Igisubizo Cy'ukuri
+                </div>
                 {% endif %}
                 {% if answer.selected_choice_number == forloop.counter and not choice.is_correct %}
                 <div style="color:red; font-weight:bold;">❌ Icyo wahisempo</div>
@@ -202,7 +206,7 @@
                 {{ choice.content }}
               </span>
               {% if choice.is_correct %}
-              <div style="color:green; font-weight:bold;">✅Igisubizo Cy'ukuri</div>
+              <div style="color:green; font-weight:bold;">Igisubizo Cy'ukuri</div>
               {% endif %}
               {% if answer.selected_choice_number == forloop.counter and not choice.is_correct %}
               <div style="color:red; font-weight:bold;">❌ Icyo wahisempo</div>

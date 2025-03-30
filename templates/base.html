@@ -174,13 +174,13 @@
     {% block extra_css %}
     <style>
         #main-content {
-            margin-top: 50px; /* Adjust the value as needed */
+            margin-top: 25px; /* Adjust the value as needed */
             }
-    @media (max-width: 712px) {
+    {% comment %} @media (max-width: 712px) {
         #main-content {
         margin-top: 100px; /* Adjust the value as needed */
         }
-    }
+    } {% endcomment %}
     </style>
     <!-- Page-specific Styles -->
     {% endblock %}

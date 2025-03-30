@@ -1,6 +1,7 @@
+
 {% extends 'base.html' %} {% load static %} {% block title %}Login{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/login.css' %}" />
+<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
 {% endblock %} {% block content %}
 <div class="row justify-content-center">
   {% comment %} <div class="col-md-5">
@@ -16,12 +17,13 @@
   </div> {% endcomment %}
   
   <div class="col-md-5">
+    
     <div class="login-card">
-      <h2 class="bold-logo">KDS</h2>
-      <p class="text-info"><strong>Uzuza neza Konti</strong></p>
+     
+      <h5 class="bold-logo">Niba utari mushya:</h5>
+      <h6 class="text-info"><strong>Uzuza neza Konti Wahanze</strong></h6>
 
       {% include "flash_message.html" %}
-
       <form method="post">
         {% csrf_token %}
         <!-- Username Field -->
@@ -49,12 +51,17 @@
           </button>
         </div>
 
-        <button type="submit" class="login-button">Injira</button>
+        <button type="submit" class="login-button fs-5 py-2">
+          Injira
+          <i class="bi bi-arrow-right-circle"></i>
+        </button>
       </form>
-
-      <p class="mt-3 text-white">
-        Nta Konti Ufite?
-        <a href="{% url 'register' %}" class="cy-link">HANGA KONTI</a>
+      <p class="d-flex mt-3 text-white gap-2 d-flex justify-content-center align-items-center">
+        <span class="fs-6"> Uri mushya?</span>
+        <span class="gap-2 d-flex justify-content-center align-items-center">
+          <a href="{% url 'register' %}" class="cy-link border-bottom border-info shadow-sm py-0">HANGA KONTI</a>
+          <i class="bi bi-person-plus fs-3"></i>
+        </span>
       </p>
     </div>
   </div>

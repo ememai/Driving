@@ -4,9 +4,10 @@ from .views import *
 from .decorators import subscription_required
 
 urlpatterns = [
-    path('', views.home, name='home'),
 
 
+    path("", views.home, name='home'),
+    path("ahabanza/", views.home, name='ahabanza'),
     path("ibibazo-byo-mubwoko-/<str:exam_title>/", exams_by_title, name='exams'),
     path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
 

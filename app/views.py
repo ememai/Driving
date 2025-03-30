@@ -31,7 +31,7 @@ from datetime import timedelta
 # ---------------------
 
 # Home View
-def home(request):
+def home(request, name='ahabanza'):
     exams = Exam.objects.all()
     context = {
         'exams': exams,
