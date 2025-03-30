@@ -16,15 +16,7 @@
     /* Space between hour items */
     padding: 0.1rem 0.5rem;
 
-      {
-      % comment %
-    }
 
-    padding-bottom: 2px;
-
-      {
-      % endcomment %
-    }
 
     /* Optional horizontal padding */
     -ms-overflow-style: none;
@@ -56,15 +48,20 @@
   .note {
     background-color: rgba(var(--surface-rgb), 1);
     color: rgba(var(--text-rgb), 1);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    /*border: 2px solid rgba(255, 255, 255, 0.2); */
     border-top: none;
   }
 </style>
 
 <div class="mobile-exam-times hours">
   <div class="container-fluid">
+<<<<<<< HEAD
     <div class="note text-center mb-0 pt-1">
       <h6 class="text-center mb-0">Kanda ku isaha ukore ikizamini</h6>
+=======
+    <div class="note text-center mb-0 pt-lg-1">
+      <h6 class="text-center mb-0">Hitampo Isaha ukore ikizamini</h6>
+>>>>>>> d33dbf4b51bf8ee284f9ccb78e516f10d0b76dbf
     </div>
     <div class="scrollable-times">
       {% for exam in exams_scheduled %}
