@@ -21,6 +21,6 @@
   
   setTimeout(function() {
     document.getElementById('close-button-{{ forloop.counter }}').click();
-  }, {{ messages|length }} <= 2 ? 5000 : 10000);
+  }, {{ messages|length }} <= 2 ? 3000 : 10000);
 </script>
 {% endfor %} {% endif %}

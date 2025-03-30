@@ -172,6 +172,16 @@
     </style> -->
 
     {% block extra_css %}
+    <style>
+        #main-content {
+            margin-top: 50px; /* Adjust the value as needed */
+            }
+    @media (max-width: 712px) {
+        #main-content {
+        margin-top: 100px; /* Adjust the value as needed */
+        }
+    }
+    </style>
     <!-- Page-specific Styles -->
     {% endblock %}
 </head>
@@ -198,16 +208,7 @@
     <!-- Main Content -->
     <main class="flex-grow-1">
         <div class="container" id="main-content">
-            <style>
-                #main-content {
-                    margin-top: 50px; /* Adjust the value as needed */
-                    }
-            @media (max-width: 712px) {
-                #main-content {
-                margin-top: 100px; /* Adjust the value as needed */
-                }
-            }
-            </style>
+            
             {% block content %}{% endblock %}
         </div>
     </main>

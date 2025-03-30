@@ -26,6 +26,7 @@ from django.http import JsonResponse
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.views import View
 from django.views.decorators.http import require_POST
+from datetime import timedelta
 
 # ---------------------
 
@@ -84,13 +85,17 @@ def scheduled_hours(request):
     exams_scheduled = ScheduledExam.objects.filter(
         scheduled_datetime__range=(start_of_day, end_of_day)
     )
+    
+    
+    
     context = {
         'exams_scheduled': exams_scheduled,
         'start_of_day': start_of_day,
-        'end_of_day': end_of_day
+        'end_of_day': end_of_day,
+        'now': now,
     }
 
-    return render(request, 'scheduled_hours.html',context)
+    return render(request, 'scheduled_hours.html', context)
 
 def exam_timer(request, exam_id):
     try:
@@ -100,6 +105,7 @@ def exam_timer(request, exam_id):
     except ScheduledExam.DoesNotExist:
         return JsonResponse({'error': 'Exam not found'}, status=404)
 
+@login_required(login_url='login')
 def exams_by_title(request, exam_title):
     titled_exams = Exam.objects.filter(title=exam_title)
     counted_exams = titled_exams.count()
@@ -270,7 +276,7 @@ def register_view(request):
                 return redirect('verify_otp', user_id=user.id)
             else:
                 messages.success(request, 'Guhanga konti byagenze neza. Ushobora kwinjira.')
-                return redirect("subscription")
+                return redirect("login")
         else:
             for field, errors in form.errors.items():
                 for error in errors:

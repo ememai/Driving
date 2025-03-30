@@ -1,7 +1,10 @@
 {% load static %}
+<style></style>
 <nav class="fixed-top">
-  <div class="navbar navbar-expand-md">
-    <div class="container-fluid d-flex flex-wrap align-items-center justify-content-center gap-3">
+  <div class="navbar navbar-expand-md border-bottom border-theme">
+    <div
+      class="container-fluid d-flex flex-wrap align-items-center justify-content-center gap-3"
+    >
       <!-- Logo/Brand with proper alt text and aria-label -->
       <a
         class="navbar-brand bold-logo d-flex align-items-center gap-2"
@@ -15,22 +18,25 @@
           height="30"
           class="d-inline-block"
         />
-        <span class="text-theme">Kigali Driving School</span>
+        <span class="text-theme d-none d-md-inline">Kigali Driving School</span>
+        <span class="text-theme d-inline d-md-none">KDS</span>
       </a>
 
       <!-- Right-side Nav Items with proper spacing and accessibility -->
       <div class="d-flex flex-nowrap gap-3 align-items-center ms-auto">
         {% if not user.is_authenticated %}
-        <a
-          class="btn btn-outline-theme px-4 py-2 rounded-pill d-flex align-items-center gap-2"
-          href="{% url 'register' %}"
-          role="button"
-          aria-label="Register"
-        >
-          <i class="bi bi-person-plus"></i>
-          Hanga Konti
-        </a>
-        <span class="text-theme">Niba ntayo ufite!</span>
+        <div class="d-flex align-items-center ">
+          <span class="d-none d-md-inline">Uri mushya?</span>
+          <a
+            class="btn  rounded-dashed px-1 py-0 py-md-2"
+            href="{% url 'register' %}"
+            role="button"
+            aria-label="Register"
+          >
+            <span class="text-info">Hanga Konti</span>
+            <i class="bi bi-person-plus"></i>
+          </a>
+        </div>
 
         <!-- Theme Toggle with proper accessibility -->
         <div class="theme-toggle">
@@ -48,16 +54,15 @@
         <div class="d-flex align-items-center gap-3">
           {% if user.is_subscribed %}
           <a
-            class="btn btn-success px-2 py-0 rounded-pill"
+            class="btn btn-success px-2 rounded-pill d-none d-md-flex"
             href="{% url 'subscription' %}"
             role="button"
           >
-          <small >  Ifatabuguzi | {{ user.subscription.plan.get_plan_display|default:"None" }}
-          </small>
+            Ifatabuguzi | {{ user.subscription.plan.get_plan_display|default:"None" }}
           </a>
           {% else %}
           <a
-            class="btn btn-outline-theme px-4 py-2 rounded-pill"
+            class="btn btn-outline-theme px-1 px-md-4 py-0 py-md-2 rounded-pill"
             href="{% url 'subscription' %}"
             role="button"
           >
@@ -65,13 +70,13 @@
           </a>
           {% endif %} {% if user.is_staff %}
           <a
-            class="btn btn-outline-theme px-4 py-2 rounded-pill d-flex align-items-center gap-2"
-            {% comment %} href="{% url 'admin_dashboard' %}" {% endcomment %}
+            class="btn px-4 py-2 rounded-pill d-flex align-items-center gap-2"
+            
             href="/admin"
             aria-label="Admin Dashboard"
           >
             <i class="bi bi-speedometer2"></i>
-            <span>Dashboard</span>
+            <span class="d-none d-md-inline">Dashboard</span>
           </a>
           {% endif %}
 
@@ -113,8 +118,8 @@
                     class="rounded-circle"
                     style="width: 40px; height: 40px; object-fit: cover"
                     onerror="this.src='{% static 'img/default-avatar.png' %}'"
-                  /> {% endcomment %}
-                  {% comment %} {% else %} {% endcomment %}
+                  />
+                  {% endcomment %} {% comment %} {% else %} {% endcomment %}
                   <i class="bi bi-person-circle fs-3"></i>
                   {% comment %} {% endif %} {% endcomment %}
                   <div class="text-truncate">
@@ -126,6 +131,21 @@
                     </div>
                   </div>
                 </div>
+              </li>
+
+              <li>
+                {% if user.is_subscribed %}
+
+                <a
+                  class="btn btn-success px-1 py-0 mx-2 rounded-pill d-flex d-md-none"
+                  href="{% url 'subscription' %}"
+                  role="button"
+                  style="font-size: 13px"
+                >
+                  Ifatabuguzi : {{ user.subscription.plan.get_plan_display|default:"None" }}
+                </a>
+                
+                {% endif %}
               </li>
               <li>
                 <hr class="dropdown-divider" />
@@ -148,5 +168,5 @@
       </div>
     </div>
   </div>
-    {% include 'scheduled_hours.html' %}
+  {% include 'scheduled_hours.html' %}
 </nav>
