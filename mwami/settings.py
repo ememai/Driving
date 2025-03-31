@@ -28,9 +28,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY SETTINGS
 SECRET_KEY = config('DJANGO_SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1', cast=lambda v: v.split(',')) + ['0b90-197-157-145-78.ngrok-free.app']
 
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=lambda v: v.split(',')) + ['https://0b90-197-157-145-78.ngrok-free.app']
+ALLOWED_HOSTS = config('MY_ALLOWED_HOSTS', default='127.0.0.1', cast=lambda v: v.split(','))
+
+print("Final ALLOWED_HOSTS:", ALLOWED_HOSTS)
+
+
+CSRF_TRUSTED_ORIGINS = config('MY_CSRF_TRUSTED_ORIGINS', cast=lambda v: v.split(','))
 
 # Application definition
 
@@ -45,6 +49,7 @@ INSTALLED_APPS = [
     'channels',
     'dashboard.apps.DashboardConfig',
     'django_apscheduler',
+    "django_browser_reload",
 
 ]
 
