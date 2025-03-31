@@ -9,15 +9,15 @@
     padding: 2rem;
 
     @media (min-width: 768px) {
-     
+
       background: linear-gradient(
       135deg,
       rgba(0, 0, 0, 0.8) 0%,
       rgba(0, 0, 0, 0.6) 100%
-    ); 
+    );
     color: white;
     }
-    
+
     position: relative;
     overflow: hidden;
   }
@@ -114,13 +114,13 @@
       grid-template-columns: repeat(2, 1fr);
     }
   }
-  
+
 
   .exam-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-  }  
-  
+  }
+
   .exam-card {
     border: 1px solid;
     border-color: rgba(var(--text-rgb), 1);
@@ -135,11 +135,11 @@
     justify-content: space-between;
     min-height: 100%; /* Ensure equal height */
   }
-  
+
   {% comment %} .exam-card h4 {
     margin-bottom: 1rem;
   }
-  
+
   .exam-card a {
     margin-top: auto; /* Push button to bottom */
   } {% endcomment %}
@@ -160,31 +160,20 @@
 
 {% include "flash_message.html" %}
 
-<<<<<<< HEAD
-<div class="hero-container py-0">
 
-
- <!-- <div class="hero-content">
-    <h3 class="display-5  fw-bold mb-0 text-center">
-      Ikaze muri Kigali Driving School
-    </h3>
-    <!-- <p class="lead fs-3 mb-4">"Kwitoza cyane bikugira inzobere".</p> -->
-  </div
-  -->
-=======
 <div class="hero-container py-3">
-  
+
 
   <div class="hero-content ">
     <h3 class="display-3 d-none d-md-block  fw-bold mb-0 text-center">
        Kigali Driving School
-    </h3>   
+    </h3>
     <!-- <p class="lead fs-3 mb-4">"Kwitoza cyane bikugira inzobere".</p> -->
   </div>
   <h5 class="d-block d-md-none  fw-bold mb-0 text-theme text-center">
     Ikaze muri <span id='kds'></span>
   </h5>
->>>>>>> 66fcfbb1a671d4fa90be07a7431fb6a23a75bfb8
+
   <div class="action-panel py-0">
     <div class="welcome-card py-3">
       {% if not user.is_authenticated %}
@@ -201,7 +190,7 @@
 
       <div class="text-center">
         <h3 class="mb-4">Ubwoko bw'ibibazo wakora</h3>
-      
+
         <div class="exam-types">
           {% for exam in exams %}
           <div class="exam-card">
@@ -214,7 +203,7 @@
           </div>
           {% endfor %}
         </div>
-      
+
       {% endif %}
     </div>
   </div>
