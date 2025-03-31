@@ -10,13 +10,15 @@
 
     @media (min-width: 768px) {
      
-      background: linear-gradient(
-      135deg,
-      rgba(0, 0, 0, 0.8) 0%,
-      rgba(0, 0, 0, 0.6) 100%
-    ); 
-    color: white;
     }
+    background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.6) 100%
+  ); 
+
+  
+  {% comment %} color: white; {% endcomment %}
     
     position: relative;
     overflow: hidden;
@@ -160,7 +162,7 @@
 
 {% include "flash_message.html" %}
 
-<div class="hero-container py-3">
+<div class="hero-container py-3 border-theme">
   
 
   <div class="hero-content ">
@@ -169,11 +171,13 @@
     </h3>   
     <!-- <p class="lead fs-3 mb-4">"Kwitoza cyane bikugira inzobere".</p> -->
   </div>
-  <h5 class="d-block d-md-none  fw-bold mb-0 text-theme text-center">
-    Ikaze muri <span id='kds'></span>
+  <h5 class="d-block d-md-none  fw-bold mb-0 text-light text-center">
+    {% if not user.is_authenticated %} Ikaze muri 
+    {% endif %}
+    <span id='kds'></span>
   </h5>
   <div class="action-panel py-0">
-    <div class="welcome-card py-3">
+    <div class="welcome-card py-3 ">
       {% if not user.is_authenticated %}
       <div class="auth-buttons">
         <!-- <h3 class="text-center mb-4">Tangira ubu</h3> -->

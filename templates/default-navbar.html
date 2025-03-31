@@ -1,7 +1,7 @@
 {% load static %}
 <style></style>
 <nav class="fixed-top">
-  <div class="navbar navbar-expand-md border-bottom border-theme shadow-sm">
+  <div class="navbar navbar-expand-md border-bottom border-theme shadow-sm" id="navbar" role="navigation" style="background-color: rgb(0, 0, 83); ">
     <div
       class="container-fluid d-flex flex-wrap align-items-center justify-content-center gap-3"
     >
@@ -18,8 +18,8 @@
           height="30"
           class="d-inline-block"
         />
-        <span class="text-theme d-none d-md-inline">Kigali Driving School</span>
-        <strong class="text-theme d-inline d-md-none fst-italic">KDS</strong>
+        <span class="text-light d-none d-md-inline">Kigali Driving School</span>
+        <strong class="text-light d-inline d-md-none fst-italic">KDS</strong>
       </a>
 
       <!-- Right-side Nav Items with proper spacing and accessibility -->
@@ -39,11 +39,11 @@
         </div>
 
         <!-- Theme Toggle with proper accessibility -->
-        <div class="theme-toggle">
+        <div class="theme-toggle text-light">
           <button
-            class="btn btn-link p-0 text-theme"
+            class="btn btn-link p-0 text-light"
             id="themeToggle"
-            aria-label="Toggle theme"
+            {% comment %} aria-label="Toggle theme" {% endcomment %}
             type="button"
           >
             <i id="themeIcon" class="bi bi-moon fs-5"></i>
@@ -62,12 +62,13 @@
           </a>
           {% else %}
           <a
-            class="btn px-1 px-md-3 py-0 py-md-2 card"
+            class="btn btn-outline-secondary rounded-pill text-danger px-1 px-md-3 py-0 py-md-2 "
             href="{% url 'subscription' %}"
             role="button"
             aria-label="Subscription"
             
           >
+          <i class="bi bi-bag"></i>
             Gura ifatabuguzi
           </a>
           {% endif %} {% if user.is_staff %}
@@ -85,7 +86,7 @@
           <!-- Theme Toggle with proper accessibility -->
           <div class="theme-toggle">
             <button
-              class="btn btn-link p-0 text-theme"
+              class="btn btn-link p-0 text-light"
               id="themeToggle"
               aria-label="Toggle theme"
               type="button"
@@ -98,7 +99,7 @@
           <!-- User Menu Dropdown with proper accessibility -->
           <div class="dropdown">
             <button
-              class="btn btn-link dropdown-toggle text-theme p-0"
+              class="btn btn-link dropdown-toggle text-light p-0"
               type="button"
               id="userMenu"
               data-bs-toggle="dropdown"
