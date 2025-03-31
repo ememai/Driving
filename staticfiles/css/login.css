@@ -11,7 +11,7 @@
 
 /* Center the login card vertically */
 .row {
-  min-height: 70vh;
+  min-height: 80vh;
   align-items: center;
 }
 
