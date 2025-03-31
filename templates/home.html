@@ -138,14 +138,15 @@
 {% include "flash_message.html" %}
 
 <div class="hero-container py-0">
-  
 
-  <div class="hero-content">
+
+ <!-- <div class="hero-content">
     <h3 class="display-5  fw-bold mb-0 text-center">
       Ikaze muri Kigali Driving School
     </h3>
     <!-- <p class="lead fs-3 mb-4">"Kwitoza cyane bikugira inzobere".</p> -->
-  </div>
+  </div
+  -->
   <div class="action-panel py-0">
     <div class="welcome-card py-3">
       {% if not user.is_authenticated %}
@@ -156,7 +157,7 @@
         <a class="btn btn-primary btn-auth" href="/login/">Konti isanzwe</a>
       </div>
       {% else %}
-      
+
       <div class="text-center">
         <h3 class="mb-4">Hitamo ubwoko bw'ibibazo</h3>
         <div class="exam-types">
