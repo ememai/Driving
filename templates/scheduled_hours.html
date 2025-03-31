@@ -1,6 +1,6 @@
 <style>
   .hours {
-    background-color: rgba(00, 255, 255, 0.5);
+    background-color: rgb(20 20 40);
     font-weight: 700;
     font-size: 1.5rem;
 
@@ -37,7 +37,7 @@
 
   /* Basic styling for hour links */
   .hour-link {
-    color: #0000ff;
+    color: #a6ff00;
   }
 
   .hour-link.disabled {
@@ -46,9 +46,14 @@
   }
 
   .note {
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    {% comment %} background-color:rgba(52, 58, 64, 1);
+    color: rgba(255, 255, 255, 1); {% endcomment %}
     background-color: rgba(var(--surface-rgb), 1);
     color: rgba(var(--text-rgb), 1);
-    /*border: 2px solid rgba(255, 255, 255, 0.2); */
     border-top: none;
   }
 </style>
@@ -72,8 +77,8 @@
         {% endif %}
       </div>
       {% empty %}
-      <div class="exam-hour">
-         <span>{{ end_of_day }}Nta kizamini cyateguwe</span>
+      <div class="exam-hour text-center">
+         <small class="">Nta kizamini cyateguwe uyu umunsi</small>
       </div>
       {% endfor %}
     </div>

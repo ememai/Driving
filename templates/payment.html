@@ -14,11 +14,15 @@
   hr {
     border: 2px solid;
   }
+
+  .hours{
+    display:none;
+  }
 </style>
 {% endblock %}
 {% block content %}
 <div class="container py-4">
-  <h1 class="text-center mb-4">Ifatabuguzi</h1>
+  {% comment %} <h1 class="text-center mb-4">Ifatabuguzi</h1> {% endcomment %}
 
   <div class="text-center">
     {% if user.is_subscribed %}
@@ -28,8 +32,8 @@
     </p>
     {% elif user.has_ended_subscription %}
     <p class="fw-bold text-danger">
-      Ifatabuguzi ryawe ryararangiye ku itariki ya
-      <strong>{{ subscription.expires_at }}</strong>.
+      Ifatabuguzi ryawe ryararangiye kuri itariki ya
+      <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong>
     </p>
     {% else %}
     <p class="fw-bold text-warning">Ntafatabuguzi ufite.</p>
@@ -66,7 +70,7 @@
         </button>
         <h4 class="underline">Niba ukoresha nimero:</h4>
         <strong>0785287885</strong><hr class="text-theme">
-        <h2 class="">Hose amazina ni: "Mwami Modeste IHIRWE"</h2>
+        <h2 class="">Hose amazina ni: "Mwami Modeste"</h2>
       </div>
     </form>
   </div>
