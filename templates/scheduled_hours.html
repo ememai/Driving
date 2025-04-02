@@ -115,23 +115,23 @@
                  .filter(id => id);
   }
   
-  function logNextRunTime(nextRunDate) {
+  {% comment %} function logNextRunTime(nextRunDate) {
       console.log('Next check at:', nextRunDate.toLocaleTimeString());
-  }
+  } {% endcomment %}
   
   function runChecks() {
       if (isChecking) {
-          console.log('Skipping check - previous request still pending');
+          
           return;
       }
       
       const examIds = getExamIds();
       if (examIds.length === 0) {
-          console.warn("No exams found on the page.");
+          console.warn("No exams Scheduled at moment.");
           return;
       }
       
-      console.log('Running checks at:', new Date().toLocaleTimeString());
+     
       isChecking = true;
       
       // Use Promise.all to wait for all checks to complete
@@ -180,48 +180,9 @@
   
   // Start the process
   document.addEventListener("DOMContentLoaded", function() {
-      console.log('Initial check at:', new Date().toLocaleTimeString());
+      //console.log('Initial check at:', new Date().toLocaleTimeString());
       runChecks();  // Immediate first run
       scheduleChecks();  // Scheduled subsequent runs
   });
   </script>
-
-{% comment %} 
-<script>
-  function checkExamStatus(examId) {
-      if (!examId) {
-          console.error("Exam ID is undefined!");
-          return;
-      }
-  
-      fetch(`/check-exam-status/${examId}/`)  // Django view
-      .then(response => response.json())
-      .then(data => {
-          let examDiv = document.getElementById("exam-hour-" + examId);
-          if (examDiv && data.is_published) {
-              examDiv.innerHTML = `<a href="${data.exam_url}" class="hour-link">${data.exam_time}</a>`;
-          }
-      })
-      .catch(error => console.error("Error fetching exam status:", error));
-  }
-  
-  // Get all exam IDs from the page and check them every second
-  function startExamChecking() {
-      let examIds = Array.from(document.querySelectorAll(".exam-hour"))
-                         .map(div => div.id.replace("exam-hour-", ""))
-                         .filter(id => id);  // Remove empty values
-  
-      if (examIds.length === 0) {
-          console.warn("No exams found on the page.");
-          return;
-      }
-  
-      setInterval(() => {
-          examIds.forEach(examId => checkExamStatus(examId));
-      }, 1000);
-  }
-  
-  // Start checking when the page loads
-  document.addEventListener("DOMContentLoaded", startExamChecking);
-</script> {% endcomment %}
   
