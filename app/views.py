@@ -122,7 +122,10 @@ def check_exam_status(request, exam_id):
 
 @login_required(login_url='login')
 def exams_by_type(request, exam_type):
-    returned_exams = Exam.objects.filter(exam_type__name=exam_type)
+    returned_exams = Exam.objects.filter(
+        Q(exam_type__name=exam_type) &
+        Q(for_scheduling=False)
+        )
     counted_exams = returned_exams.count()
     context = {
         'exam_type' : exam_type,

@@ -234,7 +234,6 @@ class RoadSign(models.Model):
     upload_to='road_signs/',
     validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])]
     )
-    name = models.CharField(max_length=100, unique=True) 
     definition = models.CharField(max_length=100, unique=True)
     type = models.ForeignKey(SignType, on_delete=models.SET_NULL, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -365,17 +364,27 @@ class ExamManager(models.Manager):
         exam.questions.set(questions)
         return exam
 
-class ExamTypes(models.Model):
+
+class ExamType(models.Model):
     name = models.CharField(max_length=500, default='Ibivanze')
-    
+
     def __str__(self):
         return self.name
 
 class Exam(models.Model):
-    
-    exam_type = models.ForeignKey(ExamTypes, on_delete=models.SET_DEFAULT, default=1)
+
+    TYPE_CHOICES = [
+        ('Ibimenyetso', 'Ibimenyetso'),
+        ('Ibyapa', 'Ibyapa'),
+        ('Bivanze', 'Bivanze'),
+        ('Ibindi', 'Ibindi'),
+    ]
+
+    title = models.CharField(max_length=500, choices=TYPE_CHOICES, blank=True)
+    exam_type = models.ForeignKey(ExamType, on_delete=models.SET_NULL, null=True, blank=True )
     questions = models.ManyToManyField(Question, related_name='exams')
     duration = models.PositiveIntegerField(default=20,help_text="Duration of the exam in minutes")
+    for_scheduling = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
