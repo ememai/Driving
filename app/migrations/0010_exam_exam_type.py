@@ -21,9 +21,4 @@ class Migration(migrations.Migration):
                 to="app.examtype",
             ),
         ),
-
-        migrations.RemoveField(
-            model_name='exam',
-            name='title',
-        ),
     ]
