@@ -31,7 +31,7 @@ class RoadSignAdmin(admin.ModelAdmin):
         js = ('admin/js/roadsign_admin.js',)
         css = {'all': ('admin/css/roadsign_admin.css',)}
 
-    list_display = ('name','definition', 'image_preview', 'type', 'uploaded_at', 'date_updated')
+    list_display = ('definition', 'image_preview', 'type', 'uploaded_at', 'date_updated')
     search_fields = ('definition', 'type__name')
     list_filter = ('type', 'is_active')
     readonly_fields = ('image_preview', 'uploaded_at', 'date_updated')
@@ -146,10 +146,10 @@ class QuestionAdmin(admin.ModelAdmin):
         return "-"
     correct_choice_display.short_description = 'Correct Answer'
 
-@admin.register(ExamTypes)
+@admin.register(ExamType)
 class Admin(admin.ModelAdmin):
     list_display = ['name',]
-    
+
 
 
 @admin.register(Exam)

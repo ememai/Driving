@@ -29,7 +29,7 @@ class UserProfileManager(BaseUserManager):
 
         email = self.normalize_email(email) if email else None
         phone_number = phone_number if phone_number else None  # Ensure None, not ""
-    
+
         user = self.model(email=email, phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -42,16 +42,16 @@ class UserProfileManager(BaseUserManager):
 
 
 class UserProfile(AbstractUser):
-    
+
     GENDER_CHOICES = [
         ('male','Gabo'),
         ('female', 'Gore')
     ]
-    
+
     username = None  # Remove default username field
     name = models.CharField(max_length=25, unique=True)
-    email = models.EmailField(unique=True, blank=True, null=True)  
-    phone_number = models.CharField(max_length=15,default=None, unique=True, null=True, blank=True)     
+    email = models.EmailField(unique=True, blank=True, null=True)
+    phone_number = models.CharField(max_length=15,default=None, unique=True, null=True, blank=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
     profile_picture = models.ImageField(upload_to='images/', default='images/avatar.png',null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -113,14 +113,14 @@ class UserProfile(AbstractUser):
     def is_subscribed(self):
         if not hasattr(self, 'subscription'):
             return False
-        
+
         self.subscription_end_date = self.subscription.expires_at
         return (
-            self.subscription.expires_at and 
+            self.subscription.expires_at and
             self.subscription.expires_at >= timezone.now().date() and
             self.subscription.active_subscription
         )
-    
+
     @property
     def has_ended_subscription(self):
         if not hasattr(self, 'subscription'):
@@ -161,10 +161,10 @@ class Plan(models.Model):
 
     def __str__(self):
         return self.plan
-    
 
 
-class Subscription(models.Model):    
+
+class Subscription(models.Model):
 
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True)
@@ -180,7 +180,7 @@ class Subscription(models.Model):
         #  """Activate the subscription for the given duration."""
         self.started_at = timezone.now()  # Fixed from 'start_date'
         # self.expires_at = timezone.now().date() + timezone.timedelta(days=self.duration_days)
-              
+
         if self.expires_at >= timezone.now().date():
             return True
         else:
@@ -189,11 +189,11 @@ class Subscription(models.Model):
 
     def deactivate(self):
         #  """Deactivate the subscription."""
-        if self.expires_at < timezone.now():            
+        if self.expires_at < timezone.now():
             self.active_subscription = False
             self.save()
 
-    
+
     def __str__(self):
         return f"{self.user.name} - {'Active' if self.active_subscription else 'Inactive'}"
 
@@ -234,19 +234,18 @@ class RoadSign(models.Model):
     upload_to='road_signs/',
     validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])]
     )
-    name = models.CharField(max_length=100, unique=True) 
     definition = models.CharField(max_length=100, unique=True)
     type = models.ForeignKey(SignType, on_delete=models.SET_NULL, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    
+
 
     def image_preview(self):
         """Generates HTML for image preview"""
         if self.sign_image:
             return format_html(
-                f'<img src="{self.sign_image.url}" style="max-height: 100px; max-width: 150px;" />'               
+                f'<img src="{self.sign_image.url}" style="max-height: 100px; max-width: 150px;" />'
             )
         return "No Image"
 
@@ -257,7 +256,7 @@ class RoadSign(models.Model):
     def image_url(self):
         """Returns full URL or None"""
         return self.sign_image.url if self.sign_image else None
-    
+
 
 class QuestionManager(models.Manager):
     def get_questions_with_index(self):
@@ -266,19 +265,19 @@ class QuestionManager(models.Manager):
 
 class Question(models.Model):
     QUESTION_CHOICES = [(i, f"Choice {i}") for i in range(1, 5)]
-    
+
     question_text = models.TextField(verbose_name="Question Text")
     question_sign = models.ForeignKey(
         'RoadSign', related_name='questions', on_delete=models.SET_NULL, null=True, blank=True,
         verbose_name="Question Image"
     )
-    
+
     # Choices as separate fields
     choice1_text = models.CharField(max_length=700, blank=True, verbose_name="Choice 1 Text")
     choice2_text = models.CharField(max_length=500, blank=True, verbose_name="Choice 2 Text")
     choice3_text = models.CharField(max_length=255, blank=True, verbose_name="Choice 3 Text")
     choice4_text = models.CharField(max_length=255, blank=True, verbose_name="Choice 4 Text")
-    
+
     # Choices as related RoadSigns
     choice1_sign = models.ForeignKey(
         'RoadSign', blank=True, null=True, verbose_name="Choice 1 Sign",
@@ -296,13 +295,13 @@ class Question(models.Model):
         'RoadSign', blank=True, null=True, verbose_name="Choice 4 Sign",
         related_name="choice4_questions", on_delete=models.SET_NULL
     )
-    
+
     correct_choice = models.PositiveSmallIntegerField(
         choices=QUESTION_CHOICES, verbose_name="Correct Choice Number"
     )
     order = models.PositiveIntegerField(default=0, verbose_name="Display Order")
     date_added = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ['order']
         verbose_name = "Question"
@@ -313,7 +312,7 @@ class Question(models.Model):
         for i in range(1, 5):
             text = getattr(self, f'choice{i}_text')
             sign = getattr(self, f'choice{i}_sign')
-            
+
             if text:
                 choices.append({
                     'id': i,  # Add the choice ID
@@ -340,11 +339,11 @@ class ExamManager(models.Manager):
         Creates a new exam with random questions of the specified type
         """
         from django.db.models import Q
-        
+
         # Validate exam type
         if exam_type not in dict(Exam.TYPE_CHOICES):
             raise ValueError(f"Invalid exam type: {exam_type}")
-        
+
         # Get random questions
         questions = Question.objects.filter(
             Q(question_sign__type__name=exam_type) |  # Changed to type__name
@@ -353,10 +352,10 @@ class ExamManager(models.Manager):
             Q(choice3_sign__type__name=exam_type) |
             Q(choice4_sign__type__name=exam_type)
         ).distinct().order_by('?')[:num_questions]  # Fixed typo in distinct()
-        
+
         if questions.count() < num_questions:
             raise ValueError(f"Not enough questions available for {exam_type}. Only {questions.count()} found.")
-        
+
         # Create the exam - let Django handle the ID
         exam = self.create(
            exam_type =exam_type,
@@ -365,15 +364,24 @@ class ExamManager(models.Manager):
         exam.questions.set(questions)
         return exam
 
-class ExamTypes(models.Model):
+class ExamType(models.Model):
     name = models.CharField(max_length=500, default='Ibivanze')
-    
+
     def __str__(self):
         return self.name
 
 class Exam(models.Model):
-    
-    exam_type = models.ForeignKey(ExamTypes, on_delete=models.SET_DEFAULT, default=1)
+
+    TYPE_CHOICES = [
+        ('Ibimenyetso', 'Ibimenyetso'),
+        ('Ibyapa', 'Ibyapa'),
+        ('Bivanze', 'Bivanze'),
+        ('Ibindi', 'Ibindi'),
+    ]
+
+    title = models.CharField(max_length=500, choices=TYPE_CHOICES, blank=True)
+    exam_type = models.ForeignKey(ExamType, on_delete=models.SET_NULL, null=True, blank=True )
+
     questions = models.ManyToManyField(Question, related_name='exams')
     duration = models.PositiveIntegerField(default=20,help_text="Duration of the exam in minutes")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -382,8 +390,8 @@ class Exam(models.Model):
     is_active = models.BooleanField(default=False)
     # max_attempts = models.PositiveIntegerField(default=1)
     objects = ExamManager()
-    
-        
+
+
     @property
     def total_questions(self):
         return self.questions.count()
@@ -404,8 +412,8 @@ class UserExam(models.Model):
 
     class Meta:
         unique_together = ('user', 'exam')
-    
-    
+
+
     def save(self, *args, **kwargs):
         if not self.user.is_subscribed:
             raise ValidationError(
@@ -440,27 +448,27 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.name} ({self.email})"
-    
+
 
 class ScheduledExam(models.Model):
     exam = models.ForeignKey("Exam", on_delete=models.CASCADE)  # Ensure CASCADE to avoid null exams
     scheduled_datetime = models.DateTimeField(help_text="Date & time when the exam should be published")
     updated_datetime = models.DateTimeField(auto_now=True, help_text="Date & time when the exam should be published")
 
-    
+
     @property
-    def is_published(self):        
+    def is_published(self):
         if not self.exam:
             return False
-        
+
         return self.scheduled_datetime <= timezone.now()
-             
-            
+
+
     def save(self, *args, **kwargs):
         """Auto-publish if scheduled time has passed (Kigali time)"""
         now = timezone.localtime(timezone.now())
         scheduled_time = timezone.localtime(self.scheduled_datetime)
-        
+
         if scheduled_time <= now:
             self.is_published
         super().save(*args, **kwargs)
@@ -473,7 +481,7 @@ class ScheduledExam(models.Model):
         """Send an email notification to all users when the exam goes live"""
         subject = f"New Exam is Live: {timezone.localtime(timezone.now())}"
         message = f"The exam of type '{self.exam.exam_type}' is now live! You can take it now."
-        
+
         # Here, you would fetch the users who should receive the notification
         # Assuming you have a way to fetch them from the `UserProfile` model:
         users = UserProfile.objects.all()  # You can filter by specific users if needed
@@ -486,7 +494,7 @@ class ScheduledExam(models.Model):
                     [user.email],
                     fail_silently=False,
                 )
-            
+
             print(f"Exam '{self.exam.exam_type}' has been published and users have been notified! {subject}")
 
     def __str__(self):
