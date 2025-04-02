@@ -149,7 +149,7 @@ class QuestionAdmin(admin.ModelAdmin):
 @admin.register(ExamType)
 class Admin(admin.ModelAdmin):
     list_display = ['name',]
-    
+
 
 
 @admin.register(Exam)
