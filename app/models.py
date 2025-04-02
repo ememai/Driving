@@ -145,7 +145,6 @@ class UserProfile(AbstractUser):
         return self.email if self.email else self.phone_number
 
 
-
 #instances should be first created
 class Plan(models.Model):
     PLAN_CHOICES = [
