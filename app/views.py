@@ -32,7 +32,7 @@ from django.urls import reverse
 
 # Home View
 def home(request, name='ahabanza'):
-    exams = Exam.objects.all()
+    exams = Exam.objects.filter(exam_type__isnull=False)
     context = {
         'exams': exams,
     }
@@ -122,6 +122,7 @@ def check_exam_status(request, exam_id):
 
 @login_required(login_url='login')
 def exams_by_type(request, exam_type):
+    
     returned_exams = Exam.objects.filter(
         Q(exam_type__name=exam_type) &
         Q(for_scheduling=False)
@@ -133,6 +134,8 @@ def exams_by_type(request, exam_type):
         'counted_exams' : counted_exams,
     }    
     return render(request, "exams.html", context )
+
+
 # ---------------------
 # Exam / Question Views
 # ---------------------

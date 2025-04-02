@@ -370,14 +370,6 @@ class ExamType(models.Model):
 
 class Exam(models.Model):
 
-    TYPE_CHOICES = [
-        ('Ibimenyetso', 'Ibimenyetso'),
-        ('Ibyapa', 'Ibyapa'),
-        ('Bivanze', 'Bivanze'),
-        ('Ibindi', 'Ibindi'),
-    ]
-
-    title = models.CharField(max_length=500, choices=TYPE_CHOICES, blank=True)
     exam_type = models.ForeignKey(ExamType, on_delete=models.SET_NULL, null=True, blank=True )
     questions = models.ManyToManyField(Question, related_name='exams')
     duration = models.PositiveIntegerField(default=20,help_text="Duration of the exam in minutes")
@@ -398,7 +390,7 @@ class Exam(models.Model):
     #     return self.max_attempts - attempts
 
     def __str__(self):
-        return self.exam_type.name
+        return self.exam_type.name if self.exam_type else 'Ibivanze'
 
 
 class UserExam(models.Model):

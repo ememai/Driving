@@ -6,8 +6,8 @@ from .decorators import subscription_required
 urlpatterns = [
 
 
-    path("", views.home, name='home'),
     path("ahabanza/", views.home, name='ahabanza'),
+    path("", views.home, name='home'),
     path("ibibazo-byo-mubwoko-/<str:exam_type>/", exams_by_type, name='exams'),
     path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
 
