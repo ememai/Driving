@@ -55,7 +55,7 @@ class UserProfile(AbstractUser):
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
     profile_picture = models.ImageField(upload_to='images/', default='images/avatar.png',null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
-    
+
     otp_code = models.CharField(max_length=6, blank=True, null=True)
     otp_verified = models.BooleanField(default=False)
 
