@@ -56,7 +56,7 @@ class UserProfile(AbstractUser):
     profile_picture = models.ImageField(upload_to='images/', default='images/avatar.png',null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     # is_subscribed = models.BooleanField(default=False)
-    subscription_end_date = models.DateField(null=True, blank=True)
+    #subscription_end_date = models.DateField(null=True, blank=True)
     otp_code = models.CharField(max_length=6, blank=True, null=True)
     otp_verified = models.BooleanField(default=False)
 
@@ -113,8 +113,6 @@ class UserProfile(AbstractUser):
     def is_subscribed(self):
         if not hasattr(self, 'subscription'):
             return False
-
-        self.subscription_end_date = self.subscription.expires_at
         return (
             self.subscription.expires_at and
             self.subscription.expires_at >= timezone.now().date() and
