@@ -12,7 +12,7 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'phone_number', 'otp_verified')
+    list_display = ('name', 'email', 'phone_number', 'otp_verified', 'is_subscribed')
     search_fields = ('name', 'email', 'phone_number')
     list_filter = ('otp_verified',)
 
@@ -31,7 +31,7 @@ class RoadSignAdmin(admin.ModelAdmin):
         js = ('admin/js/roadsign_admin.js',)
         css = {'all': ('admin/css/roadsign_admin.css',)}
 
-    list_display = ('definition', 'image_preview', 'type', 'uploaded_at', 'date_updated')
+    list_display = ('name','definition', 'image_preview', 'type', 'uploaded_at', 'date_updated')
     search_fields = ('definition', 'type__name')
     list_filter = ('type', 'is_active')
     readonly_fields = ('image_preview', 'uploaded_at', 'date_updated')
@@ -40,7 +40,7 @@ class RoadSignAdmin(admin.ModelAdmin):
         if obj:  # Change form
             fieldsets = (
                 ('Image Management', {
-                    'fields': ('image_preview', 'image_choice', 'existing_image', 'sign_image')
+                    'fields': ('name','image_preview', 'image_choice', 'existing_image', 'sign_image')
                 }),
                 ('Dates', {
                     'classes': ('collapse',),
@@ -53,7 +53,7 @@ class RoadSignAdmin(admin.ModelAdmin):
         else:  # Add form
             fieldsets = (
                 ('Image Management', {
-                    'fields': ('image_choice', 'existing_image', 'sign_image')
+                    'fields': ('image_choice', 'existing_image', 'sign_image', 'name')
                 }),
                 (None, {
                     'fields': ('definition', 'type', 'is_active')
@@ -146,12 +146,17 @@ class QuestionAdmin(admin.ModelAdmin):
         return "-"
     correct_choice_display.short_description = 'Correct Answer'
 
+@admin.register(ExamTypes)
+class Admin(admin.ModelAdmin):
+    list_display = ['name',]
+    
+
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
     form = ExamForm
-    list_display = ('title', 'question_count', 'created_at', 'updated_at')
-    search_fields = ('title',)
+    list_display = ('exam_type', 'question_count', 'created_at', 'updated_at')
+    search_fields = ('exam_type',)
     filter_horizontal = ('questions',)
 
     def question_count(self, obj):
@@ -161,7 +166,7 @@ class ExamAdmin(admin.ModelAdmin):
 @admin.register(UserExam)
 class UserExamAdmin(admin.ModelAdmin):
     list_display = ('user', 'exam', 'score', 'completed_at')
-    search_fields = ('user__email', 'exam__title')
+    search_fields = ('user__email', 'exam__exam_type')
     list_filter = ('completed_at',)
 
 
@@ -197,8 +202,7 @@ def activate_subscriptions(modeladmin, request, queryset):
 
 @admin.register(ScheduledExam)
 class ScheduledExamAdmin(admin.ModelAdmin):
-    list_display = ('exam', 'scheduled_datetime', 'is_published')
-    list_filter = ('is_published',)
+    list_display = ('exam', 'scheduled_datetime','updated_datetime', 'is_published')
     ordering = ('scheduled_datetime',)
     actions = ['publish_exam']
 

@@ -28,7 +28,7 @@
     {% if user.is_subscribed %}
     <p class="fw-bold text-success">
       Ifatabuguzi ryawe riracyariho kugeza ku itariki ya
-      <strong>{{ subscription.expires_at }}</strong>.
+      <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong>.
     </p>
     {% elif user.has_ended_subscription %}
     <p class="fw-bold text-danger">

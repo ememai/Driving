@@ -161,25 +161,29 @@ class Subscription(models.Model):
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True)
     price = models.IntegerField(default=500)
-    duration_days = models.IntegerField(default=1, null=True)
+    duration_days = models.IntegerField(default=1, null=False)
     phone_number = models.CharField(max_length=13, default="25078")
     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
-
-    active_subscription = models.BooleanField(default=False)
     started_at = models.DateField(auto_now_add=True)
     expires_at = models.DateField(null=True, blank=True)
 
-    def activate(self, duration_days):
+    @property
+    def active_subscription(self):
         #  """Activate the subscription for the given duration."""
         self.started_at = timezone.now()  # Fixed from 'start_date'
-        self.expires_at = timezone.now() + timezone.timedelta(days=duration_days)
-        self.active_subscription = True  # Changed from is_active
-        self.save()
+        self.expires_at = timezone.now().date() + timezone.timedelta(days=self.duration_days)
+              
+        if self.expires_at >= timezone.now().date():
+            return True
+        else:
+            return False
+
 
     def deactivate(self):
         #  """Deactivate the subscription."""
-        self.active_subscription = False
-        self.save()
+        if self.expires_at < timezone.now():            
+            self.active_subscription = False
+            self.save()
 
     
     def __str__(self):
@@ -222,6 +226,7 @@ class RoadSign(models.Model):
     upload_to='road_signs/',
     validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])]
     )
+    name = models.CharField(max_length=100, unique=True) 
     definition = models.CharField(max_length=100, unique=True)
     type = models.ForeignKey(SignType, on_delete=models.SET_NULL, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -246,11 +251,9 @@ class RoadSign(models.Model):
         return self.sign_image.url if self.sign_image else None
     
 
-
 class QuestionManager(models.Manager):
     def get_questions_with_index(self):
         return [(index + 1, question) for index, question in enumerate(self.all())]
-
 
 
 class Question(models.Model):
@@ -323,14 +326,46 @@ class Question(models.Model):
         return f"Q{self.order}: {self.question_text[:50]}..."
 
 
+class ExamManager(models.Manager):
+    def create_random_exam(self, exam_type, num_questions=2):
+        """
+        Creates a new exam with random questions of the specified type
+        """
+        from django.db.models import Q
+        
+        # Validate exam type
+        if exam_type not in dict(Exam.TYPE_CHOICES):
+            raise ValueError(f"Invalid exam type: {exam_type}")
+        
+        # Get random questions
+        questions = Question.objects.filter(
+            Q(question_sign__type__name=exam_type) |  # Changed to type__name
+            Q(choice1_sign__type__name=exam_type) |
+            Q(choice2_sign__type__name=exam_type) |
+            Q(choice3_sign__type__name=exam_type) |
+            Q(choice4_sign__type__name=exam_type)
+        ).distinct().order_by('?')[:num_questions]  # Fixed typo in distinct()
+        
+        if questions.count() < num_questions:
+            raise ValueError(f"Not enough questions available for {exam_type}. Only {questions.count()} found.")
+        
+        # Create the exam - let Django handle the ID
+        exam = self.create(
+           exam_type =exam_type,
+            duration=20
+        )
+        exam.questions.set(questions)
+        return exam
+
+class ExamTypes(models.Model):
+    name = models.CharField(max_length=500, default='Ibivanze')
+    
+    def __str__(self):
+        return self.name
+
 class Exam(models.Model):
-    TYPE_CHOICES = [
-        ('Ibimenyetso', 'Ibimenyetso'),
-        ('Ibyapa', 'Ibyapa'),
-        ('Bivanze', 'Bivanze'),
-        ('Ibindi', 'Ibindi'),
-    ]
-    title = models.CharField(max_length=500, choices=TYPE_CHOICES, blank=True)
+    
+    exam_type = models.ForeignKey(ExamTypes, on_delete=models.SET_DEFAULT, default=1)
     questions = models.ManyToManyField(Question, related_name='exams')
     duration = models.PositiveIntegerField(default=20,help_text="Duration of the exam in minutes")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -338,6 +373,9 @@ class Exam(models.Model):
 
     is_active = models.BooleanField(default=False)
     # max_attempts = models.PositiveIntegerField(default=1)
+    objects = ExamManager()
+    
+        
     @property
     def total_questions(self):
         return self.questions.count()
@@ -346,7 +384,7 @@ class Exam(models.Model):
     #     return self.max_attempts - attempts
 
     def __str__(self):
-        return self.title
+        return self.exam_type.name
 
 
 class UserExam(models.Model):
@@ -372,7 +410,7 @@ class UserExam(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.user.username} - {self.exam.title}"
+        return f"{self.user.username} - {self.exam.exam_type}"
 
 
 class UserExamAnswer(models.Model):
@@ -399,21 +437,16 @@ class ContactMessage(models.Model):
 class ScheduledExam(models.Model):
     exam = models.ForeignKey("Exam", on_delete=models.CASCADE)  # Ensure CASCADE to avoid null exams
     scheduled_datetime = models.DateTimeField(help_text="Date & time when the exam should be published")
-    is_published = models.BooleanField(default=False)
+    updated_datetime = models.DateTimeField(auto_now=True, help_text="Date & time when the exam should be published")
 
-
-    def publish(self):
-        """Marks the exam as published"""
-        if not self.is_published and self.scheduled_datetime <= timezone.now():
-            self.is_published = True
-            self.exam.is_active = True  # Activate the exam
-            self.exam.save()
-            self.save()
-
-            # Send email to all users (or you can send it to specific ones)
-            self.send_notification()
-            
-            print(f"Exam '{self.exam.title}' has been published!")
+    
+    @property
+    def is_published(self):        
+        if not self.exam:
+            return False
+        
+        return self.scheduled_datetime <= timezone.now()
+             
             
     def save(self, *args, **kwargs):
         """Auto-publish if scheduled time has passed (Kigali time)"""
@@ -421,17 +454,17 @@ class ScheduledExam(models.Model):
         scheduled_time = timezone.localtime(self.scheduled_datetime)
         
         if scheduled_time <= now:
-            self.is_published = True
+            self.is_published
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Scheduled: {self.exam.title} at {self.scheduled_datetime}"
+        return f"Scheduled: {self.exam.exam_type} at {self.scheduled_datetime}"
 
             # Notify all subscribed users
     def send_notification(self):
         """Send an email notification to all users when the exam goes live"""
-        subject = f"New Exam is Live: {self.exam.title}"
-        message = f"The exam titled '{self.exam.title}' is now live! You can take it now."
+        subject = f"New Exam is Live: {timezone.localtime(timezone.now())}"
+        message = f"The exam of type '{self.exam.exam_type}' is now live! You can take it now."
         
         # Here, you would fetch the users who should receive the notification
         # Assuming you have a way to fetch them from the `UserProfile` model:
@@ -446,10 +479,10 @@ class ScheduledExam(models.Model):
                     fail_silently=False,
                 )
             
-            print(f"Exam '{self.exam.title}' has been published and users have been notified!")
+            print(f"Exam '{self.exam.exam_type}' has been published and users have been notified! {subject}")
 
     def __str__(self):
-        return f"Scheduled: {self.exam.title} at {self.scheduled_datetime}"
+        return f"Scheduled: {self.exam.exam_type} at {self.scheduled_datetime}"
 
 class UserActivity(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)

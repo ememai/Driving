@@ -183,7 +183,7 @@ class RoadSignAdminForm(forms.ModelForm):
     
     class Meta:
         model = RoadSign
-        fields = '__all__'
+        fields = '__all__' 
         widgets = {
             'sign_image': forms.ClearableFileInput(attrs={'class': 'upload-image-input'}),
         }

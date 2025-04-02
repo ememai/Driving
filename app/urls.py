@@ -8,17 +8,18 @@ urlpatterns = [
 
     path("", views.home, name='home'),
     path("ahabanza/", views.home, name='ahabanza'),
-    path("ibibazo-byo-mubwoko-/<str:exam_title>/", exams_by_title, name='exams'),
+    path("ibibazo-byo-mubwoko-/<str:exam_type>/", exams_by_type, name='exams'),
     path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
 
+     path('create/', views.create_exam, name='create_exam'),
     path('exam/<int:exam_id>/<int:question_number>/', subscription_required(views.exam), name='exam'),
     path('exam-results/<int:user_exam_id>/', subscription_required(views.exam_results), name='exam_results'),
 
     path('exam/<int:exam_id>/retake/', views.retake_exam, name='retake_exam'),
 
 
-
-     path('exam-timer/<int:exam_id>/', subscription_required(views.exam_timer), name='exam_timer'),
+    path('check-exam-status/<int:exam_id>/', check_exam_status, name='check_exam_status'),
+    path('exam-timer/<int:exam_id>/', subscription_required(views.exam_timer), name='exam_timer'),
     path('exam/schedule/', subscription_required(views.exam_schedule_view), name='exam_schedule'),
 
     # path('scheduled_hours/', views.scheduled_hours, name='scheduled_hours'),

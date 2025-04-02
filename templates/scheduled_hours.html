@@ -62,9 +62,9 @@
     <div class="note text-center mb-0 pt-lg-1">
       <h6 class="text-center mb-0">Kanda ku isaha ukore ikizamini</h6>
     </div>
-    <div class="scrollable-times">
+    <div class="scrollable-times" id="js-update">
       {% for exam in exams_scheduled %}
-      <div class="exam-hour">
+      <div class="exam-hour" id="exam-hour-{{ exam.id }}">
         {% if exam.is_published %}
         <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link">
           {{ exam.scheduled_datetime|time:"H:00" }}
@@ -77,9 +77,151 @@
       </div>
       {% empty %}
       <div class="exam-hour text-center">
-         <small class="text-warning">Nta kizamini cyateguwe uyu umunsi</small>
+        <small class="text-warning">Nta kizamini cyateguwe uyu umunsi</small>
       </div>
       {% endfor %}
     </div>
   </div>
 </div>
+
+<script>
+  // Global flag to track active checks
+  let isChecking = false;
+  
+  function checkExamStatus(examId) {
+      if (!examId) {
+          console.error("Exam ID is undefined!");
+          return Promise.resolve(); // Return resolved promise to keep the chain
+      }
+  
+      return fetch(`/check-exam-status/${examId}/`)
+          .then(response => response.json())
+          .then(data => {
+              let examDiv = document.getElementById("exam-hour-" + examId);
+              if (examDiv && data.is_published) {
+                  examDiv.innerHTML = `<a href="${data.exam_url}" class="hour-link">${data.exam_time}</a>`;
+              }
+              return data; // Pass data through for potential logging
+          })
+          .catch(error => {
+              console.error("Error fetching exam status:", error);
+              throw error; // Re-throw to allow error handling in runChecks
+          });
+  }
+  
+  function getExamIds() {
+      return Array.from(document.querySelectorAll(".exam-hour"))
+                 .map(div => div.id.replace("exam-hour-", ""))
+                 .filter(id => id);
+  }
+  
+  function logNextRunTime(nextRunDate) {
+      console.log('Next check at:', nextRunDate.toLocaleTimeString());
+  }
+  
+  function runChecks() {
+      if (isChecking) {
+          console.log('Skipping check - previous request still pending');
+          return;
+      }
+      
+      const examIds = getExamIds();
+      if (examIds.length === 0) {
+          console.warn("No exams found on the page.");
+          return;
+      }
+      
+      console.log('Running checks at:', new Date().toLocaleTimeString());
+      isChecking = true;
+      
+      // Use Promise.all to wait for all checks to complete
+      Promise.all(examIds.map(checkExamStatus))
+          .then(() => {
+              console.log('All checks completed');
+          })
+          .catch(() => {
+              console.log('Some checks failed');
+          })
+          .finally(() => {
+              isChecking = false; // Reset flag
+          });
+  }
+  
+  function scheduleChecks() {
+      const now = new Date();
+      const currentMinutes = now.getMinutes();
+      const currentSeconds = now.getSeconds();
+      const currentMs = now.getMilliseconds();
+  
+      // Calculate ms until next 15-minute interval
+      const minutesToNextInterval = 15 - (currentMinutes % 15);
+      const msUntilNextInterval = 
+          (minutesToNextInterval * 60 * 1000) -  // minutes to ms
+          (currentSeconds * 1000) -              // seconds to ms
+          currentMs;                            // remaining ms
+  
+      // Calculate exact time of next run
+      const nextRunDate = new Date(now.getTime() + msUntilNextInterval);
+      logNextRunTime(nextRunDate);
+  
+      // Initial run at next interval
+      setTimeout(() => {
+          runChecks();
+          
+          // Set up 15-minute interval
+          setInterval(() => {
+              runChecks();
+              const nextRun = new Date(Date.now() + 10 * 60 * 1000);
+              logNextRunTime(nextRun);
+          }, 15 * 60 * 1000);
+          
+      }, msUntilNextInterval);
+  }
+  
+  // Start the process
+  document.addEventListener("DOMContentLoaded", function() {
+      console.log('Initial check at:', new Date().toLocaleTimeString());
+      runChecks();  // Immediate first run
+      scheduleChecks();  // Scheduled subsequent runs
+  });
+  </script>
+
+{% comment %} 
+<script>
+  function checkExamStatus(examId) {
+      if (!examId) {
+          console.error("Exam ID is undefined!");
+          return;
+      }
+  
+      fetch(`/check-exam-status/${examId}/`)  // Django view
+      .then(response => response.json())
+      .then(data => {
+          let examDiv = document.getElementById("exam-hour-" + examId);
+          if (examDiv && data.is_published) {
+              examDiv.innerHTML = `<a href="${data.exam_url}" class="hour-link">${data.exam_time}</a>`;
+          }
+      })
+      .catch(error => console.error("Error fetching exam status:", error));
+  }
+  
+  // Get all exam IDs from the page and check them every second
+  function startExamChecking() {
+      let examIds = Array.from(document.querySelectorAll(".exam-hour"))
+                         .map(div => div.id.replace("exam-hour-", ""))
+                         .filter(id => id);  // Remove empty values
+  
+      if (examIds.length === 0) {
+          console.warn("No exams found on the page.");
+          return;
+      }
+  
+      setInterval(() => {
+          examIds.forEach(examId => checkExamStatus(examId));
+      }, 1000);
+  }
+  
+  // Start checking when the page loads
+  document.addEventListener("DOMContentLoaded", startExamChecking);
+</script> {% endcomment %}
+  

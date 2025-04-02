@@ -196,10 +196,10 @@
         <div class="exam-types">
           {% for exam in exams %}
           <div class="exam-card">
-            <h4 class="mb-2">{{ exam.title }}</h4>
+            <h4 class="mb-2">{{ exam.exam_type.name }}</h4>
             <a
-              href="{% url 'exams' exam.title %}"
-              class="btn btn-outline-primary"
+              href="{% url 'exams' exam.exam_type.name %}"
+              class="btn btn-outline-info"
               >Fungura</a
             >
           </div>
@@ -210,5 +210,4 @@
     </div>
   </div>
 </div>
-
 {% endblock %}

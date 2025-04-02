@@ -25,9 +25,9 @@ from django.utils.dateparse import parse_datetime
 from django.http import JsonResponse
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.views import View
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from datetime import timedelta
-
+from django.urls import reverse
 # ---------------------
 
 # Home View
@@ -81,11 +81,10 @@ def scheduled_hours(request):
     now = timezone.localtime(timezone.now())
     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-
+    
     exams_scheduled = ScheduledExam.objects.filter(
         scheduled_datetime__range=(start_of_day, end_of_day)
-    )
-    
+    ).order_by('updated_datetime')
     
     
     context = {
@@ -93,7 +92,7 @@ def scheduled_hours(request):
         'start_of_day': start_of_day,
         'end_of_day': end_of_day,
         'now': now,
-    }
+        }
 
     return render(request, 'scheduled_hours.html', context)
 
@@ -105,13 +104,29 @@ def exam_timer(request, exam_id):
     except ScheduledExam.DoesNotExist:
         return JsonResponse({'error': 'Exam not found'}, status=404)
 
+
+
+@require_GET
+def check_exam_status(request, exam_id):
+    try:
+        exam = ScheduledExam.objects.get(id=exam_id)
+        exam_time = timezone.localtime(exam.scheduled_datetime)
+        return JsonResponse({
+            "is_published": exam.is_published,
+            "exam_url": reverse('exam_detail', kwargs={'pk': exam.exam.id}),  # Changed to kwargs
+            "exam_time": exam_time.strftime("%H:00"),
+        })
+    except ScheduledExam.DoesNotExist:  # Changed to match model name
+        return JsonResponse({"error": "Exam not found"}, status=404)
+
+
 @login_required(login_url='login')
-def exams_by_title(request, exam_title):
-    titled_exams = Exam.objects.filter(title=exam_title)
-    counted_exams = titled_exams.count()
+def exams_by_type(request, exam_type):
+    returned_exams = Exam.objects.filter(exam_type__name=exam_type)
+    counted_exams = returned_exams.count()
     context = {
-        'exam_title' : exam_title,
-        'titled_exams' : titled_exams,
+        'exam_type' : exam_type,
+        'returned_exams' : returned_exams,
         'counted_exams' : counted_exams,
     }    
     return render(request, "exams.html", context )
@@ -130,8 +145,7 @@ def exam(request, exam_id, question_number):
     user_exam, created = UserExam.objects.get_or_create(
         user=request.user,
         exam=exam,
-        defaults={'score': 0, 'completed_at': None, 'started_at': timezone.now()}
-    )
+        defaults={'score': 0, 'completed_at': None, 'started_at': timezone.now()})
 
     if user_exam.completed_at:
         return redirect('retake_exam', exam_id=exam_id)
@@ -200,7 +214,7 @@ def exam(request, exam_id, question_number):
         'exam_end_time': exam_end_time,
         'exam_duration': exam.duration * 60,
         'user_exam': user_exam,
-    }
+            }
     return render(request, 'exam.html', context)
 
 
@@ -470,3 +484,26 @@ def base_view(request):
         'current_year': datetime.datetime.now().year,
     }
     return render(request, 'base.html', context)
+
+
+@login_required(login_url='login')
+def create_exam(request):
+    
+    if not request.user.is_superuser:
+        return render(request, '404.html',status=404)
+    
+    if request.method == 'POST':
+        exam_type = request.POST.get('exam_type')
+        try:
+            # Create exam using the manager method
+            exam = Exam.objects.create_random_exam(exam_type)  # Removed exam_id
+            messages.success(request, f"Successfully created {exam.get_title_display()} exam!")
+            return redirect('exam_detail', exam_id=exam.id)  # Using Django's auto-created ID
+        except ValueError as e:
+            messages.error(request, str(e))
+            return redirect('create_exam')
+    
+    return render(request, 'create_exam.html', {
+        'exam_types': ['Ibimenyetso', 'Ibyapa']
+    })
+    

@@ -137,7 +137,7 @@
           <td style="text-align: center; vertical-align: middle;">
             <div class="d-flex align-items-center justify-content-center">
               {% if not answer.selected_choice_number %}
-              <div style="color:red; font-weight:bold;">Ntago wagisubije</div>
+              <div style="color:red; font-weight:bold;">Ntago wasubije Ikibazo</div>
               {% else %}
               <strong class="fs-2">
                 {{ answer.selected_choice_number|add:"-1"|letter }}
@@ -148,7 +148,7 @@
               {% endif %}
             </div>
           </td>
-          <td>
+          <td style="text-align: center; vertical-align: middle;">
             <div>
               <span class="fs-1">
                 {{ answer.question.correct_choice|add:"-1"|letter }}
@@ -159,6 +159,10 @@
         {% endfor %}
       </tbody>
     </table>
+    <div class="text-center mt-4 mb-4 d-flex justify-content-center gap-5">
+      <a href="{% url 'exam' user_exam.exam.id 1 %}" class="btn btn-success">Subirampo Ikizamini</a>
+      <a href="/" class="btn btn-primary">Subira Ahabanza</a>
+    </div>
   </div>
 
   <!-- Mobile View (Card Layout) -->
@@ -179,9 +183,7 @@
           {% endif %}
 
           <div class="mt-3">
-            {% if not answer.selected_choice_number %}
-            <div style="color:red; font-weight:bold;">Ntago wagisubije</div>
-            {% endif %}
+            
             {% for choice in answer.question.get_choices %}
 
             <div
@@ -206,7 +208,13 @@
                 {{ choice.content }}
               </span>
               {% if choice.is_correct %}
-              <div style="color:green; font-weight:bold;">Igisubizo Cy'ukuri</div>
+              <div style="color:green; font-weight:bold;">
+                {% if answer.selected_choice_number == answer.question.correct_choice %}✅
+                  {% endif %}Igisubizo Cy'ukuri
+              </div>
+              {% if not answer.selected_choice_number %}
+            <div style="color:red; font-weight:bold;">Ntago wasubije Ikibazo</div>
+            {% endif %}
               {% endif %}
               {% if answer.selected_choice_number == forloop.counter and not choice.is_correct %}
               <div style="color:red; font-weight:bold;">❌ Icyo wahisempo</div>

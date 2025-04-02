@@ -3,12 +3,12 @@
 {% block content %}
 <div class="container mt-5">
   <div class="text-center mb-4">
-   <h2> Ibizamini bifite ibibazo byo mu bwoko "{{ exam_title }}"
+   <h2> Ibizamini bifite ibibazo byo mu bwoko "{{ exam_type }}"
   </h2>
     <p class="lead">Wumubare w'ibibonetse: {{ counted_exams }}</p>
   </div>
   <div class="row">
-    {% if titled_exams %} {% for exam in titled_exams %}
+    {% if returned_exams %} {% for exam in returned_exams %}
     <div class="col-md-4 col-sm-5 mb-3">
       <div class="card shadow-sm ">
         <div class="card-body">

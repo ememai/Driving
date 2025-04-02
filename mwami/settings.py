@@ -31,8 +31,6 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('MY_ALLOWED_HOSTS', default='127.0.0.1', cast=lambda v: v.split(','))
 
-print("Final ALLOWED_HOSTS:", ALLOWED_HOSTS)
-
 
 CSRF_TRUSTED_ORIGINS = config('MY_CSRF_TRUSTED_ORIGINS', cast=lambda v: v.split(','))
 
