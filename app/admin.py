@@ -12,9 +12,9 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('email', 'phone_number', 'name', 'is_subscribed', 'subscription_end_date', 'otp_verified')
+    list_display = ('email', 'phone_number', 'name', 'is_subscribed', 'date_joined', 'otp_verified')
     search_fields = ('name', 'email', 'phone_number')
-    list_filter = ('subscription_end_date',)
+    list_filter = ('date_joined',)
 
 
 @admin.register(SignType)
