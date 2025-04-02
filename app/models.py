@@ -56,7 +56,7 @@ class UserProfile(AbstractUser):
     profile_picture = models.ImageField(upload_to='images/', default='images/avatar.png',null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     # is_subscribed = models.BooleanField(default=False)
-    subscription_end_date = models.DateField(null=True, blank=True)
+    # subscription_end_date = models.DateField(null=True, blank=True)
     otp_code = models.CharField(max_length=6, blank=True, null=True)
     otp_verified = models.BooleanField(default=False)
 
@@ -102,6 +102,12 @@ class UserProfile(AbstractUser):
         except phonenumbers.NumberParseException:
             return phone_number  # If invalid, return as-is
 
+    # @property
+    def subscription_end_date(self):
+        if hasattr(self, 'subscription'):
+            return self.subscription.expires_at
+        else:
+            return 'Not Subscribed'
 
     @property
     def is_subscribed(self):
@@ -171,7 +177,7 @@ class Subscription(models.Model):
     def active_subscription(self):
         #  """Activate the subscription for the given duration."""
         self.started_at = timezone.now()  # Fixed from 'start_date'
-        self.expires_at = timezone.now().date() + timezone.timedelta(days=self.duration_days)
+        # self.expires_at = timezone.now().date() + timezone.timedelta(days=self.duration_days)
               
         if self.expires_at >= timezone.now().date():
             return True
@@ -392,7 +398,7 @@ class UserExam(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     score = models.IntegerField(default=0)
     started_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         unique_together = ('user', 'exam')

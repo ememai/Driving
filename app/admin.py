@@ -12,7 +12,7 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'phone_number', 'otp_verified', 'is_subscribed')
+    list_display = ('name', 'email', 'phone_number', 'otp_verified', 'is_subscribed', 'subscription_end_date')
     search_fields = ('name', 'email', 'phone_number')
     list_filter = ('otp_verified',)
 
@@ -165,7 +165,7 @@ class ExamAdmin(admin.ModelAdmin):
 
 @admin.register(UserExam)
 class UserExamAdmin(admin.ModelAdmin):
-    list_display = ('user', 'exam', 'score', 'completed_at')
+    list_display = ('user', 'exam', 'score','started_at', 'completed_at')
     search_fields = ('user__email', 'exam__exam_type')
     list_filter = ('completed_at',)
 
@@ -180,6 +180,7 @@ class PlanAdmin(admin.ModelAdmin):
 class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('user', 'plan', 'price', 'active_subscription', 'expires_at')
     search_fields = ('user__email', 'plan__plan')
+    ordering = ('expires_at',)
 
 
 @admin.register(Payment)
