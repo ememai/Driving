@@ -30,13 +30,23 @@ from datetime import timedelta
 from django.urls import reverse
 # ---------------------
 
+
 # Home View
-def home(request, name='ahabanza'):
-    exams = Exam.objects.filter(exam_type__isnull=False)
+def home(request):
+    # Get unique exam types that have exams
+    exam_types = ExamType.objects.filter(exam__isnull=False, exam__for_scheduling=False).distinct().order_by('order')
+    
+    # Prefetch related exams for each type
+    exam_types = exam_types.prefetch_related('exam_set')
+    num = exam_types.count()
+    
     context = {
-        'exams': exams,
+        'exam_types': exam_types,
+        'num':num
     }
     return render(request, 'home.html', context)
+
+
 
 
 class SubscriptionRequiredView(View):
@@ -124,8 +134,8 @@ def check_exam_status(request, exam_id):
 def exams_by_type(request, exam_type):
     
     returned_exams = Exam.objects.filter(
-        Q(exam_type__name=exam_type) &
-        Q(for_scheduling=False)
+        for_scheduling=False,
+        exam_type__name=exam_type
         )
     counted_exams = returned_exams.count()
     context = {
@@ -133,7 +143,7 @@ def exams_by_type(request, exam_type):
         'returned_exams' : returned_exams,
         'counted_exams' : counted_exams,
     }    
-    return render(request, "exams.html", context )
+    return render(request, "same_exams.html", context)
 
 
 # ---------------------

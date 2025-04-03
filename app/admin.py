@@ -155,7 +155,8 @@ class Admin(admin.ModelAdmin):
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
     form = ExamForm
-    list_display = ('exam_type', 'question_count', 'created_at', 'updated_at')
+    list_display = ('exam_type', 'question_count','for_scheduling', 'created_at', 'updated_at')
+    list_filter = ('for_scheduling',)
     search_fields = ('exam_type',)
     filter_horizontal = ('questions',)
 

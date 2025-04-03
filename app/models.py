@@ -363,6 +363,7 @@ class ExamManager(models.Manager):
 
 class ExamType(models.Model):
     name = models.CharField(max_length=500, default='Ibivanze')
+    order = models.IntegerField(default=5)
 
 
     def __str__(self):
