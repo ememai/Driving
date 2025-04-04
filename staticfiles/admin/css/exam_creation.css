@@ -1,0 +1,50 @@
+/* Custom styling for exam creation form
+.creation-form fieldset {
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 15px;
+}
+
+.creation-form fieldset h2 {
+  font-size: 1.2em;
+  margin-top: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+  color: #666;
+}
+
+.creation-form .checkbox-select-multiple {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.creation-form .checkbox-select-multiple ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.creation-form .checkbox-select-multiple li {
+  padding: 8px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.creation-form .checkbox-select-multiple li:last-child {
+  border-bottom: none;
+}
+
+.creation-form .checkbox-select-multiple label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.creation-form .question-counter {
+  font-size: 0.9em;
+  color: #666;
+  margin-left: 5px;
+} */
