@@ -40,7 +40,7 @@ class RoadSignAdmin(admin.ModelAdmin):
         if obj:  # Change form
             fieldsets = (
                 ('Image Management', {
-                    'fields': ('name','image_preview', 'image_choice', 'existing_image', 'sign_image')
+                    'fields': ('image_preview', 'image_choice', 'existing_image', 'sign_image')
                 }),
                 ('Dates', {
                     'classes': ('collapse',),
@@ -53,7 +53,7 @@ class RoadSignAdmin(admin.ModelAdmin):
         else:  # Add form
             fieldsets = (
                 ('Image Management', {
-                    'fields': ('image_choice', 'existing_image', 'sign_image', 'name')
+                    'fields': ('image_choice', 'existing_image', 'sign_image')
                 }),
                 (None, {
                     'fields': ('definition', 'type', 'is_active')
