@@ -329,7 +329,7 @@ class Question(models.Model):
         return choices
 
     def __str__(self):
-        return f"Q{self.order}: {self.question_text[:100]}... [type: {self.question_type.name if self.question_type else 'None'}]"
+        return f"Q{self.order}: {self.question_text}... [type: {self.question_type.name if self.question_type else 'None'}]"
 
 class ExamManager(models.Manager):
     def create_random_exam(self, exam_type, num_questions=2):
