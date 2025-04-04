@@ -218,49 +218,6 @@ class ExamAdmin(admin.ModelAdmin):
         css = {
             'all': ('admin/css/exam_creation.css',)
         }
-        
-    
-
-
-# @admin.register(Exam)
-# class ExamAdmin(admin.ModelAdmin):
-#     form = ExamForm  # Use the custom form
-    
-#     def get_fields(self, request, obj=None):
-#         # Start with base fields
-#         fields = ['exam_type', 'duration', 'is_active', 'for_scheduling']
-        
-#         # Add dynamic question fields
-#         question_types = ExamType.objects.annotate(
-#             num_questions=Count('question')
-#         ).filter(num_questions__gt=0).order_by('order')
-        
-#         for q_type in question_types:
-#             fields.append(f'questions')
-            
-#         return fields
-    
-#     def get_fieldsets(self, request, obj=None):
-#         fieldsets = [(None, {'fields': ('exam_type', 'duration', 'is_active', 'for_scheduling')})]
-
-#         question_types = ExamType.objects.annotate(
-#             num_questions=Count('question')
-#         ).filter(num_questions__gt=0).order_by('order')
-
-#         for q_type in question_types:
-#             field_name = f'questions'
-#             fieldsets.append((
-#                 q_type.name,  
-#                 {
-#                     'fields': [field_name],
-#                     'classes': ('collapse',),
-#                     'description': f"Select {q_type.name} questions for this exam."
-#                 }
-#             ))
-
-#         return fieldsets
-
-
 
 @admin.register(UserExam)
 class UserExamAdmin(admin.ModelAdmin):
