@@ -298,7 +298,7 @@ class Question(models.Model):
     correct_choice = models.PositiveSmallIntegerField(
         choices=QUESTION_CHOICES, verbose_name="Correct Choice Number"
     )
-    order = models.PositiveIntegerField(default=0, verbose_name="Display Order")
+    order = models.PositiveIntegerField(default=0, verbose_name="Display Order", unique=True)
     date_added = models.DateTimeField(auto_now_add=True)
 
     class Meta:
