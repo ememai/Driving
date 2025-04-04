@@ -298,7 +298,7 @@ class Question(models.Model):
     correct_choice = models.PositiveSmallIntegerField(
         choices=QUESTION_CHOICES, verbose_name="Correct Choice Number"
     )
-    order = models.PositiveIntegerField(default=0, verbose_name="Display Order", unique=True)
+    order = models.PositiveIntegerField(default=1, verbose_name="Display Order", unique=True)
     date_added = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -329,7 +329,7 @@ class Question(models.Model):
         return choices
 
     def __str__(self):
-        return f"Q{self.order}: {self.question_text[:50]}... [type: {self.question_type.name if self.question_type else 'None'}]"
+        return f"Q{self.order}: {self.question_text[:100]}... [type: {self.question_type.name if self.question_type else 'None'}]"
 
 class ExamManager(models.Manager):
     def create_random_exam(self, exam_type, num_questions=2):
@@ -374,6 +374,7 @@ class ExamType(models.Model):
 class Exam(models.Model):
 
     exam_type = models.ForeignKey(ExamType, on_delete=models.SET_NULL, null=True, blank=True )
+    name = models.CharField(max_length=100, default=f'{timezone.now().strftime("%d.%m.%Y %H")}')
     questions = models.ManyToManyField(Question, related_name='exams')
     duration = models.PositiveIntegerField(default=20,help_text="Duration of the exam in minutes")
     for_scheduling = models.BooleanField(default=True)
@@ -393,7 +394,7 @@ class Exam(models.Model):
     #     return self.max_attempts - attempts
 
     def __str__(self):
-        return self.exam_type.name if self.exam_type else 'Ibivanze'
+        return f"{self.name} - {self.exam_type.name if self.exam_type else 'None'}"
 
 
 class UserExam(models.Model):
