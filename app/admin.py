@@ -85,7 +85,7 @@ class RoadSignAdmin(admin.ModelAdmin):
 class QuestionAdmin(admin.ModelAdmin):
     form = QuestionForm
     list_display = ('question_preview', 'display_choices', 'correct_choice_display', 'order','question_type')
-    list_per_page = 2
+    list_per_page = 20
     list_editable = ('order','question_type')
     list_filter = ('order','question_type','correct_choice',)
 
@@ -279,4 +279,3 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ('user', 'message', 'timestamp', 'is_read')
     list_filter = ('is_read',)
 
-    
