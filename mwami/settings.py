@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!#
 # SECURITY SETTINGS
 SECRET_KEY = config('DJANGO_SECRET_KEY')
-DEBUG = False
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('MY_ALLOWED_HOSTS', default='127.0.0.1', cast=lambda v: v.split(','))
 
