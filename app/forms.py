@@ -20,6 +20,8 @@ from .widgets import *
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 import json
+from django.db.models import Count
+import phonenumbers
 
 
 
@@ -133,22 +135,85 @@ class LoginForm(forms.Form):
         return cleaned_data
 
 
-class ExamForm(forms.ModelForm):
+
+class ExamCreationForm(forms.ModelForm):
     class Meta:
         model = Exam
-        fields = '__all__'  # or list your fields explicitly
+        fields = ['exam_type', 'duration', 'is_active', 'for_scheduling']
     
-    questions = forms.ModelMultipleChoiceField(
-        queryset=Question.objects.order_by("date_added"),  # Order questions
-        widget=forms.CheckboxSelectMultiple,
-        label="Questions"
-    )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Only show this for creation (not editing)
+        if not self.instance.pk:
+            # Get all question types that have questions
+            question_types = ExamType.objects.annotate(
+                num_questions=Count('question')
+            ).filter(num_questions__gt=0).order_by('order')
+            
+            # Create a field for each question type
+            for q_type in question_types:
+                field_name = f'questions_{q_type.id}'
+                self.fields[field_name] = forms.ModelMultipleChoiceField(
+                    queryset=Question.objects.filter(question_type=q_type).order_by('order'),
+                    required=False,
+                    label=f"{q_type.name} Questions",
+                    widget=forms.CheckboxSelectMultiple
+                )
 
-    def clean_questions(self):
-        questions = self.cleaned_data.get('questions')
-        if questions and questions.count() > 20:
-            raise ValidationError("An exam cannot have more than 20 questions.")
-        return questions
+                # Pre-fill initial values when editing an exam
+                if self.instance.pk:
+                    self.fields[field_name].initial = self.instance.questions.filter(question_type=q_type)
+    def save(self, commit=True):
+        exam = super().save(commit=commit)
+        if commit:
+            self.save_m2m()  # This will handle the many-to-many saves
+        return exam
+    
+    def _save_m2m(self):
+        super()._save_m2m()
+        exam = self.instance
+        for field_name, value in self.cleaned_data.items():
+            if field_name.startswith('questions_'):
+                exam.questions.add(*value)
+
+
+# class ExamForm(forms.ModelForm):
+#     class Meta:
+#         model = Exam
+#         fields = ['exam_type', 'duration', 'is_active', 'for_scheduling']
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+
+#         # Get all question types that have associated questions
+#         question_types = ExamType.objects.annotate(
+#             num_questions=Count('question')
+#         ).filter(num_questions__gt=0).order_by('order')
+
+#         for q_type in question_types:
+#             field_name = f'questions_{q_type.id}'
+#             self.fields[field_name] = forms.ModelMultipleChoiceField(
+#                 queryset=Question.objects.filter(question_type=q_type).order_by('order'),
+#                 required=False,
+#                 label=f"{q_type.name} Questions",
+#                 widget=forms.CheckboxSelectMultiple
+#             )
+
+#             # Pre-fill initial values when editing an exam
+#             if self.instance.pk:
+#                 self.fields[field_name].initial = self.instance.questions.filter(question_type=q_type)
+
+#     def save(self, commit=True):
+#         exam = super().save(commit=commit)
+
+#         if commit:
+#             exam.questions.clear()  # Remove old questions
+#             for field_name, value in self.cleaned_data.items():
+#                 if field_name.startswith('questions_'):
+#                     exam.questions.add(*value)
+
+#         return exam
 
 
 class ScheduledExamForm(forms.ModelForm):

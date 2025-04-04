@@ -2,9 +2,12 @@ from django.urls import path
 from . import views, user_profile_view
 from .views import *
 from .decorators import subscription_required
+from .api import get_questions_for_exam_type
+from django.core.exceptions import PermissionDenied
+
 
 urlpatterns = [
-
+    # path('admin/api/questions/', get_questions_for_exam_type),
 
     path("ahabanza/", views.home, name='ahabanza'),
     path("", views.home, name='home'),
@@ -42,5 +45,5 @@ urlpatterns = [
     path('profile/', user_profile_view.profile_view, name='profile'),
     path('mark-notification-read/', user_profile_view.mark_notification_read, name='mark_notification_read'),
     
-    path('privacy-policy/', views.PrivacyPolicyView.as_view(), name='privacy_policy'), 
+    path('privacy-policy/', views.PrivacyPolicyView.as_view(), name='privacy_policy'),
 ]

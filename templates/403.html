@@ -1,0 +1,30 @@
+<!-- templates/403_csrf.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    nav {
+        display: none;
+    }
+
+   
+</style>
+<div class="card p-2 d-flex flex-column justify-content-center align-items-center mt-0">
+    <h1 class="text-theme card-header"><i class="fas fa-ban"></i>Hari ibitagenze neza</h1>   
+    
+    
+    <div class="mt-4 card-body  gap-5 d-flex justify-content-center align-items-center">
+        {% comment %} <a href="javascript:window.location.reload()" class="btn btn-primary">
+            <i class="fas fa-sync"></i>
+            Refresh
+        </a> {% endcomment %}
+        <a href="javascript:window.history.back()" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Garuka inyuma
+        </a>
+        <a href="/" class="btn btn-info">
+            <i class="fas fa-home"></i> Subira ahabanza
+        </a>
+        
+    </div>
+</div>
+{% endblock %}

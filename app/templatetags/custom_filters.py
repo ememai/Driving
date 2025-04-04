@@ -58,8 +58,8 @@ def get_plan_description(plan_value):
     return {
         'Daily': '500 - Umunsi wose',
         'Weekly': '2000 - Icyumweru cyose',
-        'Monthly': '4000 - Ukwezi kose',
-        'Super': '10000 - ubutarangira',
+        'Monthly': '5000 - Ukwezi kose',
+        'Super': '15000 - Rihoraho',
     }.get(plan_value, '')
 
 @register.filter
@@ -67,8 +67,8 @@ def get_plan_price(value):
     return {
         'Daily': '500',
         'Weekly': '2000',
-        'Monthly': '4000',
-        'Super': '10000',
+        'Monthly': '5000',
+        'Super': '15000',
     }.get(value, '')
 
 @register.filter
