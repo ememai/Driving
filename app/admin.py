@@ -279,3 +279,4 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ('user', 'message', 'timestamp', 'is_read')
     list_filter = ('is_read',)
 
+    
