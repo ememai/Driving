@@ -23,7 +23,8 @@ class UserProfileAdmin(admin.ModelAdmin):
 class SignTypeAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
-
+    list_filter = ['name']
+    
 
 @admin.register(RoadSign)
 class RoadSignAdmin(admin.ModelAdmin):
@@ -85,9 +86,11 @@ class RoadSignAdmin(admin.ModelAdmin):
 class QuestionAdmin(admin.ModelAdmin):
     form = QuestionForm
     list_display = ('question_preview', 'display_choices', 'correct_choice_display', 'order','question_type')
-    list_per_page = 20
+    list_per_page = 10
     list_editable = ('order','question_type')
-    list_filter = ('order','question_type','correct_choice',)
+    list_filter = ('question_type','order','correct_choice',)
+    search_fields = ('question_text', 'order', 'question_type')
+    ordering = ('order',)
 
     class Media:
         css = {
@@ -151,13 +154,16 @@ class QuestionAdmin(admin.ModelAdmin):
     correct_choice_display.short_description = 'Correct Answer'
 
 @admin.register(ExamType)
-class Admin(admin.ModelAdmin):
+class ExamTypeAdmin(admin.ModelAdmin):
     list_display = ['name',]
+    search_fields = ['name']
+    ordering = ['order'] 
+    
 
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
-    list_display = ('exam_type', 'total_questions','for_scheduling', 'created_at', 'updated_at')
+    list_display = ('exam_type', 'name', 'total_questions','for_scheduling', 'created_at', 'updated_at')
     
     list_editable = ('for_scheduling',)
     list_per_page = 20
@@ -176,8 +182,8 @@ class ExamAdmin(admin.ModelAdmin):
         
         # Creation fieldsets
         fieldsets = [
-            (None, {
-                'fields': ('exam_type', 'duration', 'is_active', 'for_scheduling')
+            ('Properties', {
+                'fields': ('exam_type','name', 'duration', 'is_active', 'for_scheduling')
             })
         ]
         
@@ -203,7 +209,7 @@ class ExamAdmin(admin.ModelAdmin):
         if obj:  # Editing existing exam
             return super().get_fields(request, obj)
         
-        fields = ['exam_type', 'duration', 'is_active', 'for_scheduling']
+        fields = ['exam_type','name', 'duration', 'is_active', 'for_scheduling']
         
         question_types = ExamType.objects.annotate(
             num_questions=Count('question')

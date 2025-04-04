@@ -139,7 +139,7 @@ class LoginForm(forms.Form):
 class ExamCreationForm(forms.ModelForm):
     class Meta:
         model = Exam
-        fields = ['exam_type', 'duration', 'is_active', 'for_scheduling']
+        fields = ['exam_type','name', 'duration', 'is_active', 'for_scheduling']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
