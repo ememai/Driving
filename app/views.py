@@ -483,13 +483,6 @@ def momo_payment_status(request, transaction_id):
     return JsonResponse(status)
 
 
-# ---------------------
-#404 Error Page
-def custom_page_not_found(request, exception):
-    # You can add extra context if needed
-    context = {}
-    return render(request, '404.html', context, status=404)
-
 class PrivacyPolicyView(View):
     def get(self, request):
         return render(request, 'privacy_policy.html')
@@ -522,4 +515,23 @@ def create_exam(request):
     return render(request, 'create_exam.html', {
         'exam_types': ['Ibimenyetso', 'Ibyapa']
     })
-    
+  
+# ---------------------
+#404 Error Page
+def custom_page_not_found(request, exception):
+    # You can add extra context if needed
+    context = {}
+    return render(request, '404.html', context, status=404)
+
+# views.py
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.middleware.csrf import get_token
+
+@csrf_exempt  # We exempt this view from CSRF since it handles CSRF failures
+def csrf_failure(request, reason=""):
+    ctx = {
+        'reason': reason,
+        'csrf_token': get_token(request),  # Generate new token
+    }
+    return render(request, '403.html', ctx, status=403)

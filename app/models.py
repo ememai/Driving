@@ -259,10 +259,13 @@ class QuestionManager(models.Manager):
         return [(index + 1, question) for index, question in enumerate(self.all())]
 
 
+
 class Question(models.Model):
     QUESTION_CHOICES = [(i, f"Choice {i}") for i in range(1, 5)]
 
     question_text = models.TextField(verbose_name="Question Text")
+    question_type = models.ForeignKey('ExamType', on_delete=models.SET_NULL, null=True, verbose_name="Question Type")
+    
     question_sign = models.ForeignKey(
         'RoadSign', related_name='questions', on_delete=models.SET_NULL, null=True, blank=True,
         verbose_name="Question Image"
@@ -326,8 +329,7 @@ class Question(models.Model):
         return choices
 
     def __str__(self):
-        return f"Q{self.order}: {self.question_text[:50]}..."
-
+        return f"Q{self.order}: {self.question_text[:50]}... [type: {self.question_type.name if self.question_type else 'None'}]"
 
 class ExamManager(models.Manager):
     def create_random_exam(self, exam_type, num_questions=2):
@@ -399,7 +401,7 @@ class UserExam(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
     score = models.IntegerField(default=0)
     started_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ('user', 'exam')
@@ -442,7 +444,7 @@ class ContactMessage(models.Model):
 
 
 class ScheduledExam(models.Model):
-    exam = models.ForeignKey("Exam", on_delete=models.CASCADE)  # Ensure CASCADE to avoid null exams
+    exam = models.OneToOneField("Exam", on_delete=models.CASCADE) # Ensure CASCADE to avoid null exams
     scheduled_datetime = models.DateTimeField(help_text="Date & time when the exam should be published")
     updated_datetime = models.DateTimeField(auto_now=True, help_text="Date & time when the exam should be published")
 

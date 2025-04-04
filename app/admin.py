@@ -8,6 +8,8 @@ from django.utils.html import format_html
 from django.contrib.admin import AdminSite
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
+from django.db.models import Count
+
 # Register your models here.
 
 @admin.register(UserProfile)
@@ -40,7 +42,7 @@ class RoadSignAdmin(admin.ModelAdmin):
         if obj:  # Change form
             fieldsets = (
                 ('Image Management', {
-                    'fields': ('name','image_preview', 'image_choice', 'existing_image', 'sign_image')
+                    'fields': ('image_preview', 'image_choice', 'existing_image', 'sign_image')
                 }),
                 ('Dates', {
                     'classes': ('collapse',),
@@ -53,7 +55,7 @@ class RoadSignAdmin(admin.ModelAdmin):
         else:  # Add form
             fieldsets = (
                 ('Image Management', {
-                    'fields': ('image_choice', 'existing_image', 'sign_image', 'name')
+                    'fields': ('image_choice', 'existing_image', 'sign_image')
                 }),
                 (None, {
                     'fields': ('definition', 'type', 'is_active')
@@ -82,9 +84,10 @@ class RoadSignAdmin(admin.ModelAdmin):
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     form = QuestionForm
-    list_display = ('question_preview', 'display_choices', 'correct_choice_display', 'order')
-    list_editable = ('order',)
-    list_filter = ('correct_choice',)
+    list_display = ('question_preview', 'display_choices', 'correct_choice_display', 'order','question_type')
+    list_per_page = 2
+    list_editable = ('order','question_type')
+    list_filter = ('order','question_type','correct_choice',)
 
     class Media:
         css = {
@@ -95,6 +98,9 @@ class QuestionAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': ('question_text', 'question_sign')
+        }),
+        ('Properties', {
+            'fields': ('order', 'correct_choice', 'question_type')
         }),
         ('Choice 1', {
             'fields': ('choice1_text', 'choice1_sign'),
@@ -108,9 +114,7 @@ class QuestionAdmin(admin.ModelAdmin):
         ('Choice 4', {
             'fields': ('choice4_text', 'choice4_sign'),
         }),
-        (None, {
-            'fields': ('order', 'correct_choice')
-        }),
+        
     )
 
     def question_preview(self, obj):
@@ -151,17 +155,111 @@ class Admin(admin.ModelAdmin):
     list_display = ['name',]
 
 
-
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
-    form = ExamForm
-    list_display = ('exam_type', 'question_count','for_scheduling', 'created_at', 'updated_at')
-    list_filter = ('for_scheduling',)
+    list_display = ('exam_type', 'total_questions','for_scheduling', 'created_at', 'updated_at')
+    
+    list_editable = ('for_scheduling',)
+    list_per_page = 20
     search_fields = ('exam_type',)
     filter_horizontal = ('questions',)
+    # Use different forms for add vs change
+    def get_form(self, request, obj=None, **kwargs):
+        if obj is None:  # Creating new exam
+            return ExamCreationForm
+        return super().get_form(request, obj, **kwargs)
+    
+    # Customize fieldsets only for creation
+    def get_fieldsets(self, request, obj=None):
+        if obj:  # Editing existing exam - use default
+            return super().get_fieldsets(request, obj)
+        
+        # Creation fieldsets
+        fieldsets = [
+            (None, {
+                'fields': ('exam_type', 'duration', 'is_active', 'for_scheduling')
+            })
+        ]
+        
+        # Add fieldsets for each question type
+        question_types = ExamType.objects.annotate(
+            num_questions=Count('question')
+        ).filter(num_questions__gt=0).order_by('order')
+        
+        for q_type in question_types:
+            fieldsets.append((
+                f'{q_type.name} Questions',
+                {
+                    'fields': [f'questions_{q_type.id}'],
+                    'classes': ('collapse',),
+                    'description': f"Select {q_type.name} questions for this exam."
+                }
+            ))
+        
+        return fieldsets
 
-    def question_count(self, obj):
-        return obj.questions.count()
+    # Only show our custom fields during creation
+    def get_fields(self, request, obj=None):
+        if obj:  # Editing existing exam
+            return super().get_fields(request, obj)
+        
+        fields = ['exam_type', 'duration', 'is_active', 'for_scheduling']
+        
+        question_types = ExamType.objects.annotate(
+            num_questions=Count('question')
+        ).filter(num_questions__gt=0).order_by('order')
+        
+        for q_type in question_types:
+            fields.append(f'questions_{q_type.id}')
+        
+        return fields
+
+    class Media:
+        css = {
+            'all': ('admin/css/exam_creation.css',)
+        }
+        
+    
+
+
+# @admin.register(Exam)
+# class ExamAdmin(admin.ModelAdmin):
+#     form = ExamForm  # Use the custom form
+    
+#     def get_fields(self, request, obj=None):
+#         # Start with base fields
+#         fields = ['exam_type', 'duration', 'is_active', 'for_scheduling']
+        
+#         # Add dynamic question fields
+#         question_types = ExamType.objects.annotate(
+#             num_questions=Count('question')
+#         ).filter(num_questions__gt=0).order_by('order')
+        
+#         for q_type in question_types:
+#             fields.append(f'questions')
+            
+#         return fields
+    
+#     def get_fieldsets(self, request, obj=None):
+#         fieldsets = [(None, {'fields': ('exam_type', 'duration', 'is_active', 'for_scheduling')})]
+
+#         question_types = ExamType.objects.annotate(
+#             num_questions=Count('question')
+#         ).filter(num_questions__gt=0).order_by('order')
+
+#         for q_type in question_types:
+#             field_name = f'questions'
+#             fieldsets.append((
+#                 q_type.name,  
+#                 {
+#                     'fields': [field_name],
+#                     'classes': ('collapse',),
+#                     'description': f"Select {q_type.name} questions for this exam."
+#                 }
+#             ))
+
+#         return fieldsets
+
 
 
 @admin.register(UserExam)
