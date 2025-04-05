@@ -64,11 +64,11 @@ class RoadSignAdmin(admin.ModelAdmin):
             )
         return fieldsets
 
-    def get_readonly_fields(self, request, obj=None):
-        readonly_fields = super().get_readonly_fields(request, obj)
-        if obj:  # Editing existing instance
-            return readonly_fields + ('image_choice', 'existing_image')
-        return readonly_fields
+    # def get_readonly_fields(self, request, obj=None):
+    #     readonly_fields = super().get_readonly_fields(request, obj)
+    #     if obj:  # Editing existing instance
+    #         return readonly_fields + ('image_choice', 'existing_image')
+    #     return readonly_fields
 
     def save_model(self, request, obj, form, change):
         if form.cleaned_data['image_choice'] == form.USE_EXISTING:
@@ -97,28 +97,91 @@ class QuestionAdmin(admin.ModelAdmin):
             'all': ('admin/css/admin_custom_styles.css',)
         }
         js = ('admin/js/custom_admin.js',)
+    readonly_fields = (
+    'question_image_preview',
+    'choice1_image_preview',
+    'choice2_image_preview',
+    'choice3_image_preview',
+    'choice4_image_preview',
+        )
 
-    fieldsets = (
-        (None, {
-            'fields': ('question_text', 'question_sign')
-        }),
-        ('Properties', {
-            'fields': ('order', 'correct_choice', 'question_type')
-        }),
-        ('Choice 1', {
-            'fields': ('choice1_text', 'choice1_sign'),
-        }),
-        ('Choice 2', {
-            'fields': ('choice2_text', 'choice2_sign'),
-        }),
-        ('Choice 3', {
-            'fields': ('choice3_text', 'choice3_sign'),
-        }),
-        ('Choice 4', {
-            'fields': ('choice4_text', 'choice4_sign'),
-        }),
-        
-    )
+
+    def get_fieldsets(self, request, obj=None):
+        if obj:
+            return (
+                (None, {
+                    'fields': ('question_text', 'question_image_preview', 'question_sign')
+                }),
+                ('Properties', {
+                    'fields': ('order', 'correct_choice', 'question_type')
+                }),
+                ('Choice 1', {
+                    'fields': ('choice1_text', 'choice1_image_preview', 'choice1_sign'),
+                }),
+                ('Choice 2', {
+                    'fields': ('choice2_text', 'choice2_image_preview', 'choice2_sign'),
+                }),
+                ('Choice 3', {
+                    'fields': ('choice3_text', 'choice3_image_preview', 'choice3_sign'),
+                }),
+                ('Choice 4', {
+                    'fields': ('choice4_text', 'choice4_image_preview', 'choice4_sign'),
+                }),
+            )
+        else:
+            # Add form: no preview
+            return (
+                (None, {
+                    'fields': ('question_text', 'question_sign')
+                }),
+                ('Properties', {
+                    'fields': ('order', 'correct_choice', 'question_type')
+                }),
+                ('Choice 1', {
+                    'fields': ('choice1_text', 'choice1_sign'),
+                }),
+                ('Choice 2', {
+                    'fields': ('choice2_text', 'choice2_sign'),
+                }),
+                ('Choice 3', {
+                    'fields': ('choice3_text', 'choice3_sign'),
+                }),
+                ('Choice 4', {
+                    'fields': ('choice4_text', 'choice4_sign'),
+                }),
+            )
+            
+    def question_image_preview(self, obj):
+        if obj.question_sign:
+            return format_html('<img src="{}" height="100"/>', obj.question_sign.sign_image.url)
+        return "No image"
+    question_image_preview.short_description = "Question Image"
+
+    def choice1_image_preview(self, obj):
+        if obj.choice1_sign:
+            return format_html('<img src="{}" height="100"/>', obj.choice1_sign.sign_image.url)
+        return "No image"
+    choice1_image_preview.short_description = "Choice 1 Image"
+
+    def choice2_image_preview(self, obj):
+        if obj.choice2_sign:
+            return format_html('<img src="{}" height="100"/>', obj.choice2_sign.sign_image.url)
+        return "No image"
+    choice2_image_preview.short_description = "Choice 2 Image"
+
+    def choice3_image_preview(self, obj):
+        if obj.choice3_sign:
+            return format_html('<img src="{}" height="100"/>', obj.choice3_sign.sign_image.url)
+        return "No image"
+    choice3_image_preview.short_description = "Choice 3 Image"
+
+    def choice4_image_preview(self, obj):
+        if obj.choice4_sign:
+            return format_html('<img src="{}" height="100"/>', obj.choice4_sign.sign_image.url)
+        return "No image"
+    choice4_image_preview.short_description = "Choice 4 Image"
+
+
 
     def question_preview(self, obj):
         """Display a preview of the question text."""
