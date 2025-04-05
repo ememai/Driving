@@ -275,6 +275,8 @@ class RoadSignAdminForm(forms.ModelForm):
         
         return images
 
+    # Rest of your methods remain the same...
+
     def _get_image_preview_html(self, filepath, filename):
         """Generate HTML for image preview with radio button"""
         return mark_safe(
