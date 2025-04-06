@@ -114,10 +114,11 @@ class UserProfile(AbstractUser):
             return False
         return (
             self.subscription.expires_at and
-            self.subscription.expires_at >= timezone.now().date() and
+            self.subscription.expires_at >= timezone.now().date() or
             self.subscription.active_subscription
         )
-
+        
+        
     @property
     def has_ended_subscription(self):
         if not hasattr(self, 'subscription'):
@@ -142,7 +143,7 @@ class UserProfile(AbstractUser):
         return self.otp_code == otp
 
     def __str__(self):
-        return self.email if self.email else self.phone_number
+        return self.email if self.email else f"{self.name} - {self.phone_number}"
 
 
 #instances should be first created
@@ -163,9 +164,10 @@ class Plan(models.Model):
 class Subscription(models.Model):
 
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True)
-    price = models.IntegerField(default=500)
-    duration_days = models.IntegerField(default=1, null=False)
+    super_subscription = models.BooleanField(default=False)
+    plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True, blank=True)
+    price = models.IntegerField(null=True, blank=True)
+    duration_days = models.IntegerField(default=0, null=True, blank=True)
     phone_number = models.CharField(max_length=13, default="25078")
     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
     started_at = models.DateField(auto_now_add=True)
@@ -173,14 +175,20 @@ class Subscription(models.Model):
 
     @property
     def active_subscription(self):
-        #  """Activate the subscription for the given duration."""
-        self.started_at = timezone.now()  # Fixed from 'start_date'
-        # self.expires_at = timezone.now().date() + timezone.timedelta(days=self.duration_days)
+        """Check if the subscription is active."""
+            
+        if self.duration_days:
+            self.expires_at = timezone.now().date() + timezone.timedelta(days=self.duration_days)
 
-        if self.expires_at >= timezone.now().date():
+        if self.expires_at and self.expires_at >= timezone.now().date():
             return True
-        else:
-            return False
+        elif self.super_subscription:
+            self.plan = Plan.objects.get(plan="Super")
+            self.expires_at = None
+            self.price = 15000
+            return True
+        # else:
+        #     return False
 
 
     def deactivate(self):
@@ -384,11 +392,12 @@ class Exam(models.Model):
     is_active = models.BooleanField(default=False)
     # max_attempts = models.PositiveIntegerField(default=1)
     objects = ExamManager()
-
+    
 
     @property
     def total_questions(self):
         return self.questions.count()
+    
     # def remaining_attempts(self, user):
     #     attempts = UserExam.objects.filter(user=user, exam=self).count()
     #     return self.max_attempts - attempts
