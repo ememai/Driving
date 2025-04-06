@@ -1,6 +1,8 @@
 <!-- filepath: c:\Users\user\OneDrive\Desktop\$\@WORK\Site\GitHub\Driving\templates\exams.html -->
 {% extends "base.html" %} {% load static %} {% block title %}Exams{% endblock %}
 {% block content %}
+<!--  -->
+<!--  -->
 <div class="container mt-5">
   <div class="text-center mb-4">
    <h2> Ibizamini bifite ibibazo byo mu bwoko "{{ exam_type }}"
@@ -10,10 +12,11 @@
   <div class="row">
     {% if returned_exams %} {% for exam in returned_exams %}
     <div class="col-md-4 col-sm-5 mb-3">
-      <div class="card shadow-sm ">
+      <div class="card shadow-sm border rounded-0 border-primary">
+        
         <div class="card-body">
-          <h2 class="card-title text-center text-muted">{{ forloop.counter }}</h2>
-          <p class="card-text"> <strong>Cyateguwe:</strong> {{ exam.created_at|date:"M d, Y" }}</p>
+          <h2 class="card-title text-center text-muted">Icya {{ forloop.counter }}</h2>
+          <p class="card-text"> <strong>Cyateguwe:</strong> {{ exam.created_at|date:"d.m.Y" }}</p>
           <p class="card-text"><strong >Umubare w'ibibazo:</strong> {{ exam.total_questions }}</p>
           <a href="{% url 'exam_detail' exam.id %}" class="btn btn-primary"
             >Gikore</a

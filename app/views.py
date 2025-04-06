@@ -13,6 +13,7 @@ import uuid
 from .momo_utils import *
 from .utils import *
 from django.views.decorators.csrf import csrf_exempt
+from django.middleware.csrf import get_token
 import json
 import base64
 from .decorators import * 
@@ -523,10 +524,6 @@ def custom_page_not_found(request, exception):
     context = {}
     return render(request, '404.html', context, status=404)
 
-# views.py
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
-from django.middleware.csrf import get_token
 
 @csrf_exempt  # We exempt this view from CSRF since it handles CSRF failures
 def csrf_failure(request, reason=""):
