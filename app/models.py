@@ -52,7 +52,7 @@ class UserProfile(AbstractUser):
     name = models.CharField(max_length=25, unique=True)
     email = models.EmailField(unique=True, blank=True, null=True)
     phone_number = models.CharField(max_length=15,default=None, unique=True, null=True, blank=True)
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
+    # gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
     profile_picture = models.ImageField(upload_to='images/', default='images/avatar.png',null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
 
