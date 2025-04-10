@@ -379,9 +379,10 @@ class ExamType(models.Model):
         return self.name
 
 class Exam(models.Model):
-
+    timezone = timezone.now().strftime('%d.%m.%Y %H')
+    
     exam_type = models.ForeignKey(ExamType, on_delete=models.SET_NULL, null=True, blank=True )
-    name = models.CharField(max_length=100, default=f"{timezone.now().strftime('%d.%m.%Y %H')}")
+    name = models.CharField(max_length=100, default=f"{timezone}")
     questions = models.ManyToManyField(Question, related_name='exams')
     duration = models.PositiveIntegerField(default=20,help_text="Duration of the exam in minutes")
     for_scheduling = models.BooleanField(default=True)

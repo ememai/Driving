@@ -313,8 +313,13 @@ class RoadSignAdminForm(forms.ModelForm):
             del self._errors['sign_image']
 
 
-
 class QuestionForm(forms.ModelForm, ImageLabelMixin):
+    remove_question_image = forms.BooleanField(
+        required=False,
+        label="Remove current question image",
+        help_text="Check this to remove the image associated with the question."
+    )
+
     class Meta:
         model = Question
         fields = [
@@ -326,16 +331,11 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
         ]
         widgets = {
             'question_text': forms.Textarea(attrs={'class': 'question_text_input', 'placeholder': 'Enter question text'}),
-            
             'question_sign': forms.RadioSelect(attrs={'class': 'question-sign-radio hidden', 'data-choice': 'question'}),
-            
             'choice1_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 1 text', 'class': 'choice-text'}),
             'choice2_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 2 text', 'class': 'choice-text'}),
             'choice3_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 3 text', 'class': 'choice-text'}),
             'choice4_text': forms.Textarea(attrs={'rows': 2, 'cols': 40, 'placeholder': 'Enter choice 4 text', 'class': 'choice-text'}),
-            
-            
-            # Initially hidden radio buttons
             'choice1_sign': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice1'}),
             'choice2_sign': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice2'}),
             'choice3_sign': forms.RadioSelect(attrs={'class': 'choice-sign-radio hidden', 'data-choice': 'choice3'}),
@@ -345,7 +345,7 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Add image preview for sign fields
+        # Add image label logic for signs
         for i in range(1, 5):
             sign_field = f'choice{i}_sign'
             if sign_field in self.fields:
@@ -355,7 +355,7 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
                 self.fields[sign_field].widget.attrs.update({
                     'class': 'choice-sign-radio hidden',
                     'data-choice': f'choice{i}',
-                    'style': 'display: none;',  # Force it to be hidden initially
+                    'style': 'display: none;',
                 })
                 self.fields[sign_field].label = mark_safe(
                     f'''
@@ -363,9 +363,8 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
                     <button type="button" class="choose-image-btn" data-choice="choice{i}">Select from Images</button>
                     '''
                 )
-                self.fields[sign_field].empty_label = None
+                self.fields[sign_field].empty_label = 'None'
 
-        # Add image preview for question_sign
         if 'question_sign' in self.fields:
             self.fields['question_sign'].label_from_instance = lambda obj: self.get_image_label(
                 obj, label_field="definition", image_field="sign_image", max_height=30, max_width=30
@@ -373,7 +372,7 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
             self.fields['question_sign'].widget.attrs.update({
                 'class': 'question-sign-radio hidden',
                 'data-choice': 'question',
-                'style': 'display: none;',  # Force it to be hidden initially
+                'style': 'display: none;',
             })
             self.fields['question_sign'].label = mark_safe(
                 '''
@@ -386,12 +385,10 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
     def clean(self):
         cleaned_data = super().clean()
 
-        # Validate that each choice has either text or a sign, but not both/neither
         errors = {}
         for i in range(1, 5):
             text_field = f'choice{i}_text'
             sign_field = f'choice{i}_sign'
-
             has_text = bool(cleaned_data.get(text_field))
             has_sign = bool(cleaned_data.get(sign_field))
 
@@ -405,7 +402,6 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
         if errors:
             raise ValidationError(errors)
 
-        # Ensure the correct choice is valid
         correct_choice = cleaned_data.get('correct_choice')
         if correct_choice:
             if not cleaned_data.get(f'choice{correct_choice}_text') and not cleaned_data.get(f'choice{correct_choice}_sign'):
@@ -413,3 +409,11 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
 
         return cleaned_data
 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.cleaned_data.get('remove_question_image'):
+            instance.question_sign = None
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
