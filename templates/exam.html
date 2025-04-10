@@ -4,9 +4,11 @@
 {% block title %}Exam | {{ exam.title }}{% endblock %}
 
 {% block navbar %}
-<nav class="navbar navbar-expand-lg py-1 fixed-top">
+<nav class="fixed-top">
+  <div class="navbar navbar-expand-lg py-1 text-light border-bottom border-theme shadow-sm" id="navbar" role="navigation" style="background-color: rgb(0, 0, 83);">
+
   <div class="container-fluid">
-    <a class="navbar-brand bold-logo" href="/">
+    <a class="navbar-brand bold-logo text-light" href="/">
       <img src="{% static 'img/logo.png' %}" alt="Logo" width="30" height="30" class="d-inline-block align-top"> Kigali Driving School
     </a>
     <div class="justify-content-center">
@@ -16,12 +18,27 @@
       </div>
     </div>
     <div class="theme-toggle m-2">
-      <button class="btn btn-link p-0 text-theme" id="themeToggle" aria-label="Toggle theme" type="button">
+      <button class="btn btn-link p-0 text-light" id="themeToggle" aria-label="Toggle theme" type="button">
         <i id="themeIcon" class="bi bi-moon fs-4"></i>
         <span class="visually-hidden">Toggle dark mode</span>
       </button>
     </div>
   </div>
+  </div>
+  {% comment %} <div class="d-flex align-items-center justify-content-center"> {% endcomment %}
+    <div >
+      <div class="progress" style="height: 20px;">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+             role="progressbar" 
+             style="width: {{ question_number|percentage:total_questions }}%;" 
+             aria-valuenow="{{ question_number }}" 
+             aria-valuemin="0" 
+             aria-valuemax="{{ total_questions }}">
+         <strong class="fs-6"> Ikibazo {{ question_number }} / {{ total_questions }}</strong>
+        </div>
+      </div>
+    </div>
+  {% comment %} </div> {% endcomment %}
 </nav>
 {% endblock %}
 
@@ -53,29 +70,20 @@
     border:none ;
   }
 
+  @media(min-width: 495px){
+
+    main {
+      padding-top: 50px;
+    }
+  }
+
 
 </style>
 
 <div class="container mt-5 ">
   {% include "flash_message.html" %}
   <!-- Exam Progress Section -->
-  <div class="row mb-4 mt-5">
-    <div class="col-md-6">
-      <p class="fs-4"><strong>Ikibazo:</strong> {{ question_number }} muri {{ total_questions }}</p>
-    </div>
-    <div class="col-md-6 text-end">
-      <div class="progress" style="height: 20px;">
-        <div class="progress-bar progress-bar-striped progress-bar-animated" 
-             role="progressbar" 
-             style="width: {{ question_number|percentage:total_questions }}%;" 
-             aria-valuenow="{{ question_number }}" 
-             aria-valuemin="0" 
-             aria-valuemax="{{ total_questions }}">
-          Ikibazo {{ question_number }} / {{ total_questions }}
-        </div>
-      </div>
-    </div>
-  </div>
+  
 
   
   <!-- Exam Form -->

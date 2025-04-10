@@ -82,30 +82,52 @@ def exam_schedule_view(request):
     }
     return render(request, 'exam_schedule.html', context)
 
-
-# @login_required(login_url='login')
-# def exams_list(request):
-#     exams = Exam.objects.all()
-#     return render(request, 'exams_list.html', {'exams': exams})
-
 def scheduled_hours(request):
-    now = timezone.localtime(timezone.now())
+    now = localtime(timezone.now())
     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-    
+
     exams_scheduled = ScheduledExam.objects.filter(
         scheduled_datetime__range=(start_of_day, end_of_day)
-    ).order_by('updated_datetime')
-    
-    
+    )
+
+    current_hour = now.hour
+
+    completed_exam_ids = []
+    if request.user.is_authenticated:
+        completed_exam_ids = UserExam.objects.filter(
+            user=request.user,
+            completed_at__isnull=False
+        ).values_list('exam_id', flat=True)
+
     context = {
         'exams_scheduled': exams_scheduled,
-        'start_of_day': start_of_day,
-        'end_of_day': end_of_day,
         'now': now,
-        }
+        'current_hour': current_hour,
+        'completed_exam_ids': list(completed_exam_ids),
+    }
 
     return render(request, 'scheduled_hours.html', context)
+
+
+# def scheduled_hours(request):
+#     now = timezone.localtime(timezone.now())
+#     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+#     end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    
+#     exams_scheduled = ScheduledExam.objects.filter(
+#         scheduled_datetime__range=(start_of_day, end_of_day)
+#     )
+    
+    
+#     context = {
+#         'exams_scheduled': exams_scheduled,
+#         'start_of_day': start_of_day,
+#         'end_of_day': end_of_day,
+#         'now': now,
+#         }
+
+#     return render(request, 'scheduled_hours.html', context)
 
 def exam_timer(request, exam_id):
     try:
@@ -137,7 +159,7 @@ def exams_by_type(request, exam_type):
     returned_exams = Exam.objects.filter(
         for_scheduling=False,
         exam_type__name=exam_type
-        )
+        ).order_by('-updated_at')
     counted_exams = returned_exams.count()
     context = {
         'exam_type' : exam_type,

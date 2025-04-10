@@ -16,7 +16,8 @@
         
         <div class="card-body">
           <h2 class="card-title text-center text-muted">Icya {{ forloop.counter }}</h2>
-          <p class="card-text"> <strong>Cyateguwe:</strong> {{ exam.created_at|date:"d.m.Y" }}</p>
+          <p class="card-text"> <strong>Cyateguwe Taliki:</strong> {{ exam.created_at|date:"d.m.Y" }}</p>
+          <p class="card-text"> <strong>Kivugururwa :</strong> {{ exam.updated_at|date:"d.m.Y" }}</p>
           <p class="card-text"><strong >Umubare w'ibibazo:</strong> {{ exam.total_questions }}</p>
           <a href="{% url 'exam_detail' exam.id %}" class="btn btn-primary"
             >Gikore</a

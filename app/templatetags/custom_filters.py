@@ -56,11 +56,10 @@ def current_date(value):
 @register.filter
 def get_plan_description(plan_value):
     return {
-        'Daily': '500 - Umunsi wose',
-        'Weekly': '2000 - Icyumweru cyose',
-        'Monthly': '5000 - Ukwezi kose',
-        'Super': '15000 - Rihoraho',
-    }.get(plan_value, '')
+        'Daily': '500 - Rimara Umunsi wose',
+        'Weekly': '2000 - Rimara Icyumweru cyose',
+        'Monthly': '5000 - Rimara Ukwezi kose',
+        }.get(plan_value, '')
 
 @register.filter
 def get_plan_price(value):
@@ -68,8 +67,7 @@ def get_plan_price(value):
         'Daily': '500',
         'Weekly': '2000',
         'Monthly': '5000',
-        'Super': '15000',
-    }.get(value, '')
+        }.get(value, '')
 
 @register.filter
 def choice_class(answer, choice):

@@ -63,7 +63,7 @@
       <h6 class="text-center mb-0">Kanda ku isaha ukore ikizamini</h6>
     </div>
     <div class="scrollable-times" id="js-update">
-      {% for exam in exams_scheduled %}
+      {% for exam in exams_scheduled|dictsort:"scheduled_datetime" %}
       <div class="exam-hour" id="exam-hour-{{ exam.id }}">
         {% if exam.is_published %}
         <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link">
@@ -77,7 +77,7 @@
       </div>
       {% empty %}
       <div class="exam-hour text-center">
-        <small class="text-warning">Nta kizamini cyateguwe uyu umunsi</small>
+        <small class="text-warning">Nta kizamini kiboneka</small>
       </div>
       {% endfor %}
     </div>

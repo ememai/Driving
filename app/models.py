@@ -152,7 +152,6 @@ class Plan(models.Model):
         ('Daily', "Ry'umunsi"),
         ('Weekly', "Ry'icyumweru"),
         ('Monthly', "Ry'ukwezi"),
-        ('Super', 'Rihoraho'),
     ]
     plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default="Daily", null=True)
 
@@ -443,21 +442,11 @@ class UserExamAnswer(models.Model):
         return f"{self.user_exam.user.username} - {self.question.question_text[:50]} - Choice {self.selected_choice_number}"
 
 
-class ContactMessage(models.Model):
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Message from {self.name} ({self.email})"
-
-
 class ScheduledExam(models.Model):
     exam = models.OneToOneField("Exam", on_delete=models.CASCADE) # Ensure CASCADE to avoid null exams
     scheduled_datetime = models.DateTimeField(help_text="Date & time when the exam should be published")
     updated_datetime = models.DateTimeField(auto_now=True, help_text="Date & time when the exam should be published")
-
+    # order 
 
     @property
     def is_published(self):
@@ -502,6 +491,20 @@ class ScheduledExam(models.Model):
 
     def __str__(self):
         return f"Scheduled: {self.exam.exam_type} at {self.scheduled_datetime}"
+
+
+
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Message from {self.name} ({self.email})"
+
+
+
 
 class UserActivity(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
