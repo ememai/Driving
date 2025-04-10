@@ -215,6 +215,8 @@ class ExamCreationForm(forms.ModelForm):
 
 #         return exam
 
+from django.utils import timezone
+from datetime import timedelta
 
 class ScheduledExamForm(forms.ModelForm):
     class Meta:
@@ -223,6 +225,14 @@ class ScheduledExamForm(forms.ModelForm):
         widgets = {
             'scheduled_datetime': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(ScheduledExamForm, self).__init__(*args, **kwargs)
+        two_days_ago = timezone.now() - timedelta(days=2)
+        self.fields['exam'].queryset = Exam.objects.filter(
+            for_scheduling=True,
+            created_at__gte=two_days_ago
+        )
 
 
 class RoadSignAdminForm(forms.ModelForm):

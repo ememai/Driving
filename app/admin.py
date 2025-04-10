@@ -329,6 +329,7 @@ def activate_subscriptions(modeladmin, request, queryset):
 
 @admin.register(ScheduledExam)
 class ScheduledExamAdmin(admin.ModelAdmin):
+    form = ScheduledExamForm
     list_display = ('exam', 'scheduled_datetime','updated_datetime', 'is_published')
     ordering = ('scheduled_datetime',)
     actions = ['publish_exam']
