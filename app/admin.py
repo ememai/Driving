@@ -88,7 +88,8 @@ class QuestionAdmin(admin.ModelAdmin):
     list_display = ('question_preview', 'display_choices', 'correct_choice_display', 'order','question_type')
     list_per_page = 10
     list_editable = ('order','question_type')
-    list_filter = ('question_type','correct_choice',)
+    list_filter = ('question_type','correct_choice')
+    # list_display_links = ('correct_choice_display',)
     search_fields = ('question_text', 'order', 'question_type__name')
     ordering = ('order',)
 
