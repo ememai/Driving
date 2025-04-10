@@ -63,14 +63,14 @@
           <div class="input-group">
             <span class="input-group-text text-white">+250</span>
             <input type="text" name="phone_number" id="id_phone_number" class="form-control"
-              placeholder="Urugero: 788123456" />
+              placeholder="Urugero: 78..." />
           </div>
         </div>
         <!-- Email Field (Initially hidden) -->
         <div class="mb-3 d-none" id="emailField">
           <label for="id_email" class="form-label">Email</label>
           <input type="email" name="email" id="id_email" class="form-control"
-            placeholder="example: umuhanda@gmail.com" />
+            placeholder="Urugero: kds@gmail.com" />
         </div>
         <!-- Name Field -->
         <div class="mb-3">
@@ -89,7 +89,7 @@
           </div>
         </div>
         <div class="mb-3 position-relative">
-          <label for="id_password2" class="form-label">Ijambo banga nanone:</label>
+          <label for="id_password2" class="form-label">Subirampo Ijambobanga:</label>
           <div class="input-group">
             <input type="password" name="password2" id="id_password2" class="form-control js-password"
               placeholder="Ijambo banga nanone" />
@@ -98,20 +98,7 @@
             </button>
           </div>
         </div>
-        <!-- Gender Selection -->
-        <div class="mb-3 text-center">
-          <div class="d-flex justify-content-center gap-3">
-            {% for value, label in form.gender.field.choices %} {% if value == 'male' or value == 'female' %}
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="gender" id="gender_{{ value }}" value="{{ value }}"
-                required />
-              <label class="form-check-label" for="gender_{{ value }}">
-                {{ label }}
-              </label>
-            </div>
-            {% endif %} {% endfor %}
-          </div>
-        </div>
+        
         <!-- Register Button -->
         <button type="submit" class="btn btn-primary w-100">Emeza</button>
       </form>
