@@ -162,7 +162,8 @@
     }
 
     .container {
-        max-width: 100vwx;
+        max-width: 75vw;
+        /* height: 75vh; */
         margin: 0 auto;
     }
 
