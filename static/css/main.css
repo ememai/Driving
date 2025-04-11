@@ -240,3 +240,46 @@
 .cy-link:hover::after {
     width: 100%;
 }
+
+/* Scroll button styling */
+@media (max-width: 576px) {
+    #scrollTopBtn, #scrollBottomBtn {
+        width: 45px;
+        height: 45px;
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 577px) {
+    #scrollTopBtn, #scrollBottomBtn {
+        width: 50px;
+        height: 50px;
+        font-size: 16px;
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.bounce {
+    animation: bounce 1s ease-in-out;
+}
+
+/* Smooth fade out */
+#scroll-buttons.fade-out {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: none;
+}
+
+#scroll-buttons.fade-in {
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: auto;
+}

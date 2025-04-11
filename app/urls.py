@@ -15,6 +15,7 @@ urlpatterns = [
     path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
 
     path('create-exam/', create_exam_page, name='create_exam'),
+    path('schedule-exams/', schedule_recent_exams, name='auto_schedule_exams'),
     path('exam/<int:exam_id>/<int:question_number>/', subscription_required(views.exam), name='exam'),
     path('exam-results/<int:user_exam_id>/', subscription_required(views.exam_results), name='exam_results'),
 

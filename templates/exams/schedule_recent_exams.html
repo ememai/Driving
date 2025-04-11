@@ -1,0 +1,10 @@
+<!-- templates/schedule_button.html -->
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Auto Schedule Exams</h2>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">📅 Auto Schedule 10 Recent Exams</button>
+  </form>
+{% endblock %}
