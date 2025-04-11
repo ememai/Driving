@@ -520,7 +520,7 @@ def base_view(request):
 
 @login_required(login_url='login')
 @staff_member_required
-def create_ibivanze_exam_page(request):
+def create_exam_page(request):
     if request.method == 'POST':
         try:
             exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
@@ -528,12 +528,12 @@ def create_ibivanze_exam_page(request):
 
             if questions.count() < 20:
                 messages.error(request, "Not enough questions to create the exam.")
-                return redirect('create_ibivanze_exam')
+                return redirect('create_exam')
 
             exam_name = request.POST.get('exam_name', 'Ibivanze Exam')
             if not exam_name:
                 messages.error(request, "Exam name is required.")
-                return redirect('create_ibivanze_exam')
+                return redirect('create_exam')
             exam = Exam.objects.create(
                 exam_type=exam_type,
                 name=exam_name,
@@ -547,11 +547,11 @@ def create_ibivanze_exam_page(request):
             
 
             messages.success(request, f"Exam '{exam.name}' created successfully!")
-            return redirect('create_ibivanze_exam')
+            return redirect('create_exam')
 
         except Exception as e:
             messages.error(request, f"Error: {str(e)}")
-            return redirect('create_ibivanze_exam')
+            return redirect('create_exam')
 
     # Show last 5 Ibivanze exams
     ibivanze_type = ExamType.objects.filter(name='Ibivanze').first()
@@ -571,7 +571,7 @@ def create_ibivanze_exam_page(request):
         'recent_exams': recent_exams,
         'recent_exam_details': recent_exam_details,
     }
-    return render(request, 'exams/create_ibivanze_exam.html', {
+    return render(request, 'exams/create_exam.html', {
         'recent_exams': recent_exams
     })
 
