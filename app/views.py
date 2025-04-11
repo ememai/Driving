@@ -21,13 +21,14 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_backends
 from django.db.models import Q
 from .authentication import EmailOrPhoneBackend  # Import the custom backend
-from django.utils.timezone import now
+from django.utils.timezone import now, localtime, make_aware
 from django.utils.dateparse import parse_datetime
 from django.http import JsonResponse
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.views import View
 from django.views.decorators.http import require_POST, require_GET
-from datetime import timedelta
+from datetime import datetime, timedelta, time, date
+import random
 from django.urls import reverse
 # ---------------------
 
@@ -521,6 +522,11 @@ def base_view(request):
 @login_required(login_url='login')
 @staff_member_required
 def create_exam_page(request):
+    
+    now = localtime(timezone.now())
+    start = now.replace(hour=7, minute=0, second=0, microsecond=0)
+    end = now.replace(hour=18, minute=59, second=59, microsecond=999999)
+    
     if request.method == 'POST':
         try:
             exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
@@ -529,11 +535,12 @@ def create_exam_page(request):
             if questions.count() < 20:
                 messages.error(request, "Not enough questions to create the exam.")
                 return redirect('create_exam')
-
-            exam_name = request.POST.get('exam_name', 'Ibivanze Exam')
-            if not exam_name:
-                messages.error(request, "Exam name is required.")
-                return redirect('create_exam')
+           
+            exam_name = None
+            for hour in range(start.hour, end.hour):                                
+                exam_name = f"{hour}:00"
+               
+                
             exam = Exam.objects.create(
                 exam_type=exam_type,
                 name=exam_name,
@@ -564,9 +571,7 @@ def create_exam_page(request):
         recent_exam_details.append({
             'questions': questions_order
         })
-    # print("Recent exams:", recent_exams)
-    print("Recent exam questions:", recent_exam_details)
-    
+   
     context = {
         'recent_exams': recent_exams,
         'recent_exam_details': recent_exam_details,
@@ -574,6 +579,40 @@ def create_exam_page(request):
     return render(request, 'exams/create_exam.html', {
         'recent_exams': recent_exams
     })
+
+
+@staff_member_required
+def schedule_recent_exams(request):
+    """
+    Schedule 10 most recent exams (7 a.m to 5 p.m) randomly, only on POST request.
+    """
+    if request.method == 'POST':
+        # Filter the most recent 10 exams that are for scheduling and not already scheduled
+        recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:10]
+        today = timezone.localtime(timezone.now()).date()
+
+        used_hours = set()
+        for exam in recent_exams:
+            while True:
+                random_hour = random.randint(7, 17)
+                if random_hour not in used_hours:
+                    used_hours.add(random_hour)
+                    break
+
+            scheduled_time = timezone.make_aware(
+                datetime.combine(today, time(hour=int(exam.name.split(":")[0])))
+            )
+
+            # Create or update scheduled exam
+            ScheduledExam.objects.update_or_create(
+                exam=exam,
+                defaults={'scheduled_datetime': scheduled_time}
+            )
+
+        messages.success(request, "✅ 10 recent exams have been scheduled successfully!")
+        return redirect('auto_schedule_exams')  # Or redirect to a success page
+
+    return render(request, 'exams/schedule_recent_exams.html')
 
 # ---------------------
 #404 Error Page
