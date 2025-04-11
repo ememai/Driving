@@ -455,6 +455,8 @@ class ScheduledExam(models.Model):
             return False
 
         return self.scheduled_datetime <= timezone.now()
+    
+    
 
 
     def save(self, *args, **kwargs):

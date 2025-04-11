@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>Create Ibivanze Exam</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="POST" class="mb-4">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="exam_name" class="form-label">Exam Name</label>
+      <input type="text" class="form-control" id="exam_name" name="exam_name" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Ibivanze Exam</button>
+  </form>
+
+  <h4>Recent Ibivanze Exams</h4>
+  {% if recent_exams %}
+    <ul class="list-group">
+      {% for exam in recent_exams %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          
+          <div class="d-flex gap-2 flex-column flex-md-row align-items-start " style="width: 20%;">
+          <span>{{ exam.name }}</span>
+          <span> ({{ exam.total_questions }} q) </span>
+          </div>
+          {% comment %} <a href="#" class="btn btn-info btn-sm">View</a>
+          <a href="#" class="btn btn-danger btn-sm">Delete</a> {% endcomment %}
+          <div>
+            <strong>Questions:</strong>
+            <ul class="rmb-0 list-unstyled d-flex gap-2 flex-wrap">
+              {% for question in exam.questions.all|dictsort:"order" %}
+                <li>Q{{ question.order }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          
+          <small class="text-muted">{{ exam.created_at|date:"d M Y, H:i" }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No recent Ibivanze exams found.</p>
+  {% endif %}
+</div>
+{% endblock %}
