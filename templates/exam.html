@@ -34,7 +34,7 @@
              aria-valuenow="{{ question_number }}" 
              aria-valuemin="0" 
              aria-valuemax="{{ total_questions }}">
-         <strong class="fs-6"> Ikibazo {{ question_number }} / {{ total_questions }}</strong>
+         {% comment %} <strong class="fs-6"> Ikibazo {{ question_number }} / {{ total_questions }}</strong> {% endcomment %}
         </div>
       </div>
     </div>
@@ -75,6 +75,11 @@
     main {
       padding-top: 50px;
     }
+
+    .q-sign {
+      max-width: 70vw;
+      height: auto;
+    }
   }
 
 
@@ -96,7 +101,7 @@
 
     {% if question.question_sign %}
             <div class="mt-2 mb-4 text-center ">
-              <img src="{{ question.question_sign.sign_image.url }}" alt="Question Image" class="img-thumbnail " style="max-width: 50vw; height: auto;">
+              <img src="{{ question.question_sign.sign_image.url }}" alt="Question Image" class="img-thumbnail q-sign">
             </div>
     {% endif %}
 
