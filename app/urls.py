@@ -14,7 +14,7 @@ urlpatterns = [
     path("ibibazo-byo-mubwoko-/<str:exam_type>/", exams_by_type, name='exams'),
     path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
 
-    path('create-ibivanze-exam/', create_ibivanze_exam_page, name='create_exam'),
+    path('create-exam/', create_exam_page, name='create_exam'),
     path('exam/<int:exam_id>/<int:question_number>/', subscription_required(views.exam), name='exam'),
     path('exam-results/<int:user_exam_id>/', subscription_required(views.exam_results), name='exam_results'),
 
