@@ -230,7 +230,7 @@ class ExamAdmin(admin.ModelAdmin):
     list_display = ('exam_type', 'name', 'total_questions','for_scheduling', 'created_at', 'updated_at')
     
     list_editable = ('for_scheduling',)
-    list_per_page = 20
+    list_per_page = 10
     search_fields = ('exam_type',)
     filter_horizontal = ('questions',)
     # Use different forms for add vs change
@@ -333,7 +333,7 @@ class ScheduledExamAdmin(admin.ModelAdmin):
     list_display = ('exam', 'scheduled_datetime','updated_datetime', 'is_published')
     ordering = ('scheduled_datetime',)
     actions = ['publish_exam']
-
+ 
     def publish_exam(self, request, queryset):
         for scheduled_exam in queryset:
             scheduled_exam.publish()

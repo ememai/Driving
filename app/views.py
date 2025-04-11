@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-
+from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.timezone import now
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -519,26 +519,62 @@ def base_view(request):
 
 
 @login_required(login_url='login')
-def create_exam(request):
-    
-    if not request.user.is_superuser:
-        return render(request, '404.html',status=404)
-    
+@staff_member_required
+def create_ibivanze_exam_page(request):
     if request.method == 'POST':
-        exam_type = request.POST.get('exam_type')
         try:
-            # Create exam using the manager method
-            exam = Exam.objects.create_random_exam(exam_type)  # Removed exam_id
-            messages.success(request, f"Successfully created {exam.get_title_display()} exam!")
-            return redirect('exam_detail', exam_id=exam.id)  # Using Django's auto-created ID
-        except ValueError as e:
-            messages.error(request, str(e))
-            return redirect('create_exam')
+            exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
+            questions = Question.objects.order_by('?')[:20]
+
+            if questions.count() < 20:
+                messages.error(request, "Not enough questions to create the exam.")
+                return redirect('create_ibivanze_exam')
+
+            exam_name = request.POST.get('exam_name', 'Ibivanze Exam')
+            if not exam_name:
+                messages.error(request, "Exam name is required.")
+                return redirect('create_ibivanze_exam')
+            exam = Exam.objects.create(
+                exam_type=exam_type,
+                name=exam_name,
+                duration=20,
+                for_scheduling=True,
+                is_active=False,
+            )
+            exam.questions.set(questions)
+            exam.save()
+            questions_list = list(questions.values_list('id', flat=True))
+            
+
+            messages.success(request, f"Exam '{exam.name}' created successfully!")
+            return redirect('create_ibivanze_exam')
+
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+            return redirect('create_ibivanze_exam')
+
+    # Show last 5 Ibivanze exams
+    ibivanze_type = ExamType.objects.filter(name='Ibivanze').first()
+    recent_exams = Exam.objects.filter(exam_type=ibivanze_type).order_by('-created_at')[:10]
+    recent_exam_details = []
+    for exam in recent_exams:
+        
+        questions = exam.questions.all()
+        questions_order = list(questions.values_list('order', flat=True))
+        recent_exam_details.append({
+            'questions': questions_order
+        })
+    # print("Recent exams:", recent_exams)
+    print("Recent exam questions:", recent_exam_details)
     
-    return render(request, 'create_exam.html', {
-        'exam_types': ['Ibimenyetso', 'Ibyapa']
+    context = {
+        'recent_exams': recent_exams,
+        'recent_exam_details': recent_exam_details,
+    }
+    return render(request, 'exams/create_ibivanze_exam.html', {
+        'recent_exams': recent_exams
     })
-  
+
 # ---------------------
 #404 Error Page
 def custom_page_not_found(request, exception):
