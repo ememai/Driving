@@ -523,9 +523,6 @@ def base_view(request):
 @staff_member_required
 def create_exam_page(request):
     
-    now = localtime(timezone.now())
-    start = now.replace(hour=7, minute=0, second=0, microsecond=0)
-    end = now.replace(hour=18, minute=59, second=59, microsecond=999999)
     
     if request.method == 'POST':
         try:
@@ -536,9 +533,22 @@ def create_exam_page(request):
                 messages.error(request, "Not enough questions to create the exam.")
                 return redirect('create_exam')
            
-            exam_name = None
-            for hour in range(start.hour, end.hour):                                
-                exam_name = f"{hour}:00"
+            # Determine next available hour for exam name
+            last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
+
+            if last_exam and last_exam.name:
+                try:
+                    last_hour = int(last_exam.name.split(":")[0])
+                    next_hour = last_hour + 1
+                    if next_hour > 17:
+                        next_hour = 7
+                except ValueError:
+                    next_hour = 7
+            else:
+                next_hour = 7
+
+            exam_name = f"{next_hour}:00"
+
                
                 
             exam = Exam.objects.create(
