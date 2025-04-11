@@ -47,7 +47,7 @@
             required
           />
           <button type="button" id="togglePassword" class="toggle-button">
-            <i class="bi bi-eye d-flex pb-3"></i>
+            <i class="bi bi-eye d-flex pb-3 text-theme"></i>
           </button>
         </div>
 
@@ -60,7 +60,9 @@
         <span class="fs-6"> Uri mushya?</span>
         <span class="gap-2 d-flex justify-content-center align-items-center">
           <a href="{% url 'register' %}" class="cy-link border-bottom border-info shadow-sm py-0">HANGA KONTI</a>
-          <i class="bi bi-person-plus fs-3"></i>
+          <a href="{% url 'register' %}" class="text-info">
+            <i class="bi bi-person-plus fs-3"></i>
+          </a>
         </span>
       </p>
     </div>

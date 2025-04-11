@@ -3,31 +3,39 @@
 
 <style>
 
-  .container {
-    max-width: 100vw;
-   }
+  
   .hero-container {
     display: flex;
     min-height: 50vh;
     align-items: center;
     padding: 2rem;
 
-    @media (min-width: 768px) {
+    @media () {
      
     }
     background: linear-gradient(
-    135deg,
-    #000000 ,
-    #0d6efd 
+    180deg,
+rgb(0, 2, 19) ,
+rgb(2, 42, 101) 
   ); 
 
-  
-  {% comment %} color: white; {% endcomment %}
+   {% comment %} color: white; {% endcomment %}
     
     position: relative;
     overflow: hidden;
   }
 
+  [data-bs-theme="light"]  { 
+    
+    .hero-container {
+    background: linear-gradient(
+      180deg,
+      rgb(144, 145, 148) ,
+      rgb(208, 209, 210) 
+    );
+    color: black !important;
+  }
+}
   .hero-container::before {
     content: "";
     position: absolute;
@@ -45,12 +53,13 @@
     flex: 1;
     padding: 2rem;
     max-width: 600px;
+    margin: auto 0;
   }
 
   .action-panel {
     flex: 1;
     display: flex;
-    justify-content: center;
+    {% comment %} justify-content: center; {% endcomment %}
     align-items: center;
     
   }
@@ -170,11 +179,11 @@
 
 <div class="hero-container py-3 border-theme">
   <div class="hero-content ">
-    <h3 class="display-3 d-none d-md-block fw-bold mb-0 text-center text-light">
+    <h3 class="display-3 d-none d-md-block fw-bold mb-0 text-center text-theme">
        Kigali Driving School
     </h3>   
   </div>
-  <h5 class="d-block d-md-none fw-bold mb-0 text-light text-center">
+  <h5 class="d-block d-md-none fw-bold mb-0 text-theme text-center">
     {% if not user.is_authenticated %} Ikaze muri 
     {% endif %}
     <span id='kds'></span>
@@ -184,13 +193,16 @@
       {% if not user.is_authenticated %}
       <style>
         .welcome-card {
-         width:50%;
+         width:80%;
         }
         @media (max-width: 768px) {
           .welcome-card {
             width: 100%;
           }
         }
+        .container {
+          max-width: 800px;
+         }
       </style>
       <div class="auth-buttons">
         <a class="btn btn-success btn-auth" href="/register/">Hanga Konti</a>
