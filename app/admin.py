@@ -334,6 +334,7 @@ class PlanAdmin(admin.ModelAdmin):
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
+    form = SubscriptionForm
     list_display = ('user', 'plan', 'price', 'active_subscription', 'expires_at')
     search_fields = ('user__email', 'plan__plan')
     ordering = ('expires_at',)

@@ -180,6 +180,16 @@ class Subscription(models.Model):
     @property
     def active_subscription(self):
         """Check if the subscription is active."""
+        if self.plan and self.plan.plan == "Daily":
+            self.duration_days = 1
+            self.price = 500
+        elif self.plan and self.plan.plan == "Weekly":
+            self.duration_days = 7
+            self.price = 2000
+        elif self.plan and self.plan.plan == "Monthly":
+            self.duration_days = 30
+            self.price = 5000
+        
             
         if self.duration_days:
             self.expires_at = timezone.now().date() + timezone.timedelta(days=self.duration_days)
@@ -187,9 +197,8 @@ class Subscription(models.Model):
         if self.expires_at and self.expires_at >= timezone.now().date():
             return True
         elif self.super_subscription:
-            self.plan = Plan.objects.get(plan="Super")
             self.expires_at = None
-            self.price = 15000
+            self.price = "Undefined"
             return True
         # else:
         #     return False

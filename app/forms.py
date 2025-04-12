@@ -423,3 +423,9 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
             instance.save()
             self.save_m2m()
         return instance
+
+
+class SubscriptionForm(forms.ModelForm):
+    class Meta:
+        model = Subscription
+        fields = ['user','plan', 'super_subscription', ]
