@@ -12,6 +12,8 @@ def profile_view(request):
     user = request.user
     notifications = Notification.objects.filter(user=user).order_by('-timestamp')
     exam_history = user.userexam_set.all().order_by('-completed_at')
+    pass_exams = user.userexam_set.filter(score__gte=12)
+    fail_exams = user.userexam_set.filter(score__lt=12)
     activities = user.useractivity_set.all().order_by('-timestamp')[:10]  # last 10 activities
 
     context = {
@@ -19,6 +21,8 @@ def profile_view(request):
         'notifications': notifications,
         'exam_history': exam_history,
         'activities': activities,
+        'pass_exams': pass_exams,
+        'fail_exams': fail_exams
     }
     return render(request, 'profile.html', context)
 

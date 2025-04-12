@@ -416,10 +416,16 @@ class Exam(models.Model):
         ordering = ['-created_at']
         verbose_name = "Exam"
         verbose_name_plural = "All Exams"
+        
+        
 
     @property
     def total_questions(self):
         return self.questions.count()
+    
+    @property
+    def total_score(self):
+        return self.total_questions
     
     # def remaining_attempts(self, user):
     #     attempts = UserExam.objects.filter(user=user, exam=self).count()
@@ -505,6 +511,11 @@ class UserExam(models.Model):
     class Meta:
         unique_together = ('user', 'exam')
 
+    @property
+    def percent_score(self):
+        if self.exam.total_questions > 0:
+            return (self.score / self.exam.total_score) * 100
+        return 0
 
     def save(self, *args, **kwargs):
         if not self.user.is_subscribed:

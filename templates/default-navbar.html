@@ -142,11 +142,13 @@
                     onerror="this.src='{% static 'img/default-avatar.png' %}'"
                   />
                   {% endcomment %} {% comment %} {% else %} {% endcomment %}
-                  <i class="bi bi-person-circle fs-3"></i>
+                  <a href="{% url "profile" %}"><i class="bi bi-person-circle fs-3"></i></a>
                   {% comment %} {% endif %} {% endcomment %}
                   <div class="text-truncate">
                     <div class="fw-bold">
-                      {{ user.name|default:"User"|escape }}
+                     <a  href="{% url "profile" %}">
+                       {{ user.name|default:"User"|escape }}
+                     </a>
                     </div>
                     <div class="small text-muted text-truncate">
                       {{ user.email|default:user.phone_number|escape }}
@@ -159,12 +161,17 @@
                 {% if user.is_subscribed %}
 
                 <a
-                  class="btn btn-success px-1 py-0 mx-2 rounded-pill d-flex d-md-none"
+                  class="btn btn-success px-1 py-0 mx-2 rounded-pill d-flex justify-content-center d-md-none"
                   href="{% url 'subscription' %}"
                   role="button"
                   style="font-size: 13px"
                 >
-                  Ifatabuguzi : {{ user.subscription.plan.get_plan_display|default:"None" }}
+                  Ifatabuguzi : 
+                  {%if user.subscription.super_subscription %} (Rihoraho)
+                  
+                  {% else %}
+                  {{ user.subscription.plan.get_plan_display|default:"None" }}
+                  {% endif %}
                 </a>
                 
                 {% endif %}

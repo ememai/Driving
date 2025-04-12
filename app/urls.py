@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views, user_profile_view
+from .user_profile_view import profile_view
 from .views import *
 from .decorators import subscription_required
 from .api import get_questions_for_exam_type
@@ -43,7 +44,7 @@ urlpatterns = [
     path('logout/', views.user_logout, name='logout'),  
     
     #user profile
-    path('profile/', user_profile_view.profile_view, name='profile'),
+    path('profile/', profile_view, name='profile'),
     path('mark-notification-read/', user_profile_view.mark_notification_read, name='mark_notification_read'),
     
     path('privacy-policy/', views.PrivacyPolicyView.as_view(), name='privacy_policy'),

@@ -1,61 +1,43 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}My Profile - Kigali Driving School{% endblock %}
+{% block title %}{{request.user.name}} - Kigali Driving School{% endblock %}
 
 {% block content %}
-<div class="profile-container">
+<style>
+  .hours{
+    display: None;
+  }
+</style>
+
+<div class="profile-container border">
 
   <!-- Profile Header -->
   <div class="card mb-4">
-    <div class="card-body d-flex align-items-center">
-      <img src="{{ user.profile_picture.url|default:'/static/img/default-avatar.png' }}" 
-           alt="Profile Picture" 
-           class="rounded-circle me-3" 
-           style="width: 100px; height: 100px; object-fit: cover;">
+    <div class="card-body d-flex gap-3 align-items-center">
+      <i class="bi bi-person-circle fs-1"></i>
       <div>
         <h3>{{ user.name }}</h3>
         <p>
-          {% if user.email %}Email: {{ user.email }}{% endif %}
-          {% if user.phone_number %} | Phone: {{ user.phone_number }}{% endif %}
+          {% if user.email %}Email: {{ user.email }} {% endif %}
+          {% if user.phone_number %} Phone: {{ user.phone_number }}{% endif %}
         </p>
       </div>
-      <div class="ms-auto">
+      {% comment %} <div class="ms-auto">
          <a href="#" class="btn btn-dark-yellow">Edit Profile</a>
-      </div>
+      </div> {% endcomment %}
     </div>
   </div>
-
-  <!-- Subscription Details -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h5>Subscription Details</h5>
-    </div>
-    <div class="card-body">
-      {% if user.subscription %}
-        <p>Status: <strong>{% if user.is_subscribed %}Active{% else %}Inactive{% endif %}</strong></p>
-        <p>Plan: {{ user.subscription.plan.plan }}</p>
-        <p>Expires: {% if user.subscription.expires_at %}{{ user.subscription.expires_at|date:"M d, Y" }}{% else %}N/A{% endif %}</p>
-        {% if not user.is_subscribed %}
-          <a href="{% url 'subscribe' %}" class="btn btn-dark-yellow">Subscribe Now</a>
-        {% endif %}
-      {% else %}
-        <p>You do not have an active subscription.</p>
-        <a href="{% url 'subscribe' %}" class="btn btn-dark-yellow">Subscribe Now</a>
-      {% endif %}
-    </div>
-  </div>
-
   <!-- Tabbed Sections for Exam History, Recent Activity, and Notifications -->
-  <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+  <ul class="nav nav-tabs d-flex flex-nowrap mb-0" id="profileTabs" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="exams-tab" data-bs-toggle="tab" data-bs-target="#exams" type="button" role="tab" aria-controls="exams" aria-selected="true">Exam History</button>
+      <button class="nav-link active fw-bold" id="exams-tab" data-bs-toggle="tab" data-bs-target="#exams" type="button" role="tab" aria-controls="exams" aria-selected="true">Ibizamini wakoze({{exam_history.count}})</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab" aria-controls="activity" aria-selected="false">Recent Activity</button>
+      <button class="nav-link fw-bold" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab" aria-controls="activity" aria-selected="false">Ibizamini watsinze({{pass_exams.count}})</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab" aria-controls="notifications" aria-selected="false">Notifications</button>
+      <button class="nav-link fw-bold" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab" aria-controls="notifications" aria-selected="false">Ibizamini watsinzwe({{fail_exams.count}})</button>
     </li>
   </ul>
   <div class="tab-content" id="profileTabsContent">
@@ -64,52 +46,59 @@
       {% if exam_history %}
         <ul class="list-group">
           {% for exam in exam_history %}
-            <li class="list-group-item">
-              <strong>{{ exam.exam.title }}</strong> - Score: {{ exam.score }}<br>
-              Completed at: {{ exam.completed_at|date:"M d, Y H:i" }}
+            <li class="list-group-item pb-5">
+              <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
+              <h3 >Wagikoze:   {{ exam.completed_at|date:"d/m/Y H:i" }}</h3>
+              <strong>Amanota wagize: {{ exam.score }} / {{exam.exam.total_score}}</strong><br>
+              <strong>Ijanisha: {{ exam.percent_score }}%</strong><br>
+              <a href="{% url "exam_results" exam.id %}" class="btn btn-outline-info"><i class="bi bi-eye">Reba cyose</i></a>
             </li>
           {% endfor %}
         </ul>
       {% else %}
-        <p>No exams taken yet.</p>
+        <p>Nta kizamini urakora.</p>
       {% endif %}
     </div>
     <!-- Recent Activity Tab -->
     <div class="tab-pane fade" id="activity" role="tabpanel" aria-labelledby="activity-tab">
-      {% if activities %}
-        <ul class="list-group">
-          {% for activity in activities %}
-            <li class="list-group-item">
-              {{ activity.activity_type }}: {{ activity.details }}<br>
-              <small>{{ activity.timestamp|date:"M d, Y H:i" }}</small>
+      {% if pass_exams %}
+      <ul class="list-group">
+          
+          {% for exam in pass_exams %}
+            <li class="list-group-item pb-5">
+              <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
+              <h3 >Wagikoze:   {{ exam.completed_at|date:"d/m/Y H:i" }}</h3>
+              <strong>Amanota wagize: {{ exam.score }} / {{exam.exam.total_score}}</strong><br>
+              <strong>Ijanisha: {{ exam.percent_score }}%</strong><br>
+              <a href="{% url "exam_results" exam.id %}" class="btn btn-outline-info">
+                <i class="bi bi-eye">Reba cyose</i></a>
             </li>
           {% endfor %}
         </ul>
       {% else %}
-        <p>No recent activity.</p>
+        <p>Ntakizamini uratsinda.</p>
       {% endif %}
     </div>
     <!-- Notifications Tab -->
     <div class="tab-pane fade" id="notifications" role="tabpanel" aria-labelledby="notifications-tab">
-      {% if notifications %}
+      {% if fail_exams %}
         <ul class="list-group" id="notificationList">
-          {% for notif in notifications %}
-            <li class="list-group-item d-flex justify-content-between align-items-center {% if not notif.is_read %}bg-light{% endif %}" data-id="{{ notif.id }}">
-              <span>
-                {{ notif.message }}<br>
-                <small class="text-muted">{{ notif.timestamp|date:"M d, Y H:i" }}</small>
-              </span>
-              {% if not notif.is_read %}
-                <button class="btn btn-sm btn-outline-primary mark-read-btn">Mark as Read</button>
-              {% endif %}
-            </li>
+          {% for exam in fail_exams %}
+          <li class="list-group-item pb-5">
+            <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
+            <h3 >Wagikoze:   {{ exam.completed_at|date:"d/m/Y H:i" }}</h3>
+            <strong>Amanota wagize: {{ exam.score }} / {{exam.exam.total_score}}</strong><br>
+              <strong>Ijanisha: {{ exam.percent_score }}%</strong><br>
+            <a href="{% url "exam_results" exam.id %}" class="btn btn-outline-info">
+              <i class="bi bi-eye"></i>Reba cyose</a>
+          </li>
           {% endfor %}
         </ul>
       {% else %}
         <p>No notifications.</p>
       {% endif %}
     </div>
-  </div>
+  </div>  
 </div>
 {% endblock %}
 

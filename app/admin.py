@@ -6,7 +6,6 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import format_html
 from django.contrib.admin import AdminSite
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 from django.db.models import Count
 from django.utils.timezone import now, make_aware
