@@ -141,6 +141,11 @@ class UserProfile(AbstractUser):
 
     def verify_otp(self, otp):
         return self.otp_code == otp
+    
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "All Accounts" 
+        
 
     def __str__(self):
         return self.email if self.email else f"{self.name} - {self.phone_number}"
@@ -210,6 +215,10 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.user.name} - {self.status}"
+    
+    class Meta:
+        verbose_name = "User Payment"
+        verbose_name_plural = "User Payments"
 
 class SignType(models.Model):
     name = models.CharField(max_length=50)
@@ -394,6 +403,10 @@ class Exam(models.Model):
     # max_attempts = models.PositiveIntegerField(default=1)
     objects = ExamManager()
     
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Exam"
+        verbose_name_plural = "All Exams"
 
     @property
     def total_questions(self):
@@ -405,43 +418,6 @@ class Exam(models.Model):
 
     def __str__(self):
         return f"{self.schedule_hour.strftime('%H:%M') if self.schedule_hour else 'No Hour'} / {self.updated_at.strftime('%d.%m.%Y')} - {self.exam_type.name if self.exam_type else 'None'}"
-
-
-class UserExam(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
-    score = models.IntegerField(default=0)
-    started_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        unique_together = ('user', 'exam')
-
-
-    def save(self, *args, **kwargs):
-        if not self.user.is_subscribed:
-            raise ValidationError(
-                "Umukoresha ntabwo yishyuye kugirango akore ijazo."
-            )
-        if self.completed_at and self.completed_at < timezone.now() - timedelta(hours=24):
-            raise ValidationError(
-                "You cannot modify exams older than 24 hours"
-            )
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.exam.exam_type}"
-
-
-class UserExamAnswer(models.Model):
-    user_exam = models.ForeignKey(UserExam, on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    selected_choice_number = models.PositiveSmallIntegerField(
-        choices=Question.QUESTION_CHOICES, verbose_name="Selected Choice Number", null=True, blank=True
-    )
-
-    def __str__(self):
-        return f"{self.user_exam.user.username} - {self.question.question_text[:50]} - Choice {self.selected_choice_number}"
 
 
 class ScheduledExam(models.Model):
@@ -497,6 +473,55 @@ class ScheduledExam(models.Model):
         return f"Scheduled: {self.exam.exam_type} at {self.scheduled_datetime}"
 
 
+class TodayExam(ScheduledExam):
+    class Meta:
+        proxy = True
+        verbose_name = "Exam for Today"
+        verbose_name_plural = "Exams Of Today"
+
+class UnscheduledExam(Exam):
+    class Meta:
+        proxy = True
+        verbose_name = "Exam By Type"
+        verbose_name_plural = "Exams By Types"
+
+
+class UserExam(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    score = models.IntegerField(default=0)
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'exam')
+
+
+    def save(self, *args, **kwargs):
+        if not self.user.is_subscribed:
+            raise ValidationError(
+                "Umukoresha ntabwo yishyuye kugirango akore ijazo."
+            )
+        if self.completed_at and self.completed_at < timezone.now() - timedelta(hours=24):
+            raise ValidationError(
+                "You cannot modify exams older than 24 hours"
+            )
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.exam.exam_type}"
+
+
+class UserExamAnswer(models.Model):
+    user_exam = models.ForeignKey(UserExam, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    selected_choice_number = models.PositiveSmallIntegerField(
+        choices=Question.QUESTION_CHOICES, verbose_name="Selected Choice Number", null=True, blank=True
+    )
+
+    def __str__(self):
+        return f"{self.user_exam.user.username} - {self.question.question_text[:50]} - Choice {self.selected_choice_number}"
+
 
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
@@ -504,6 +529,10 @@ class ContactMessage(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name = "Message"
+        verbose_name_plural = "User Messages"
+    
     def __str__(self):
         return f"Message from {self.name} ({self.email})"
 
@@ -527,4 +556,8 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}"
+    
+    class Meta:
+        verbose_name = "User Notification"
+        verbose_name_plural = "User Notifications"
 
