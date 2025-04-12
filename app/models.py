@@ -516,6 +516,16 @@ class UserExam(models.Model):
         if self.exam.total_questions > 0:
             return (self.score / self.exam.total_score) * 100
         return 0
+    @property
+    def is_passed(self):
+        return 'Watsinze' if self.score >= 12 else 'Watsinzwe'
+    
+    @property
+    def time_taken(self):
+        if self.completed_at:
+            return int((self.completed_at - self.started_at).total_seconds() / 60)  # Convert to minutes
+        return 0
+
 
     def save(self, *args, **kwargs):
         if not self.user.is_subscribed:

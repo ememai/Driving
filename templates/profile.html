@@ -5,9 +5,10 @@
 
 {% block content %}
 <style>
-  .hours{
+  .hours {
     display: None;
   }
+
 </style>
 
 <div class="profile-container border">
@@ -24,94 +25,141 @@
         </p>
       </div>
       {% comment %} <div class="ms-auto">
-         <a href="#" class="btn btn-dark-yellow">Edit Profile</a>
+        <a href="#" class="btn btn-dark-yellow">Edit Profile</a>
       </div> {% endcomment %}
     </div>
   </div>
   <!-- Tabbed Sections for Exam History, Recent Activity, and Notifications -->
   <ul class="nav nav-tabs d-flex flex-nowrap mb-0" id="profileTabs" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active fw-bold" id="exams-tab" data-bs-toggle="tab" data-bs-target="#exams" type="button" role="tab" aria-controls="exams" aria-selected="true">Ibizamini wakoze({{exam_history.count}})</button>
+      <button class="nav-link active fw-bold" id="exams-tab" data-bs-toggle="tab" data-bs-target="#exams" type="button"
+        role="tab" aria-controls="exams" aria-selected="true">Ibizamini wakoze({{exam_history.count}})</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link fw-bold" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab" aria-controls="activity" aria-selected="false">Ibizamini watsinze({{pass_exams.count}})</button>
+      <button class="nav-link fw-bold" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button"
+        role="tab" aria-controls="activity" aria-selected="false">Ibizamini watsinze({{pass_exams.count}})</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link fw-bold" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab" aria-controls="notifications" aria-selected="false">Ibizamini watsinzwe({{fail_exams.count}})</button>
+      <button class="nav-link fw-bold" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications"
+        type="button" role="tab" aria-controls="notifications" aria-selected="false">Ibizamini
+        watsinzwe({{fail_exams.count}})</button>
     </li>
   </ul>
   <div class="tab-content" id="profileTabsContent">
     <!-- Exam History Tab -->
     <div class="tab-pane fade show active" id="exams" role="tabpanel" aria-labelledby="exams-tab">
       {% if exam_history %}
-        <ul class="list-group">
-          {% for exam in exam_history %}
-            <li class="list-group-item pb-5">
-              <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
-              <h3 >Wagikoze:   {{ exam.completed_at|date:"d/m/Y H:i" }}</h3>
-              <strong>Amanota wagize: {{ exam.score }} / {{exam.exam.total_score}}</strong><br>
-              <strong>Ijanisha: {{ exam.percent_score }}%</strong><br>
-              <a href="{% url "exam_results" exam.id %}" class="btn btn-outline-info"><i class="bi bi-eye">Reba cyose</i></a>
+      <ul class="list-group">
+        {% for exam in exam_history %}
+        <li class="list-group-item pb-5">
+          <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
+          <a href="{% url "exam_results" exam.id %}" class="text-decoration-none text-theme">
+          <ul class="">
+            <li>
+              <h5>Wagikoze: {{ exam.completed_at|date:"d/m/Y H:i" }}</h5>
             </li>
-          {% endfor %}
-        </ul>
+            <li>
+              <h5>Amanota wagize: {{ exam.score }} / {{exam.exam.total_score}}</h5>
+            </li>
+
+            <li>
+              <h5>Ijanisha: {{ exam.percent_score }}%</h5>
+            </li>
+            <li>
+              <h5>Igihe wakorejeshe: Iminota({{ exam.time_taken }})</h5>
+            </li>
+            <a href="{% url "exam_results" exam.id %}" class="btn btn-outline-info">
+              <i class="bi bi-eye"></i>Reba cyose</a>
+          </ul>
+        </a>
+        </li>
+        {% endfor %}
+      </ul>
       {% else %}
-        <p>Nta kizamini urakora.</p>
+      <p>Nta kizamini urakora.</p>
       {% endif %}
     </div>
     <!-- Recent Activity Tab -->
     <div class="tab-pane fade" id="activity" role="tabpanel" aria-labelledby="activity-tab">
       {% if pass_exams %}
       <ul class="list-group">
-          
-          {% for exam in pass_exams %}
-            <li class="list-group-item pb-5">
-              <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
-              <h3 >Wagikoze:   {{ exam.completed_at|date:"d/m/Y H:i" }}</h3>
-              <strong>Amanota wagize: {{ exam.score }} / {{exam.exam.total_score}}</strong><br>
-              <strong>Ijanisha: {{ exam.percent_score }}%</strong><br>
-              <a href="{% url "exam_results" exam.id %}" class="btn btn-outline-info">
-                <i class="bi bi-eye">Reba cyose</i></a>
+
+        {% for exam in pass_exams %}
+        <li class="list-group-item pb-5">
+          <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
+          <a href="{% url "exam_results" exam.id %}" class="text-decoration-none text-theme">
+          <ul class="">
+            <li>
+              <h5>Wagikoze: {{ exam.completed_at|date:"d/m/Y H:i" }}</h5>
             </li>
-          {% endfor %}
-        </ul>
+            <li>
+              <h5>Amanota wagize: {{ exam.score }} / {{exam.exam.total_score}}</h5>
+            </li>
+
+            <li>
+              <h5>Ijanisha: {{ exam.percent_score }}%</h5>
+            </li>
+            <li>
+              <h5>Igihe wakorejeshe: Iminota({{ exam.time_taken }})</h5>
+            </li>
+            <a href="{% url "exam_results" exam.id %}" class="btn btn-outline-info">
+              <i class="bi bi-eye"></i>Reba cyose</a>
+          </ul>
+        </a>
+        </li>
+        {% endfor %}
+      </ul>
       {% else %}
-        <p>Ntakizamini uratsinda.</p>
+      <p>Ntakizamini uratsinda.</p>
       {% endif %}
     </div>
     <!-- Notifications Tab -->
     <div class="tab-pane fade" id="notifications" role="tabpanel" aria-labelledby="notifications-tab">
       {% if fail_exams %}
-        <ul class="list-group" id="notificationList">
-          {% for exam in fail_exams %}
-          <li class="list-group-item pb-5">
-            <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
-            <h3 >Wagikoze:   {{ exam.completed_at|date:"d/m/Y H:i" }}</h3>
-            <strong>Amanota wagize: {{ exam.score }} / {{exam.exam.total_score}}</strong><br>
-              <strong>Ijanisha: {{ exam.percent_score }}%</strong><br>
+      <ul class="list-group" id="notificationList">
+        {% for exam in fail_exams %}
+        <li class="list-group-item pb-5">
+          <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
+          <a href="{% url "exam_results" exam.id %}" class="text-decoration-none text-theme">
+          <ul class="">
+            <li>
+              <h5>Wagikoze: {{ exam.completed_at|date:"d/m/Y H:i" }}</h5>
+            </li>
+            <li>
+              <h5>Amanota wagize: {{ exam.score }} / {{exam.exam.total_score}}</h5>
+            </li>
+
+            <li>
+              <h5>Ijanisha: {{ exam.percent_score }}%</h5>
+            </li>
+            <li>
+              <h5>Igihe wakorejeshe: Iminota({{ exam.time_taken }})</h5>
+            </li>
             <a href="{% url "exam_results" exam.id %}" class="btn btn-outline-info">
               <i class="bi bi-eye"></i>Reba cyose</a>
-          </li>
-          {% endfor %}
-        </ul>
+          </ul>
+        </a>
+        </li>
+        {% endfor %}
+      </ul>
       {% else %}
-        <p>No notifications.</p>
+      <p>No notifications.</p>
       {% endif %}
     </div>
-  </div>  
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     // Listen for "Mark as Read" button clicks on notifications
     const markReadButtons = document.querySelectorAll('.mark-read-btn');
-    markReadButtons.forEach(function(button) {
-      button.addEventListener('click', function() {
+    markReadButtons.forEach(function (button) {
+      button.addEventListener('click', function () {
         const listItem = button.closest('li');
         const notificationId = listItem.getAttribute('data-id');
-        
+
         fetch("{% url 'mark_notification_read' %}", {
           method: 'POST',
           headers: {
@@ -122,15 +170,15 @@
             'notification_id': notificationId
           })
         })
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === 'success') {
-            // Visually update the notification as read
-            listItem.classList.remove('bg-light');
-            button.remove();
-          }
-        })
-        .catch(error => console.error('Error:', error));
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              // Visually update the notification as read
+              listItem.classList.remove('bg-light');
+              button.remove();
+            }
+          })
+          .catch(error => console.error('Error:', error));
       });
     });
   });

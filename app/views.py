@@ -249,6 +249,9 @@ def exam_results(request, user_exam_id):
         'answers': answers,
         'total_questions': user_exam.exam.questions.count(),
         'score': user_exam.score,
+        'time_taken' : user_exam.time_taken,
+        'percentage' : user_exam.percent_score,
+        'decision' : user_exam.is_passed,
     }
     return render(request, 'exam_results.html', context)
 
