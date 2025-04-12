@@ -533,27 +533,30 @@ def create_exam_page(request):
                 messages.error(request, "Not enough questions to create the exam.")
                 return redirect('create_exam')
            
-            # Determine next available hour for exam name
+            # Determine next available hour for exam scheduling
             last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
 
-            if last_exam and last_exam.name:
+            if last_exam and last_exam.schedule_hour:
                 try:
-                    last_hour = int(last_exam.name.split(":")[0])
+                    last_hour = last_exam.schedule_hour.hour
                     next_hour = last_hour + 1
                     if next_hour > 17:
                         next_hour = 7
-                except ValueError:
+                except (ValueError, AttributeError):
                     next_hour = 7
+
             else:
                 next_hour = 7
 
-            exam_name = f"{next_hour}:00"
+            from datetime import time
+            exam_schedule_hour = time(next_hour, 0)
+
 
                
                 
             exam = Exam.objects.create(
                 exam_type=exam_type,
-                name=exam_name,
+                schedule_hour=exam_schedule_hour,
                 duration=20,
                 for_scheduling=True,
                 is_active=False,
@@ -563,7 +566,7 @@ def create_exam_page(request):
             questions_list = list(questions.values_list('id', flat=True))
             
 
-            messages.success(request, f"Exam '{exam.name}' created successfully!")
+            messages.success(request, f"Exam '{exam.schedule_hour}' created successfully!")
             return redirect('create_exam')
 
         except Exception as e:
@@ -598,20 +601,14 @@ def schedule_recent_exams(request):
     """
     if request.method == 'POST':
         # Filter the most recent 10 exams that are for scheduling and not already scheduled
-        recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:10]
+        recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:11]
         today = timezone.localtime(timezone.now()).date()
 
-        used_hours = set()
+        
         for exam in recent_exams:
-            while True:
-                random_hour = random.randint(7, 17)
-                if random_hour not in used_hours:
-                    used_hours.add(random_hour)
-                    break
-
             scheduled_time = timezone.make_aware(
-                datetime.combine(today, time(hour=int(exam.name.split(":")[0])))
-            )
+            datetime.combine(today, time(hour=exam.schedule_hour.hour, minute=0))
+                )
 
             # Create or update scheduled exam
             ScheduledExam.objects.update_or_create(
@@ -619,7 +616,7 @@ def schedule_recent_exams(request):
                 defaults={'scheduled_datetime': scheduled_time}
             )
 
-        messages.success(request, "✅ 10 recent exams have been scheduled successfully!")
+        messages.success(request, "✅ recent exams have been scheduled successfully!")
         return redirect('auto_schedule_exams')  # Or redirect to a success page
 
     return render(request, 'exams/schedule_recent_exams.html')

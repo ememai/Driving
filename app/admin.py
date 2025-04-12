@@ -227,10 +227,11 @@ class ExamTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
-    list_display = ('exam_type', 'name', 'total_questions','for_scheduling', 'created_at', 'updated_at')
+    list_display = ('exam_type','schedule_hour', 'total_questions','for_scheduling', 'created_at', 'updated_at')
     
+    ordering = ('schedule_hour', '-created_at',)
     list_editable = ('for_scheduling',)
-    list_per_page = 10
+    list_per_page = 11
     search_fields = ('exam_type',)
     filter_horizontal = ('questions',)
     # Use different forms for add vs change
@@ -247,7 +248,7 @@ class ExamAdmin(admin.ModelAdmin):
         # Creation fieldsets
         fieldsets = [
             ('Properties', {
-                'fields': ('exam_type','name', 'duration', 'is_active', 'for_scheduling')
+                'fields': ('exam_type','schedule_hour', 'duration', 'is_active', 'for_scheduling')
             })
         ]
         
@@ -273,7 +274,7 @@ class ExamAdmin(admin.ModelAdmin):
         if obj:  # Editing existing exam
             return super().get_fields(request, obj)
         
-        fields = ['exam_type','name', 'duration', 'is_active', 'for_scheduling']
+        fields = ['exam_type','schedule_hour', 'duration', 'is_active', 'for_scheduling']
         
         question_types = ExamType.objects.annotate(
             num_questions=Count('question')

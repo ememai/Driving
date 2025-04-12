@@ -382,7 +382,8 @@ class Exam(models.Model):
     timezone = timezone.now().strftime('%d.%m.%Y %H')
     
     exam_type = models.ForeignKey(ExamType, on_delete=models.SET_NULL, null=True, blank=True )
-    name = models.CharField(max_length=100)
+   
+    schedule_hour = models.TimeField(null=True, blank=True, help_text="Hour when the exam should be published")
     questions = models.ManyToManyField(Question, related_name='exams')
     duration = models.PositiveIntegerField(default=20,help_text="Duration of the exam in minutes")
     for_scheduling = models.BooleanField(default=True)
@@ -403,7 +404,7 @@ class Exam(models.Model):
     #     return self.max_attempts - attempts
 
     def __str__(self):
-        return f"{self.name} / {self.updated_at.strftime('%d.%m.%Y')} - {self.exam_type.name if self.exam_type else 'None'}"
+        return f"{self.schedule_hour.strftime('%H:%M')} / {self.updated_at.strftime('%d.%m.%Y')} - {self.exam_type.name if self.exam_type else 'None'}"
 
 
 class UserExam(models.Model):
