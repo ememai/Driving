@@ -24,7 +24,7 @@ class SignTypeAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
     list_filter = ['name']
-    
+
 
 @admin.register(RoadSign)
 class RoadSignAdmin(admin.ModelAdmin):
@@ -151,7 +151,7 @@ class QuestionAdmin(admin.ModelAdmin):
                     'fields': ('choice4_text', 'choice4_sign'),
                 }),
             )
-            
+
     def question_image_preview(self, obj):
         if obj.question_sign:
             return format_html('<img src="{}" height="100"/>', obj.question_sign.sign_image.url)
@@ -221,15 +221,15 @@ class QuestionAdmin(admin.ModelAdmin):
 class ExamTypeAdmin(admin.ModelAdmin):
     list_display = ['name',]
     search_fields = ['name']
-    ordering = ['order'] 
-    
+    ordering = ['order']
+
 
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('exam_type','schedule_hour', 'total_questions','for_scheduling', 'created_at', 'updated_at')
-    
-    ordering = ('schedule_hour', '-created_at',)
+
+    ordering = ('-created_at',)
     list_editable = ('for_scheduling',)
     list_per_page = 11
     search_fields = ('exam_type',)
@@ -239,24 +239,24 @@ class ExamAdmin(admin.ModelAdmin):
         if obj is None:  # Creating new exam
             return ExamCreationForm
         return super().get_form(request, obj, **kwargs)
-    
+
     # Customize fieldsets only for creation
     def get_fieldsets(self, request, obj=None):
         if obj:  # Editing existing exam - use default
             return super().get_fieldsets(request, obj)
-        
+
         # Creation fieldsets
         fieldsets = [
             ('Properties', {
                 'fields': ('exam_type','schedule_hour', 'duration', 'is_active', 'for_scheduling')
             })
         ]
-        
+
         # Add fieldsets for each question type
         question_types = ExamType.objects.annotate(
             num_questions=Count('question')
         ).filter(num_questions__gt=0).order_by('order')
-        
+
         for q_type in question_types:
             fieldsets.append((
                 f'{q_type.name} Questions',
@@ -266,23 +266,23 @@ class ExamAdmin(admin.ModelAdmin):
                     'description': f"Select {q_type.name} questions for this exam."
                 }
             ))
-        
+
         return fieldsets
 
     # Only show our custom fields during creation
     def get_fields(self, request, obj=None):
         if obj:  # Editing existing exam
             return super().get_fields(request, obj)
-        
+
         fields = ['exam_type','schedule_hour', 'duration', 'is_active', 'for_scheduling']
-        
+
         question_types = ExamType.objects.annotate(
             num_questions=Count('question')
         ).filter(num_questions__gt=0).order_by('order')
-        
+
         for q_type in question_types:
             fields.append(f'questions_{q_type.id}')
-        
+
         return fields
 
     class Media:
@@ -334,7 +334,7 @@ class ScheduledExamAdmin(admin.ModelAdmin):
     list_display = ('exam', 'scheduled_datetime','updated_datetime', 'is_published')
     ordering = ('scheduled_datetime',)
     actions = ['publish_exam']
- 
+
     def publish_exam(self, request, queryset):
         for scheduled_exam in queryset:
             scheduled_exam.publish()
