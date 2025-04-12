@@ -9,7 +9,8 @@ from django.contrib.admin import AdminSite
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 from django.db.models import Count
-
+from django.utils.timezone import now, make_aware
+from datetime import timedelta, datetime
 # Register your models here.
 
 @admin.register(UserProfile)
@@ -229,7 +230,7 @@ class ExamTypeAdmin(admin.ModelAdmin):
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('exam_type','schedule_hour', 'total_questions','for_scheduling', 'created_at', 'updated_at')
     
-    ordering = ('schedule_hour', '-created_at',)
+    ordering = ('-created_at',)
     list_editable = ('for_scheduling',)
     list_per_page = 11
     search_fields = ('exam_type',)
@@ -290,6 +291,34 @@ class ExamAdmin(admin.ModelAdmin):
             'all': ('admin/css/exam_creation.css',)
         }
 
+
+
+@admin.register(TodayExam)
+class TodayExamAdmin(admin.ModelAdmin):
+    list_display = ('exam__exam_type','exam__schedule_hour', 'exam__for_scheduling', 'exam__created_at', 'exam__updated_at')
+    
+    ordering = ('exam__schedule_hour', '-exam__created_at',)
+    list_per_page = 11
+    form = ScheduleExamForm
+    
+
+    def get_queryset(self, request):
+        today = now().date()
+        start = timezone.make_aware(datetime.combine(today, datetime.min.time()))
+        end = timezone.make_aware(datetime.combine(today, datetime.max.time()))
+        return super().get_queryset(request).filter(
+            exam__for_scheduling=True,
+            scheduled_datetime__range=(start, end)
+        )
+
+
+@admin.register(UnscheduledExam)
+class UnscheduledExamsAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'schedule_hour', 'exam_type', 'is_active']
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(for_scheduling=False)
+
+
 @admin.register(UserExam)
 class UserExamAdmin(admin.ModelAdmin):
     list_display = ('user', 'exam', 'score','started_at', 'completed_at')
@@ -330,7 +359,7 @@ def activate_subscriptions(modeladmin, request, queryset):
 
 @admin.register(ScheduledExam)
 class ScheduledExamAdmin(admin.ModelAdmin):
-    form = ScheduledExamForm
+    form = ScheduleExamForm
     list_display = ('exam', 'scheduled_datetime','updated_datetime', 'is_published')
     ordering = ('scheduled_datetime',)
     actions = ['publish_exam']

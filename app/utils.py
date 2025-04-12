@@ -1,5 +1,7 @@
 from .models import *
 
+from django.utils import timezone
+
 def phone_or_email():
   username = ''
   user = request.user.objects.get(email=username) if '@' in username else request.user.objects.get(phone_number=username)
@@ -30,8 +32,6 @@ def set_price_and_duration(plan):
 
 # app/utils.py
 
-from django.utils import timezone
-from .models import ScheduledExam
 
 def check_exam_availability(hour):
     """

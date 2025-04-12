@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.utils.timezone import now
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -111,24 +110,6 @@ def scheduled_hours(request):
     return render(request, 'scheduled_hours.html', context)
 
 
-# def scheduled_hours(request):
-#     now = timezone.localtime(timezone.now())
-#     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
-#     end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-    
-#     exams_scheduled = ScheduledExam.objects.filter(
-#         scheduled_datetime__range=(start_of_day, end_of_day)
-#     )
-    
-    
-#     context = {
-#         'exams_scheduled': exams_scheduled,
-#         'start_of_day': start_of_day,
-#         'end_of_day': end_of_day,
-#         'now': now,
-#         }
-
-#     return render(request, 'scheduled_hours.html', context)
 
 def exam_timer(request, exam_id):
     try:

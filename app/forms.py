@@ -217,7 +217,7 @@ class ExamCreationForm(forms.ModelForm):
 #         return exam
 
 
-class ScheduledExamForm(forms.ModelForm):
+class ScheduleExamForm(forms.ModelForm):
     class Meta:
         model = ScheduledExam
         fields = ['exam', 'scheduled_datetime']
