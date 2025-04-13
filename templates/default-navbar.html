@@ -1,5 +1,12 @@
 {% load static %}
-<style></style>
+<style>
+  
+    .btn:active {
+      background-color:rgb(0, 10, 156) !important; /* Bootstrap success green */
+      color: white;
+    }
+  
+</style>
 <nav class="fixed-top">
   <div class="navbar navbar-expand-md border-bottom border-theme shadow-sm" id="navbar" role="navigation" style="background-color: rgb(0, 0, 83); ">
     <div
@@ -83,7 +90,7 @@
             <span class="d-none d-md-inline">Dashboard</span>
           </a>
           <a
-            class="btn px-4 py-2 rounded-pill d-flex align-items-center text-light gap-2"
+            class="btn px-4 py-2 rounded-pill d-flex align-items-center text-light gap-2 d-none d-md-inline"
             
             href="{% url 'create_exam' %}"
             aria-label="Create Exam"
@@ -92,13 +99,13 @@
             <span class="d-none d-md-inline">Create Exam</span>
           </a>
           <a
-            class="btn px-4 py-2 rounded-pill d-flex align-items-center text-light gap-2"
+            class="btn px-4 py-2 rounded-pill d-flex align-items-center text-light gap-2 d-none d-md-inline"
             
             href="{% url 'auto_schedule_exams' %}"
             aria-label="Schedule Exams"
           >
             <i class="fa-solid fa-clock"></i>
-            <span class="d-none d-md-inline">Schedule Exams</span>
+            <span class="">Schedule Exams</span>
           </a>
           {% endif %}
 
@@ -133,15 +140,7 @@
             >
               <li class="px-3 py-2">
                 <div class="d-flex align-items-center gap-2">
-                  {% comment %} {% if user.profile_picture %}
-                  <img
-                    src="{{ user.profile_picture.url }}"
-                    alt=""
-                    class="rounded-circle"
-                    style="width: 40px; height: 40px; object-fit: cover"
-                    onerror="this.src='{% static 'img/default-avatar.png' %}'"
-                  />
-                  {% endcomment %} {% comment %} {% else %} {% endcomment %}
+                  
                   <a href="{% url "profile" %}"><i class="bi bi-person-circle fs-3"></i></a>
                   {% comment %} {% endif %} {% endcomment %}
                   <div class="text-truncate">
@@ -176,6 +175,35 @@
                 
                 {% endif %}
               </li>
+              {% if user.is_staff %}
+              <li>
+                <hr class="dropdown-divider" />
+              </li>
+              <li>
+                <div class="d-flex flex-column d-md-none justify-content-center gap-2">
+                 
+                <a
+                  class="btn mx-1 py-0  d-flex align-items-center text-theme gap-2"
+                  
+                  href="{% url 'create_exam' %}"
+                  aria-label="Create Exam"
+                >
+                  <i class="fa-solid fa-plus border border-2 rounded-circle p-1"></i>
+                  <i>Add Exams</i>
+            
+                </a>
+                <a
+                  class="btn mx-1 py-0 d-flex align-items-center text-theme gap-2"
+                  
+                  href="{% url 'auto_schedule_exams' %}"
+                  aria-label="Schedule Exams"
+                >
+                  <i class="fa-solid fa-calendar p-1"></i>
+                  <i>Schedule</i>
+                </a>
+              </div>
+            </li>
+            {% endif %}
               <li>
                 <hr class="dropdown-divider" />
               </li>

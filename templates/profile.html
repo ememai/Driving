@@ -8,7 +8,30 @@
   .hours {
     display: None;
   }
+  {% comment %} ul{
+    transition: all 0.4s ease-in-out;
+  } {% endcomment %}
 
+  .tab-pane{
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    opacity: 0;
+    transform:scale(50%);
+    position: absolute;
+    width: 100%;
+  }
+
+  .tab-pane.show.active {
+    opacity: 1;
+    transform: translateX(0);
+    position: relative;
+  }
+
+  
+  #profileTabsContent {
+    position: relative;
+    overflow: hidden;
+    min-height: 200px; /* Adjust based on your content */
+  }
 </style>
 
 <div class="profile-container border">
@@ -52,7 +75,8 @@
       <ul class="list-group">
         {% for exam in exam_history %}
         <li class="list-group-item pb-5">
-          <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
+          
+          <h2 class="text-decoration-underline text-muted">Icya {{ forloop.counter }}</h2>
           <a href="{% url "exam_results" exam.id %}" class="text-decoration-none text-theme">
           <ul class="">
             <li>
@@ -86,7 +110,7 @@
 
         {% for exam in pass_exams %}
         <li class="list-group-item pb-5">
-          <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
+         <h2 class="text-decoration-underline text-muted">Icya {{ forloop.counter }}</h2>
           <a href="{% url "exam_results" exam.id %}" class="text-decoration-none text-theme">
           <ul class="">
             <li>
@@ -119,7 +143,7 @@
       <ul class="list-group" id="notificationList">
         {% for exam in fail_exams %}
         <li class="list-group-item pb-5">
-          <h2 class="text-decoration-underline">Icya {{ forloop.counter }}</h2>
+          <h2 class="text-decoration-underline text-muted">Icya {{ forloop.counter }}</h2>
           <a href="{% url "exam_results" exam.id %}" class="text-decoration-none text-theme">
           <ul class="">
             <li>
@@ -143,7 +167,7 @@
         {% endfor %}
       </ul>
       {% else %}
-      <p>No notifications.</p>
+      <p>Ntakizamini uratsindwa.</p>
       {% endif %}
     </div>
   </div>
@@ -153,34 +177,49 @@
 {% block extra_js %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // Listen for "Mark as Read" button clicks on notifications
-    const markReadButtons = document.querySelectorAll('.mark-read-btn');
-    markReadButtons.forEach(function (button) {
-      button.addEventListener('click', function () {
-        const listItem = button.closest('li');
-        const notificationId = listItem.getAttribute('data-id');
+    const tabs = ['exams', 'activity', 'notifications'];
+    const tabButtons = tabs.map(id => document.getElementById(`${id}-tab`));
+    const tabContent = document.getElementById('profileTabsContent');
 
-        fetch("{% url 'mark_notification_read' %}", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': '{{ csrf_token }}'
-          },
-          body: new URLSearchParams({
-            'notification_id': notificationId
-          })
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === 'success') {
-              // Visually update the notification as read
-              listItem.classList.remove('bg-light');
-              button.remove();
-            }
-          })
-          .catch(error => console.error('Error:', error));
-      });
+    let startX = 0;
+
+    tabContent.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
     });
+
+    tabContent.addEventListener('touchend', (e) => {
+      const endX = e.changedTouches[0].clientX;
+      const diff = startX - endX;
+
+      if (Math.abs(diff) > 50) {
+        let activeIndex = tabButtons.findIndex(btn => btn.classList.contains('active'));
+        let nextIndex = diff > 0 ? activeIndex + 1 : activeIndex - 1;
+
+        if (nextIndex >= 0 && nextIndex < tabButtons.length) {
+          const direction = diff > 0 ? 'left' : 'right';
+          animateTabSwitch(tabButtons[activeIndex], tabButtons[nextIndex], direction);
+        }
+      }
+    });
+
+    function animateTabSwitch(currentBtn, nextBtn, direction) {
+      const currentPane = document.querySelector(currentBtn.dataset.bsTarget);
+      const nextPane = document.querySelector(nextBtn.dataset.bsTarget);
+
+      // Remove active from button
+      currentBtn.classList.remove('active');
+      nextBtn.classList.add('active');
+
+      // Animate out current pane
+      currentPane.classList.remove('show', 'active');
+      currentPane.classList.add(direction === 'left' ? 'slide-left' : 'slide-right');
+
+      // Prepare next pane
+      nextPane.classList.add('active', 'show');
+      nextPane.classList.remove('slide-left', 'slide-right');
+    }
   });
 </script>
+
+
 {% endblock %}
