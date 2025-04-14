@@ -117,3 +117,8 @@ def all(iterable, attr):
         return result
     except ValueError:
         return False
+
+
+@register.filter(name='add_class')
+def add_class(field, css):
+    return field.as_widget(attrs={"class": css})

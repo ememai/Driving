@@ -5,7 +5,8 @@ from .views import *
 from .decorators import subscription_required
 from .api import get_questions_for_exam_type
 from django.core.exceptions import PermissionDenied
-
+from django.contrib.auth import views as auth_views
+from app.forms import CustomSetPasswordForm
 
 urlpatterns = [
     # path('admin/api/questions/', get_questions_for_exam_type),
@@ -48,4 +49,18 @@ urlpatterns = [
     path('mark-notification-read/', user_profile_view.mark_notification_read, name='mark_notification_read'),
     
     path('privacy-policy/', views.PrivacyPolicyView.as_view(), name='privacy_policy'),
+    
+    path('hindura-ijambobanga/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    
+    path('email-yemeza/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    
+    path('hindura-ijambobanga/<uidb64>/<token>/',
+            auth_views.PasswordResetConfirmView.as_view(
+                form_class=CustomSetPasswordForm,
+                template_name='registration/password_reset_confirm.html'
+            ),
+            name='password_reset_confirm'
+        ),
+    path('ijambobanga-ryemejwe/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+
 ]
