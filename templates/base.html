@@ -6,9 +6,11 @@
         <!-- Core Meta Tags -->
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="Amategeko y'umuhanda." />
+        <meta name="description" content="Wige amategeko y'umuhanda, witoze ikizamini cya provisior, kandi usome igazeti y'amategeko y'umuhanda hamwe na Kigali Driving School." />
     
-        <title>{% block title %}Kigali Driving School{% endblock %} | KDS</title>
+        <title>{% block title %}Amategeko y'Umuhanda | Ikizamini cya Provisior{% endblock %} | Kigali Driving School</title>
+        <link rel="canonical" href="https://www.igazeti.rw" />
+        <link rel="alternate" href="https://www.igazeti.rw" hreflang="rw" />
     
         <!-- Favicon & App Manifest -->
         <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
@@ -20,16 +22,18 @@
         <meta name="msapplication-TileColor" content="#ffffff" />
     
         <!-- Open Graph Meta Tags (for social sharing) -->
-        <meta property="og:title" content="Kigali Driving School" />
-        <meta property="og:description" content="Kora ikizamini cyo kwitegura provisoir." />
+        <meta property="og:title" content="Amategeko y'umuhanda na Kigali Driving School" />
+
+        <meta property="og:description" content="Igana natwe amategeko y'umuhanda, ubone Provisior mu gihe gito🪪"/>
         <meta property="og:image" content="https://www.igazeti.rw/static/img/logo.png" />
         <meta property="og:url" content="https://www.igazeti.rw" />
         <meta property="og:type" content="website" />
     
         <!-- Twitter Card Meta Tags -->
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Kigali Driving School" />
-        <meta name="twitter:description" content="Your official source for driver's license services in Kigali Driving School." />
+        <meta name="twitter:title" content="Ikizamini cya Provisior - Amategeko y'Umuhanda" />
+<meta name="twitter:description" content="Witoze ikizamini cyakozwe, menya umuvuduko, rumoroki, makuzungu na byose ku kinyabiziga." />
+        
         <meta name="twitter:image" content="https://www.igazeti.rw/static/img/logo.png" />
     
         <!-- Stylesheets -->
@@ -225,7 +229,21 @@
         window.addEventListener('beforeunload', () => globalLoader.show());
         window.addEventListener('unload', () => globalLoader.hide());
     </script>
-
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "DrivingSchool",
+          "name": "Kigali Driving School",
+          "description": "Witoze amategeko y'umuhanda n'ikizamini cya provisior mu buryo bworoshye.",
+          "url": "https://www.igazeti.rw",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Kigali",
+            "addressCountry": "RW"
+          }
+        }
+        </script>
+        
     <!-- Modals -->
     {% include "logout_confirm.html" %}
 

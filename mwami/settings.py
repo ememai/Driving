@@ -49,6 +49,10 @@ INSTALLED_APPS = [
     "django_browser_reload",
 ]
 
+if DEBUG:
+    INSTALLED_APPS += [
+        'record.apps.RecordConfig',
+    ]
 # SESSION SETTINGS
 SESSION_COOKIE_AGE = 60*60*24*30 # 30 days
 

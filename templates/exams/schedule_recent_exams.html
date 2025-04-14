@@ -3,6 +3,14 @@
 
 {% block content %}
   <h2>Auto Schedule Exams</h2>
+  {% if messages %}
+    <div class="alert alert-info" role="alert">
+      {% for message in messages %}
+        {{ message }}
+      {% endfor %}
+    </div>
+  {% endif %}
+ 
   <form method="post">
     {% csrf_token %}
     <button type="submit" class="btn btn-primary">📅 Auto Schedule Recent Exams</button>

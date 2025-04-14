@@ -284,7 +284,6 @@ class QuestionManager(models.Manager):
         return [(index + 1, question) for index, question in enumerate(self.all())]
 
 
-
 class Question(models.Model):
     QUESTION_CHOICES = [(i, f"Choice {i}") for i in range(1, 5)]
 
@@ -356,38 +355,6 @@ class Question(models.Model):
     def __str__(self):
         return f"Q{self.order}: {self.question_text}... [type: {self.question_type.name if self.question_type else 'None'}]"
 
-class ExamManager(models.Manager):
-    def create_random_exam(self, exam_type, num_questions=2):
-        """
-        Creates a new exam with random questions of the specified type
-        """
-        from django.db.models import Q
-
-        # Validate exam type
-        if exam_type not in dict(Exam.TYPE_CHOICES):
-            raise ValueError(f"Invalid exam type: {exam_type}")
-
-        # Get random questions
-        questions = Question.objects.filter(
-            Q(question_sign__type__name=exam_type) |  # Changed to type__name
-            Q(choice1_sign__type__name=exam_type) |
-            Q(choice2_sign__type__name=exam_type) |
-            Q(choice3_sign__type__name=exam_type) |
-            Q(choice4_sign__type__name=exam_type)
-        ).distinct().order_by('?')[:num_questions]  # Fixed typo in distinct()
-
-        if questions.count() < num_questions:
-            raise ValueError(f"Not enough questions available for {exam_type}. Only {questions.count()} found.")
-
-        # Create the exam - let Django handle the ID
-        exam = self.create(
-           exam_type =exam_type,
-            duration=20
-        )
-        exam.questions.set(questions)
-        return exam
-
-
 class ExamType(models.Model):
     name = models.CharField(max_length=500, default='Ibivanze')
     order = models.IntegerField(default=5)
@@ -409,8 +376,7 @@ class Exam(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     is_active = models.BooleanField(default=False)
-    # max_attempts = models.PositiveIntegerField(default=1)
-    objects = ExamManager()
+   
     
     class Meta:
         ordering = ['-created_at']

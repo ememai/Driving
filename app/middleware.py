@@ -33,18 +33,25 @@ class AdminAccessMiddleware:
 
         return response
 
+def is_social_bot(user_agent):
+    # List of known social bot user agents
+    social_bots = [
+        'facebookexternalhit',
+        'Twitterbot',
+        'LinkedInBot',
+        'Pinterest/0.7',
+        'Slackbot',
+        'WhatsApp'
+    ]
+    
+    # Check if the user agent contains any of the social bot identifiers
+    return any(bot.lower() in user_agent.lower() for bot in bots)
+class BotBypassMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
 
-# class ExamSecurityMiddleware:
-#     def __init__(self, get_response):
-#         self.get_response = get_response
-
-#     def __call__(self, request):
-#         response = self.get_response(request)
-        
-#         if request.path.startswith('/exam/'):
-#             # Prevent back button after submission
-#             response['Cache-Control'] = 'no-store, must-revalidate'
-#             response['Pragma'] = 'no-cache'
-#             response['Expires'] = '0'
-            
-#         return response
+    def __call__(self, request):
+        if not request.user.is_authenticated and not is_social_bot(request.META.get('HTTP_USER_AGENT', '')):
+            # Optional: redirect or block logic here
+            pass
+        return self.get_response(request)

@@ -1,4 +1,7 @@
-{% extends "base.html" %} {% load static %} {% block title %}Home{% endblock %}
+{% extends "base.html" %} {% load static %}
+<title>{% block title %}Amategeko y'Umuhanda & Ikizamini cya Provisior{% endblock %} | Kigali Driving School</title>
+<meta name="description" content="Menya amategeko y'umuhanda, witoze ikizamini cya provisior, kandi wige iby'ikinyabiziga hamwe na Kigali Driving School. Igazeti y'amategeko, umuvuduko, rumoroki, makuzungu n'ibindi." />
+
 {% block content %}
 
 <style>
@@ -237,5 +240,15 @@ rgb(2, 42, 101)
     </div>
   </div>
 </div>
-
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "Kigali Driving School",
+    "description": "Witoze ikizamini cya provisior no kumenya amategeko y'umuhanda n'ikinyabiziga.",
+    "url": "https://www.igazeti.rw",
+    "logo": "https://www.igazeti.rw/static/img/logo.png"
+  }
+  </script>
+  
 {% endblock %}

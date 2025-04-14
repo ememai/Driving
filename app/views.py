@@ -585,20 +585,7 @@ def schedule_recent_exams(request):
     """
     if request.method == 'POST':
         # Filter the most recent 10 exams that are for scheduling and not already scheduled
-        recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:11]
-        today = timezone.localtime(timezone.now()).date()
-
-        
-        for exam in recent_exams:
-            scheduled_time = timezone.make_aware(
-            datetime.combine(today, time(hour=exam.schedule_hour.hour, minute=0))
-                )
-
-            # Create or update scheduled exam
-            ScheduledExam.objects.update_or_create(
-                exam=exam,
-                defaults={'scheduled_datetime': scheduled_time}
-            )
+        auto_schedule_recent_exams()
 
         messages.success(request, "✅ recent exams have been scheduled successfully!")
         return redirect('auto_schedule_exams')  # Or redirect to a success page
