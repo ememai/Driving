@@ -24,7 +24,8 @@ from django.db.models import Count
 import phonenumbers
 from django.utils import timezone
 from datetime import timedelta
-
+from django.contrib.auth.forms import PasswordResetForm
+from django.db.models import Q
 
 class ImageLabelMixin:
     def get_image_label(self, obj, label_field="definition", image_field="sign_image", max_height=50, max_width=100):
@@ -135,6 +136,44 @@ class LoginForm(forms.Form):
 
         return cleaned_data
 
+from django import forms
+from django.contrib.auth.forms import SetPasswordForm
+from .models import UserProfile
+from django import forms
+from django.contrib.auth.forms import SetPasswordForm
+
+class CustomSetPasswordForm(SetPasswordForm):
+    new_password1 = forms.CharField(
+        label="Ijambo ry’ibanga",
+        strip=False,
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control"}),
+        max_length=255,
+        min_length=4,
+    )
+
+    new_password2 = forms.CharField(
+        label="Emeza ijambo ry’ibanga",
+        strip=False,
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control"}),
+        max_length=255,
+        min_length=4,
+    )
+
+    def clean(self):
+        cleaned_data = self.cleaned_data  # ⚠️ Not calling `super().clean()`
+        password1 = cleaned_data.get("new_password1")
+        password2 = cleaned_data.get("new_password2")
+
+        if not password1:
+            self.add_error("new_password1", "Ijambo banga rirakenewe.")
+
+        if not password2:
+            self.add_error("new_password2", "Kwemeza ijambo banga birakenewe.")
+
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Ijambo banga rigomba gusa aho warishyize hose.")
+
+        return cleaned_data
 
 
 class ExamCreationForm(forms.ModelForm):
@@ -429,3 +468,36 @@ class SubscriptionForm(forms.ModelForm):
     class Meta:
         model = Subscription
         fields = ['user','plan', 'super_subscription', ]
+        
+class PhoneOrEmailPasswordResetForm(PasswordResetForm):
+    query = forms.CharField(
+        label="Email cyangwa Numero ya telefone",
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
+    def get_users(self, query):
+        return UserProfile.objects.filter(
+            Q(email__iexact=query) | Q(phone_number__iexact=query),
+            is_active=True
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        query = cleaned_data.get("query")
+
+        users = self.get_users(query)
+
+        if not users.exists():
+            raise ValidationError("Nta mukiliya tubonye ukoresheje ayo makuru.")
+
+        # Check if at least one user has email
+        if not any(user.email for user in users):
+            raise ValidationError("Uwo mukiliya nta email afite. Wavugana n’ubuyobozi kugira ngo uhindurirwe ijambo ry’ibanga.")
+
+        self._valid_users = users
+        return cleaned_data
+
+    def save(self, *args, **kwargs):
+        # Trick Django into working with our dynamic field
+        self.cleaned_data['email'] = self.cleaned_data['query']
+        return super().save(*args, **kwargs)
