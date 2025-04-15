@@ -155,9 +155,9 @@
                   {{ plan_value|get_plan_price }} RWF
                 </label>
               </div>
-              <ul class="plan-description list-unstyled text-start px-3">
+              <ul class="plan-description list-unstyled text-start px-1">
                 {% for icon, line in plan_value|get_plan_description %}
-    <li><i class="bi bi-check-circle-fill text-success me-2"></i> {{ line }} {{ icon }}</li>
+    <li><i class="bi bi-check-circle-fill text-success me-0"></i> {{ line }} {{ icon }}</li>
   {% endfor %}
               </ul>
               

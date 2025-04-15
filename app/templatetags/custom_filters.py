@@ -59,17 +59,17 @@ def get_plan_description(plan_value):
         'Daily': [
             ('⏱️', 'Rimara Umunsi wose'),
             ('📝', 'Ukora ibizamini byose ushaka'),
-            ('🤝', 'Uhabwa ubufasha aho ufite ikibazo'),
+            ('🤝', 'Uhabwa ubufasha igihe cyose'),
         ],
         'Weekly': [
             ('📆', 'Rimara Icyumweru Cyose'),
             ('📝', 'Ukora ibizamini byose ushaka'),
-            ('🤝', 'Uhabwa ubufasha aho ufite ikibazo'),
+            ('🤝', 'Uhabwa ubufasha igihe cyose'),
         ],
         'Monthly': [
             ('🗓️', 'Rimara Ukwezi kose'),
             ('📝', 'Ukora ibizamini byose ushaka'),
-            ('🤝', 'Uhabwa ubufasha aho ufite ikibazo'),
+            ('🤝', 'Uhabwa ubufasha bujyanye no kwiga'),
         ],
     }.get(plan_value, [])
 
