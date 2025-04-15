@@ -172,7 +172,14 @@
                   {{ user.subscription.plan.get_plan_display|default:"None" }}
                   {% endif %}
                 </a>
-
+                {% else %}
+                  <a
+                  class="btn btn-danger px-1 py-0 mx-2 rounded-pill d-flex justify-content-center align-items-center"
+                  href="{% url 'subscription' %}"
+                  role="button"
+                  style="font-size: 13px"
+                  >Ntafatabuguzi ufite <i class="fa fa-ban"></i>
+              </a>
                 {% endif %}
               </li>
               {% if user.is_staff %}
@@ -209,7 +216,7 @@
               </li>
               <li>
                 <button
-                  class="dropdown-item text-danger d-flex align-items-center gap-2"
+                  class="dropdown-item text-danger fw-bold d-flex align-items-center gap-2"
                   type="button"
                   data-bs-toggle="modal"
                   data-bs-target="#logoutModal"
