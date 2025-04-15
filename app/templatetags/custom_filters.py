@@ -56,10 +56,25 @@ def current_date(value):
 @register.filter
 def get_plan_description(plan_value):
     return {
-        'Daily': 'Rimara Umunsi wose, Ukora ibyo ushaka',
-        'Weekly': 'Rimara Icyumweru cyose, Ukora ibyo ushaka',
-        'Monthly': 'Rimara Ukwezi kose, Ukora ibyo ushaka',
-        }.get(plan_value, '')
+        'Daily': [
+            ('⏱️', 'Rimara Umunsi wose'),
+            ('📝', 'Ukora ibizamini byose ushaka'),
+            ('🤝', 'Uhabwa ubufasha aho ufite ikibazo'),
+        ],
+        'Weekly': [
+            ('📆', 'Rimara Icyumweru Cyose'),
+            ('📝', 'Ukora ibizamini byose ushaka'),
+            ('🤝', 'Uhabwa ubufasha aho ufite ikibazo'),
+        ],
+        'Monthly': [
+            ('🗓️', 'Rimara Ukwezi kose'),
+            ('📝', 'Ukora ibizamini byose ushaka'),
+            ('🤝', 'Uhabwa ubufasha aho ufite ikibazo'),
+        ],
+    }.get(plan_value, [])
+
+
+
 
 @register.filter
 def get_plan_price(value):

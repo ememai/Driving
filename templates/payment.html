@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load custom_filters %}
+{% load static %}
 {% block title %}Ifatabuguzi{% endblock %}
 {% block extra_css %}
 <style>
@@ -20,7 +21,7 @@
   }
 
   .card {
-    {% comment %} width: 300px; {% endcomment %}
+   
     height: 200px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -62,14 +63,11 @@
   }
   
   .plan-card {
-    @media (max-width: 588px) {
-      width: 200px;
-    }
-    @media (min-width: 589px) {
-      width: 300px;
-    }
+    
     cursor: pointer;
     user-select: none;
+    width: 100%;
+    height: auto;
   }
   .plan-card {
     transition: transform 0.5s ease, box-shadow 0.5s ease;
@@ -83,8 +81,33 @@
     z-index: 2;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
   }
+
+  .plan-description {
+  line-height: 1.7;
+  font-size: 1rem;
+  color: rgba(var(--text-rgb), 1);
+}
+.plan-description li {
+  margin-bottom: 0.4rem;
+}
+
   
-  
+  .method {
+    background-image: url('{% static 'img/mtn.jpg' %}'); 
+    background-color: rgba(248, 247, 187, 0.9); 
+    background-blend-mode: overlay;
+    {% comment %} background-size: cover; {% endcomment %}
+    background-position: center;
+    color: #000;
+  }
+
+  .method h2{
+    font-style: italic;
+  }
+
+  .method h4{
+    font-family: 'Times New Roman', Times, serif;
+  }
 </style>
 {% endblock %}
 {% block content %}
@@ -108,7 +131,9 @@
   </div>
 
   <div class="alert text-center fs-5" role="alert">
-    <p class="fw-bold">Hitamo Ifatabuguzi rikunogeye ubundi wishyure.</p>
+    <p class="fw-bold ">
+      Hitamo Ifatabuguzi rikunogeye!
+    </p>
     <form method="post">
       {% csrf_token %}
       <div class="position-relative">
@@ -118,7 +143,7 @@
             <div class="card flex-shrink-0 text-center plan-card"
                  data-plan-price="{{ plan_value|get_plan_price }}"
                  data-plan-id="plan_{{ plan_value }}">
-              <div class="card-header d-flex align-items-center justify-content-center text-primary fw-bold gap-2">
+              <div class="card-header d-flex align-items-center justify-content-center text-primary fw-bold gap-2 py-0">
                 <input
                   class="form-check-input"
                   type="radio"
@@ -126,18 +151,23 @@
                   id="plan_{{ plan_value }}"
                   value="{{ plan_value|get_plan_price }}"
                   {% if plan_value == user.subscription.plan %} checked {% endif %}>
-                <label class="form-check-label" for="plan_{{ plan_value }}">
+                <label class="form-check-label fs-1" for="plan_{{ plan_value }}">
                   {{ plan_value|get_plan_price }} RWF
                 </label>
               </div>
-              <span class="text-center text-theme fs-3">{{ plan_value|get_plan_description }}</span>
+              <ul class="plan-description list-unstyled text-start px-3">
+                {% for icon, line in plan_value|get_plan_description %}
+    <li><i class="bi bi-check-circle-fill text-success me-2"></i> {{ line }} {{ icon }}</li>
+  {% endfor %}
+              </ul>
+              
             </div>
           {% endfor %}
         </div>
       </div>
       
-      <div class="alert alert-warning text-center fs-5 mt-1">
-        <h2 class="fw-bold">Uburyo bwo kwishyura:</h2>
+      <div class="method text-center fs-5 mt-2">
+        <h2 class="fw-bold " >Uburyo bwo kwishyura:</h2>
 
         <h4 class="underline">Koresha code:</h4>
         <strong>*182*8*1*187756*<strong id="js-plan">0</strong>#</strong><br>
