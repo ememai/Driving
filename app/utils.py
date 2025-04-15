@@ -1,5 +1,7 @@
 from .models import *
-
+from datetime import datetime, timedelta, time, date
+from django.utils.timezone import now, localtime
+import random
 from django.utils import timezone
 
 def phone_or_email():
@@ -57,3 +59,17 @@ def check_exam_availability(hour):
     ).exists()
 
     return exam_exists
+
+def auto_schedule_recent_exams():
+    recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:11]
+    today = timezone.localtime(timezone.now()).date()
+
+    for exam in recent_exams:
+        scheduled_time = timezone.make_aware(
+            datetime.combine(today, time(hour=exam.schedule_hour.hour, minute=0))
+        )
+
+        ScheduledExam.objects.update_or_create(
+            exam=exam,
+            defaults={'scheduled_datetime': scheduled_time}
+        )

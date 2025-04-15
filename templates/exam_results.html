@@ -101,7 +101,7 @@
             {% if answer.question.question_sign %}
             <div class="mt-2">
               <img src="{{ answer.question.question_sign.sign_image.url }}"
-                alt="{{ answer.question.question_sign.definition }}" class="img-thumbnail"
+              alt="Amategeko y'umuhanda - Ibimenyetso by'umuhanda" class="img-thumbnail"
                 style="width: 10vw; height: auto;">
             </div>
             {% endif %}
@@ -113,7 +113,7 @@
             <div class="d-flex justify-content-start gap-2">
               {% for choice in choices %}
               <div class="choice-item">
-                <img src="{{ choice.content }}" class="img-thumbnail" alt="Choice Image"
+                <img src="{{ choice.content }}" class="img-thumbnail" alt="Amategeko y'umuhanda - Ibyapa byo kumuhanda"
                   style="width: 10vw; height: auto;">
               </div>
               {% endfor %}
@@ -126,7 +126,7 @@
                 <span class="choice-letter fs-3">{{ forloop.counter0|letter }})</span>
                 <span class="choice-content">
                   {% if choice.type == 'image' %}
-                  <img src="{{ choice.content }}" class="img-thumbnail" alt="Choice Image"
+                  <img src="{{ choice.content }}" class="img-thumbnail" alt="Amategeko y'umuhanda - Ibyapa byo kumuhanda"
                     style="width: 10vw; height: auto;">
                   {% else %}
                   <span id="text-choice">{{ choice.content }}</span>
@@ -181,7 +181,7 @@
           {% if answer.question.question_sign %}
           <div class="mt-2">
             <img src="{{ answer.question.question_sign.sign_image.url }}"
-              alt="{{ answer.question.question_sign.definition }}"
+              alt="Amategeko y'umuhanda - Ibyapa byo kumuhanda"
               title="{{ answer.question.question_sign.definition }}" class="img-thumbnail">
           </div>
           {% endif %}
@@ -195,7 +195,7 @@
               <span class="choice-letter ">{{ forloop.counter0|letter }})</span>
               <span class="choice-content">
                 {% if choice.type == 'image' %}
-                <img src="{{ choice.content }}" class="img-thumbnail">
+                <img src="{{ choice.content }}" class="img-thumbnail" alt="Amategeko y'umuhanda - Ibyapa byo kumuhanda">
                 {% if choice.is_correct %}
                 <div style="color:green;">
                   {% if answer.selected_choice_number == answer.question.correct_choice %}✅

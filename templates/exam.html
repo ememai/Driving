@@ -9,7 +9,7 @@
 
   <div class="container-fluid">
     <a class="navbar-brand bold-logo text-light" href="/">
-      <img src="{% static 'img/logo.png' %}" alt="Logo" width="30" height="30" class="d-inline-block align-top"> Kigali Driving School
+      <img src="{% static 'img/logo.png' %}" alt="Amategeko y'umuhanda" width="30" height="30" class="d-inline-block align-top"> Kigali Driving School
     </a>
     <div class="justify-content-center">
       <div class="d-flex align-items-center">
@@ -101,7 +101,7 @@
 
     {% if question.question_sign %}
             <div class="mt-2 mb-4 text-center ">
-              <img src="{{ question.question_sign.sign_image.url }}" alt="Question Image" class="img-thumbnail q-sign">
+              <img src="{{ question.question_sign.sign_image.url }}" alt="Amategeko y'umuhanda - Ibimenyetso by'umuhanda" class="img-thumbnail q-sign">
             </div>
     {% endif %}
 
@@ -116,7 +116,7 @@
           {% if choice.type == 'text' %}
           <span class="fs-3">{{ choice.content }}</span>
           {% elif choice.type == 'image' %}
-          <img src="{{ choice.content }}" alt="Choice Image" class="img-thumbnail me-2" style="max-width: 30vw; height: auto;">
+          <img src="{{ choice.content }}" alt="Amategeko y'umuhanda - Ibyapa" class="img-thumbnail me-2" style="max-width: 30vw; height: auto;">
           
           {% endif %}
         </label>
