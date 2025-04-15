@@ -18,6 +18,73 @@
   .hours{
     display:none;
   }
+
+  .card {
+    {% comment %} width: 300px; {% endcomment %}
+    height: 200px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    cursor: pointer;
+    max-width: 500px;
+    margin: 0 auto;
+    padding-top: 0;
+  }
+
+  .card:hover {
+    transform: scale(1.05);
+  }
+
+  @media (min-width: 589px) {
+    .card {
+      width: 500px;
+      height: auto;
+      padding-bottom: 20px;
+      margin: 0 auto;
+    }
+  }
+
+  .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  input[type="radio"] {
+    display: none; /* Hide the default radio button */
+  }
+
+  #plan-carousel::-webkit-scrollbar {
+    display: none;
+  }
+  
+  #plan-carousel {
+    scroll-behavior: smooth;
+  }
+  
+  .plan-card {
+    @media (max-width: 588px) {
+      width: 200px;
+    }
+    @media (min-width: 589px) {
+      width: 300px;
+    }
+    cursor: pointer;
+    user-select: none;
+  }
+  .plan-card {
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  
+  .plan-card.active {
+    transform: scale(1.15);
+    opacity: 1;
+    z-index: 2;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  }
+  
+  
 </style>
 {% endblock %}
 {% block content %}
@@ -40,29 +107,36 @@
     {% endif %}
   </div>
 
-  <div class="alert alert-success text-center fs-5" role="alert">
+  <div class="alert text-center fs-5" role="alert">
     <p class="fw-bold">Hitamo Ifatabuguzi rikunogeye ubundi wishyure.</p>
     <form method="post">
       {% csrf_token %}
-      <div class="d-flex flex-column justify-content-center align-items-center flex-wrap gap-4 mt-4 mb-2 fs-5">
-        {% for plan_value, plan_label in plans %}
-          <div class="form-check form-check-inline">
-          
-            <input
-              class="form-check-input cursor-pointer"
-              type="radio"
-              name="plan"
-              id="plan_{{ plan_value }}"
-              value="{{ plan_value|get_plan_price }}"
-              {% if plan_value == user.subscription.plan %} checked {% endif %}>
-            <label class="form-check-label cursor-pointer" for="plan_{{ plan_value }}">
-              {{ plan_value|get_plan_description }}
-            </label>
-           
-          </div>
-        {% endfor %}
+      <div class="position-relative">
+        
+        <div id="plan-carousel" class="d-flex flex-nowrap overflow-auto gap-4 px-5 py-3">
+          {% for plan_value, plan_label in plans %}
+            <div class="card flex-shrink-0 text-center plan-card"
+                 data-plan-price="{{ plan_value|get_plan_price }}"
+                 data-plan-id="plan_{{ plan_value }}">
+              <div class="card-header d-flex align-items-center justify-content-center text-primary fw-bold gap-2">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="plan"
+                  id="plan_{{ plan_value }}"
+                  value="{{ plan_value|get_plan_price }}"
+                  {% if plan_value == user.subscription.plan %} checked {% endif %}>
+                <label class="form-check-label" for="plan_{{ plan_value }}">
+                  {{ plan_value|get_plan_price }} RWF
+                </label>
+              </div>
+              <span class="text-center text-theme fs-3">{{ plan_value|get_plan_description }}</span>
+            </div>
+          {% endfor %}
+        </div>
       </div>
-      <div class="alert alert-warning text-center fs-5 mt-4">
+      
+      <div class="alert alert-warning text-center fs-5 mt-1">
         <h2 class="fw-bold">Uburyo bwo kwishyura:</h2>
 
         <h4 class="underline">Koresha code:</h4>
@@ -170,4 +244,88 @@
     }
   }
 </script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const cards = document.querySelectorAll('.plan-card');
+    const planLabel = document.getElementById('js-plan');
+    let current = 0;
+    let isPaused = false;
+
+    function scrollToCard(carousel, targetScrollLeft, duration = 1000) {
+      const start = carousel.scrollLeft;
+      const change = targetScrollLeft - start;
+      const startTime = performance.now();
+    
+      function easeOutQuad(t) {
+        return t * (2 - t);
+      }
+    
+      function animateScroll(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = easeOutQuad(progress);
+    
+        carousel.scrollLeft = start + change * eased;
+    
+        if (progress < 1) {
+          requestAnimationFrame(animateScroll);
+        }
+      }
+    
+      requestAnimationFrame(animateScroll);
+    }
+    
+  
+    function activateCard(index) {
+      cards.forEach((card, i) => {
+        card.classList.toggle('active', i === index);
+      });
+    
+      const carousel = document.getElementById('plan-carousel');
+      const targetCard = cards[index];
+      const cardOffset = targetCard.offsetLeft - (carousel.offsetWidth / 2) + (targetCard.offsetWidth / 2);
+    
+      scrollToCard(carousel, cardOffset); // use the easing function
+    
+      const input = targetCard.querySelector('input[type="radio"]');
+      if (input) {
+        input.checked = true;
+        planLabel.textContent = input.value;
+      }
+    }
+    
+    
+  
+    function runCarouselOnce() {
+      if (current < cards.length) {
+        activateCard(current);
+        setTimeout(() => {
+          current++;
+          runCarouselOnce(); // recursively go to next card
+        }, 5000);
+      } else {
+        // Done showing all, now center the middle card
+        {% comment %} const middleIndex = Math.floor(cards.length - 1) / 2; {% endcomment %}
+        activateCard(middleIndex);
+      }
+    }
+  
+    // Initial run
+    runCarouselOnce();
+  
+    // Allow manual selection
+    cards.forEach((card, index) => {
+      card.addEventListener('click', () => {
+        current = index;
+        activateCard(index);
+      });
+  
+      card.addEventListener('mouseenter', () => isPaused = true);
+      card.addEventListener('mouseleave', () => isPaused = false);
+    });
+  });
+ </script>
+  
+  
 {% endblock %}
