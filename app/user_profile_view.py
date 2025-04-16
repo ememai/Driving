@@ -12,8 +12,9 @@ def profile_view(request):
     user = request.user
     notifications = Notification.objects.filter(user=user).order_by('-timestamp')
     exam_history = user.userexam_set.all().order_by('-completed_at')
-    pass_exams = user.userexam_set.filter(score__gte=12)
-    fail_exams = user.userexam_set.filter(score__lt=12)
+    pass_exams = UserExam.objects.with_percent_score().filter(user=user, percent_score_db__gte=60)
+    fail_exams = UserExam.objects.with_percent_score().filter(user=user, percent_score_db__lt=60)
+
     activities = user.useractivity_set.all().order_by('-timestamp')[:10]  # last 10 activities
 
     context = {
