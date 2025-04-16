@@ -17,8 +17,9 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.core.validators import FileExtensionValidator
 import json  # Import the json module
+from django.db.models import Count, F, ExpressionWrapper, FloatField,OuterRef,Subquery
 
-#
+from django.db.models.functions import Cast
 
 class UserProfileManager(BaseUserManager):
     """Custom manager to allow login with either email or phone."""
@@ -466,47 +467,72 @@ class UnscheduledExam(Exam):
         verbose_name = "Exam By Type"
         verbose_name_plural = "Exams By Types"
 
+class UserExamManager(models.Manager):
+    def with_percent_score(self):
+        
+        total_questions_subquery = Exam.objects.filter(
+            pk=OuterRef('exam_id')
+        ).annotate(
+            total=Count('questions')
+        ).values('total')[:1]
+
+        return self.get_queryset().annotate(
+            total_questions=Subquery(total_questions_subquery),
+            percent_score_db=ExpressionWrapper(
+                F('score') * 100.0 / Cast(Subquery(total_questions_subquery), FloatField()),
+                output_field=FloatField()
+            )
+        )
+
+    def passed(self):
+        return self.with_percent_score().filter(percent_score_db__gte=60)
+
+    def failed(self):
+        return self.with_percent_score().filter(percent_score_db__lt=60)
 
 class UserExam(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
+    exam = models.ForeignKey('Exam', on_delete=models.CASCADE)
     score = models.IntegerField(default=0)
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
+    objects = UserExamManager()
+
     class Meta:
         unique_together = ('user', 'exam')
+        ordering = ['-completed_at']
 
     @property
     def percent_score(self):
+        # Use DB-annotated value if available, otherwise fallback
+        if hasattr(self, 'percent_score_db'):
+            return self.percent_score_db
         if self.exam.total_questions > 0:
             return (self.score / self.exam.total_score) * 100
         return 0
+
     @property
     def is_passed(self):
         return 'Watsinze' if self.percent_score >= 60 else 'Watsinzwe'
-    
+
     @property
     def time_taken(self):
         if self.completed_at:
-            return int((self.completed_at - self.started_at).total_seconds() / 60)  # Convert to minutes
+            return int((self.completed_at - self.started_at).total_seconds() / 60)
         return 0
-
 
     def save(self, *args, **kwargs):
         if not self.user.is_subscribed:
-            raise ValidationError(
-                "Umukoresha ntabwo yishyuye kugirango akore ijazo."
-            )
+            raise ValidationError("Umukoresha ntabwo yishyuye kugirango akore ijazo.")
+
         if self.completed_at and self.completed_at < timezone.now() - timedelta(hours=24):
-            raise ValidationError(
-                "You cannot modify exams older than 24 hours"
-            )
+            raise ValidationError("You cannot modify exams older than 24 hours.")
+
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} - {self.exam.exam_type}"
-
 
 class UserExamAnswer(models.Model):
     user_exam = models.ForeignKey(UserExam, on_delete=models.CASCADE)
