@@ -115,9 +115,6 @@
                  .filter(id => id);
   }
   
-  {% comment %} function logNextRunTime(nextRunDate) {
-      console.log('Next check at:', nextRunDate.toLocaleTimeString());
-  } {% endcomment %}
   
   function runChecks() {
       if (isChecking) {
@@ -184,5 +181,5 @@
       runChecks();  // Immediate first run
       scheduleChecks();  // Scheduled subsequent runs
   });
-  </script>
+</script>
   

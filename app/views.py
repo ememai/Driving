@@ -31,7 +31,6 @@ import random
 from django.urls import reverse
 # ---------------------
 
-
 # Home View
 def home(request):
     # Get unique exam types that have exams
@@ -46,8 +45,6 @@ def home(request):
         'num':num
     }
     return render(request, 'home.html', context)
-
-
 
 
 class SubscriptionRequiredView(View):
@@ -110,7 +107,6 @@ def scheduled_hours(request):
     return render(request, 'scheduled_hours.html', context)
 
 
-
 def exam_timer(request, exam_id):
     try:
         scheduled_exam = ScheduledExam.objects.get(exam_id=exam_id)
@@ -118,7 +114,6 @@ def exam_timer(request, exam_id):
         return JsonResponse({'time_remaining': max(time_remaining, 0)})
     except ScheduledExam.DoesNotExist:
         return JsonResponse({'error': 'Exam not found'}, status=404)
-
 
 
 @require_GET
@@ -149,11 +144,6 @@ def exams_by_type(request, exam_type):
         'counted_exams' : counted_exams,
     }    
     return render(request, "same_exams.html", context)
-
-
-# ---------------------
-# Exam / Question Views
-# ---------------------
 
 
 @login_required(login_url='login')
