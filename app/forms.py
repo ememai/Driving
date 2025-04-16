@@ -80,7 +80,7 @@ class RegisterForm(forms.ModelForm):
         max_length=15,
         required=False,
         label="Phone Number",
-        widget=forms.TextInput(attrs={"placeholder": "Enter phone number (e.g., 788123456)"}),
+        widget=forms.TextInput(attrs={"placeholder": "Enter phone number (e.g., 78...)"}),
     )
 
       
@@ -114,6 +114,7 @@ class RegisterForm(forms.ModelForm):
         elif email and not email_domain_exists(email):
             raise forms.ValidationError(f"Imeri '{email}' wanditse ntago ibaho. Ongera usuzume izina ryayo.")
 
+        
 
         if phone_number:
         #     phone_number = self.normalize_phone_number(phone_number)

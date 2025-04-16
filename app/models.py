@@ -18,8 +18,9 @@ from django.utils.html import format_html
 from django.core.validators import FileExtensionValidator
 import json  # Import the json module
 from django.db.models import Count, F, ExpressionWrapper, FloatField,OuterRef,Subquery
-import dns.resolver
-from django.core.exceptions import ValidationError
+from django.core.mail import send_mail, BadHeaderError
+from smtplib import SMTPException  # <- correct source
+
 from django.db.models.functions import Cast
 
 class UserProfileManager(BaseUserManager):
@@ -127,28 +128,27 @@ class UserProfile(AbstractUser):
             return False
         return self.subscription.expires_at and self.subscription.expires_at < timezone.now().date()
 
-    def validate_email_domain(email):
-        """Raise ValidationError if email domain is invalid (no MX records)."""
-        try:
-            domain = email.split('@')[1]
-            dns.resolver.resolve(domain, 'MX')
-        except Exception:
-            raise ValidationError("Imeyili wanditse ntishobora kwakira ubutumwa. Reba niba yanditse neza.")
-    
     def send_otp_email(self):
         """Generates and sends an OTP via email."""
         if not self.email:
             return
-        validate_email_domain(self.email)
+
         self.otp_code = str(random.randint(100000, 999999))
         self.save()
-        send_mail(
-            'OTP Code yawe',
-            f"Koresha iyi code y'isuzuma👉 {self.otp_code}",
-            settings.DEFAULT_FROM_EMAIL,
-            [self.email],
-            fail_silently=False,
-        )
+
+        try:
+            send_mail(
+                'OTP Code yawe',
+                f"Koresha iyi code y'isuzuma👉 {self.otp_code}",
+                settings.DEFAULT_FROM_EMAIL,
+                [self.email],
+                fail_silently=False,
+                )
+        except (BadHeaderError, SMTPException) as e:
+            raise ValidationError(
+                f"Imeri '{self.email}' ntabwo yakiriye ubutumwa. Waba warayanditse nabi cyangwa ntiyabayeho?"
+                )
+
 
     def verify_otp(self, otp):
         return self.otp_code == otp

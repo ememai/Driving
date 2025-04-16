@@ -7,6 +7,7 @@ from django.conf import settings
 from .models import *
 from .utils import auto_schedule_recent_exams
 from zoneinfo import ZoneInfo
+from django.db import close_old_connections
 
 
 def job_auto_schedule_exams():
@@ -16,6 +17,7 @@ def job_auto_schedule_exams():
 
 
 def job_notify_new_published_exams():
+    close_old_connections()
     print("📬 Checking for newly published exams...")
 
     now = timezone.now()
@@ -52,6 +54,6 @@ def start():
     scheduler.add_job(job_auto_schedule_exams, CronTrigger(hour=0, minute=0), id="auto_schedule_exams")
 
     # 2. Run email notifications every 30 mins between 07:00 and 17:00
-    scheduler.add_job(job_notify_new_published_exams, CronTrigger(minute='*/1', hour='7-17'), id="notify_emails")
+    scheduler.add_job(job_notify_new_published_exams, CronTrigger(minute='*/60', hour='7-17'), id="notify_emails")
     
     scheduler.start()

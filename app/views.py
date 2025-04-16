@@ -294,17 +294,25 @@ def register_view(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password1"])
-            user.otp_verified = True  # Mark active initially; may change if OTP is needed.
-            user.save()
-
-            if form.cleaned_data.get("email"):
-                user.otp_verified = False
-                user.send_otp_email()
-                messages.success(request, 'OTP sent to your email. Verify your account.')
-                return redirect('verify_otp', user_id=user.id)
-            else:
+            
+            if form.cleaned_data.get("phone_number"):
+                user.otp_verified = True  
+                user.save()
                 messages.success(request, 'Guhanga konti byagenze neza. Ushobora kwinjira.')
                 return redirect("login")
+
+            if form.cleaned_data.get("email"):
+                try:
+                    # user.save()
+                    user.send_otp_email()  # This method should raise ValidationError if sending fails
+                    messages.success(request, 'OTP yoherejwe kuri email. Yandike hano.')
+                    return redirect('verify_otp', user_id=user.id)
+
+                except Exception as e:
+                    form.add_error('email', "Imeri wanditse ntago ibasha koherezwaho. Ongera usuzume neza.")
+                    print(f"Failed to send OTP to {user.email}: {e}")
+                    
+            
         else:
             for field, errors in form.errors.items():
                 for error in errors:
