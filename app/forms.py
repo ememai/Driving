@@ -27,6 +27,9 @@ from datetime import timedelta
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import SetPasswordForm
 from django.db.models import Q
+import dns.resolver
+from django.core.exceptions import ValidationError
+
 
 class ImageLabelMixin:
     def get_image_label(self, obj, label_field="definition", image_field="sign_image", max_height=50, max_width=100):
@@ -41,7 +44,33 @@ class ImageLabelMixin:
             image_url, max_height, max_width, label
         )
 
+import dns.resolver
 
+# Optional: configure DNS resolver timeout
+resolver = dns.resolver.Resolver()
+resolver.timeout = 3
+resolver.lifetime = 3
+
+def email_domain_exists(email):
+    domain = email.split('@')[-1].lower()
+
+    # List of known good providers to skip DNS check
+    known_providers = [
+        "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com",
+        "protonmail.com", "aol.com", "live.com", "gmx.com"
+    ]
+    
+    if domain in known_providers:
+        return True
+    
+    try:
+        # Try resolving MX record
+        answers = resolver.resolve(domain, 'MX')
+        return bool(answers)
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN, dns.exception.Timeout, dns.resolver.NoNameservers):
+        return False
+
+    
 class RegisterForm(forms.ModelForm):
     password1 = forms.CharField(widget=forms.PasswordInput, max_length=255, min_length=4, required=True, label="Password")
 
@@ -54,7 +83,7 @@ class RegisterForm(forms.ModelForm):
         widget=forms.TextInput(attrs={"placeholder": "Enter phone number (e.g., 788123456)"}),
     )
 
-    
+      
     class Meta:
         model = UserProfile 
         fields = ['name', 'email', 'phone_number']
@@ -82,6 +111,9 @@ class RegisterForm(forms.ModelForm):
         
         if email and UserProfile.objects.filter(email=email).exists():
             raise forms.ValidationError("Iyi email isanzweho.")
+        elif email and not email_domain_exists(email):
+            raise forms.ValidationError(f"Imeri '{email}' wanditse ntago ibaho. Ongera usuzume izina ryayo.")
+
 
         if phone_number:
         #     phone_number = self.normalize_phone_number(phone_number)
