@@ -121,7 +121,7 @@ else:
     DATABASES = {
         'default': dj_database_url.config(default=config('DB_URL'))
     }
-      
+
 print(LOCAL_DB)
 AUTHENTICATION_BACKENDS = [
     'app.authentication.EmailOrPhoneBackend',  # Custom email/phone backend
