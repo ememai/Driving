@@ -484,7 +484,7 @@ class UserExam(models.Model):
         return 0
     @property
     def is_passed(self):
-        return 'Watsinze' if self.score >= 12 else 'Watsinzwe'
+        return 'Watsinze' if self.percent_score >= 60 else 'Watsinzwe'
     
     @property
     def time_taken(self):

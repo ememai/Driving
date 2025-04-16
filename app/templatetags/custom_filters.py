@@ -69,7 +69,7 @@ def get_plan_description(plan_value):
         'Monthly': [
             ('🗓️', 'Rimara Ukwezi kose'),
             ('📝', 'Ukora ibizamini byose ushaka'),
-            ('🤝', 'Uhabwa ubufasha bujyanye no kwiga'),
+            ('🤝', 'Uhabwa ubufasha bwose ushaka'),
         ],
     }.get(plan_value, [])
 

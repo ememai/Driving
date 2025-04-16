@@ -115,10 +115,17 @@
 
   <div class="text-center">
     {% if user.is_subscribed %}
+    {% if  user.subscription.super_subscription %}
+    <strong class=" text-success">
+      Ufite Super Subscription
+      <i class="bi bi-person-check"></i>
+    </strong>
+    {% else %}
     <p class="fw-bold text-success">
       Ifatabuguzi ryawe riracyariho kugeza ku itariki ya
       <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong>.
     </p>
+    {% endif %}
     {% elif user.has_ended_subscription %}
     <p class="fw-bold text-danger">
       Ifatabuguzi ryawe ryararangiye kuri itariki ya
@@ -178,11 +185,11 @@
         <h2 class="">Hose amazina ni: "Mwami Modeste"</h2>
       </div>
     </form>
+    <button type="button" class="btn btn-primary d-block mx-auto" id='js-finished'>
+      Nasoje kwishyura
+    </button>
   </div>
 
-  <button type="button" class="btn btn-primary d-block mx-auto" id='js-finished'>
-    Nasoje kwishyura
-  </button>
   <form id="whatsapp-form" class="visually-hidden">
     <fieldset>
       <legend>Telefone n'amazina by'uwishyuye:</legend>
