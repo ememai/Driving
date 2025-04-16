@@ -25,6 +25,7 @@ import phonenumbers
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.forms import SetPasswordForm
 from django.db.models import Q
 
 class ImageLabelMixin:
@@ -136,11 +137,6 @@ class LoginForm(forms.Form):
 
         return cleaned_data
 
-from django import forms
-from django.contrib.auth.forms import SetPasswordForm
-from .models import UserProfile
-from django import forms
-from django.contrib.auth.forms import SetPasswordForm
 
 class CustomSetPasswordForm(SetPasswordForm):
     new_password1 = forms.CharField(

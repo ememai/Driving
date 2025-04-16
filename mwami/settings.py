@@ -184,7 +184,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-BASE_URL = config("BASE_URL", default="http://127.0.0.1:8000")
+BASE_URL = config("BASE_URL",)
 
 # Email for production
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

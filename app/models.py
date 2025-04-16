@@ -10,7 +10,7 @@ from django.db import models
 
 from django.core.mail import send_mail
 from datetime import date, timedelta
-
+from django.conf import settings
 import phonenumbers
 from django.contrib import messages
 from django.utils import timezone
@@ -135,7 +135,7 @@ class UserProfile(AbstractUser):
         send_mail(
             'OTP Code yawe',
             f"Koresha iyi code y'isuzuma👉 {self.otp_code}",
-            'ememaiid@gmail.com',
+            settings.DEFAULT_FROM_EMAIL,
             [self.email],
             fail_silently=False,
         )
@@ -163,7 +163,6 @@ class Plan(models.Model):
 
     def __str__(self):
         return self.plan
-
 
 
 class Subscription(models.Model):

@@ -14,7 +14,7 @@ class Command(BaseCommand):
         scheduler.add_job(job_auto_schedule_exams, CronTrigger(hour=0, minute=0), id="auto_schedule_exams")
 
         # 2. Email notification every 30 minutes from 7:00 to 17:00
-        scheduler.add_job(job_notify_new_published_exams, CronTrigger(minute='*/30', hour='7-17'), id="notify_emails")
+        scheduler.add_job(job_notify_new_published_exams, CronTrigger(minute='*/60', hour='7-17'), id="notify_emails")
 
         self.stdout.write(self.style.SUCCESS("✅ Scheduler started..."))
         scheduler.start()
