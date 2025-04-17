@@ -1,10 +1,12 @@
 from django.apps import AppConfig
+from django.conf import settings
 
 
 class AppConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'app'
-
-    # def ready(self):
-    #     from .scheduler import start
-    #     start()
+    
+    if settings.DEBUG:
+        def ready(self):
+            from .scheduler import start
+            start()

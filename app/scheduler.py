@@ -7,7 +7,9 @@ from django.conf import settings
 from .models import *
 from .utils import auto_schedule_recent_exams
 from zoneinfo import ZoneInfo
-from django.db import close_old_connections
+from django.db import close_old_connections, connections
+from django.db.utils import OperationalError
+import textwrap
 
 
 def job_auto_schedule_exams():
@@ -17,7 +19,7 @@ def job_auto_schedule_exams():
 
 
 def job_notify_new_published_exams():
-    close_old_connections()
+    close_old_connections()  # Close old connections to avoid issues
     print("📬 Checking for newly published exams...")
 
     now = timezone.now()
@@ -38,22 +40,34 @@ def job_notify_new_published_exams():
         
         for user in users:
             if user.email:
-                send_mail(
-                    subject=f"📢 {scheduled_time}  Exam Published",
-                    message=f"Kuwa {today_date}\n\nIkizamini cya Saa {scheduled_time} cyagezeho.\nGikore uciye aha: {exam_url}",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
-                    fail_silently=False,
-                )
-        print(f"✅ Email sent for {exam}")
+                try:
+                    send_mail(
+                        subject=f"📢 {scheduled_time}  Exam Published",
+                        
+                        message = textwrap.dedent(f'''\
+                                    📅 Kuwa {today_date}
 
+                                    ⏰ Ikizamini cya Saa {scheduled_time} cyagezeho.
+                                    📝 Gikore uciye aha: {exam_url}
+
+                                    📞 Ukeneye ubufasha: 0785287885
+                                    '''),
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[user.email],
+                        fail_silently=False,
+                    )
+                    print(f"✅ Email sent for {exam} to {user.email}")
+                except OperationalError as e:
+                    print(f"❌ Database error when sending email: {e}")
+                    connections.close_all()  # Attempt to close all connections and retry
+                    continue
 
 def start():
     scheduler = BackgroundScheduler(timezone=ZoneInfo("Africa/Kigali"))    
     # 1. Run exam scheduling every day at 00:00
     scheduler.add_job(job_auto_schedule_exams, CronTrigger(hour=0, minute=0), id="auto_schedule_exams")
 
-    # 2. Run email notifications every 30 mins between 07:00 and 17:00
-    scheduler.add_job(job_notify_new_published_exams, CronTrigger(minute='*/60', hour='7-17'), id="notify_emails")
+    # 2. Run email notifications every hour between 07:00 and 17:00
+    scheduler.add_job(job_notify_new_published_exams, CronTrigger(minute='0', hour='7-17'), id="notify_emails")
     
     scheduler.start()
