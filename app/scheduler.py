@@ -13,6 +13,7 @@ import textwrap
 
 
 def job_auto_schedule_exams():
+    connections.close_all()
     print("🕛 Running daily auto-schedule...")
     auto_schedule_recent_exams()
     print("✅ Recent exams scheduled.")

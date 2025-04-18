@@ -151,7 +151,7 @@
       const currentMs = now.getMilliseconds();
   
       // Calculate ms until next 15-minute interval
-      const minutesToNextInterval = 15 - (currentMinutes % 15);
+      const minutesToNextInterval = 30 - (currentMinutes % 30);
       const msUntilNextInterval = 
           (minutesToNextInterval * 60 * 1000) -  // minutes to ms
           (currentSeconds * 1000) -              // seconds to ms
@@ -170,7 +170,7 @@
               runChecks();
               const nextRun = new Date(Date.now() + 10 * 60 * 1000);
               logNextRunTime(nextRun);
-          }, 15 * 60 * 1000);
+          }, 30 * 60 * 1000);
           
       }, msUntilNextInterval);
   }
