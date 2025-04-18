@@ -74,7 +74,13 @@ def get_plan_description(plan_value):
     }.get(plan_value, [])
 
 
-
+@register.filter
+def get_old_price(value):
+    return {
+        'Daily': '1000',
+        'Weekly': '4000',
+        'Monthly': '10000',
+        }.get(value, '')
 
 @register.filter
 def get_plan_price(value):

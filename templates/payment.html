@@ -7,7 +7,6 @@
   .underline {
     text-decoration: underline;
   }
-
   .cursor-pointer {
     cursor: pointer;
   }
@@ -85,10 +84,10 @@
   line-height: 1.7;
   font-size: 1rem;
   color: rgba(var(--text-rgb), 1);
-}
-.plan-description li {
+  }
+  .plan-description li {
   margin-bottom: 0.4rem;
-}
+  }
 
   
   .method {
@@ -157,9 +156,14 @@
                   id="plan_{{ plan_value }}"
                   value="{{ plan_value|get_plan_price }}"
                   {% if plan_value == user.subscription.plan %} checked {% endif %}>
-                <label class="form-check-label fs-1" for="plan_{{ plan_value }}">
-                  {{ plan_value|get_plan_price }} RWF
+                <div>
+                  <label class="form-check-label d-block mb-0 fs-6" for="plan_{{ plan_value }}" style="text-decoration: line-through; color:rgb(63, 96, 242)">
+                  {{ plan_value|get_old_price }} RWF
                 </label>
+
+                <label class="form-check-label fs-2" for="plan_{{ plan_value }}">{{ plan_value|get_plan_price }} RWF
+                </label>
+              </div>
               </div>
               <ul class="plan-description list-unstyled text-start px-1">
                 {% for icon, line in plan_value|get_plan_description %}
