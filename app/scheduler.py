@@ -7,9 +7,9 @@ from django.conf import settings
 from .models import *
 from .utils import auto_schedule_recent_exams
 from zoneinfo import ZoneInfo
-from django.db import close_old_connections, connections
 from django.db.utils import OperationalError
 import textwrap
+from django.db import close_old_connections, connections
 
 
 def job_auto_schedule_exams():

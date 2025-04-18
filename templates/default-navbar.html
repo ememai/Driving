@@ -1,11 +1,5 @@
 {% load static %}
 <style>
-
-    .btn:active {
-      background-color:rgb(0, 10, 156) !important; /* Bootstrap success green */
-      color: white;
-    }
-
 </style>
 <nav class="fixed-top">
   <div class="navbar navbar-expand-md border-bottom border-theme shadow-sm" id="navbar" role="navigation" style="background-color: rgb(0, 0, 83); ">
@@ -66,7 +60,13 @@
             href="{% url 'subscription' %}"
             role="button"
           >
-            Ifatabuguzi | {{ user.subscription.plan.get_plan_display|default:"None" }}
+            Ifatabuguzi | 
+            {%if user.subscription.super_subscription %}
+             Super <i class="bi bi-person-check"></i>
+            {% else %}
+            {{ user.subscription.plan.get_plan_display|default:"None" }}
+
+            {% endif %}
           </a>
           {% else %}
           <a
@@ -166,8 +166,8 @@
                   style="font-size: 13px"
                 >
                   Ifatabuguzi :
-                  {%if user.subscription.super_subscription %} (Rihoraho)
-
+                  {%if user.subscription.super_subscription %} Super
+                  <i class="bi bi-person-check"></i>
                   {% else %}
                   {{ user.subscription.plan.get_plan_display|default:"None" }}
                   {% endif %}

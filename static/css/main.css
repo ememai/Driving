@@ -210,15 +210,24 @@
   footer a:hover::after {
     width: 100%;
   } */
-
+.btn{
+    transition: transform 0.3s ease-in-out;
+}
    /* Link styles */
-   .cy-link {
+.btn:active {
+       background-color:rgb(1, 8, 118) !important; /* Bootstrap success green */
+       color: white;
+       transform: scale(1.1);
+     }
+
+.cy-link {
     font-size: 14px;
     color: cyan;
     text-decoration: none;
     position: relative;
     display: inline-block;
 }
+
 
 /* a:hover {
     text-decoration: underline;
