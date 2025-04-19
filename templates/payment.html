@@ -147,7 +147,9 @@
           {% for plan_value, plan_label in plans %}
             <div class="card flex-shrink-0 text-center plan-card"
                  data-plan-price="{{ plan_value|get_plan_price }}"
-                 data-plan-id="plan_{{ plan_value }}">
+                 data-plan-id="plan_{{ plan_value }}"
+                 data-plan-value="{{ plan_value }}"
+                  data-plan-label="{{ plan_label }}">
               <div class="card-header d-flex align-items-center justify-content-center text-primary fw-bold gap-2 py-0">
                 <input
                   class="form-check-input"
@@ -246,8 +248,9 @@
     });
   });
 
+  
   function sendToWhatsApp() {
-    let phoneNumber = "250785287885"; // Replace with actual recipient number
+    let phoneNumber = "250785287885";
     let userPhone = document.getElementById("phone").value;
     let userName = document.getElementById("name").value;
     let selectedPlan = document.querySelector('input[name="plan"]:checked');
@@ -256,24 +259,28 @@
     selectPlan(alertMessage);
 
     if (!userPhone || !userName) {
-      alert("Nimero ya telefone n'amazina by'uwishyuye birakenewe!!!.");
-      return;
+        alert("Nimero ya telefone n'amazina by'uwishyuye birakenewe!!!.");
+        return;
     }
 
     let planPrice = selectedPlan ? selectedPlan.value : 0;
-    let planDescription = selectedPlan.nextElementSibling.innerText;
+    let planCard = selectedPlan ? selectedPlan.closest('.plan-card') : null;
+    
+    // Get both the value and human-readable label
+    let planValue = planCard ? planCard.dataset.planValue : "No plan selected";
+    let planLabel = planCard ? planCard.dataset.planLabel : "No plan selected";
 
     // Construct the message
     let message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n` +
                   `📌 Izina: ${userName}\n` +
                   `📞 Numero: ${userPhone}\n` +
-                  `💳 Ifatabuguzi: ${planDescription} - ${planPrice} RWF\n\n` +
+                  `💳 Ifatabuguzi: ${planLabel} - ${planPrice} RWF\n\n` +
                   `🔹Murakoze!`;
 
     let encodedMessage = encodeURIComponent(message);
     let whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
-     window.location.href = whatsappURL;
+    window.location.href = whatsappURL;
   }
 
   function selectPlan(message) {
@@ -373,7 +380,7 @@
         card.addEventListener('mouseenter', () => isPaused = true);
         card.addEventListener('mouseleave', () => isPaused = false);
     });
-});
+  });
 </script>
   
 {% endblock %}
