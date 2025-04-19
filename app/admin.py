@@ -14,7 +14,7 @@ from datetime import timedelta, datetime
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('email', 'phone_number', 'name', 'is_subscribed', 'date_joined', 'otp_verified')
+    list_display = ('name', 'email', 'phone_number','is_subscribed','whatsapp_consent','whatsapp_number','date_joined', 'otp_verified')
     search_fields = ('name', 'email', 'phone_number')
     list_filter = ('date_joined',)
 

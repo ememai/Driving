@@ -1,130 +1,177 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %} {% load static %} {% block title %} Register {% endblock %}
 
-{% block title %} Register {% endblock %}
 
-{% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card shadow-lg p-4">
-            <h2 class="text-center mb-4">Create an Account</h2>
+{% block navbar %}
+<div class="d-flex align-items-center justify-content-between border-bottom ">
+  <div>
+    <a class="text-decoration-none fs-3 text-theme p-2" href="{% url 'home' %}">
+      <i class="bi bi-house-fill"></i>
+       
+    </a>
+  </div>
+  <div class="theme-toggle m-2">
+    <button class="btn btn-link p-0 text-theme" id="themeToggle" aria-label="Toggle theme" type="button">
+      <i id="themeIcon" class="bi bi-moon fs-4"></i>
+      <span class="visually-hidden">Toggle dark mode</span>
+    </button>
+  </div>
+</div>
+{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/register.css' %}" />
 
-            <form method="post" novalidate>
-                {% csrf_token %}
-
-                <div class="mb-3 text-center">
-                    <label class="form-label fw-bold">Register with:</label>
-                    <div class="d-flex justify-content-center gap-3">
-                        <button type="button" class="btn btn-outline-primary" id="usePhone">
-                            Phone
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary" id="useEmail">
-                            Email
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Phone Number Field (Default) -->
-                <div class="mb-3" id="phoneField">
-                    <label for="id_phone_number" class="form-label">Phone Number</label>
-                    <div class="input-group">
-                        <span class="input-group-text">+250</span>
-                        <input type="text" name="phone_number" id="id_phone_number" class="form-control"
-                            placeholder="788123456" />
-                    </div>
-                </div>
-
-                <!-- Email Field (Initially hidden) -->
-                <div class="mb-3 d-none" id="emailField">
-                    <label for="id_email" class="form-label">Email</label>
-                    <input type="email" name="email" id="id_email" class="form-control"
-                        placeholder="urugero: umuhanda@gmail.com" />
-                </div>
-                <!-- Name field -->
-                <div class="mb-3">
-                    <label for="name" class="form-label">Username</label>
-                    <input type="text" name="name" id="name" class="form-control" placeholder="izina " />
-                </div>
-
-                <!-- Password Fields -->
-                <div class="mb-3 position-relative">
-                    <label for="id_password1" class="form-label">Password</label>
-                    <div class="input-group">
-                        <input type="password" name="password1" id="id_password1" class="form-control js-password"
-                            placeholder="Enter your password" />
-                        <button class="btn btn-outline-secondary toggle-password" type="button"
-                            title="Show/Hide Password">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="mb-3 position-relative">
-                    <label for="id_password2" class="form-label">Confirm Password</label>
-                    <div class="input-group">
-                        <input type="password" name="password2" id="id_password2" class="form-control js-password"
-                            placeholder="Confirm your password" />
-                        <button class="btn btn-outline-secondary toggle-password" type="button"
-                            title="Show/Hide Password">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="mb-3 text-center">
-                    <label class="form-label fw-bold">Gender</label>
-                    <div class="d-flex justify-content-center gap-3">
-                        {% for value, label in form.gender.field.choices %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="gender" id="gender_{{ value }}"
-                                value="{{ value }}"/>
-                            <label class="form-check-label" for="gender_{{ value }}">{{ label }}</label>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <!-- Remove unnecessary option -->
-                <button type="submit" class="btn btn-primary w-100">Register</button>
-            </form>
-            <p class="text-center mt-3">
-                Already have an account? <a href="{% url 'login' %}">Login</a>
-            </p>
-        </div>
+{% endblock %} {% block content %}
+<style>
+  #main-content{
+    margin-top: 16px;
+    }
+</style>
+<div class="d-flex justify-content-center mt-0">
+  <h2 class="text-center text-theme fw-bold fs-5" id="kds">
+    <i class="bi bi-car-front-fill"></i> 
+    KIGALI DRIVING SCHOOL
+  </h2>
+</div>
+<div class="row">
+  {% comment %} <div class="col-md-5 m-4 video-container">
+    <div class="embed-responsive embed-responsive-16by9">
+      <iframe src="https://www.youtube.com/embed/xq6o-Gh0nNo" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+        class="embed-responsive-item">
+      </iframe>
     </div>
+  </div> {% endcomment %}
+  <div class="col-md-6 d-flex justify-content-center">
+    <div class="card shadow-lg p-4">
+      <h2 class="text-center mb-4">Hanga Konti</h2>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-3 text-center">
+          <label class="form-label fw-bold">Koresha:</label>
+          <div class="d-flex justify-content-center gap-3" id="js-switch">
+            <button type="button" class="btn btn-outline-primary btn-focus" id="usePhone">
+              Telefone
+            </button>
+            <button type="button" class="btn btn-outline-secondary" id="useEmail">
+              Imeyili
+            </button>
+          </div>
+        </div>
+        {% include "flash_message.html" %}
+        <!-- Phone Number Field (Default) -->
+        <div class="mb-3" id="phoneField">
+          <label for="id_phone_number" class="form-label">Nimero: </label>
+          <div class="input-group">
+            <span class="input-group-text text-white">+250</span>
+            <input type="text" name="phone_number" id="id_phone_number" class="form-control"
+              placeholder="Urugero: 78..." />
+          </div>
+        </div>
+        <!-- Email Field (Initially hidden) -->
+        <div class="mb-3 d-none" id="emailField">
+          <label for="id_email" class="form-label">Email</label>
+          <input type="email" name="email" id="id_email" class="form-control"
+            placeholder="Urugero: kds@gmail.com" />
+        </div>
+        <!-- Name Field -->
+        <div class="mb-3">
+          <label for="name" class="form-label">Izina:</label>
+          <input type="text" name="name" id="name" class="form-control" placeholder="Uzuza izina" />
+        </div>
+        <!-- Password Fields -->
+        <div class="mb-3 position-relative">
+          <label for="id_password1" class="form-label">Ijambobanga(password):</label>
+          <div class="input-group">
+            <input type="password" name="password1" id="id_password1" class="form-control js-password"
+              placeholder="Uzuza ijambobanga(password) uzibuka" />
+            <button class="btn btn-outline-secondary toggle-password" type="button" title="Show/Hide Password">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="mb-3 position-relative">
+          <label for="id_password2" class="form-label">Subirampo Ijambobanga(password):</label>
+          <div class="input-group">
+            <input type="password" name="password2" id="id_password2" class="form-control js-password"
+              placeholder="Uzuza irisa nk'iryaruguru"/>
+            <button class="btn btn-outline-secondary toggle-password" type="button" title="Show/Hide Password">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Register Button -->
+        <button type="submit" class="btn btn-primary w-100">Emeza</button>
+      </form>
+      <p class="text-center mt-3">
+        Niba ufite konti ->
+        <a class="cy-link" href="{% url 'login' %}">Kanda aha</a>
+      </p>
+    </div>
+  </div>
 </div>
 
-<!-- JavaScript to Toggle Fields -->
+<!-- JavaScript to Toggle Fields and Password Visibility -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const emailField = document.getElementById("emailField");
-        const phoneField = document.getElementById("phoneField");
-        const useEmailBtn = document.getElementById("useEmail");
-        const usePhoneBtn = document.getElementById("usePhone");
-        useEmailBtn.addEventListener("click", function () {
+  document.addEventListener("DOMContentLoaded", function () {
+    const emailField = document.getElementById("emailField");
+    const phoneField = document.getElementById("phoneField");
+    const useEmailBtn = document.getElementById("useEmail");
+    const usePhoneBtn = document.getElementById("usePhone");
+
+    function handleEvent(e) {
+      const target = e.target;
+      const sibling = target.id === "usePhone" ? useEmailBtn : usePhoneBtn;
+
+      switch (e.type) {
+        case "click":
+        case "mouseenter":
+          // Show email field, hide phone field
+          if (target === useEmailBtn) {
             emailField.classList.remove("d-none");
             phoneField.classList.add("d-none");
-        });
-        usePhoneBtn.addEventListener("click", function () {
+          } else if (target === usePhoneBtn) {
+            // Show phone field, hide email field
             phoneField.classList.remove("d-none");
             emailField.classList.add("d-none");
-        });
+          }
+          // Toggle active classes on buttons
+          sibling.classList.remove("btn-focus");
+          target.classList.add("btn-focus");
+
+          break;
+
+        case "focus":
+          console.log(`${target.id} is focused`);
+          break;
+        case "blur":
+          console.log(`${target.id} lost focus`);
+          break;
+        // If you plan to listen for input events on any input fields, you can add a case here
+        case "input":
+          console.log(`${e.target.id} input changed:`, e.target.value);
+          break;
+      }
+    }
+
+    // Attach multiple event listeners to each button
+    [useEmailBtn, usePhoneBtn].forEach((btn) => {
+      ["click", "mouseenter", "focus", "blur"].forEach((eventName) => {
+        btn.addEventListener(eventName, handleEvent);
+      });
     });
 
-    // JavaScript to Toggle Password Visibility
-
+    // Toggle Password Visibility
     document.querySelectorAll(".toggle-password").forEach((button) => {
-        button.addEventListener("click", function () {
-            // Find the associated password input
-            const input = this.parentNode.querySelector(".js-password");
-            const icon = this.querySelector("i");
-
-            // Toggle password visibility
-            const type =
-                input.getAttribute("type") === "password" ? "text" : "password";
-            input.setAttribute("type", type);
-
-            // Toggle eye icon
-            icon.classList.toggle("bi-eye");
-            icon.classList.toggle("bi-eye-slash");
-        });
+      button.addEventListener("click", function () {
+        const input = this.parentNode.querySelector(".js-password");
+        const icon = this.querySelector("i");
+        const type =
+          input.getAttribute("type") === "password" ? "text" : "password";
+        input.setAttribute("type", type);
+        icon.classList.toggle("bi-eye");
+        icon.classList.toggle("bi-eye-slash");
+      });
     });
+  });
 </script>
 {% endblock %}

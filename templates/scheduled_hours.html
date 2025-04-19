@@ -1,4 +1,4 @@
-<style>
+<!-- <style>
   .hours {
     background-color: rgb(20 20 40);
     font-weight: 700;
@@ -182,5 +182,179 @@
       runChecks();  // Immediate first run
       scheduleChecks();  // Scheduled subsequent runs
   });
-</script>
+</script> -->
+ 
+<style>
+  .hours {
+    background-color: rgb(20 20 40);
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+
+  /* Scrollable container styling */
+  .scrollable-times {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 1rem;
+    padding: 0.1rem 0.5rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollable-times::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Each exam-hour is a flex item that doesn't shrink */
+  .exam-hour {
+    flex: 0 0 auto;
+    position: relative; /* For positioning the check mark */
+  }
+
+  /* Basic styling for hour links */
+  .hour-link {
+    color: #a6ff00;
+  }
   
+  .hour-link.disabled {
+    color:rgb(114, 174, 1);
+    cursor: not-allowed;
+  }
+
+  .note {
+    background-color: rgba(var(--surface-rgb), 1);
+    color: rgba(var(--text-rgb), 1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: none;
+  }
+
+  /* Style for completed exam check mark */
+  .completed-check {
+    position: absolute;
+     top: -3px;
+    right: -8px;
+    background-color: #28a745;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border: 1px solid white;
+    z-index: 9999;
+  }
+</style>
+
+<div class="mobile-exam-times hours">
+  <div class="container-fluid">
+    <div class="note text-center mb-0 pt-lg-1">
+      <h6 class="text-center p-0 m-0">Kanda ku isaha ukore ikizamini</h6>
+    </div>
+    <div class="scrollable-times gap-3" id="js-update">
+      {% for exam in exams_scheduled|dictsort:"scheduled_datetime" %}
+      <div class="exam-hour" id="exam-hour-{{ exam.id }}">
+        {% if exam.exam.id in completed_exam_ids %}
+        <div class="completed-check">✓</div>
+        {% endif %}
+        {% if exam.is_published %}
+        <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link">
+          {{ exam.scheduled_datetime|time:"H:00" }}
+        </a>
+        {% else %}
+        <span class="hour-link disabled" title="Isaha ntago iragera">
+          {{ exam.scheduled_datetime|time:"H:00" }}
+        </span>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="exam-hour text-center">
+        <small class="text-warning">Nta kizamini kiboneka</small>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  // Global flag to track active checks
+  let isChecking = false;
+  
+  function checkExamStatus(examId) {
+      if (!examId) {
+          console.error("Exam ID is undefined!");
+          return Promise.resolve();
+      }
+  
+      return fetch(`/check-exam-status/${examId}/`)
+          .then(response => response.json())
+          .then(data => {
+              let examDiv = document.getElementById("exam-hour-" + examId);
+              if (examDiv && data.is_published) {
+                  let checkMark = '';
+                  if (data.completed) {
+                      checkMark = '<div class="completed-check">✓</div>';
+                  }
+                  examDiv.innerHTML = checkMark + `<a href="${data.exam_url}" class="hour-link">${data.exam_time}</a>`;
+              }
+              return data;
+          })
+          .catch(error => {
+              console.error("Error fetching exam status:", error);
+              throw error;
+          });
+  }
+  
+  function getExamIds() {
+      return Array.from(document.querySelectorAll(".exam-hour"))
+                 .map(div => div.id.replace("exam-hour-", ""))
+                 .filter(id => id);
+  }
+  
+  function runChecks() {
+      if (isChecking) return;
+      
+      const examIds = getExamIds();
+      if (examIds.length === 0) {
+          console.warn("No exams Scheduled at moment.");
+          return;
+      }
+      
+      isChecking = true;
+      
+      Promise.all(examIds.map(checkExamStatus))
+          .then(() => console.log('All checks completed'))
+          .catch(() => console.log('Some checks failed'))
+          .finally(() => { isChecking = false; });
+  }
+  
+  function scheduleChecks() {
+      const now = new Date();
+      const currentMinutes = now.getMinutes();
+      const currentSeconds = now.getSeconds();
+      const currentMs = now.getMilliseconds();
+  
+      const minutesToNextInterval = 30 - (currentMinutes % 30);
+      const msUntilNextInterval = 
+          (minutesToNextInterval * 60 * 1000) -
+          (currentSeconds * 1000) -
+          currentMs;
+  
+      setTimeout(() => {
+          runChecks();
+          
+          setInterval(() => {
+              runChecks();
+              const nextRun = new Date(Date.now() + 10 * 60 * 1000);
+          }, 30 * 60 * 1000);
+          
+      }, msUntilNextInterval);
+  }
+  
+  document.addEventListener("DOMContentLoaded", function() {
+      runChecks();
+      scheduleChecks();
+  });
+</script>

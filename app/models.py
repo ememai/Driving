@@ -64,7 +64,9 @@ class UserProfile(AbstractUser):
 
     USERNAME_FIELD = 'phone_number'  # Default authentication field
     REQUIRED_FIELDS = ['email']  # Email is optional, but preferred
-
+    whatsapp_number = models.CharField(max_length=20, blank=True, null=True)
+    whatsapp_consent = models.BooleanField(default=False)
+    whatsapp_notifications = models.BooleanField(default=False)
     objects = UserProfileManager()
 
     def save(self, *args, **kwargs):

@@ -32,282 +32,297 @@
         <!-- Twitter Card Meta Tags -->
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Ikizamini cya Provisior - Amategeko y'Umuhanda" />
-<meta name="twitter:description" content="Witoze ikizamini cyakozwe, menya umuvuduko, rumoroki, makuzungu na byose ku kinyabiziga." />
-        
+        <meta name="twitter:description" content="Witoze ikizamini cyakozwe, menya umuvuduko, rumoroki, makuzungu na byose ku kinyabiziga." />
+            
         <meta name="twitter:image" content="https://www.igazeti.rw/static/img/logo.png" />
-    
+
         <!-- Stylesheets -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
         <link rel="stylesheet" href="{% static 'css/theme.css' %}" />
         <link rel="stylesheet" href="{% static 'css/main.css' %}" />
-    
-        {% block extra_css %}
-        <style>
-            #main-content {
-                margin-top: 25px;
-            }
-            .scroll-btn {
-                transition: opacity 0.4s ease;
-            }
-        </style>
-        {% endblock %}
+        
+            {% block extra_css %}
+            <style>
+                #main-content {
+                    margin-top: 25px;
+                }
+                .scroll-btn {
+                    transition: opacity 0.4s ease;
+                }
+            </style>
+            {% endblock %}
+            {% if not user.is_authenticated %}
+                <style>
+                    .hours {
+                        display: none;
+                    }
+
+                    main{
+                        padding: 50px;
+                    }
+
+                
+                </style>
+
+            {% endif %}
     </head>
     
-<body class="d-flex flex-column min-vh-100 bg-theme text-theme gap-0">
-    <!-- Global Loader -->
-    <div class="global-loader" id="global-loader" aria-hidden="true">
-        <div class="spinner" role="status"></div>
-        <div class="loader-text px-2">Loading...</div>
-    </div>
-
-    <!-- Status Icons -->
-    <div class="status-icon checkmark-icon" id="success-indicator">
-        <i class="bi bi-check-circle-fill"></i> <!-- Bootstrap checkmark icon -->
-    </div>
-
-    <div class="status-icon error-icon" id="error-indicator">
-        <i class="bi bi-x-circle-fill"></i> <!-- Bootstrap X mark icon -->
-    </div>
-    <!-- Navigation -->
-    {% block navbar %}
-    {% include 'default-navbar.html' %}
-    {% endblock %}   
     
-    <!-- Main Content -->
-    <main class="flex-grow-1">
-        <div class="container" id="main-content">
-            
-            {% block content %}{% endblock %}
+    <body class="d-flex flex-column min-vh-100 bg-theme text-theme gap-0">
+        <!-- Global Loader -->
+        <div class="global-loader" id="global-loader" aria-hidden="true">
+            <div class="spinner" role="status"></div>
+            <div class="loader-text px-2">Loading...</div>
         </div>
-    </main>
 
-    <div class="d-flex justify-content-between py-0">
-    <i class="fa-solid fa-truck-monster"></i>
-    <i class="fa-solid fa-car "></i>
-    <i class="fa-solid fa-bicycle "></i>
-    <i class="fa-solid fa-bus "></i>
-    
-    </div>
+        <!-- Status Icons -->
+        <div class="status-icon checkmark-icon" id="success-indicator">
+            <i class="bi bi-check-circle-fill"></i> <!-- Bootstrap checkmark icon -->
+        </div>
 
-    <!-- Footer -->
-    <footer class="bg-dark py-3 mt-0 mx-0">
-        <div class="container-fluid d-flex flex-column gap-2">
-            <div class="d-flex flex-wrap justify-content-center gap-3">
-                <a href="https://wa.me/250785287885" class="cy-link text-decoration-none text-info hover:text-light">
-                    <i class="bi bi-whatsapp text-green"></i> 0785287885
-                </a>
-                <a class="cy-link text-decoration-none text-light hover:text-info opacity-75-hover text-center"
-                    href="{% url 'contact' %}">
-                    Ubufasha
-                </a>
-                <a href="{% url 'privacy_policy' %}"
-                    class="cy-link text-decoration-none text-light hover:text-light opacity-75-hover">
-                    Privacy Policy
-                </a>
+        <div class="status-icon error-icon" id="error-indicator">
+            <i class="bi bi-x-circle-fill"></i> <!-- Bootstrap X mark icon -->
+        </div>
+        <!-- Navigation -->
+        {% block navbar %}
+        {% include 'default-navbar.html' %}
+        {% endblock %}   
+        
+        <!-- Main Content -->
+        <main class="flex-grow-1">
+            <div class="container" id="main-content">
+                
+                {% block content %}{% endblock %}
             </div>
-            <p class="text-center text-light opacity-75 small mb-0">
-                &copy; {% now "Y" %} Kigali Driving School. All rights reserved.
-            </p>
+        </main>
+
+        <div class="d-flex justify-content-between py-0">
+        <i class="fa-solid fa-truck-monster"></i>
+        <i class="fa-solid fa-car "></i>
+        <i class="fa-solid fa-bicycle "></i>
+        <i class="fa-solid fa-bus "></i>
+        
         </div>
-    </footer>
 
-    <!-- Core Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/theme-switcher.js' %}"></script>
-    <script src="{% static "js/back-top.js" %}"></script>
+        <!-- Footer -->
+        <footer class="bg-dark py-3 mt-0 mx-0">
+            <div class="container-fluid d-flex flex-column gap-2">
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="https://wa.me/250785287885" class="cy-link text-decoration-none text-info hover:text-light">
+                        <i class="bi bi-whatsapp text-green"></i> 0785287885
+                    </a>
+                    <a class="cy-link text-decoration-none text-light hover:text-info opacity-75-hover text-center"
+                        href="{% url 'contact' %}">
+                        Ubufasha
+                    </a>
+                    <a href="{% url 'privacy_policy' %}"
+                        class="cy-link text-decoration-none text-light hover:text-light opacity-75-hover">
+                        Privacy Policy
+                    </a>
+                </div>
+                <p class="text-center text-light opacity-75 small mb-0">
+                    &copy; {% now "Y" %} Kigali Driving School. All rights reserved.
+                </p>
+            </div>
+        </footer>
 
-    <!-- Global Loading System -->
-    <!-- In base.html -->
-    <script>
-        // Enhanced global loader system
-        const globalLoader = {
-            element: document.getElementById('global-loader'),
-            successIndicator: document.getElementById('success-indicator'),
-            errorIndicator: document.getElementById('error-indicator'),
-            flashMessages: document.getElementById('flash-messages'),
+        <!-- Core Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="{% static 'js/theme-switcher.js' %}"></script>
+        <script src="{% static "js/back-top.js" %}"></script>
+
+        <!-- Global Loading System -->
+        <!-- In base.html -->
+        <script>
+            // Enhanced global loader system
+            const globalLoader = {
+                element: document.getElementById('global-loader'),
+                successIndicator: document.getElementById('success-indicator'),
+                errorIndicator: document.getElementById('error-indicator'),
+                flashMessages: document.getElementById('flash-messages'),
 
 
-            show: () => {
-                globalLoader.element.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            },
+                show: () => {
+                    globalLoader.element.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                },
 
-            hide: () => {
-                globalLoader.element.classList.remove('active');
-                document.body.style.overflow = '';
-            },
+                hide: () => {
+                    globalLoader.element.classList.remove('active');
+                    document.body.style.overflow = '';
+                },
 
-            showSuccess: () => {
-                globalLoader.hide();
-                globalLoader.successIndicator.classList.add('show');
-                setTimeout(() => {
-                    globalLoader.successIndicator.classList.remove('show');
-                }, 2000); // Show checkmark for 2 seconds
-            },
-        };
+                showSuccess: () => {
+                    globalLoader.hide();
+                    globalLoader.successIndicator.classList.add('show');
+                    setTimeout(() => {
+                        globalLoader.successIndicator.classList.remove('show');
+                    }, 2000); // Show checkmark for 2 seconds
+                },
+            };
 
 
-        let xklName = `<div class="d-flex align-items-center">
-            <i class="bi bi-car-front-fill text-warning fs-1"></i>
-            <span class=""> Kigali Driving School </span>
-           <i class="bi bi-mortarboard text-success fs-1"> </i>
-           </div>`;
-        // Set the content of the element with id "kds"
-        document.getElementById("kds").innerHTML = xklName; 
+            let xklName = `<div class="d-flex align-items-center">
+                <i class="bi bi-car-front-fill text-warning fs-1"></i>
+                <span class=""> Kigali Driving School </span>
+            <i class="bi bi-mortarboard text-success fs-1"> </i>
+            </div>`;
+            // Set the content of the element with id "kds"
+            document.getElementById("kds").innerHTML = xklName; 
 
-        // Auto-handle form submissions
-        document.addEventListener('submit', function (e) {
-            if (e.target.tagName.toLowerCase() === 'form') {
-                const form = e.target;
-                globalLoader.show();
+            // Auto-handle form submissions
+            document.addEventListener('submit', function (e) {
+                if (e.target.tagName.toLowerCase() === 'form') {
+                    const form = e.target;
+                    globalLoader.show();
 
-                // Handle AJAX form submissions
-                if (form.dataset.ajax === 'true') {
-                    e.preventDefault();
-                    const formData = new FormData(form);
+                    // Handle AJAX form submissions
+                    if (form.dataset.ajax === 'true') {
+                        e.preventDefault();
+                        const formData = new FormData(form);
 
-                    fetch(form.action, {
-                        method: form.method,
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
-                        },
-                        credentials: 'same-origin'
-                    })
-                        .then(response => {
-                            if (!response.ok) throw new Error(response.statusText);
-                            return response.json();
+                        fetch(form.action, {
+                            method: form.method,
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+                            },
+                            credentials: 'same-origin'
                         })
-                        .then(data => {
-                            if (data.status === 'success') {
-                                globalLoader.showSuccess();
-                                if (data.redirect) {
-                                    setTimeout(() => {
-                                        window.location.href = data.redirect;
-                                    }, 2000); // Redirect after 2 seconds
+                            .then(response => {
+                                if (!response.ok) throw new Error(response.statusText);
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.status === 'success') {
+                                    globalLoader.showSuccess();
+                                    if (data.redirect) {
+                                        setTimeout(() => {
+                                            window.location.href = data.redirect;
+                                        }, 2000); // Redirect after 2 seconds
+                                    }
+                                } else {
+                                    globalLoader.showError();
                                 }
-                            } else {
+                            })
+                            .catch(error => {
                                 globalLoader.showError();
-                            }
-                        })
-                        .catch(error => {
-                            globalLoader.showError();
-                            console.error('Error:', error);
-                        });
+                                console.error('Error:', error);
+                            });
+                    }
                 }
-            }
-        });
+            });
 
-        // Handle successful page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            globalLoader.hide();
+            // Handle successful page loads
+            document.addEventListener('DOMContentLoaded', () => {
+                globalLoader.hide();
 
-            // Check for success messages in flash messages
-            const successMessage = document.querySelector('.alert-success');
-            const errorMessage = document.querySelector('.alert-danger');
+                // Check for success messages in flash messages
+                const successMessage = document.querySelector('.alert-success');
+                const errorMessage = document.querySelector('.alert-danger');
 
-            if (successMessage) {
-                globalLoader.showSuccess();
-            } else if (errorMessage) {
-                globalLoader.showError();
-            }
+                if (successMessage) {
+                    globalLoader.showSuccess();
+                } else if (errorMessage) {
+                    globalLoader.showError();
+                }
 
-            // Initialize time slots
-            document.querySelectorAll(".time-slot").forEach(slot => {
-                slot.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    document.querySelectorAll(".time-slot").forEach(s => s.classList.remove("active"));
-                    slot.classList.add("active");
+                // Initialize time slots
+                document.querySelectorAll(".time-slot").forEach(slot => {
+                    slot.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        document.querySelectorAll(".time-slot").forEach(s => s.classList.remove("active"));
+                        slot.classList.add("active");
+                    });
                 });
             });
-        });
 
-        // Handle navigation events
-        window.addEventListener('beforeunload', () => globalLoader.show());
-        window.addEventListener('unload', () => globalLoader.hide());
-    </script>
-    <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "DrivingSchool",
-          "name": "Kigali Driving School",
-          "description": "Witoze amategeko y'umuhanda n'ikizamini cya provisior mu buryo bworoshye.",
-          "url": "https://www.igazeti.rw",
-          "address": {
-            "@type": "PostalAddress",
-            "addressLocality": "Kigali",
-            "addressCountry": "RW"
-          }
-        }
+            // Handle navigation events
+            window.addEventListener('beforeunload', () => globalLoader.show());
+            window.addEventListener('unload', () => globalLoader.hide());
         </script>
-        
-    <!-- Modals -->
-    {% include "logout_confirm.html" %}
+        <script type="application/ld+json">
+            {
+            "@context": "https://schema.org",
+            "@type": "DrivingSchool",
+            "name": "Kigali Driving School",
+            "description": "Witoze amategeko y'umuhanda n'ikizamini cya provisior mu buryo bworoshye.",
+            "url": "https://www.igazeti.rw",
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Kigali",
+                "addressCountry": "RW"
+            }
+            }
+        </script>
+            
+            <!-- Modals -->
+            {% include "logout_confirm.html" %}
 
-    {% block extra_js %}
-    <!-- Page-specific Scripts -->
-    {% endblock %}
- <!-- Middle Right Scroll Buttons with Spacing -->
-<div id="scroll-buttons" class="position-fixed top-50 end-0 translate-middle-y  p-0 d-flex flex-column gap-2 align-items-end" style="z-index: 1050;">
-    <button id="scrollTopBtn" type="button"
-        class="btn btn-outline-theme p-1 rounded-circle shadow-sm scroll-btn fade bounce"
-        data-bs-toggle="tooltip" data-bs-placement="left" title="Back to Top"
-        style="width: 30px; height: 30px; font-size: 14px; opacity: 0;">
-        <i class="fa-solid fa-arrow-up"></i>
-    </button>
+            {% block extra_js %}
+        <!-- Page-specific Scripts -->
+            {% endblock %}
+     <!-- Middle Right Scroll Buttons with Spacing -->
+        <div id="scroll-buttons" class="position-fixed top-50 end-0 translate-middle-y  p-0 d-flex flex-column gap-2 align-items-end" style="z-index: 1050;">
+            <button id="scrollTopBtn" type="button"
+                class="btn btn-outline-theme p-1 rounded-circle shadow-sm scroll-btn fade bounce"
+                data-bs-toggle="tooltip" data-bs-placement="left" title="Back to Top"
+                style="width: 30px; height: 30px; font-size: 14px; opacity: 0;">
+                <i class="fa-solid fa-arrow-up"></i>
+            </button>
 
-    <button id="scrollBottomBtn" type="button"
-        class="btn btn-outline-theme p-1 rounded-circle shadow-sm scroll-btn bounce"
-        data-bs-toggle="tooltip" data-bs-placement="left" title="Go to Bottom"
-        style="width: 30px; height: 30px; font-size: 14px;">
-        <i class="fa-solid fa-arrow-down"></i>
-    </button>
-</div>
+            <button id="scrollBottomBtn" type="button"
+                class="btn btn-outline-theme p-1 rounded-circle shadow-sm scroll-btn bounce"
+                data-bs-toggle="tooltip" data-bs-placement="left" title="Go to Bottom"
+                style="width: 30px; height: 30px; font-size: 14px;">
+                <i class="fa-solid fa-arrow-down"></i>
+            </button>
+        </div>
 
-<script>
-    const scrollTopBtn = document.getElementById('scrollTopBtn');
-    const scrollBottomBtn = document.getElementById('scrollBottomBtn');
-    const scrollButtons = document.getElementById('scroll-buttons');
+        <script>
+            const scrollTopBtn = document.getElementById('scrollTopBtn');
+            const scrollBottomBtn = document.getElementById('scrollBottomBtn');
+            const scrollButtons = document.getElementById('scroll-buttons');
 
-    // Scroll behavior
-    scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+            // Scroll behavior
+            scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+            scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
 
-    // Show scrollTopBtn only after some scroll
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 100) {
-            scrollTopBtn.style.opacity = '1';
-        } else {
-            scrollTopBtn.style.opacity = '0';
-        }
-        showButtonsTemporarily(); // Reset timer on scroll
-    });
+            // Show scrollTopBtn only after some scroll
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 100) {
+                    scrollTopBtn.style.opacity = '1';
+                } else {
+                    scrollTopBtn.style.opacity = '0';
+                }
+                showButtonsTemporarily(); // Reset timer on scroll
+            });
 
-    // Auto-hide after inactivity
-    let hideTimer;
-    function showButtonsTemporarily() {
-        scrollButtons.classList.add('fade-in');
-        scrollButtons.classList.remove('fade-out');
+            // Auto-hide after inactivity
+            let hideTimer;
+            function showButtonsTemporarily() {
+                scrollButtons.classList.add('fade-in');
+                scrollButtons.classList.remove('fade-out');
 
-        clearTimeout(hideTimer);
-        hideTimer = setTimeout(() => {
-            scrollButtons.classList.add('fade-out');
-            scrollButtons.classList.remove('fade-in');
-        }, 3000); // Hide after 1 seconds
-    }
+                clearTimeout(hideTimer);
+                hideTimer = setTimeout(() => {
+                    scrollButtons.classList.add('fade-out');
+                    scrollButtons.classList.remove('fade-in');
+                }, 3000); // Hide after 1 seconds
+            }
 
-    // Trigger on any mouse or scroll interaction
-    ['mousemove', 'scroll', 'keydown', 'touchstart'].forEach(evt => {
-        window.addEventListener(evt, showButtonsTemporarily);
-    });
+            // Trigger on any mouse or scroll interaction
+            ['mousemove', 'scroll', 'keydown', 'touchstart'].forEach(evt => {
+                window.addEventListener(evt, showButtonsTemporarily);
+            });
 
-    // Initial state
-    scrollButtons.classList.add('fade-in');
-</script>
+            // Initial state
+            scrollButtons.classList.add('fade-in');
+        </script>
 
-</body>
+    </body>
 
 </html>

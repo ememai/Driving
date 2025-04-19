@@ -70,18 +70,58 @@ def email_domain_exists(email):
     except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN, dns.exception.Timeout, dns.resolver.NoNameservers):
         return False
 
+COMMON_WEAK_PASSWORDS = [
+    "1234", "2345", "3456", "4567", "5678", "6789", "7890",
+    "abcd", "bcde", "cdef", "qwerty", "asdf", "zxcv",
+    "1111", "0000", "aaaa", "bbbb", "zzzz"
+    ]
+
+def is_sequential(password):
+    """Check if characters are sequential (either increasing or decreasing)"""
+    if len(password) < 2:
+        return False
+    increasing = all(ord(password[i]) + 1 == ord(password[i+1]) for i in range(len(password)-1))
+    decreasing = all(ord(password[i]) - 1 == ord(password[i+1]) for i in range(len(password)-1))
+    return increasing or decreasing
+
+def validate_strong_password(value):
+    # Repeated characters
+    if len(set(value)) == 1:
+        raise ValidationError("Ijambobanga ntirigomba kuba inyuguti zisa.")
+    
+    # Common weak patterns
+    if value.lower() in COMMON_WEAK_PASSWORDS:
+        raise ValidationError("Iri jambobanga riroshye cyane.")
+
+    # Sequential patterns
+    # if is_sequential(value.lower()):
+    #     raise ValidationError("Password cannot be a simple sequence of characters.")
     
 class RegisterForm(forms.ModelForm):
-    password1 = forms.CharField(widget=forms.PasswordInput, max_length=255, min_length=4, required=True, label="Password")
+    password1 = forms.CharField(
+        widget=forms.PasswordInput,
+        max_length=255, 
+        min_length=4, 
+        required=True, 
+        label="Password",
+        # validators=[validate_strong_password]
+        )
 
-    password2 = forms.CharField(widget=forms.PasswordInput, max_length=255, min_length=4,required=True, label="Confirm Password")
+    password2 = forms.CharField(
+        widget=forms.PasswordInput,
+        max_length=255, min_length=4,
+        required=True,
+        label="Confirm Password"
+        )
 
     phone_number = forms.CharField(
         max_length=15,
         required=False,
         label="Phone Number",
         widget=forms.TextInput(attrs={"placeholder": "Enter phone number (e.g., 78...)"}),
+        
     )
+    
 
       
     class Meta:
@@ -98,9 +138,9 @@ class RegisterForm(forms.ModelForm):
         password2 = cleaned_data.get("password2")
         
         required_errors ={
-            "name" : "Izina rirakenewe.",
-            "password1" : "Ijambo banga rirakenewe.",
-            "password2" : "Kwemeza ijambo banga birakenewe."
+            "name" : "Uzuza izina rirakenewe!",
+            "password1" : "Ijambobanga rirakenewe!",
+            "password2" : "Ijambobanga rigomba gusa!"
         }
 
         for key, error in required_errors.items():
@@ -110,17 +150,17 @@ class RegisterForm(forms.ModelForm):
         
         
         if email and UserProfile.objects.filter(email=email).exists():
-            raise forms.ValidationError("Iyi email isanzweho.")
+            raise forms.ValidationError("Iyi email isanzweho*")
         elif email and not email_domain_exists(email):
             raise forms.ValidationError(f"Imeri '{email}' wanditse ntago ibaho. Ongera usuzume izina ryayo.")
 
         
 
-        if phone_number:
-        #     phone_number = self.normalize_phone_number(phone_number)
-            stripped_number = phone_number[4:]  # Remove '+250'
-            if UserProfile.objects.filter(phone_number__endswith=stripped_number).exists():
-                raise forms.ValidationError("Iyi telefone isanzweho.")
+        # if phone_number:
+        # #     phone_number = self.normalize_phone_number(phone_number)
+        #     stripped_number = phone_number[4:]  # Remove '+250'
+        #     if UserProfile.objects.filter(phone_number__endswith=stripped_number).exists():
+        #         raise forms.ValidationError("Iyi telefone isanzweho.")
 
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("Ijambo banga rigomba gusa aho warishyize hose.")
@@ -147,11 +187,54 @@ class RegisterForm(forms.ModelForm):
             try:
                 parsed_number = phonenumbers.parse(phone, "RW")
                 if not phonenumbers.is_valid_number(parsed_number):
-                    raise forms.ValidationError("Kurikiza nimero y'inyarwanda urg:7812345 cg 0781234567.")
+                    raise forms.ValidationError("Kurikiza nimero y'inyarwanda urg:78.. cg 078..")
             except phonenumbers.phonenumberutil.NumberParseException:
-                raise forms.ValidationError("Telefone wayujuje nabi kurikiza urugero.")
+                raise forms.ValidationError("Telefone wayujuje nabi kurikiza urugero!")
+            
+            # Check for existing phone number with custom message
+            if UserProfile.objects.filter(phone_number=phone).exists():
+                raise forms.ValidationError(f"Iyi telefone '{phone}' isanzweho*")
+                
 
         return phone
+
+
+class WhatsAppConsentForm(forms.Form):
+    consent = forms.ChoiceField(
+        choices=[('yes', 'Yego'), ('no', 'Oya')],
+        widget=forms.RadioSelect,
+        label="",
+        required=True,
+        initial='no',
+        error_messages={
+            'required': "Hitamo Yego cyangwa Oya!"
+        }
+    )
+    
+    whatsapp_number = forms.CharField(
+        required=False,
+        max_length=20,
+        label="WhatsApp Number",
+        widget=forms.TextInput(attrs={
+            'placeholder': '+25078...',
+            'class': 'form-control',
+        }),
+        
+        
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        consent = cleaned_data.get("consent")
+        whatsapp_number = cleaned_data.get('whatsapp_number')
+
+        if not consent:
+            raise forms.ValidationError("Hitamo Yego cg Oya")
+
+        if consent == 'yes' and not whatsapp_number:
+            raise forms.ValidationError("Telefone ya WhatsApp irakenewe.")
+
+        return cleaned_data
 
 
 class LoginForm(forms.Form):
