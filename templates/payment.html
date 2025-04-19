@@ -167,8 +167,8 @@
               </div>
               <ul class="plan-description list-unstyled text-start px-1">
                 {% for icon, line in plan_value|get_plan_description %}
-    <li><i class="bi bi-check-circle-fill text-success me-0"></i> {{ line }} {{ icon }}</li>
-  {% endfor %}
+                  <li><i class="bi bi-check-circle-fill text-success me-0"></i> {{ line }} {{ icon }}</li>
+                {% endfor %}
               </ul>
               
             </div>
@@ -291,64 +291,67 @@
     const planLabel = document.getElementById('js-plan');
     let current = 0;
     let isPaused = false;
+    let scrollTimeout; // Variable to store the timeout reference
 
     function scrollToCard(carousel, targetScrollLeft, duration = 1000) {
-      const start = carousel.scrollLeft;
-      const change = targetScrollLeft - start;
-      const startTime = performance.now();
+        const start = carousel.scrollLeft;
+        const change = targetScrollLeft - start;
+        const startTime = performance.now();
     
-      function easeOutQuad(t) {
-        return t * (2 - t);
-      }
-    
-      function animateScroll(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = easeOutQuad(progress);
-    
-        carousel.scrollLeft = start + change * eased;
-    
-        if (progress < 1) {
-          requestAnimationFrame(animateScroll);
+        function easeOutQuad(t) {
+            return t * (2 - t);
         }
-      }
     
-      requestAnimationFrame(animateScroll);
+        function animateScroll(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = easeOutQuad(progress);
+    
+            carousel.scrollLeft = start + change * eased;
+    
+            if (progress < 1) {
+                requestAnimationFrame(animateScroll);
+            }
+        }
+    
+        requestAnimationFrame(animateScroll);
     }
     
-  
     function activateCard(index) {
-      cards.forEach((card, i) => {
-        card.classList.toggle('active', i === index);
-      });
+        cards.forEach((card, i) => {
+            card.classList.toggle('active', i === index);
+        });
     
-      const carousel = document.getElementById('plan-carousel');
-      const targetCard = cards[index];
-      const cardOffset = targetCard.offsetLeft - (carousel.offsetWidth / 2) + (targetCard.offsetWidth / 2);
+        const carousel = document.getElementById('plan-carousel');
+        const targetCard = cards[index];
+        const cardOffset = targetCard.offsetLeft - (carousel.offsetWidth / 2) + (targetCard.offsetWidth / 2);
     
-      scrollToCard(carousel, cardOffset); // use the easing function
+        scrollToCard(carousel, cardOffset);
     
-      const input = targetCard.querySelector('input[type="radio"]');
-      if (input) {
-        input.checked = true;
-        planLabel.textContent = input.value;
-      }
+        const input = targetCard.querySelector('input[type="radio"]');
+        if (input) {
+            input.checked = true;
+            planLabel.textContent = input.value;
+        }
     }
     
-    
-  
     function runCarouselOnce() {
-      if (current < cards.length) {
-        activateCard(current);
-        setTimeout(() => {
-          current++;
-          runCarouselOnce(); // recursively go to next card
-        }, 5000);
-      } else {
-        // Done showing all, now center the middle card
-        {% comment %} const middleIndex = Math.floor(cards.length - 1) / 2; {% endcomment %}
-        activateCard(middleIndex);
-      }
+        // Clear any existing timeout to prevent multiple timeouts running
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+        
+        if (current < cards.length) {
+            activateCard(current);
+            // Store the timeout reference
+            scrollTimeout = setTimeout(() => {
+                current++;
+                runCarouselOnce();
+            }, 3000);
+        } else {
+            const middleIndex = Math.floor((cards.length - 1) / 2);
+            activateCard(middleIndex);
+        }
     }
   
     // Initial run
@@ -356,16 +359,21 @@
   
     // Allow manual selection
     cards.forEach((card, index) => {
-      card.addEventListener('click', () => {
-        current = index;
-        activateCard(index);
-      });
+        card.addEventListener('click', () => {
+            // Clear the timeout when user clicks
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            current = index;
+            activateCard(index);
+            // Stop further automatic scrolling
+            current = cards.length; // This will prevent runCarouselOnce from continuing
+        });
   
-      card.addEventListener('mouseenter', () => isPaused = true);
-      card.addEventListener('mouseleave', () => isPaused = false);
+        card.addEventListener('mouseenter', () => isPaused = true);
+        card.addEventListener('mouseleave', () => isPaused = false);
     });
-  });
- </script>
-  
+});
+</script>
   
 {% endblock %}

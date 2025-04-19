@@ -287,6 +287,41 @@ def contact(request):
     return render(request, 'contact.html')
 
 
+# @redirect_authenticated_users
+# def register_view(request):
+#     if request.method == 'POST':
+#         form = RegisterForm(request.POST)
+#         if form.is_valid():
+#             user = form.save(commit=False)
+#             user.set_password(form.cleaned_data["password1"])
+            
+#             if form.cleaned_data.get("phone_number"):
+#                 user.otp_verified = True  
+#                 user.save()
+#                 messages.success(request, 'Guhanga konti byagenze neza. Ushobora kwinjira.')
+#                 return redirect("login")
+
+#             if form.cleaned_data.get("email"):
+#                 try:
+#                     # user.save()
+#                     user.send_otp_email()  # This method should raise ValidationError if sending fails
+#                     messages.success(request, 'OTP yoherejwe kuri email. Yandike hano.')
+#                     return redirect('verify_otp', user_id=user.id)
+
+#                 except Exception as e:
+#                     form.add_error('email', "Imeri wanditse ntago ibasha koherezwaho. Ongera usuzume neza.")
+#                     print(f"Failed to send OTP to {user.email}: {e}")
+                    
+            
+#         else:
+#             for field, errors in form.errors.items():
+#                 for error in errors:
+#                     # messages.error(request, f"{field.capitalize()}: {error}")
+#                     messages.error(request, f"!!! 🙇🏼‍♂️ {error}")
+#     else:
+#         form = RegisterForm()
+#     return render(request, 'registration/register.html', {'form': form})
+
 @redirect_authenticated_users
 def register_view(request):
     if request.method == 'POST':
@@ -295,34 +330,69 @@ def register_view(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password1"])
             
+            # Save user first to get an ID
+            user.save()
+            
+            # Store user ID in session for WhatsApp consent step
+            request.session['new_user_id'] = user.id
+            
             if form.cleaned_data.get("phone_number"):
                 user.otp_verified = True  
                 user.save()
-                messages.success(request, 'Guhanga konti byagenze neza. Ushobora kwinjira.')
-                return redirect("login")
+                messages.success(request, 'Guhanga konti byagenze neza')
+                return redirect("whatsapp_consent")  # Redirect to consent page
 
             if form.cleaned_data.get("email"):
                 try:
-                    # user.save()
-                    user.send_otp_email()  # This method should raise ValidationError if sending fails
+                    user.send_otp_email()
                     messages.success(request, 'OTP yoherejwe kuri email. Yandike hano.')
                     return redirect('verify_otp', user_id=user.id)
-
                 except Exception as e:
                     form.add_error('email', "Imeri wanditse ntago ibasha koherezwaho. Ongera usuzume neza.")
-                    print(f"Failed to send OTP to {user.email}: {e}")
-                    
-            
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    # messages.error(request, f"{field.capitalize()}: {error}")
-                    messages.error(request, f"!!! 🙇🏼‍♂️ {error}")
+        # else:
+        #     for field, errors in form.errors.items():
+        #         for error in errors:
+        #             messages.error(request, f"!!! 🙇🏼‍♂️ {error}")
     else:
         form = RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
 
+def whatsapp_consent(request):# Get the newly registered user from session
+    user_id = request.session.get('new_user_id')
+    if not user_id:
+        return redirect('register')
+    
+    try:
+        user = UserProfile.objects.get(id=user_id)
+    except UserProfile.DoesNotExist:
+        return redirect('register')
+
+    if request.method == 'POST':
+        form = WhatsAppConsentForm(request.POST)
+        
+        if form.is_valid():
+            if form.cleaned_data['consent'] == 'yes':
+                user.whatsapp_consent = True
+                user.whatsapp_notifications = True
+                user.whatsapp_number = form.cleaned_data['whatsapp_number']
+                user.save()
+                messages.success(request, "Urakoze kwemera amakuru kuri WhatsApp.")
+            # else:
+            #     messages.info(request, "Urakoze kwiyandikisha.")
+            
+            # Clear the session and redirect to login
+            if 'new_user_id' in request.session:
+                del request.session['new_user_id']
+            return redirect('login')
+    else:
+        form = WhatsAppConsentForm()
+    
+    return render(request, 'registration/whatsapp_consent.html', {
+        'form': form,
+        'user': user
+    })
+    
 @redirect_authenticated_users
 def verify_otp(request, user_id):
     # Fetch the UserProfile instance

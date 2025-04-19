@@ -217,7 +217,7 @@
 .btn:active {
        background-color:rgb(1, 8, 118) !important; /* Bootstrap success green */
        color: white;
-       transform: scale(1.1);
+       transform: scale(0.9);
      }
 
 .cy-link {

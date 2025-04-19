@@ -40,6 +40,7 @@ urlpatterns = [
 
     #authentications
     path('register/', register_view, name='register'),
+    path('whatsapp-consent/', views.whatsapp_consent, name='whatsapp_consent'),
     path('verify-otp/<int:user_id>/', verify_otp, name='verify_otp'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.user_logout, name='logout'),  
