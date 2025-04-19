@@ -33,6 +33,7 @@
   /* Each exam-hour is a flex item that doesn't shrink */
   .exam-hour {
     flex: 0 0 auto;
+    
   }
 
   /* Basic styling for hour links */
@@ -62,7 +63,7 @@
     <div class="note text-center mb-0 pt-lg-1">
       <h6 class="text-center mb-0">Kanda ku isaha ukore ikizamini</h6>
     </div>
-    <div class="scrollable-times" id="js-update">
+    <div class="scrollable-times gap-3" id="js-update">
       {% for exam in exams_scheduled|dictsort:"scheduled_datetime" %}
       <div class="exam-hour" id="exam-hour-{{ exam.id }}">
         {% if exam.is_published %}
