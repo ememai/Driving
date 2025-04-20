@@ -340,7 +340,8 @@ def register_view(request):
                 user.otp_verified = True  
                 user.save()
                 messages.success(request, 'Guhanga konti byagenze neza')
-                return redirect("whatsapp_consent")  # Redirect to consent page
+                return render(request, 'registration/register.html', {'registration_success': True})
+                # return redirect("whatsapp_consent")  # Redirect to consent page
 
             if form.cleaned_data.get("email"):
                 try:
@@ -577,53 +578,7 @@ def create_exam_page(request):
     
     
     if request.method == 'POST':
-        try:
-            exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
-            questions = Question.objects.order_by('?')[:20]
-
-            if questions.count() < 20:
-                messages.error(request, "Not enough questions to create the exam.")
-                return redirect('create_exam')
-           
-            # Determine next available hour for exam scheduling
-            last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
-
-            if last_exam and last_exam.schedule_hour:
-                try:
-                    last_hour = last_exam.schedule_hour.hour
-                    next_hour = last_hour + 1
-                    if next_hour > 17:
-                        next_hour = 7
-                except (ValueError, AttributeError):
-                    next_hour = 7
-
-            else:
-                next_hour = 7
-
-            from datetime import time
-            exam_schedule_hour = time(next_hour, 0)
-
-
-               
-                
-            exam = Exam.objects.create(
-                exam_type=exam_type,
-                schedule_hour=exam_schedule_hour,
-                duration=20,
-                for_scheduling=True,
-                is_active=False,
-            )
-            exam.questions.set(questions)
-            exam.save()
-            questions_list = list(questions.values_list('id', flat=True))
-            
-
-            messages.success(request, f"Exam '{exam.schedule_hour}' created successfully!")
-            return redirect('create_exam')
-
-        except Exception as e:
-            messages.error(request, f"Error: {str(e)}")
-            return redirect('create_exam')
+        auto_create_exams()
 
     # Show last 5 Ibivanze exams
     ibivanze_type = ExamType.objects.filter(name='Ibivanze').first()

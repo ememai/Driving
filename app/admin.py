@@ -14,9 +14,15 @@ from datetime import timedelta, datetime
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'phone_number','is_subscribed','whatsapp_consent','whatsapp_number','date_joined', 'otp_verified')
+    
+    list_display = ('name', 'email', 'phone_number','is_subscribed','subscription_expires_at','whatsapp_consent','whatsapp_number','date_joined', 'otp_verified')
     search_fields = ('name', 'email', 'phone_number')
     list_filter = ('date_joined',)
+    
+    @admin.display(description='Subscription Ends')
+    def subscription_expires_at(self, obj):
+        return obj.subscription.expires_at if hasattr(obj, 'subscription') else '❌'
+
 
 
 @admin.register(SignType)
@@ -334,9 +340,10 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user', 'plan', 'price', 'active_subscription', 'expires_at')
+    list_display = ('user', 'plan', 'price', 'active_subscription','started_at','expires_at')
     search_fields = ('user__email', 'plan__plan')
     ordering = ('expires_at',)
+ 
 
 
 @admin.register(Payment)

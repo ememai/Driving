@@ -6,6 +6,11 @@
   </div>
   <div class="card-body">
     <div>
+      {% if exam.for_scheduling %}
+        <p class="card-text">
+          <strong>Ikizamini Cya:</strong> Saa {{ exam.schedule_hour|time:"H:00" }}
+        </p>
+      {% endif %}
     <p class="card-text">
       <strong>Cyateguwe:</strong> {{ exam.created_at|date:"M d, Y" }}
     </p>

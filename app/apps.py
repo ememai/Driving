@@ -8,5 +8,5 @@ class AppConfig(AppConfig):
     
     if settings.DEBUG:
         def ready(self):
-            from .scheduler import start
-            start()
+            from . import scheduler
+            scheduler.start()
