@@ -103,6 +103,10 @@
         visibility: visible;
     }
 
+    .text-green {
+        color: #00ff3c;
+    }
+
     .checkmark-icon {
         color: #28a745;
         /* Green for success */
@@ -210,15 +214,24 @@
   footer a:hover::after {
     width: 100%;
   } */
-
+.btn{
+    transition: transform 0.3s ease-in-out;
+}
    /* Link styles */
-   .cy-link {
+.btn:active {
+       background-color:rgb(1, 8, 118) !important; /* Bootstrap success green */
+       color: white;
+       transform: scale(0.9);
+     }
+
+.cy-link {
     font-size: 14px;
     color: cyan;
     text-decoration: none;
     position: relative;
     display: inline-block;
-}
+    }
+
 
 /* a:hover {
     text-decoration: underline;
@@ -235,11 +248,11 @@
     position: absolute;
     bottom: -2px;
     left: 0;
-}
+    }
 
 .cy-link:hover::after {
     width: 100%;
-}
+    }
 
 /* Scroll button styling */
 @media (max-width: 576px) {
@@ -248,7 +261,7 @@
         height: 45px;
         font-size: 14px;
     }
-}
+    }
 
 @media (min-width: 577px) {
     #scrollTopBtn, #scrollBottomBtn {
@@ -256,7 +269,7 @@
         height: 50px;
         font-size: 16px;
     }
-}
+    }
 
 @keyframes bounce {
     0%, 100% {
@@ -265,21 +278,21 @@
     50% {
         transform: translateY(-8px);
     }
-}
+    }
 
 .bounce {
     animation: bounce 1s ease-in-out;
-}
+    }
 
 /* Smooth fade out */
 #scroll-buttons.fade-out {
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
     pointer-events: none;
-}
+    }
 
 #scroll-buttons.fade-in {
     opacity: 1;
     transition: opacity 0.5s ease-in-out;
     pointer-events: auto;
-}
+    }
