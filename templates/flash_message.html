@@ -5,9 +5,11 @@
   class="alert alert-{{ message.tags }} alert-dismissible fade show"
   role="alert"
 >
-  <span style="color: {% if message.tags == 'error' %}red{% elif message.tags == 'success' %}green{% endif %};">
-    {{ message }}
-  </span>
+  <ul>
+    <li class="{% if message.tags == 'error' %}text-danger{% elif message.tags == 'success' %}text-success  list-unstyled  {% endif %}">
+      {{ message }}
+    </li>
+  </ul>
   <button
     type="button"
     class="btn-close"
