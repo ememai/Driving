@@ -456,6 +456,7 @@ def login_view(request):
                     messages.error(request, "Please banza wuzuze kode yoherejwe yemeza ko email ari yawe.")
                     return redirect("verify_otp", user_id=user.id)
                 authenticated_user = authenticate(request, username=username, password=password)
+                
                 if authenticated_user:
                     login(request, authenticated_user)
                     messages.success(request, "Kwinjira bikozwe neza cyane! Welcome back.")
@@ -463,7 +464,7 @@ def login_view(request):
                 else:
                     messages.error(request, "Ijambobanga ritariryo, ongera ugerageze.")
             else:
-                messages.error(request, "Iyi konti ntago ibaho, Gusa wayihanga.")
+                messages.error(request, "Iyi konti ntago ibaho, Gusa wayihanga. <a href='/register/''>Hanga konti</a>")
 
         # Handle form validation errors
         for field, errors in form.errors.items():

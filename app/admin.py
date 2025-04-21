@@ -11,10 +11,15 @@ from django.db.models import Count
 from django.utils.timezone import now, make_aware
 from datetime import timedelta, datetime
 # Register your models here.
-
+class SubscriptionInline(admin.StackedInline):  # or TabularInline
+    model = Subscription
+    can_delete = False
+    extra = 0
+    readonly_fields = ('active_subscription', 'expires_at', 'price', 'started_at')
+    
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-
+    inlines = [SubscriptionInline]
     list_display = ('name', 'email', 'phone_number','is_subscribed','subscription_expires_at','whatsapp_consent','whatsapp_number','date_joined', 'otp_verified')
     search_fields = ('name', 'email', 'phone_number')
     list_filter = ('date_joined',)
