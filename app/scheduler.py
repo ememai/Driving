@@ -164,12 +164,12 @@ def job_notify_new_published_exams():
         users = UserProfile.objects.filter(is_superuser=True)
         
         message = textwrap.dedent(f'''\
-            📅 Kuwa {today_date}
 
             ⏰ Ikizamini cya Saa {scheduled_time} cyagezeho.
             📝 Gikore uciye aha: {exam_url}
 
             📞 Ukeneye ubufasha: 0785287885
+            📅 {today_date}
             ''')
 
         for user in users:
