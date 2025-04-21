@@ -4,15 +4,15 @@
 {% include "flash_message.html" %}
 
 <div class="container mt-5 d-flex justify-content-center align-items-center flex-column">
-<h2>Gusuzuma OTP</h2>
-<p>Uzuza kode y'isuzuma yoherejwe kuri <strong> {{user.email}}. </strong></p>
+<h2>Gusuzuma Email Yawe</h2>
+<p>Emeza ko email <strong> {{user.email}}. </strong> ari iyawe wuzuza kode y'isuzuma yoherejwe kuri email</p>
 <form method="post">
     {% csrf_token %}
     <div class="mb-1">
-        <label for="otp" class="form-label">OTP:</label>
+        <label for="otp" class="form-label">Code:</label>
         <input type="text" class="form-control" id="otp" name="otp" required style="border: solid 1px cyan;">
     </div>
-    <button type="submit" class="btn btn-primary">Verify</button>
+    <button type="submit" class="btn btn-primary">Komeza</button>
 </form>
 </div>
 {% endblock %}

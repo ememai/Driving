@@ -103,6 +103,10 @@
         visibility: visible;
     }
 
+    .text-green {
+        color: #00ff3c;
+    }
+
     .checkmark-icon {
         color: #28a745;
         /* Green for success */

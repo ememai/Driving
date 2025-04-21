@@ -14,9 +14,15 @@ from datetime import timedelta, datetime
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'phone_number','is_subscribed','whatsapp_consent','whatsapp_number','date_joined', 'otp_verified')
+
+    list_display = ('name', 'email', 'phone_number','is_subscribed','subscription_expires_at','whatsapp_consent','whatsapp_number','date_joined', 'otp_verified')
     search_fields = ('name', 'email', 'phone_number')
     list_filter = ('date_joined',)
+
+    @admin.display(description='Subscription Ends')
+    def subscription_expires_at(self, obj):
+        return obj.subscription.expires_at if hasattr(obj, 'subscription') else '❌'
+
 
 
 @admin.register(SignType)
@@ -24,7 +30,7 @@ class SignTypeAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
     list_filter = ['name']
-    
+
 
 @admin.register(RoadSign)
 class RoadSignAdmin(admin.ModelAdmin):
@@ -151,7 +157,7 @@ class QuestionAdmin(admin.ModelAdmin):
                     'fields': ('choice4_text', 'choice4_sign'),
                 }),
             )
-            
+
     def question_image_preview(self, obj):
         if obj.question_sign:
             return format_html('<img src="{}" height="100"/>', obj.question_sign.sign_image.url)
@@ -221,14 +227,14 @@ class QuestionAdmin(admin.ModelAdmin):
 class ExamTypeAdmin(admin.ModelAdmin):
     list_display = ['name',]
     search_fields = ['name']
-    ordering = ['order'] 
-    
+    ordering = ['order']
+
 
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('exam_type','schedule_hour', 'total_questions','for_scheduling', 'created_at', 'updated_at')
-    
+
     ordering = ('-created_at',)
     list_editable = ('for_scheduling',)
     list_per_page = 11
@@ -239,24 +245,24 @@ class ExamAdmin(admin.ModelAdmin):
         if obj is None:  # Creating new exam
             return ExamCreationForm
         return super().get_form(request, obj, **kwargs)
-    
+
     # Customize fieldsets only for creation
     def get_fieldsets(self, request, obj=None):
         if obj:  # Editing existing exam - use default
             return super().get_fieldsets(request, obj)
-        
+
         # Creation fieldsets
         fieldsets = [
             ('Properties', {
                 'fields': ('exam_type','schedule_hour', 'duration', 'is_active', 'for_scheduling')
             })
         ]
-        
+
         # Add fieldsets for each question type
         question_types = ExamType.objects.annotate(
             num_questions=Count('question')
         ).filter(num_questions__gt=0).order_by('order')
-        
+
         for q_type in question_types:
             fieldsets.append((
                 f'{q_type.name} Questions',
@@ -266,23 +272,23 @@ class ExamAdmin(admin.ModelAdmin):
                     'description': f"Select {q_type.name} questions for this exam."
                 }
             ))
-        
+
         return fieldsets
 
     # Only show our custom fields during creation
     def get_fields(self, request, obj=None):
         if obj:  # Editing existing exam
             return super().get_fields(request, obj)
-        
+
         fields = ['exam_type','schedule_hour', 'duration', 'is_active', 'for_scheduling']
-        
+
         question_types = ExamType.objects.annotate(
             num_questions=Count('question')
         ).filter(num_questions__gt=0).order_by('order')
-        
+
         for q_type in question_types:
             fields.append(f'questions_{q_type.id}')
-        
+
         return fields
 
     class Media:
@@ -295,11 +301,11 @@ class ExamAdmin(admin.ModelAdmin):
 @admin.register(TodayExam)
 class TodayExamAdmin(admin.ModelAdmin):
     list_display = ('exam__exam_type','exam__schedule_hour', 'exam__for_scheduling', 'exam__created_at', 'exam__updated_at')
-    
+
     ordering = ('exam__schedule_hour', '-exam__created_at',)
     list_per_page = 11
     form = ScheduleExamForm
-    
+
 
     def get_queryset(self, request):
         today = now().date()
@@ -334,9 +340,11 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user', 'plan', 'price', 'active_subscription', 'expires_at')
+    list_display = ('user', 'plan', 'price', 'active_subscription','started_at','duration_days','expires_at')
+    #list_editable = ('duration_days',)
     search_fields = ('user__email', 'plan__plan')
     ordering = ('expires_at',)
+
 
 
 @admin.register(Payment)
@@ -363,7 +371,7 @@ class ScheduledExamAdmin(admin.ModelAdmin):
     list_display = ('exam', 'scheduled_datetime','updated_datetime', 'is_published')
     ordering = ('scheduled_datetime',)
     actions = ['publish_exam']
- 
+
     def publish_exam(self, request, queryset):
         for scheduled_exam in queryset:
             scheduled_exam.publish()
