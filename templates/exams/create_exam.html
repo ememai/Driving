@@ -1,44 +1,80 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-  <h2>Create Ibivanze Exam</h2>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
 
-  {% include "flash_message.html" %}
+      <h2 class="mb-4 text-center">
+        <i class="bi bi-journal-text me-2"></i> Create Ibivanze Exam
+      </h2>
 
-  <form method="POST" class="mb-4">
-    {% csrf_token %}
-    <input type="number" name="number" title="Number of exams" min="1" value="1" max="20" style="height: 2em; text-align: center;" required>
-    <button type="submit" class="btn btn-primary">Create Ibivanze Exam</button>
-  </form>
+      {% include "flash_message.html" %}
 
-  <h4>Recent Ibivanze Exams</h4>
-  {% if recent_exams %}
-    <ul class="list-group">
-      {% for exam in recent_exams %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          
-          <div class="d-flex gap-2 flex-column flex-md-row align-items-start " style="width: 20%;">
-          <span>{{ exam.schedule_hour }}</span>
-          <span> ({{ exam.total_questions }} q) </span>
-          </div>
-          {% comment %} <a href="#" class="btn btn-info btn-sm">View</a>
-          <a href="#" class="btn btn-danger btn-sm">Delete</a> {% endcomment %}
+      {% if show_undo and has_undo_ids %}
+        <div class="alert alert-warning alert-dismissible fade show d-flex justify-content-between align-items-center" role="alert">
           <div>
-            <strong>Questions:</strong>
-            <ul class="rmb-0 list-unstyled d-flex gap-2 flex-wrap">
-              {% for question in exam.questions.all|dictsort:"order" %}
-                <li>Q{{ question.order }}</li>
-              {% endfor %}
-            </ul>
+            <i class="bi bi-arrow-counterclockwise me-1"></i>
+            Exams were just created. Want to undo?
           </div>
-          
-          <small class="text-muted">{{ exam.created_at|date:"d M Y, H:i" }}</small>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No recent Ibivanze exams found.</p>
-  {% endif %}
+          <div class="d-flex gap-2 align-items-center">
+            <form action="{% url 'undo_last_exam_action' %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash3"></i> Undo
+              </button>
+            </form>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        </div>
+      {% endif %}
+
+      <form method="POST" class="d-flex gap-3 align-items-center mb-4">
+        {% csrf_token %}
+        <input type="number" name="number" title="Number of exams" min="1" value="1" max="20" class="form-control w-auto text-center" required>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i> Create Exam
+        </button>
+      </form>
+
+      <h4 class="mt-4">
+        <i class="bi bi-clock-history me-1"></i> Recent Ibivanze Exams
+      </h4>
+
+      {% if recent_exams %}
+        <ul class="list-group">
+          {% for exam in recent_exams %}
+            <li class="list-group-item">
+              <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
+                
+                <div>
+                  <i class="bi bi-alarm me-1"></i>
+                  <strong>{{ exam.schedule_hour }}</strong> ({{ exam.total_questions }} questions)
+                </div>
+
+                <div>
+                  <strong><i class="bi bi-question-circle me-1"></i>Questions:</strong>
+                  <ul class="list-unstyled d-flex flex-wrap gap-2 mb-0">
+                    {% for question in exam.questions.all|dictsort:"order" %}
+                      <li><span class="badge bg-secondary">Q{{ question.order }}</span></li>
+                    {% endfor %}
+                  </ul>
+                </div>
+
+                <div class="text-muted small">
+                  <i class="bi bi-calendar-check me-1"></i>{{ exam.created_at|date:"d M Y, H:i" }}
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="alert alert-info mt-3">
+          <i class="bi bi-info-circle me-1"></i> No recent Ibivanze exams found.
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
 </div>
 {% endblock %}

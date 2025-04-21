@@ -7,9 +7,11 @@
 >
   <ul>
     <li class="{% if message.tags == 'error' %}text-danger{% elif message.tags == 'success' %}text-success  list-unstyled  {% endif %}">
-      {{ message }}
+      {{ message|safe }}
     </li>
   </ul>
+    
+
   <button
     type="button"
     class="btn-close"

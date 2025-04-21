@@ -66,7 +66,7 @@ def job_auto_schedule_exams():
     print("🕛 Running daily auto-schedule...")
     try:        
         # auto_create_exams(11)  
-        exams_created = auto_create_exams(11)      
+        exams_created, _ = auto_create_exams(11)      
         notify_admin(f"{timezone.now().strftime('%d-%m-%Y %H:%M')} ✅ {exams_created}Exams Created successfully!")
         auto_schedule_recent_exams()
         
@@ -194,7 +194,7 @@ def start():
         # 1. Run exam scheduling every day at 00:00
         scheduler.add_job(
             job_auto_schedule_exams,
-            CronTrigger(hour=0, minute=0, second=0), 
+            CronTrigger(hour=0, minute=0, second=50), 
             id="auto_schedule_exams"
         )
 

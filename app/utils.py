@@ -61,36 +61,73 @@ def check_exam_availability(hour):
     return exam_exists
 
 
+# def auto_create_exams(number):
+#     exams_created = 0
+#     for i in range(0, number):
+#         try:
+#             exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
+#             questions = Question.objects.order_by('?')[:20]
+
+#             if questions.count() < 20:
+#                 print("‼️Not enough questions to create the exam.")
+#                 # return redirect('create_exam')
+            
+#             # Determine next available hour for exam scheduling
+#             last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
+
+#             if last_exam and last_exam.schedule_hour:
+#                 try:
+#                     last_hour = last_exam.schedule_hour.hour
+#                     next_hour = last_hour + 1
+#                     if next_hour > 17:
+#                         next_hour = 7
+#                 except (ValueError, AttributeError):
+#                     next_hour = 7
+
+#             else:
+#                 next_hour = 7
+
+#             from datetime import time
+#             exam_schedule_hour = time(next_hour, 0)
+
+                
+#             exam = Exam.objects.create(
+#                 exam_type=exam_type,
+#                 schedule_hour=exam_schedule_hour,
+#                 duration=20,
+#                 for_scheduling=True,
+#                 is_active=False,
+#             )
+#             exam.questions.set(questions)
+#             exam.save()
+#             questions_list = list(questions.values_list('id', flat=True))
+#             exams_created += 1
+
+#             print(f"🏁 Exam '{exam.schedule_hour}' created successfully!")
+            
+#         except Exception as e:
+#             print(f"Error: {str(e)}")
+#     print(f"✅{exams_created} Exams Created successfully!")
+#     return exams_created
+
 def auto_create_exams(number):
     exams_created = 0
-    for i in range(0, number):
+    created_exam_ids = []
+
+    for i in range(number):
         try:
             exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
             questions = Question.objects.order_by('?')[:20]
-
             if questions.count() < 20:
-                print("‼️Not enough questions to create the exam.")
-                # return redirect('create_exam')
-            
-            # Determine next available hour for exam scheduling
+                continue
+
             last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
-
-            if last_exam and last_exam.schedule_hour:
-                try:
-                    last_hour = last_exam.schedule_hour.hour
-                    next_hour = last_hour + 1
-                    if next_hour > 17:
-                        next_hour = 7
-                except (ValueError, AttributeError):
-                    next_hour = 7
-
-            else:
-                next_hour = 7
+            next_hour = (last_exam.schedule_hour.hour + 1 if last_exam and last_exam.schedule_hour else 7) % 24
+            next_hour = next_hour if next_hour >= 7 and next_hour <= 17 else 7
 
             from datetime import time
             exam_schedule_hour = time(next_hour, 0)
 
-                
             exam = Exam.objects.create(
                 exam_type=exam_type,
                 schedule_hour=exam_schedule_hour,
@@ -99,16 +136,14 @@ def auto_create_exams(number):
                 is_active=False,
             )
             exam.questions.set(questions)
-            exam.save()
-            questions_list = list(questions.values_list('id', flat=True))
+            created_exam_ids.append(exam.id)
             exams_created += 1
 
-            print(f"🏁 Exam '{exam.schedule_hour}' created successfully!")
-            
         except Exception as e:
-            print(f"Error: {str(e)}")
-    print(f"✅{exams_created} Exams Created successfully!")
-    return exams_created
+            print(f"Error: {e}")
+
+    return exams_created, created_exam_ids
+
 
 def auto_schedule_recent_exams():
     recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:11]

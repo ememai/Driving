@@ -579,44 +579,49 @@ def base_view(request):
     }
     return render(request, 'base.html', context)
 
+@staff_member_required
+@require_POST
+def undo_last_exam_action(request):
+    exam_ids = request.session.get('undo_exam_ids', [])
+
+    if exam_ids:
+        Exam.objects.filter(id__in=exam_ids).delete()
+        messages.success(request, "✅ Undo successful! Exams deleted.")
+        request.session.pop('undo_exam_ids')
+    else:
+        messages.warning(request, "⚠️ No recent exams to undo.")
+
+    return redirect('create_exam')
+
 
 @login_required(login_url='login')
 @staff_member_required
 def create_exam_page(request):
-    
-    
     if request.method == 'POST':
         try:
             number = int(request.POST.get("number", 0))
             if number <= 0:
                 raise ValueError("Number must be greater than 0")
-            auto_create_exams(number)
-            messages.success(request, f"{number} exams created successfully!")
-            return redirect('create_exam')  
+            
+            exams_created, created_exam_ids = auto_create_exams(number)
+            request.session['undo_exam_ids'] = created_exam_ids
+            request.session['show_undo'] = True  # Add flag
+
+            messages.success(request, f"{exams_created} exam(s) created successfully!")
+            return redirect('create_exam')
         except (ValueError, TypeError):
-            messages.error(request, ValueError)
-        
+            messages.error(request, "Invalid number of exams.")
 
-
-    # Show last 5 Ibivanze exams
+    # Show last 10 Ibivanze exams
     ibivanze_type = ExamType.objects.filter(name='Ibivanze').first()
     recent_exams = Exam.objects.filter(exam_type=ibivanze_type).order_by('-created_at')[:10]
-    recent_exam_details = []
-    for exam in recent_exams:
-        
-        questions = exam.questions.all()
-        questions_order = list(questions.values_list('order', flat=True))
-        recent_exam_details.append({
-            'questions': questions_order
-        })
-   
+    
     context = {
         'recent_exams': recent_exams,
-        'recent_exam_details': recent_exam_details,
+        'show_undo': request.session.pop('show_undo', False),
+        'has_undo_ids': bool(request.session.get('undo_exam_ids')),
     }
-    return render(request, 'exams/create_exam.html', {
-        'recent_exams': recent_exams
-    })
+    return render(request, 'exams/create_exam.html', context)
 
 
 @staff_member_required
