@@ -430,8 +430,11 @@ def verify_otp(request, user_id):
 
 @redirect_authenticated_users
 def login_view(request):
+    page='login'
+    # show_modal = request.GET.get('login') is not None
     if request.method == "POST":
         form = LoginForm(request.POST)
+        
         if form.is_valid():
             username = form.cleaned_data["username"]
             password = form.cleaned_data["password"]
@@ -469,7 +472,12 @@ def login_view(request):
 
     else:
         form = LoginForm()
-    return render(request, "registration/login.html", {"form": form})
+        
+    context = {
+        "form": form,
+        "page":page
+    }
+    return render(request, "base.html",context)
 
 
 @require_POST
@@ -492,7 +500,7 @@ def payment(request):
 # Subscription and Payment Views
 # ---------------------
 
-@login_required(login_url='login')
+@login_required(login_url='/?login=true')
 def subscription_view(request):
     plans = Plan.PLAN_CHOICES
     # sub = request.user.subscription and request.user.subscription.expires_at > timezone.now().date()

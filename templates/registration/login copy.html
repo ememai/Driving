@@ -1,25 +1,95 @@
-{% extends "base.html" %}
 
-{% block content %}
-<div class="container mt-5">
-    <h2>Login</h2>
-    {% if error_message %}
-        <div class="alert alert-danger">{{ error_message }}</div>
-    {% endif %}
+{% extends 'base.html' %} {% load static %} {% block title %}Login{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
+{% endblock %} {% block content %}
+<div class="row justify-content-center">
+  {% comment %} <div class="col-md-5">
+    <div class="embed-responsive embed-responsive-16by9">
+      <iframe
+        src="https://www.youtube.com/embed/xq6o-Gh0nNo"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        class="embed-responsive-item">
+      </iframe>
+    </div>
+  </div> {% endcomment %}
+  
+  <div class="col-md-5">
     
-    <form method="post">
+    <div class="login-card">
+     
+      {% comment %} <h5 class="bold-logo">Niba utari mushya:</h5> {% endcomment %}
+      <h5 class="text-info"><strong>Uzuza neza Konti Wahanze</strong></h5>
+
+      {% include "flash_message.html" %}
+      <form method="post">
         {% csrf_token %}
-        <div class="mb-3">
-            <label>Email or Phone Number:</label>
-            <input type="text" name="username" class="form-control" required>
-        </div>
-        
-        <div class="mb-3">
-            <label>Password:</label>
-            <input type="password" name="password" class="form-control" required>
+        <!-- Username Field -->
+        <input
+          type="text"
+          name="username"
+          id="id_username"
+          class="login-input"
+          placeholder="Telefone cg Email"
+          required
+        />
+
+        <!-- Password Field with Toggle -->
+        <div class="password-field">
+          <input
+            type="password"
+            name="password"
+            id="id_password"
+            class="login-input"
+            placeholder="Ijambo banga"
+            required
+          />
+          <button type="button" id="togglePassword" class="toggle-button">
+            <i class="bi bi-eye d-flex pb-3 text-theme"></i>
+          </button>
         </div>
 
-        <button type="submit" class="btn btn-primary">Login</button>
-    </form>
+        <button type="submit" class="login-button fs-5 py-2">
+          Injira
+          <i class="bi bi-arrow-right-circle"></i>
+        </button>
+      </form>
+      {% comment %} <p class="text-center mt-3 text-white">
+        <span class="fs-6">
+          Wibagiwe ijambo ry'ibanga?
+         </span>
+        <a href="{% url 'password_reset' %}" class="cy-link border-bottom border-info shadow-sm py-0"><i class="bi bi-key"></i> Rihindure</a>
+      </p> {% endcomment %}
+      
+      <p class="d-flex mt-3 text-white gap-2 d-flex justify-content-center align-items-center">
+        <span class="fs-6"> Uri mushya?</span>
+        {% comment %} <span class="fs-6">👉</span>         {% endcomment %}
+        <span class="gap-2 d-flex justify-content-center align-items-center">
+          <a href="{% url 'register' %}" class="cy-link border-bottom border-info shadow-sm py-0">HANGA KONTI</a>
+          <a href="{% url 'register' %}" class="text-info">
+            <i class="bi bi-person-plus fs-3"></i>
+          </a>
+        </span>
+      </p>
+    </div>
+  </div>
 </div>
+
+<!-- Toggle Password Visibility -->
+<script>
+  const passwordInput = document.getElementById("id_password");
+  const toggleButton = document.getElementById("togglePassword");
+
+  toggleButton.addEventListener("click", function () {
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+      this.querySelector("i").classList.replace("bi-eye", "bi-eye-slash");
+    } else {
+      passwordInput.type = "password";
+      this.querySelector("i").classList.replace("bi-eye-slash", "bi-eye");
+    }
+  });
+</script>
 {% endblock %}

@@ -178,7 +178,7 @@
         </div>
       </div>
       
-      <div class="method text-center fs-5 mt-2">
+      <div class="method text-center fs-5 mt-2 pb-2">
         <h2 class="fw-bold " >Uburyo bwo kwishyura:</h2>
 
         <h4 class="underline">Koresha code:</h4>
@@ -189,23 +189,40 @@
         <h4 class="underline">Niba ukoresha nimero:</h4>
         <strong>0785287885</strong><hr class="text-theme">
         <h2 class="">Hose amazina ni: "Mwami Modeste"</h2>
+        <button type="button" class="btn btn-primary d-block mx-auto" data-bs-toggle="modal" data-bs-target="#whatsappModal">
+          Nasoje kwishyura
+        </button>
+        
       </div>
     </form>
-    <button type="button" class="btn btn-primary d-block mx-auto" id='js-finished'>
-      Nasoje kwishyura
-    </button>
   </div>
 
-  <form id="whatsapp-form" class="visually-hidden">
-    <fieldset>
-      <legend>Telefone n'amazina by'uwishyuye:</legend>
-      <div class="d-flex justify-content-center mt-4 gap-2">
-        <input type="text" id="phone" class="form-control" placeholder="Nimero wishyuriyeho" required>
-        <input type="text" id="name" class="form-control" placeholder="Amazina" required>
-        <button type="button" class="btn btn-success" onclick="sendToWhatsApp()">Emeza ubwishyu</button>
-      </div>
-    </fieldset>
-  </form>
+  <!-- WhatsApp Confirmation Modal -->
+<div class="modal fade" id="whatsappModal" tabindex="-1" aria-labelledby="whatsappModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form>
+        <div class="modal-header">
+          <h5 class="modal-title" id="whatsappModalLabel">Telefone n'amazina by'uwishyuye</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Funga"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <input type="text" id="phone" class="form-control" placeholder="Nimero wishyuriyeho" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="name" class="form-control" placeholder="Amazina" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          {% comment %} <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Funga</button> {% endcomment %}
+          <button type="button" class="btn btn-success" onclick="sendToWhatsApp()">Emeza ubwishyu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
   
 </div>
 {% endblock %}

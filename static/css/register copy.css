@@ -1,0 +1,155 @@
+  Overall body style
+  body {
+    background: var(--background-rgb);
+    color: #fff;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    /* padding: 10px; */
+  }
+
+  /* Centering container adjustments */
+  .row {
+    min-height: 100vh;  
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+  }
+
+  main {
+    padding-top: 0px !important;
+  }
+
+
+  /* Card styling */
+  .card {
+    background: #181818;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+    border: 1px solid #333;
+    max-width: 400px; /* Ensuring it doesn't stretch too much */
+    width: 100%;
+    padding: 20px;
+
+  }
+
+  .card h2 {
+    color: #fff;
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+
+
+  /* Form labels and text */
+  .form-label,
+  .form-check-label {
+    color: #ccc;
+    font-weight: 500;
+  }
+
+  .form-check-input:hover,
+  .form-check-label:hover {
+    cursor: pointer;
+  }
+
+
+
+  /* Input fields */
+  .form-control {
+    background: #333;
+    border: none;
+    color: #fff;
+    border-radius: 5px;
+    padding: 0.75rem;
+  }
+
+  .form-control::placeholder {
+    color: #bbb;
+    opacity: 0.8;
+  }
+
+  .form-control:focus {
+    box-shadow: none;
+    border: 1px solid cyan;
+    background-color: #000;
+    color: #fff;
+  }
+
+  /* Input group addon */
+  .input-group-text {
+    background: #333;
+    border: none;
+    color: #0e0d0d;
+    border-radius: 5px 0 0 5px;
+  }
+
+  /* Button styles */
+  .btn-primary {
+    background: cyan;
+    color: #055c00;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background: rgb(170, 255, 255);
+    color: #055c00;
+  }
+
+  .btn-outline-primary,
+  .btn-outline-secondary {
+    background: transparent;
+    border: 1px solid cyan;
+    color: cyan;
+    border-radius: 5px;
+    transition: background 0.3s, color 0.3s;
+  }
+
+
+  .btn-focus,
+  .btn-outline-primary:hover,
+  .btn-outline-secondary:hover {
+    background-color: rgb(0, 255, 0);
+    color: #000;
+  }
+
+  .btn-focus:hover {
+    background-color: rgb(150, 243, 150);
+  }
+
+  /* Toggle password button */
+  .toggle-password {
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 0 5px 5px 0;
+  }
+
+  .toggle-password:hover {
+    background: #444;
+  }
+
+
+  p {
+    color: #fff;
+  }
+
+  .video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    padding-top: 30px;
+    height: 0;
+    overflow: hidden;
+  }
+
+  .video-container iframe,
+  .video-container object,
+  .video-container embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }

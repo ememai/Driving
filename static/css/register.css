@@ -22,10 +22,10 @@ main {
 
 /* Card styling */
 .card {
-  background: #181818;
+  background: rgb(20, 20, 40);
   border: none;
   border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 16px rgba(20, 20, 40, 0.6);
   border: 1px solid #333;
   max-width: 400px; /* Ensuring it doesn't stretch too much */
   width: 100%;
@@ -56,10 +56,10 @@ main {
 
 /* Input fields */
 .form-control {
-  background: #333;
+  background: rgb(20, 20, 40);
   border: none;
   color: #fff;
-  border-radius: 5px;
+  border-radius: 0px;
   padding: 0.75rem;
 }
 
@@ -69,18 +69,28 @@ main {
 }
 
 .form-control:focus {
-  box-shadow: none;
+  /* box-shadow: ; */
   border: 1px solid cyan;
-  background-color: #000;
+  background-color: rgb(20, 20, 58);
   color: #fff;
 }
 
 /* Input group addon */
-.input-group-text {
-  background: #333;
+.rda {
+  
+  background: linear-gradient(to bottom,
+  #00a9e0 0%,      /* Blue */
+  #00a9e0 50%,     /* Blue to 50% */
+  #fcd116 50%,     /* Yellow starts at 50% */
+  #fcd116 75%,     /* Yellow to 75% */
+  #20603d 75%,     /* Green starts at 75% */
+  #20603d 100%     /* Green to 100% */
+);
+
   border: none;
   color: #0e0d0d;
   border-radius: 5px 0 0 5px;
+  
 }
 
 /* Button styles */
@@ -121,14 +131,15 @@ main {
 
 /* Toggle password button */
 .toggle-password {
-  background: #333;
+  background: #000143;
   color: #fff;
   border: none;
   border-radius: 0 5px 5px 0;
 }
 
 .toggle-password:hover {
-  background: #444;
+  background: #0c0cc5;
+  color: #fff;
 }
 
 

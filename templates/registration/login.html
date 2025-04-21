@@ -1,95 +1,102 @@
-
-{% extends 'base.html' %} {% load static %} {% block title %}Login{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
-{% endblock %} {% block content %}
-<div class="row justify-content-center">
-  {% comment %} <div class="col-md-5">
-    <div class="embed-responsive embed-responsive-16by9">
-      <iframe
-        src="https://www.youtube.com/embed/xq6o-Gh0nNo"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-        class="embed-responsive-item">
-      </iframe>
-    </div>
-  </div> {% endcomment %}
+<!-- Login Modal -->
+ <style>
+  input {
+    border: 1px solid rgb(126, 186, 247) !important;
   
-  <div class="col-md-5">
-    
-    <div class="login-card">
+  }
+ </style>
+<div class="modal fade {% if request.resolver_match.url_name == 'login' %}show d-block{% endif %}" 
+     id="loginModal" tabindex="-1" 
+     aria-labelledby="loginModalLabel" 
+     aria-hidden="{% if request.resolver_match.url_name != 'login' %}true{% else %}false{% endif %}"
+     {% if request.resolver_match.url_name == 'login' %}data-bs-backdrop="static" data-bs-keyboard="false"{% endif %}>
      
-      {% comment %} <h5 class="bold-logo">Niba utari mushya:</h5> {% endcomment %}
-      <h5 class="text-info"><strong>Uzuza neza Konti Wahanze</strong></h5>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow" style="max-width: 450px;">
 
-      {% include "flash_message.html" %}
-      <form method="post">
-        {% csrf_token %}
-        <!-- Username Field -->
-        <input
-          type="text"
-          name="username"
-          id="id_username"
-          class="login-input"
-          placeholder="Telefone cg Email"
-          required
-        />
-
-        <!-- Password Field with Toggle -->
-        <div class="password-field">
-          <input
-            type="password"
-            name="password"
-            id="id_password"
-            class="login-input"
-            placeholder="Ijambo banga"
-            required
-          />
-          <button type="button" id="togglePassword" class="toggle-button">
-            <i class="bi bi-eye d-flex pb-3 text-theme"></i>
-          </button>
+      <div class="modal-body p-4 p-md-5">
+        <div class="text-center mb-4">
+          <!-- Person Icon -->
+          <div class="mb-3">
+            <i class="bi bi-person-circle fs-1 text-primary"></i>
+          </div>
+          <h4 class="fw-bold mb-4">Injira muri Konti</h4>
         </div>
 
-        <button type="submit" class="login-button fs-5 py-2">
-          Injira
-          <i class="bi bi-arrow-right-circle"></i>
-        </button>
-      </form>
-      {% comment %} <p class="text-center mt-3 text-white">
-        <span class="fs-6">
-          Wibagiwe ijambo ry'ibanga?
-         </span>
-        <a href="{% url 'password_reset' %}" class="cy-link border-bottom border-info shadow-sm py-0"><i class="bi bi-key"></i> Rihindure</a>
-      </p> {% endcomment %}
-      
-      <p class="d-flex mt-3 text-white gap-2 d-flex justify-content-center align-items-center">
-        <span class="fs-6"> Uri mushya?</span>
-        {% comment %} <span class="fs-6">👉</span>         {% endcomment %}
-        <span class="gap-2 d-flex justify-content-center align-items-center">
-          <a href="{% url 'register' %}" class="cy-link border-bottom border-info shadow-sm py-0">HANGA KONTI</a>
-          <a href="{% url 'register' %}" class="text-info">
-            <i class="bi bi-person-plus fs-3"></i>
+        {% include "flash_message.html" %}
+
+        <form method="POST" action="{% url 'login' %}">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="username" class="form-label fw-medium">Telefone cg Email:</label>
+            <input type="text" name="username" class="form-control text-theme {% if form.username.errors %}is-invalid{% endif %}" 
+                   id="username" placeholder="Andika telefone cyangwa email" required value="{{ form.username.value|default:'' }}">
+            {% if form.username.errors %}
+              <div class="invalid-feedback">
+                {{ form.username.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label fw-medium">Ijambobanga:</label>
+            <div class="input-group">
+              <input type="password" name="password" class="form-control text-theme {% if form.password.errors %}is-invalid{% endif %}" 
+                     id="password" placeholder="Andika ijambobanga" required>
+              <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                <i class="bi bi-eye-slash" id="togglePasswordIcon"></i>
+              </button>
+            </div>
+            {% if form.password.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.password.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary py-2 fw-medium">
+              Injira <i class="bi bi-arrow-right-circle"></i>
+            </button>
+          </div>
+        </form>
+
+        <div class="mt-4 text-center">
+          <span class="text-muted">Uri mushya?</span>
+          <a href="{% url 'register' %}" class="text-decoration-none fs-5 fw-medium ms-2">
+            Hanga Konti <i class="bi bi-person-plus fs-3"></i>
           </a>
-        </span>
-      </p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Toggle Password Visibility -->
 <script>
-  const passwordInput = document.getElementById("id_password");
-  const toggleButton = document.getElementById("togglePassword");
+  document.addEventListener('DOMContentLoaded', function() {
+    // Prevent closing on backdrop click when on login page
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal && '{{ request.resolver_match.url_name }}' === 'login') {
+      loginModal.addEventListener('click', function(e) {
+        if (e.target === loginModal) {
+          e.stopPropagation();
+        }
+      });
+    }
 
-  toggleButton.addEventListener("click", function () {
-    if (passwordInput.type === "password") {
-      passwordInput.type = "text";
-      this.querySelector("i").classList.replace("bi-eye", "bi-eye-slash");
-    } else {
-      passwordInput.type = "password";
-      this.querySelector("i").classList.replace("bi-eye-slash", "bi-eye");
+    // Toggle password visibility
+    const togglePassword = document.getElementById('togglePassword');
+    if (togglePassword) {
+      const passwordInput = document.getElementById('password');
+      const toggleIcon = document.getElementById('togglePasswordIcon');
+      
+      togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        toggleIcon.classList.toggle('bi-eye');
+        toggleIcon.classList.toggle('bi-eye-slash');
+      });
     }
   });
 </script>
-{% endblock %}

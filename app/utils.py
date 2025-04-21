@@ -62,7 +62,7 @@ def check_exam_availability(hour):
 
 def auto_create_exams():
     exams_created = 0
-    for i in range(1, 11):
+    for i in range(1, 12):
         try:
             exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
             questions = Question.objects.order_by('?')[:20]

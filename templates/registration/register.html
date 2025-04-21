@@ -116,7 +116,7 @@
               Telefone
             </button>
             <button type="button" class="btn btn-outline-secondary" id="useEmail">
-              Imeyili
+              Email
             </button>
           </div>
         </div>
@@ -128,7 +128,7 @@
           <div class="error-message">{{ form.phone_number.errors.0 }}</div>
           {% endif %}
           <div class="input-group">
-            <span class="input-group-text text-white">+250</span>
+            <span class="rda px-4"></span>
             <input type="text" name="phone_number" id="id_phone_number" 
                    class="form-control {% if form.phone_number.errors %}error-field{% endif %}" 
                    placeholder="Urugero: 78..." 
@@ -147,6 +147,13 @@
             <div class="error-message">{{ form.email.errors.0 }}</div>
           {% endif %}
         </div>
+        {% comment %} <div class="mb-3 d-none" id="noteConsent">
+          <label for="id_noteConsent" class="form-label">Habwa ubutumwa bw'kizamini gishya</label>
+          <input type="checkbox" name="noteConsent" id="id_noteConsent" 
+                 class="form-control " 
+                
+                 value="{{ form.noteConsent.value|default_if_none:'' }}"/>          
+        </div> {% endcomment %}
         
         <!-- Name Field -->
         <div class="mb-3">
@@ -196,7 +203,7 @@
       </form>
       <p class="text-center mt-3">
         Niba ufite konti ->
-        <a class="cy-link" href="{% url 'login' %}">Kanda aha</a>
+        <a class="cy-link fw-medium fs-6" href="{% url 'login' %}">Kanda aha</a>
       </p>
     </div>
   </div>
@@ -312,222 +319,3 @@
   });
 </script>
 {% endblock %}
-
-{% comment %} {% extends 'base.html' %} 
-{% load static %} 
-{% block title %} Register {% endblock %}
-
-{% block navbar %}
-<div class="d-flex align-items-center justify-content-between border-bottom ">
-  <div>
-    <a class="text-decoration-none fs-3 text-theme p-2" href="{% url 'home' %}">
-      <i class="bi bi-house-fill"></i>
-    </a>
-  </div>
-  <div class="theme-toggle m-2">
-    <button class="btn btn-link p-0 text-theme" id="themeToggle" aria-label="Toggle theme" type="button">
-      <i id="themeIcon" class="bi bi-moon fs-4"></i>
-      <span class="visually-hidden">Toggle dark mode</span>
-    </button>
-  </div>
-</div>
-{% endblock %} 
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/register.css' %}" />
-<style>
-  .error-field {
-    border: 1px dashed;
-    border-color: #dc3545 !important;
-  }
-  .error-message {
-    color: #dc3545;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-  }
-
-  input:focus::placeholder {
-    color: transparent;
-  }
-  
-</style>
-{% endblock %} 
-
-{% block content %}
-<style>
-  #main-content{
-    margin-top: 16px;
-  }
-</style>
-<div class="d-flex justify-content-center mt-0">
-  <h2 class="text-center text-theme fw-bold fs-5" id="kds">
-    <i class="bi bi-car-front-fill"></i> 
-    KIGALI DRIVING SCHOOL
-  </h2>
-</div>
-<div class="row">
-  <div class="col-md-6 d-flex justify-content-center">
-    <div class="card shadow-lg p-4">
-      <h2 class="text-center mb-4">Hanga Konti</h2>
-      <form method="post" novalidate>
-        {% csrf_token %}
-        <div class="mb-3 text-center">
-          <label class="form-label fw-bold">Koresha:</label>
-          <div class="d-flex justify-content-center gap-3" id="js-switch">
-            <button type="button" class="btn btn-outline-primary btn-focus" id="usePhone">
-              Telefone
-            </button>
-            <button type="button" class="btn btn-outline-secondary" id="useEmail">
-              Imeyili
-            </button>
-          </div>
-        </div>
-        
-        <!-- Phone Number Field (Default) -->
-        <div class="mb-3" id="phoneField">
-          <label for="id_phone_number" class="form-label">Nimero: </label>
-          {% if form.phone_number.errors %}
-          <div class="error-message">{{ form.phone_number.errors.0 }}</div>
-          {% endif %}
-          <div class="input-group">
-            <span class="input-group-text text-white">+250</span>
-            <input type="text" name="phone_number" id="id_phone_number" 
-                   class="form-control {% if form.phone_number.errors %}error-field{% endif %}" 
-                   placeholder="Urugero: 78..." 
-                   value="{{ form.phone_number.value|default_if_none:'' }}" />
-          </div>
-         
-        </div>
-        
-        <!-- Email Field (Initially hidden) -->
-        <div class="mb-3 d-none" id="emailField">
-          <label for="id_email" class="form-label">Email</label>
-          <input type="email" name="email" id="id_email" 
-                 class="form-control {% if form.email.errors %}error-field{% endif %}" 
-                 placeholder="Urugero: kds@gmail.com" 
-                 value="{{ form.email.value|default_if_none:'' }}" />
-          {% if form.email.errors %}
-            <div class="error-message">{{ form.email.errors.0 }}</div>
-          {% endif %}
-        </div>
-        
-        <!-- Name Field -->
-        <div class="mb-3">
-          <label for="name" class="form-label">Izina:</label>
-          {% if form.name.errors %}
-            <div class="error-message">{{ form.name.errors.0 }}</div>
-          {% endif %}
-          <input type="text" name="name" id="name" 
-                 class="form-control {% if form.name.errors %}error-field{% endif %}" 
-                 placeholder="Uzuza izina..." 
-                 value="{{ form.name.value|default_if_none:'' }}" />
-          
-        </div>
-        
-        <!-- Password Fields -->
-        <div class="mb-3 position-relative">
-          <label for="id_password1" class="form-label">Ijambobanga(password):</label>
-          {% if form.password1.errors %}
-            <div class="error-message">{{ form.password1.errors.0 }}</div>
-          {% endif %}
-          <div class="input-group {% if form.password1.errors %}error-field{% endif %}">
-            <input type="password" name="password1" id="id_password1" 
-                   class="form-control js-password " 
-                   placeholder="Uzuza ijambobanga(password) uzibuka" />
-            <button class="btn btn-outline-secondary toggle-password" type="button" title="Show/Hide Password">
-              <i class="bi bi-eye"></i>
-            </button>
-          </div>
-          
-        </div>
-        
-        <div class="mb-3 position-relative">
-          <label for="id_password2" class="form-label">Subirampo Ijambobanga(password):</label>
-          {% if form.password2.errors %}
-            <div class="error-message">{{ form.password2.errors.0 }}</div>
-          {% endif %}
-          <div class="input-group  {% if form.password2.errors %}error-field{% endif %}">
-            <input type="password" name="password2" id="id_password2" 
-                   class="form-control js-password" 
-                   placeholder="Uzuza irisa nk'iryaruguru"/>
-            <button class="btn btn-outline-secondary toggle-password" type="button" title="Show/Hide Password">
-              <i class="bi bi-eye"></i>
-            </button>
-          </div>
-          
-        </div>
-        
-        <!-- Register Button -->
-        <button type="submit" class="btn btn-primary w-100">Emeza</button>
-      </form>
-      <p class="text-center mt-3">
-        Niba ufite konti ->
-        <a class="cy-link" href="{% url 'login' %}">Kanda aha</a>
-      </p>
-    </div>
-  </div>
-</div>
-
-<!-- JavaScript to Toggle Fields and Password Visibility -->
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const emailField = document.getElementById("emailField");
-    const phoneField = document.getElementById("phoneField");
-    const useEmailBtn = document.getElementById("useEmail");
-    const usePhoneBtn = document.getElementById("usePhone");
-
-    function handleEvent(e) {
-      const target = e.target;
-      const sibling = target.id === "usePhone" ? useEmailBtn : usePhoneBtn;
-
-      switch (e.type) {
-        case "click":
-        case "mouseenter":
-          // Show email field, hide phone field
-          if (target === useEmailBtn) {
-            emailField.classList.remove("d-none");
-            phoneField.classList.add("d-none");
-          } else if (target === usePhoneBtn) {
-            // Show phone field, hide email field
-            phoneField.classList.remove("d-none");
-            emailField.classList.add("d-none");
-          }
-          // Toggle active classes on buttons
-          sibling.classList.remove("btn-focus");
-          target.classList.add("btn-focus");
-          break;
-
-        case "focus":
-          console.log(`${target.id} is focused`);
-          break;
-        case "blur":
-          console.log(`${target.id} lost focus`);
-          break;
-        case "input":
-          console.log(`${e.target.id} input changed:`, e.target.value);
-          break;
-      }
-    }
-
-    // Attach multiple event listeners to each button
-    [useEmailBtn, usePhoneBtn].forEach((btn) => {
-      ["click", "mouseenter", "focus", "blur"].forEach((eventName) => {
-        btn.addEventListener(eventName, handleEvent);
-      });
-    });
-
-    // Toggle Password Visibility
-    document.querySelectorAll(".toggle-password").forEach((button) => {
-      button.addEventListener("click", function () {
-        const input = this.parentNode.querySelector(".js-password");
-        const icon = this.querySelector("i");
-        const type =
-          input.getAttribute("type") === "password" ? "text" : "password";
-        input.setAttribute("type", type);
-        icon.classList.toggle("bi-eye");
-        icon.classList.toggle("bi-eye-slash");
-      });
-    });
-  });
-</script>
-{% endblock %} {% endcomment %}

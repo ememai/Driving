@@ -219,8 +219,7 @@
 }
    /* Link styles */
 .btn:active {
-       background-color:rgb(1, 8, 118) !important; /* Bootstrap success green */
-       color: white;
+       opacity: 0.5;
        transform: scale(0.9);
      }
 
