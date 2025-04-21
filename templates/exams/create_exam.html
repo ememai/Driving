@@ -4,17 +4,11 @@
 <div class="container mt-5">
   <h2>Create Ibivanze Exam</h2>
 
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
+  {% include "flash_message.html" %}
 
   <form method="POST" class="mb-4">
     {% csrf_token %}
-    
+    <input type="number" name="number" title="Number of exams" min="1" value="1" max="20" style="height: 2em; text-align: center;" required>
     <button type="submit" class="btn btn-primary">Create Ibivanze Exam</button>
   </form>
 

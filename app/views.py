@@ -586,7 +586,17 @@ def create_exam_page(request):
     
     
     if request.method == 'POST':
-        auto_create_exams()
+        try:
+            number = int(request.POST.get("number", 0))
+            if number <= 0:
+                raise ValueError("Number must be greater than 0")
+            auto_create_exams(number)
+            messages.success(request, f"{number} exams created successfully!")
+            return redirect('create_exam')  
+        except (ValueError, TypeError):
+            messages.error(request, ValueError)
+        
+
 
     # Show last 5 Ibivanze exams
     ibivanze_type = ExamType.objects.filter(name='Ibivanze').first()

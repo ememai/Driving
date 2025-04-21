@@ -18,11 +18,22 @@ import logging
 from django.utils.timezone import localtime, now, make_aware, datetime
 
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
 # GreenAPI Configuration
 GREEN_API_URL = "https://7105.api.greenapi.com"
 INSTANCE_ID = "7105229020"
 API_TOKEN = "c554e7fe36214785890aded373a3c08625e3460ecce249d283"
 
+# Configure requests session with retries
+session = requests.Session()
+retries = Retry(
+    total=3,
+    backoff_factor=1,
+    status_forcelist=[500, 502, 503, 504]
+)
+session.mount('https://', HTTPAdapter(max_retries=retries))
 
 def notify_admin(message):
     """Send admin notifications via GreenAPI with improved error handling"""
@@ -54,32 +65,17 @@ def job_auto_schedule_exams():
     connections.close_all()
     print("🕛 Running daily auto-schedule...")
     try:        
-        auto_create_exams()        
-        notify_admin(f"{timezone.now().strftime('%d-%m-%Y %H:%M')} ✅Exams Created successfully!")
+        # auto_create_exams(11)  
+        exams_created = auto_create_exams(11)      
+        notify_admin(f"{timezone.now().strftime('%d-%m-%Y %H:%M')} ✅ {exams_created}Exams Created successfully!")
         auto_schedule_recent_exams()
+        
         notify_admin(f"✅ {timezone.now().strftime('%d-%m-%Y %H:%M')} Recent exams scheduled.")
     
     except Exception as e:
         notify_admin(f"❌ Error in auto-scheduling: {str(e)}")
         print(f"❌ Error: {str(e)}")
 
-
-# Configure logging
-logger = logging.getLogger(__name__)
-
-# GreenAPI Configuration
-GREEN_API_URL = "https://7105.api.greenapi.com"
-INSTANCE_ID = "7105229020"
-API_TOKEN = "c554e7fe36214785890aded373a3c08625e3460ecce249d283"
-
-# Configure requests session with retries
-session = requests.Session()
-retries = Retry(
-    total=3,
-    backoff_factor=1,
-    status_forcelist=[500, 502, 503, 504]
-)
-session.mount('https://', HTTPAdapter(max_retries=retries))
 
 def validate_greenapi_credentials():
     """Validate GreenAPI credentials before use"""

@@ -60,9 +60,10 @@ def check_exam_availability(hour):
 
     return exam_exists
 
-def auto_create_exams():
+
+def auto_create_exams(number):
     exams_created = 0
-    for i in range(1, 12):
+    for i in range(0, number):
         try:
             exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
             questions = Question.objects.order_by('?')[:20]
@@ -107,7 +108,7 @@ def auto_create_exams():
         except Exception as e:
             print(f"Error: {str(e)}")
     print(f"✅{exams_created} Exams Created successfully!")
-    
+    return exams_created
 
 def auto_schedule_recent_exams():
     recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:11]
