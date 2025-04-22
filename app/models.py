@@ -186,7 +186,9 @@ class Subscription(models.Model):
     duration_days = models.IntegerField(default=0, null=True, blank=True)
     phone_number = models.CharField(max_length=13, default="25078")
     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    started_at = models.DateField(auto_now=True)
+    started_at = models.DateField(auto_now_add=True)
+    updated = models.BooleanField(default=False)
+    updated_at = models.DateField(auto_now=True)
     expires_at = models.DateField(null=True, blank=True)
 
     def clean(self):
@@ -209,7 +211,10 @@ class Subscription(models.Model):
 
 
         if self.duration_days:
-            self.expires_at = self.started_at + timezone.timedelta(days=self.duration_days)
+            if self.updated:                
+                self.expires_at = self.updated_at + timezone.timedelta(days=self.duration_days)
+            else:
+                self.expires_at = self.started_at + timezone.timedelta(days=self.duration_days)
 
         if self.expires_at and self.expires_at >= timezone.now().date():
             return True
