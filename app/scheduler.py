@@ -164,6 +164,8 @@ def job_notify_new_published_exams():
             ⏰ Ikizamini cya Saa {scheduled_time} cyagezeho.
             📝 Gikore uciye aha: {exam_url}
 
+                utifuza iyi message ohereza NO
+                
             📞 Ukeneye ubufasha: 0785287885
             📅 {today_date}
             ''')
