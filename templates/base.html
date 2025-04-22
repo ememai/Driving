@@ -113,17 +113,17 @@
         <footer class="bg-dark py-3 mt-0 mx-0">
             <div class="container-fluid d-flex flex-column gap-2">
                 <div class="d-flex flex-wrap justify-content-center gap-3">
-                    <a href="https://wa.me/250785287885" class="cy-link text-decoration-none text-info hover:text-light">
-                        <i class="bi bi-whatsapp text-green"></i> 0785287885
+                    <a href="https://wa.me/250785287885" class=" text-decoration-none  text-green " style="opacity: 0.7;">
+                        <i class="bi bi-whatsapp"></i> 0785287885
                     </a>
-                    <a class="cy-link text-decoration-none text-light hover:text-info opacity-75-hover text-center"
+                    {% comment %} <a class="cy-link text-decoration-none text-light hover:text-info opacity-75-hover text-center"
                         href="{% url 'contact' %}">
                         Ubufasha
                     </a>
                     <a href="{% url 'privacy_policy' %}"
                         class="cy-link text-decoration-none text-light hover:text-light opacity-75-hover">
                         Privacy Policy
-                    </a>
+                    </a> {% endcomment %}
                 </div>
                 <p class="text-center text-light opacity-75 small mb-0">
                     &copy; {% now "Y" %} Kigali Driving School. All rights reserved.

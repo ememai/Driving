@@ -15,14 +15,14 @@
     align-items: center;
     padding: 2rem;
 
-    @media () {
+    {% comment %} @media () {
      
     }
     background: linear-gradient(
     180deg,
-rgb(0, 2, 19) ,
-rgb(2, 42, 101) 
-  ); 
+    rgb(0, 2, 19) ,
+    rgb(2, 42, 101) 
+  );  {% endcomment %}
 
    {% comment %} color: white; {% endcomment %}
     
@@ -30,17 +30,17 @@ rgb(2, 42, 101)
     overflow: hidden;
   }
 
-  [data-bs-theme="light"]  { 
+  {% comment %} [data-bs-theme="light"]  { 
     
     .hero-container {
     background: linear-gradient(
       180deg,
-      rgb(144, 145, 148) ,
+      rgb(255, 255, 255) ,
       rgb(208, 209, 210) 
     );
     color: black !important;
   }
-}
+  } {% endcomment %}
   .hero-container::before {
     content: "";
     position: absolute;
@@ -155,6 +155,7 @@ rgb(2, 42, 101)
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    align-items: center;
     min-height: 100%; /* Ensure equal height */
   }
   
@@ -177,6 +178,13 @@ rgb(2, 42, 101)
       padding: 1rem;
       width: 100%;
     }
+
+    .px-btn{
+      padding: 0 0;
+      width: 5rem;
+      {% comment %} text-align: center; {% endcomment %}
+    }
+
   }
 </style>
 
@@ -190,8 +198,8 @@ rgb(2, 42, 101)
   </div>
   <h5 class="d-block d-md-none fw-bold mb-0 text-theme text-center">
     {% if not user.is_authenticated %} Ikaze muri 
-    {% endif %}
     <span id='kds'></span>
+    {% endif %}
   </h5>
   <div class="action-panel py-0">
     <div class="welcome-card py-3 d-flex flex-column justify-content-center align-items-center">
@@ -228,12 +236,12 @@ rgb(2, 42, 101)
       
         <div class="exam-types">
           {% for exam_type in exam_types %}
-          <div class="exam-card">
+          <div class="exam-card ">
             <h4 class="mb-2">{{ exam_type.name }}</h4>
             <!-- <p class="text-muted">{{ exam_type.exam_set.count }} exams available</p> -->
             <a
               href="{% url 'exams' exam_type.name %}"
-              class="btn btn-outline-info"
+              class="btn btn-outline-primary px-btn"
               >Fungura</a
             >
           </div>
