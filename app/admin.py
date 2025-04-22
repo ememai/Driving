@@ -15,7 +15,7 @@ class SubscriptionInline(admin.StackedInline):  # or TabularInline
     model = Subscription
     can_delete = False
     extra = 0
-    readonly_fields = ('active_subscription', 'expires_at', 'price', 'started_at')
+    readonly_fields = ('active_subscription','updated','updated_at', 'expires_at', 'price', 'started_at')
     
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
@@ -345,7 +345,7 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user', 'plan', 'price', 'active_subscription','started_at','duration_days','expires_at')
+    list_display = ('user', 'plan', 'price', 'active_subscription','started_at','updated','updated_at','duration_days','expires_at')
     #list_editable = ('duration_days',)
     search_fields = ('user__email', 'plan__plan')
     ordering = ('expires_at',)
