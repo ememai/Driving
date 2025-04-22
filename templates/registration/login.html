@@ -5,7 +5,7 @@
   
   }
  </style>
-<div class="modal fade {% if request.resolver_match.url_name == 'login' %}show d-block{% endif %}" 
+<div class="modal fade {% if request.resolver_match.url_name == 'login' %}show d-block{%  endif %}" 
      id="loginModal" tabindex="-1" 
      aria-labelledby="loginModalLabel" 
      aria-hidden="{% if request.resolver_match.url_name != 'login' %}true{% else %}false{% endif %}"
@@ -15,15 +15,16 @@
     <div class="modal-content border-0 rounded-4 shadow" style="max-width: 450px;">
 
       <div class="modal-body p-4 p-md-5">
-        <div class="text-center mb-4">
+        <div class="text-center ">
           <!-- Person Icon -->
           <div class="mb-3">
             <i class="bi bi-person-circle fs-1 text-primary"></i>
           </div>
-          <h4 class="fw-bold mb-4">Injira muri Konti</h4>
+          <h4 class="fw-bold mb-5">Injira muri Konti</h4>
         </div>
 
         {% include "flash_message.html" %}
+        
 
         <form method="POST" action="{% url 'login' %}">
           {% csrf_token %}
@@ -62,10 +63,10 @@
           </div>
         </form>
 
-        <div class="mt-4 text-center">
+        <div class="mt-4 text-center medium">
           <span class="text-muted">Uri mushya?</span>
-          <a href="{% url 'register' %}" class="text-decoration-none fs-5 fw-medium ms-2">
-            Hanga Konti <i class="bi bi-person-plus fs-3"></i>
+          <a href="{% url 'register' %}" class="text-decoration ms-2">
+            Hanga Konti <i class="bi bi-person-plus "></i>
           </a>
         </div>
       </div>

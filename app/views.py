@@ -29,9 +29,26 @@ from django.views.decorators.http import require_POST, require_GET
 from datetime import datetime, timedelta, time, date
 import random
 from django.urls import reverse
+from django.http import JsonResponse
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+def check_unique_field(request):
+    field = request.GET.get("field")
+    value = request.GET.get("value")
+    response = {"exists": False}
+
+    if field == "email" and value:
+        response["exists"] = User.objects.filter(email__iexact=value).exists()
+    elif field == "phone_number" and value:
+        response["exists"] = User.objects.filter(phone_number=value).exists()
+
+    return JsonResponse(response)
+
 # ---------------------
 
-# Home View
+@login_required(login_url='login')
 def home(request):
     # Get unique exam types that have exams
     exam_types = ExamType.objects.filter(exam__isnull=False, exam__for_scheduling=False).distinct().order_by('order')
@@ -378,7 +395,7 @@ def whatsapp_consent(request):# Get the newly registered user from session
                 user.whatsapp_notifications = True
                 user.whatsapp_number = form.cleaned_data['whatsapp_number']
                 user.save()
-                messages.success(request, "Urakoze kwemera amakuru kuri WhatsApp.")
+                # messages.success(request, "Urakoze kwemera amakuru kuri WhatsApp.")
             # else:
             #     messages.info(request, "Urakoze kwiyandikisha.")
             
@@ -431,6 +448,7 @@ def verify_otp(request, user_id):
 @redirect_authenticated_users
 def login_view(request):
     page='login'
+    
     # show_modal = request.GET.get('login') is not None
     if request.method == "POST":
         form = LoginForm(request.POST)

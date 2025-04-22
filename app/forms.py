@@ -29,7 +29,7 @@ from django.contrib.auth.forms import SetPasswordForm
 from django.db.models import Q
 import dns.resolver
 from django.core.exceptions import ValidationError
-
+import re
 
 class ImageLabelMixin:
     def get_image_label(self, obj, label_field="definition", image_field="sign_image", max_height=50, max_width=100):
@@ -96,107 +96,97 @@ def validate_strong_password(value):
     # Sequential patterns
     # if is_sequential(value.lower()):
     #     raise ValidationError("Password cannot be a simple sequence of characters.")
-    
+
+
 class RegisterForm(forms.ModelForm):
     password1 = forms.CharField(
         widget=forms.PasswordInput,
-        max_length=255, 
-        min_length=4, 
-        required=True, 
-        label="Password",
-        # validators=[validate_strong_password]
-        )
+        max_length=255,
+        min_length=4,
+        required=True,
+        label="Ijambobanga",
+    )
 
     password2 = forms.CharField(
         widget=forms.PasswordInput,
-        max_length=255, min_length=4,
+        max_length=255,
+        min_length=4,
         required=True,
-        label="Confirm Password"
-        )
+        label="Subiramo Ijambobanga",
+    )
 
     phone_number = forms.CharField(
         max_length=15,
         required=False,
-        label="Phone Number",
-        widget=forms.TextInput(attrs={"placeholder": "Enter phone number (e.g., 78...)"}),
-        
+        label="Telefoni",
+        widget=forms.TextInput(attrs={"placeholder": "Urugero: 78..."}),
     )
-    
 
-      
     class Meta:
-        model = UserProfile 
+        model = UserProfile
         fields = ['name', 'email', 'phone_number']
+
+    def clean_name(self):
+        name = self.cleaned_data.get("name")
+        if not name:
+            raise ValidationError("Uzuza izina rirakenewe!")
+        if name and UserProfile.objects.filter(name=name).exists():
+            raise ValidationError("Iri zina rirakoreshwa*")
+        if name.isdigit():
+            raise ValidationError("Izina ntirikwiye kuba imibare gusa.")
+        if not re.match(r"^[A-Za-zÀ-ÿ '-]+$", name):
+            raise ValidationError("Izina ryemewe rigomba kuba ririmo inyuguti gusa.")
+        if len(name) < 4:
+            raise ValidationError("Andika byibuza inyuguti 4")
+        return name
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if email and UserProfile.objects.filter(email=email).exists():
+            raise ValidationError("Iyi email isanzweho*")
+        if email and not email_domain_exists(email):
+            raise ValidationError(
+                f"Imeri '{email}' wanditse ntago ibaho. Ongera usuzume izina ryayo."
+            )
+        return email
+
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get("phone_number")
+        if phone:
+            phone = phone.replace(" ", "").replace("-", "")
+            if not phone.startswith("+250"):
+                phone = "+250" + phone.lstrip("0")
+            try:
+                parsed = phonenumbers.parse(phone, "RW")
+                if not phonenumbers.is_valid_number(parsed):
+                    raise ValidationError("Kurikiza nimero y'inyarwanda urg: 78... cyangwa 078...")
+            except phonenumbers.NumberParseException:
+                raise ValidationError("Telefone wayujuje nabi. Kurikiza urugero!")
+            if UserProfile.objects.filter(phone_number=phone).exists():
+                raise ValidationError(f"Iyi telefone '{phone}' isanzweho*")
+        return phone
 
     def clean(self):
         cleaned_data = super().clean()
-        name = cleaned_data.get("name")
-        email = cleaned_data.get("email")
-        phone_number = cleaned_data.get("phone_number")
-
         password1 = cleaned_data.get("password1")
         password2 = cleaned_data.get("password2")
-        
-        required_errors ={
-            "name" : "Uzuza izina rirakenewe!",
-            "password1" : "Ijambobanga rirakenewe!",
-            "password2" : "Ijambobanga rigomba gusa!"
-        }
 
-        for key, error in required_errors.items():
-            if not cleaned_data.get(key):
-                self._errors[key] = self.error_class([error])          
-
-        
-        
-        if email and UserProfile.objects.filter(email=email).exists():
-            raise forms.ValidationError("Iyi email isanzweho*")
-        elif email and not email_domain_exists(email):
-            raise forms.ValidationError(f"Imeri '{email}' wanditse ntago ibaho. Ongera usuzume izina ryayo.")
-
-        
-
-        # if phone_number:
-        # #     phone_number = self.normalize_phone_number(phone_number)
-        #     stripped_number = phone_number[4:]  # Remove '+250'
-        #     if UserProfile.objects.filter(phone_number__endswith=stripped_number).exists():
-        #         raise forms.ValidationError("Iyi telefone isanzweho.")
+        if not password1:
+            self.add_error('password1', "Ijambobanga rirakenewe!")
+        if not password2:
+            self.add_error('password2', "Subiramo ijambobanga rirakenewe!")
 
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Ijambo banga rigomba gusa aho warishyize hose.")
+            raise ValidationError("Ijambo banga rigomba gusa aho warishyize hose.")
 
         return cleaned_data
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password1"])  # Hash the password properly
+        user.set_password(self.cleaned_data["password1"])
         if commit:
             user.save()
         return user
-    
-    def clean_phone_number(self):
-        phone = self.cleaned_data.get("phone_number")
-
-        if phone:
-            # Remove spaces, dashes, and ensure it starts with +250
-            phone = phone.replace(" ", "").replace("-", "")
-            if not phone.startswith("+250"):
-                phone = "+250" + phone.lstrip("0")  # Remove leading zero and add +250
-
-            # Validate with `phonenumbers` library
-            try:
-                parsed_number = phonenumbers.parse(phone, "RW")
-                if not phonenumbers.is_valid_number(parsed_number):
-                    raise forms.ValidationError("Kurikiza nimero y'inyarwanda urg:78.. cg 078..")
-            except phonenumbers.phonenumberutil.NumberParseException:
-                raise forms.ValidationError("Telefone wayujuje nabi kurikiza urugero!")
-            
-            # Check for existing phone number with custom message
-            if UserProfile.objects.filter(phone_number=phone).exists():
-                raise forms.ValidationError(f"Iyi telefone '{phone}' isanzweho*")
-                
-
-        return phone
 
 
 class WhatsAppConsentForm(forms.Form):

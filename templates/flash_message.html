@@ -1,30 +1,36 @@
 <!-- Display Messages -->
 {% if messages %}
-{% for message in messages %}
-<div
-  class="alert alert-{{ message.tags }} alert-dismissible fade show"
-  role="alert"
->
-  <ul>
-    <li class="{% if message.tags == 'error' %}text-danger{% elif message.tags == 'success' %}text-success  list-unstyled  {% endif %}">
-      {{ message|safe }}
-    </li>
-  </ul>
-    
+  {% for message in messages %}
+    <div
+      class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3 px-4 py-3 rounded shadow-sm"
+      role="alert"
+      id="alert-{{ forloop.counter }}"
+    >
+      <ul class="mb-0">
+        <li class="{% if message.tags == 'error' %}list-styled text-danger{% elif message.tags == 'success' %}text-success{% endif %}">
+          {{ message|safe }}
+        </li>
+      </ul>
 
-  <button
-    type="button"
-    class="btn-close"
-    data-bs-dismiss="alert"
-    aria-label="Close"
-    id="close-button-{{ forloop.counter }}"
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+        aria-label="Close"
+        id="close-button-{{ forloop.counter }}"
+      ></button>
+    </div>
 
-  ></button>
-</div>
-<script>
-  
-  setTimeout(function() {
-    document.getElementById('close-button-{{ forloop.counter }}').click();
-  }, {{ messages|length }} <= 1 ? 10000 : 60000);
-</script>
-{% endfor %} {% endif %}
+    <script>
+      setTimeout(function() {
+        var alertBox = document.getElementById('alert-{{ forloop.counter }}');
+        if (alertBox) {
+          var closeBtn = document.getElementById('close-button-{{ forloop.counter }}');
+          if (closeBtn) {
+            closeBtn.click();
+          }
+        }
+      }, {{ messages|length }} <= 1 ? 10000 : 60000);
+    </script>
+  {% endfor %}
+{% endif %}

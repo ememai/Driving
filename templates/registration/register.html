@@ -1,51 +1,158 @@
-{% extends 'base.html' %} 
-{% load static %} 
-{% block title %} Register {% endblock %}
+{% extends 'base.html' %}
+{% load static %}
 
-{% block navbar %}
-<div class="d-flex align-items-center justify-content-between border-bottom ">
-  <div>
-    <a class="text-decoration-none fs-3 text-theme p-2" href="{% url 'home' %}">
-      <i class="bi bi-house-fill"></i>
-    </a>
-  </div>
-  <div class="theme-toggle m-2">
-    <button class="btn btn-link p-0 text-theme" id="themeToggle" aria-label="Toggle theme" type="button">
-      <i id="themeIcon" class="bi bi-moon fs-4"></i>
-      <span class="visually-hidden">Toggle dark mode</span>
-    </button>
-  </div>
-</div>
-{% endblock %} 
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/register.css' %}" />
-<style>
-  .error-field {
-    border: 1px dashed;
-    border-color: #dc3545 !important;
-  }
-  .error-message {
-    color: #dc3545;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-  }
-
-  input:focus::placeholder {
-    color: transparent;
-  }
-  
-</style>
-{% endblock %} 
+{% block title %}Iyandikishe{% endblock %}
 
 {% block content %}
 <style>
-  #main-content{
-    margin-top: 16px;
+  .rda {
+    background: linear-gradient(to bottom,
+    #00a9e0 0%,      /* Blue */
+    #00a9e0 50%,     
+    #fcd116 50%,     
+    #fcd116 75%,     
+    #20603d 75%,     
+    #20603d 100%);   
   }
 </style>
 
-<!-- WhatsApp Consent Modal -->
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow rounded-4 p-4">
+            <h3 class="mb-4 text-center text-primary-emphasis">Guhanga konti</h3>
+
+            {% if registration_success %}
+                <div class="alert alert-success text-center">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    Konti yawe yahanzwe neza!
+                </div>
+                <script>
+                    window.addEventListener("load", () => {
+                        const modal = new bootstrap.Modal(document.getElementById("whatsappConsentModal"));
+                        modal.show();
+                    });
+                </script>
+            {% endif %}
+
+            <form method="post" novalidate id="registrationForm">
+                {% csrf_token %}
+
+                <!-- Name -->
+                <div class="mb-3">
+                    <label for="id_name" class="form-label">Izina</label>
+                    <div class="input-group has-validation">
+                      <input type="text" name="name" id="id_name"
+                             class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                             value="{{ form.name.value|default_if_none:'' }}" required>
+                      <span class="input-group-text bg-transparent border-0">
+                          <i class="bi"></i>
+                      </span>
+                  </div>
+                  
+                    {% if form.name.errors %}
+                        <div class="text-danger name-errors">{{ form.name.errors.0 }}</div>
+                    {% else %}
+                        <div class="invalid-tooltip">Andika izina ryawe.</div>
+                    {% endif %}
+                </div>
+
+                <!-- Toggle Input Mode -->
+                <div class="mb-3">
+                    <label class="form-label">Hitamo:</label>
+                    
+                    
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="contact_mode" id="phoneMode" checked>
+                      <label class="form-check-label" for="phoneMode">Telefoni</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="contact_mode" id="emailMode" >
+                      <label class="form-check-label" for="emailMode">Email</label>
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div class="mb-3 contact-method " id="emailField">
+                    <label for="id_email" class="form-label">Email:</label>
+                    <div class="input-group has-validation">
+                      <span class="px-4 input-group-text border-end-0 text-secondary"><i class="fa-solid fa-envelope"></i></span>
+                      <input type="email" name="email" id="id_email"
+                             class="form-control {% if form.email.errors %}is-invalid {% endif %}"
+                             value="{{ form.email.value|default_if_none:'' }}">
+                      
+                    </div>
+                  
+                    {% if form.email.errors %}
+                        <div class="text-danger email-errors" >{{ form.email.errors.0 }}</div>
+                    {% else %}
+                        <div class="invalid-tooltip">Shyiramo email yujuje ibisabwa.</div>
+                    {% endif %}
+                </div>
+
+                <!-- Phone Number -->
+                <div class="mb-3 contact-method d-none" id="phoneField">
+                    <label for="id_phone_number" class="form-label">Telefoni</label>
+                    <div class="input-group has-validation">
+                      <span class="rda px-4"></span>
+                      <input type="text" name="phone_number" id="id_phone_number"
+                             class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}"
+                             placeholder="Urugero: 78..." value="{{ form.phone_number.value|default_if_none:'' }}" maxlength="10"/>
+                      {% comment %} <span class="position-absolute validate-icon end-0 top-50 translate-middle-y ms-2"></span> {% endcomment %}
+                  </div>
+                  
+                    {% if form.phone_number.errors %}
+                        <div class="text-danger phone-errors">{{ form.phone_number.errors.0 }}</div>
+                    {% else %}
+                        <div class="invalid-tooltip">Shyiramo nimero ya telefoni itangira na 07.</div>
+                    {% endif %}
+                </div>
+
+               
+                <!-- Password -->
+              <div class="mb-3 position-relative">
+                <label for="id_password1" class="form-label">Ijambobanga</label>
+                <div class="input-group has-validation align-items-center position-relative">
+                    <input type="password" name="password1" id="id_password1"
+                          class="form-control" required>
+                    <button class="btn btn-outline-secondary position-relative" type="button" onclick="togglePassword('id_password1', this)">
+                        <i class="fa fa-eye"></i>
+                        {% comment %} <span class="position-absolute validate-icon end-0 top-50 translate-middle-y ms-2"></span> {% endcomment %}
+                    </button>
+                </div>
+              </div>
+
+              <!-- Confirm Password -->
+              <div class="mb-3 position-relative">
+                <label for="id_password2" class="form-label">Subiramo Ijambobanga</label>
+                <div class="input-group has-validation align-items-center position-relative">
+                    <input type="password" name="password2" id="id_password2"
+                          class="form-control" required>
+                    <button class="btn btn-outline-secondary position-relative" type="button" onclick="togglePassword('id_password2', this)">
+                        <i class="fa fa-eye"></i>
+                        {% comment %} <span class="position-absolute validate-icon end-0 top-50 translate-middle-y ms-2"></span> {% endcomment %}
+                    </button>
+                </div>
+              </div>
+
+
+                <!-- Submit -->
+                <div class="d-grid mt-4">
+                  <button type="submit" class="btn btn-primary" disabled>
+                    <i class="bi bi-person-plus-fill me-1"></i> Emeza
+                </button>
+                
+                </div>
+
+                <div class="text-center mt-3 medium">
+                    Ufite konti? <a href="{% url "login" %}" class="link-primary" data-bs-toggle="modal" data-bs-target="#loginModal">Injira hano</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- WhatsApp Modal -->
 <div class="modal fade" id="whatsappConsentModal" tabindex="-1" aria-labelledby="whatsappConsentModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content bg-theme text-theme">
@@ -96,129 +203,233 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
-<div class="d-flex justify-content-center mt-0">
-  <h2 class="text-center text-theme fw-bold fs-5" id="kds">
-    <i class="bi bi-car-front-fill"></i> 
-    KIGALI DRIVING SCHOOL
-  </h2>
-</div>
-<div class="row">
-  <div class="col-md-6 d-flex justify-content-center">
-    <div class="card shadow-lg p-4">
-      <h2 class="text-center mb-4">Hanga Konti</h2>
-      <form method="post" novalidate id="registerForm">
-        {% csrf_token %}
-        <div class="mb-3 text-center">
-          <label class="form-label fw-bold">Koresha:</label>
-          <div class="d-flex justify-content-center gap-3" id="js-switch">
-            <button type="button" class="btn btn-outline-primary btn-focus" id="usePhone">
-              Telefone
-            </button>
-            <button type="button" class="btn btn-outline-secondary" id="useEmail">
-              Email
-            </button>
-          </div>
-        </div>
-        
-        <!-- Phone Number Field (Default) -->
-        <div class="mb-3" id="phoneField">
-          <label for="id_phone_number" class="form-label">Nimero: </label>
-          {% if form.phone_number.errors %}
-          <div class="error-message">{{ form.phone_number.errors.0 }}</div>
-          {% endif %}
-          <div class="input-group">
-            <span class="rda px-4"></span>
-            <input type="text" name="phone_number" id="id_phone_number" 
-                   class="form-control {% if form.phone_number.errors %}error-field{% endif %}" 
-                   placeholder="Urugero: 78..." 
-                   value="{{ form.phone_number.value|default_if_none:'' }}" />
-          </div>
-        </div>
-        
-        <!-- Email Field (Initially hidden) -->
-        <div class="mb-3 d-none" id="emailField">
-          <label for="id_email" class="form-label">Email</label>
-          <input type="email" name="email" id="id_email" 
-                 class="form-control {% if form.email.errors %}error-field{% endif %}" 
-                 placeholder="Urugero: kds@gmail.com" 
-                 value="{{ form.email.value|default_if_none:'' }}" />
-          {% if form.email.errors %}
-            <div class="error-message">{{ form.email.errors.0 }}</div>
-          {% endif %}
-        </div>
-        {% comment %} <div class="mb-3 d-none" id="noteConsent">
-          <label for="id_noteConsent" class="form-label">Habwa ubutumwa bw'kizamini gishya</label>
-          <input type="checkbox" name="noteConsent" id="id_noteConsent" 
-                 class="form-control " 
-                
-                 value="{{ form.noteConsent.value|default_if_none:'' }}"/>          
-        </div> {% endcomment %}
-        
-        <!-- Name Field -->
-        <div class="mb-3">
-          <label for="name" class="form-label">Izina:</label>
-          {% if form.name.errors %}
-            <div class="error-message">{{ form.name.errors.0 }}</div>
-          {% endif %}
-          <input type="text" name="name" id="name" 
-                 class="form-control {% if form.name.errors %}error-field{% endif %}" 
-                 placeholder="Uzuza izina..." 
-                 value="{{ form.name.value|default_if_none:'' }}" />
-        </div>
-        
-        <!-- Password Fields -->
-        <div class="mb-3 position-relative">
-          <label for="id_password1" class="form-label">Ijambobanga(password):</label>
-          {% if form.password1.errors %}
-            <div class="error-message">{{ form.password1.errors.0 }}</div>
-          {% endif %}
-          <div class="input-group {% if form.password1.errors %}error-field{% endif %}">
-            <input type="password" name="password1" id="id_password1" 
-                   class="form-control js-password " 
-                   placeholder="Uzuza ijambobanga(password) uzibuka" />
-            <button class="btn btn-outline-secondary toggle-password" type="button" title="Show/Hide Password">
-              <i class="bi bi-eye"></i>
-            </button>
-          </div>
-        </div>
-        
-        <div class="mb-3 position-relative">
-          <label for="id_password2" class="form-label">Subirampo Ijambobanga(password):</label>
-          {% if form.password2.errors %}
-            <div class="error-message">{{ form.password2.errors.0 }}</div>
-          {% endif %}
-          <div class="input-group  {% if form.password2.errors %}error-field{% endif %}">
-            <input type="password" name="password2" id="id_password2" 
-                   class="form-control js-password" 
-                   placeholder="Uzuza irisa nk'iryaruguru"/>
-            <button class="btn btn-outline-secondary toggle-password" type="button" title="Show/Hide Password">
-              <i class="bi bi-eye"></i>
-            </button>
-          </div>
-        </div>
-        
-        <!-- Register Button -->
-        <button type="submit" class="btn btn-primary w-100">Emeza</button>
-      </form>
-      <p class="text-center mt-3">
-        Niba ufite konti ->
-        <a class="cy-link fw-medium fs-6" href="{% url 'login' %}">Kanda aha</a>
-      </p>
-    </div>
-  </div>
-</div>
-
-<!-- JavaScript -->
+{% block extra_js %}
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-      const whatsappConsentModal = new bootstrap.Modal(document.getElementById('whatsappConsentModal'));
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('registrationForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    //const fields = form.querySelectorAll('input');
+    const fields = form.querySelectorAll('input:not([name="contact_mode"])');
 
-// Show modal after successful registration
-      {% if registration_success %}
-      whatsappConsentModal.show();
-      {% endif %} 
+
+    function getErrorMessage(name, value = '') {
+      const messages = {
+          name: 'Andika izina rifite nibura inyuguti  4 kandi ritari imibare.',
+          email: 'Shyiramo email yemewe. Urugero: izina@example.com',
+          phone_number: 'Telefone igomba gutangira na 07.',
+          low_number :  'Shyiramo imibare yuzuye itangira na 07',
+          char_phone: 'Telefone igomba kuba imibare',
+          password1: 'Ijambobanga rigomba kuba rifite nibura inyuguti 4.',
+          password2: 'Ijambobanga ntirihuye n’iryo hejuru. Ongera ugerageze.',
+      };
+      return messages[name] || 'Andika neza ibisabwa kuri iki gice.';
+    }
+  
+
+    function showFieldError(field, message) {
+        const container = field.closest('.mb-3');
+        const existingError = container.querySelector('.live-error-msg');
+
+        field.classList.add('is-invalid');
+        field.classList.remove('is-valid');
+
+        if (!existingError) {
+            const div = document.createElement('div');
+            div.className = 'text-danger small live-error-msg mb-1';
+            div.textContent = message;
+            const label = container.querySelector('label');
+            const next = label.nextElementSibling;
+            container.insertBefore(div, next);
+        } else {
+            existingError.textContent = message;
+        }
+    }
+
+    function clearFieldError(field) {
+        const container = field.closest('.mb-3');
+        const existingError = container.querySelector('.live-error-msg');
+        field.classList.add('is-valid');
+        field.classList.remove('is-invalid');
+        if (existingError) existingError.remove();
+    }
+
+    function validateField(field) {
+      let name = field.name;
+      const value = field.value.trim();
+      let isValid = true;
+  
+      if (!field._touched) return;
+
+      //if (name === 'contact_mode') {
+        // Check if any radio with the name "contact_mode" is checked
+      //  const checked = document.querySelector('input[name="contact_mode"]:checked');
+       // isValid = checked !== null;
+      //}
+  
+      // Validation logic
+      if (name === 'name') {
+          const regex = /^[A-Za-zÀ-ÿ '-]+$/;
+          isValid = value !== '' && regex.test(value) && !/^\d+$/.test(value) && value.length >= 4;
+        }
+       else if (name === 'email') {
+          const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          isValid = !value || regex.test(value);
+      } else if (name === 'phone_number') {
+          // const regex = /^(?:\+25)?07[2389]\d{07}$/;
+          const regex_char = /^[0-9]+$/;
+          const regex = /^07/;
+          const clean = value.trim().replace(/^\s+|[-\s]/g, ''); // removes leading space & dashes
+          // isValid = !!value || regex.test(clean);
+
+          if (value && !regex.test(clean))
+          {
+            isValid = false
+          }
+          else if(value && value.length < 10){
+            name = 'low_number';
+            isValid =false;
+          }
+           
+          if (!regex_char.test(value)){
+            name = 'char_phone';
+            isValid = false;
+          }
+
+          
+      } else if (name === 'password1') {
+          isValid = value.length >= 4;
+      } else if (name === 'password2') {
+          const pw1 = document.getElementById('id_password1').value;
+          isValid = value.length >= 4 && value === pw1;
+      } else {
+          isValid = field.checkValidity();
+      }
+  
+      // Handle error UI
+      if (value === '') {
+          field.classList.remove('is-valid', 'is-invalid');
+      } else if (isValid) {
+          field.classList.add('is-valid');
+          field.classList.remove('is-invalid');
+      } else {
+          field.classList.add('is-invalid');
+          field.classList.remove('is-valid');
+      }
+  
+      const container = field.closest('.mb-3');
+      const existingError = container.querySelector('.live-error-msg');
+      if (!isValid) {
+          if (!existingError) {
+              const div = document.createElement('div');
+              div.className = 'text-danger small live-error-msg mb-1';
+              div.textContent = getErrorMessage(name);
+              const label = container.querySelector('label');
+              const next = label.nextElementSibling;
+              container.insertBefore(div, next);
+          } else {
+              existingError.textContent = getErrorMessage(name);
+          }
+      } else if (existingError) {
+          existingError.remove();
+      }
+  
+      // Async check for existing email/phone (if valid format)
+      if (isValid && (name === 'email' || name === 'phone_number')) {
+          checkExisting(field);
+      }
+  
+      return isValid || value === '';
+    
+    }
+  
+    
+    function checkFormValidity() {
+        let isFormValid = true;
+        fields.forEach(field => {
+            if (field.offsetParent !== null) {
+                const value = field.value.trim();
+                if (value !== '') {
+                    const valid = validateField(field);
+                    if (!valid) {
+                    isFormValid = false;
+                    
+                    }
+                } else {
+                    isFormValid = false;
+                }
+            }
+        });
+        submitBtn.disabled = !isFormValid;
+      
+        submitBtn.innerHTML = !isFormValid ? 'Uzuza ibisabwa wemeze': 'Emeza';
+    }
+
+    function debounce(fn, delay = 400) {
+        let timer;
+        return function (...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+
+    async function checkExisting(field) {
+      const name = field.name;
+      const value = field.value.trim();
+      if (!value || (name !== 'email' && name !== 'phone_number')) return;
+  
+      // Pre-check format before sending request
+      if (name === 'email') {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(value)) return;
+      }
+  
+      if (name === 'phone_number') {
+          const phoneRegex = /^(?:\+250)?7[2389]\d{7}$/;
+          if (!phoneRegex.test(value.replace(/\s|-/g, ''))) return;
+      }
+  
+      try {
+          const res = await fetch(`/check-unique/?field=${name}&value=${encodeURIComponent(value)}`);
+          const data = await res.json();
+          if (data.exists) {
+              showFieldError(field, name === 'email'
+                  ? 'Iyi email isanzweho*'
+                  : `Iyi telefone '${value}' isanzweho*`);
+              submitBtn.disabled = true;
+          }
+      } catch (err) {
+          console.error(`Failed to check ${name}`, err);
+      }
+  }
+  
+
+    fields.forEach(field => {
+        field._touched = false;
+
+        field.addEventListener('input', debounce(() => {
+            field._touched = true;
+            validateField(field);
+            checkFormValidity();
+
+            if (['email', 'phone_number'].includes(field.name)) {
+                checkExisting(field);
+            }
+        }));
+
+        field.addEventListener('blur', () => {
+            field._touched = true;
+            validateField(field);
+            checkFormValidity();
+        });
+    });
+
+    checkFormValidity();
+
+    const whatsappConsentModal = new bootstrap.Modal(document.getElementById('whatsappConsentModal'));
+
 
       // WhatsApp consent form logic
       const yesRadio = document.getElementById('consent_yes');
@@ -272,51 +483,53 @@
       whatsappInput.oninput = function() {
         this.setCustomValidity('');
       };
+});
 
-    // Phone/Email toggle logic
-    const emailField = document.getElementById("emailField");
-    const phoneField = document.getElementById("phoneField");
-    const useEmailBtn = document.getElementById("useEmail");
-    const usePhoneBtn = document.getElementById("usePhone");
+</script>
+  
+  
+  
+<script>
 
-    function handleEvent(e) {
-      const target = e.target;
-      const sibling = target.id === "usePhone" ? useEmailBtn : usePhoneBtn;
-
-      switch (e.type) {
-        case "click":
-        case "mouseenter":
-          if (target === useEmailBtn) {
-            emailField.classList.remove("d-none");
-            phoneField.classList.add("d-none");
-          } else if (target === usePhoneBtn) {
-            phoneField.classList.remove("d-none");
-            emailField.classList.add("d-none");
+      function togglePassword(id, btn) {
+          const input = document.getElementById(id);
+          const icon = btn.querySelector("i");
+          if (input.type === "password") {
+              input.type = "text";
+              icon.classList.remove("fa-eye");
+              icon.classList.add("fa-eye-slash");
+          } else {
+              input.type = "password";
+              icon.classList.remove("fa-eye-slash");
+              icon.classList.add("fa-eye");
           }
-          sibling.classList.remove("btn-focus");
-          target.classList.add("btn-focus");
-          break;
       }
-    }
 
-    [useEmailBtn, usePhoneBtn].forEach((btn) => {
-      ["click", "mouseenter"].forEach((eventName) => {
-        btn.addEventListener(eventName, handleEvent);
-      });
+    document.addEventListener('DOMContentLoaded', () => {
+        const emailMode = document.getElementById('emailMode');
+        const phoneMode = document.getElementById('phoneMode');
+        const emailField = document.getElementById('emailField');
+        const phoneField = document.getElementById('phoneField');
+
+        function toggleContactField() {
+            if (emailMode.checked) {
+                emailField.classList.remove("d-none");
+                phoneField.classList.add("d-none");
+                document.getElementById("id_email").required = true;
+                document.getElementById("id_phone_number").required = false;
+            } else {
+                phoneField.classList.remove("d-none");
+                emailField.classList.add("d-none");
+                document.getElementById("id_phone_number").required = true;
+                document.getElementById("id_email").required = false;
+            }
+        }
+
+        emailMode.addEventListener('change', toggleContactField);
+        phoneMode.addEventListener('change', toggleContactField);
+        toggleContactField();
     });
 
-    // Toggle Password Visibility
-    document.querySelectorAll(".toggle-password").forEach((button) => {
-      button.addEventListener("click", function () {
-        const input = this.parentNode.querySelector(".js-password");
-        const icon = this.querySelector("i");
-        const type =
-          input.getAttribute("type") === "password" ? "text" : "password";
-        input.setAttribute("type", type);
-        icon.classList.toggle("bi-eye");
-        icon.classList.toggle("bi-eye-slash");
-      });
-    });
-  });
+   
 </script>
 {% endblock %}

@@ -38,7 +38,7 @@ urlpatterns = [
     # path("pay/status/<str:transaction_id>/", momo_payment_status, name="momo_payment_status"),
     
     path('contact/', views.contact, name='contact'),
-
+    path("ajax/check-unique/", views.check_unique_field, name="check_unique_field"),
     #authentications
     path('register/', register_view, name='register'),
     path('whatsapp-consent/', views.whatsapp_consent, name='whatsapp_consent'),
