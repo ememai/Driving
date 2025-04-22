@@ -214,6 +214,7 @@ class Subscription(models.Model):
             if self.updated:                
                 self.expires_at = self.updated_at + timezone.timedelta(days=self.duration_days)
             else:
+                self.updated_at = self.started_at
                 self.expires_at = self.started_at + timezone.timedelta(days=self.duration_days)
 
         if self.expires_at and self.expires_at >= timezone.now().date():
