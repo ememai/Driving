@@ -155,7 +155,8 @@ def job_notify_new_published_exams():
         exam = scheduled.exam
         exam_url = f"{settings.BASE_URL}{reverse('exam_detail', args=[exam.id])}"
         scheduled_time = scheduled.scheduled_datetime.astimezone(ZoneInfo('Africa/Kigali')).strftime('%H:%M')
-        today_date = now.strftime('%d-%m-') + str(now.year)[-3:]
+        # today_date = now.strftime('%d-%m-') + str(now.year)[-3:]
+        today_date = now.strftime('%d-%m-%Y')
 
         users = UserProfile.objects.filter(is_superuser=True)
         
@@ -163,8 +164,6 @@ def job_notify_new_published_exams():
 
             ⏰ Ikizamini cya Saa {scheduled_time} cyagezeho.
             📝 Gikore uciye aha: {exam_url}
-
-                utifuza iyi message ohereza NO
                 
             📞 Ukeneye ubufasha: 0785287885
             📅 {today_date}
