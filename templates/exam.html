@@ -25,20 +25,13 @@
     </div>
   </div>
   </div>
-  {% comment %} <div class="d-flex align-items-center justify-content-center"> {% endcomment %}
-    <div >
-      <div class="progress" style="height: 20px;">
-        <div class="progress-bar progress-bar-striped progress-bar-animated" 
-             role="progressbar" 
-             style="width: {{ question_number|percentage:total_questions }}%;" 
-             aria-valuenow="{{ question_number }}" 
-             aria-valuemin="0" 
-             aria-valuemax="{{ total_questions }}">
-         {% comment %} <strong class="fs-6"> Ikibazo {{ question_number }} / {{ total_questions }}</strong> {% endcomment %}
+  
+    
+      <div class="progress d-flex align-items-center justify-content-center" style="height: 20px;">
+        <div >
+          <strong class="fs-6"> Ikibazo cya {{ question_number }} muri {{ total_questions }}</strong>
         </div>
       </div>
-    </div>
-  {% comment %} </div> {% endcomment %}
 </nav>
 {% endblock %}
 
@@ -82,17 +75,130 @@
     }
   }
 
+  #question-nav {
+    display: grid;
+    grid-template-columns: repeat(10, 40px);
+    gap: 4px;
+    justify-content: center;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  @media (max-width: 768px) {
+    #question-nav {
+      grid-template-columns: repeat(8, 40px);
+    }
+  }
+  
+  #question-nav button {
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    line-height: 40px;
+    padding: 0;
+    margin: 0;
+    border-radius: 4px;
+    font-weight: bold;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease,
+      transform 0.2s ease;
+  }
+  
+  #question-nav button:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Active question */
+  #question-nav .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: #fff;
+  }
+  
+  /* Answered questions */
+  #question-nav .btn-success {
+    background-color: #e0ffe0;  /* light green background */
+    border: 2px solid #28a745;  /* green border */
+    color: #28a745;
+    position: relative;
+  }
+  
+  /* Optional: Add a dot in the corner */
+  #question-nav .btn-success::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 6px;
+    height: 6px;
+    background-color: #28a745;
+    border-radius: 50%;
+  }
+  
+  /* Unanswered buttons */
+  #question-nav .btn-outline-secondary {
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    color: #6c757d;
+  }
+  
+  
+  
+
+  .row {
+   min-height: 40px; /* Set a minimum height for rows */
+  }
 
 </style>
 
+<div class="container mt-5">
+  <!-- DEBUGGING -->
+
+
+  <form method="POST" action="{% url 'exam' exam.id question_number %}">
+    {% csrf_token %}
+    <div class="container">
+      <div id="question-nav">
+
+        {% for num in q_nums %}
+     {% with q_id=num|get_question_id:questions %}
+      <div class="col p-0">
+      <button
+        class="btn btn-sm rounded-0
+          {% if num == question_number %}
+            btn-primary
+          {% elif q_id|isin:request.session.answers %}
+
+            btn-success
+          {% else %}
+            btn-outline-secondary
+          {% endif %}"
+        {% if num == question_number %}disabled{% endif %}
+        title="Kanda hano kugirango ujye ku kibazo cya {{ num }}"
+        type="submit" name="go_to" value="{{ num }}">
+        
+        {% if num == question_number %}
+          <strong>{{ num }}</strong>
+        {% elif request.session.answers|get:q_id %}
+          <strong>{{ num }}</strong>
+        {% else %}
+          {{ num }}
+        {% endif %}
+      </button>
+    </div>
+    {% endwith %}
+      {% endfor %}
+
+      </div>
+    </div>
+  </form>
+</div>
 <div class="container mt-5 ">
   {% include "flash_message.html" %}
-  <!-- Exam Progress Section -->
-  
-
-  
   <!-- Exam Form -->
-  <form method="POST" id="examForm" class="border p-4 shadow-sm border-success ">
+  <form method="POST" id="examForm" class="p-4 shadow-lg">
     {% csrf_token %}
     <div class="mb-5">
       <p class="fs-1 d-none d-md-block">{{ question_number }}. {{ question.question_text }}</p>
@@ -170,7 +276,7 @@
     }
     window.addEventListener('beforeunload', beforeUnloadHandler);
 
-    // Remove warning when navigating within the exam
+    // Remove warning when navigating within the exam or submitting the form
     function removeBeforeUnload() {
       window.removeEventListener('beforeunload', beforeUnloadHandler);
     }
@@ -178,10 +284,18 @@
     const nextBtn = document.getElementById('nextBtn');
     const prevBtn = document.querySelector('button[name="previous"]');
     const confirmSubmitBtn = document.getElementById('confirmSubmit');
+    const form = document.getElementById('examForm');
+    const questionNavButtons = document.querySelectorAll('#question-nav button');
 
     if (nextBtn) nextBtn.addEventListener('click', removeBeforeUnload);
     if (prevBtn) prevBtn.addEventListener('click', removeBeforeUnload);
     if (confirmSubmitBtn) confirmSubmitBtn.addEventListener('click', removeBeforeUnload);
+    if (form) form.addEventListener('submit', removeBeforeUnload);
+
+    // Remove warning when question navigation buttons are clicked
+    questionNavButtons.forEach(button => {
+      button.addEventListener('click', removeBeforeUnload);
+    });
 
     // Countdown Timer
     const examEndTimeTimestamp = parseInt("{{ exam_end_time|default:0 }}", 10) * 1000;

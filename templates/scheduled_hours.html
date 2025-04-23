@@ -213,11 +213,11 @@
   }
 
   /* Basic styling for hour links */
-  {% comment %} .hour-link {
-    color:rgb(255, 255, 255);
-  }  {% endcomment %}
+  .hour-link {
+    color:rgb(0, 222, 78);
+  }  
   .hour-link.disabled {
-    color:rgb(151, 152, 156);
+    color:rgb(6, 112, 61);
     cursor: not-allowed;
   }
 
@@ -259,11 +259,11 @@
         <div class="completed-check">✓</div>
         {% endif %}
         {% if exam.is_published %}
-        <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link text-primary">
+        <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link ">
           {{ exam.scheduled_datetime|time:"H:00" }}
         </a>
         {% else %}
-        <span class="hour-link text-secondary disabled" title="Isaha ntago iragera">
+        <span class="hour-link  disabled" title="Isaha ntago iragera">
           {{ exam.scheduled_datetime|time:"H:00" }}
         </span>
         {% endif %}
