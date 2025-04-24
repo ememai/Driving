@@ -1,264 +1,207 @@
 {% load static %}
-<style>
-  #scheduled-hours-wrapper {
-    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.3);
-    background-color: rgba(var(--surface-rgb), 0.95);
-  }
-  
-</style>
-<nav class="fixed-top">
-  <div class="navbar navbar-expand-md border-bottom border-theme shadow-sm" id="navbar" role="navigation" style="background-color: rgb(0, 0, 83); ">
-    <div
-      class="container-fluid d-flex flex-wrap align-items-center justify-content-center gap-3"
+<nav class="navbar navbar-expand-lg shadow-sm" id="navbar">
+  <div
+    class="container-fluid px-2 d-flex justify-content-between align-items-center gap-2"
+  >
+    <!-- Brand -->
+    <a
+      class="navbar-brand d-flex align-items-center gap-2 text-theme"
+      href="{% url 'home' %}"
     >
-      <!-- Logo/Brand with proper alt text and aria-label -->
-      <a
-        class="navbar-brand bold-logo d-flex align-items-center gap-2"
-        href="/"
-        aria-label="Kigali Driving School"
-      >
-        <img
-          src="{% static 'img/logo.png' %}"
-          alt="Kigali Driving School - Amategeko y'umuhanda"
-          width="30"
-          height="30"
-          class="d-inline-block"
-        />
-        <span class="text-light d-none d-md-inline">Kigali Driving School</span>
-        <strong class="text-light d-inline d-md-none fst-italic">KDS</strong>
-      </a>
+      {% comment %} <i
+        class="bi bi-car-front-fill"
+        style="color: rgba(var(--warning-rgb), 1); font-size: 1.4rem"
+      ></i> {% endcomment %}
+      <img
+        src="{% static 'img/logo.png' %}"
+        alt="Logo"
+        class="logo"
+        style="width: 40px; height: 40px; border-radius: 50%"
+      />
+      <strong>Kigali Driving School</strong>
+    </a>
 
-      <!-- Right-side Nav Items with proper spacing and accessibility -->
-      <div class="d-flex flex-nowrap gap-3 align-items-center ms-auto">
-        {% if not user.is_authenticated %}
-        <div class="d-flex align-items-center ">
-          <span class="d-none d-md-inline text-light">Uri mushya?</span>
+    <!-- Mobile Theme Toggler -->
+    <div class="d-lg-none">
+      <button class="btn btn-link p-0 text-theme themeToggle" type="button">
+        <i class="themeIcon bi bi-moon fs-5"></i>
+        <span class="visually-hidden">Toggle dark mode</span>
+      </button>
+    </div>
+
+    <!-- Mobile Toggler -->
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarMain"
+      aria-controls="navbarMain"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Nav Items -->
+    <div class="collapse navbar-collapse" id="navbarMain">
+      <ul class="navbar-nav ms-auto align-items-center gap-2 text-theme">
+        <!-- Desktop Theme Toggler -->
+        <li class="nav-item d-none d-lg-block">
+          <div class="theme-toggle text-theme">
+            <button
+              class="btn btn-link p-0 text-theme themeToggle"
+              type="button"
+            >
+              <i class="themeIcon bi bi-moon fs-5"></i>
+              <span class="visually-hidden">Toggle dark mode</span>
+            </button>
+          </div>
+        </li>
+
+        
+        {% if user.is_authenticated %}
+        <li class="nav-item">
           <a
-            class="btn  rounded-dashed px-1 py-0 py-md-2"
-            href="{% url 'register' %}"
-            role="button"
-            aria-label="Register"
+            class="nav-link {% if request.path == '/' %}active{% endif %}"
+            href="{% url 'home' %}"
           >
-            <span class="text-info" >Hanga Konti
-            <i class="bi bi-person-plus fs-5"></i>
-          </span>
+            <i class="bi bi-house-door-fill"></i> Ahabanza
           </a>
-        </div>
+        </li>
 
-        <!-- Theme Toggle with proper accessibility -->
-        <div class="theme-toggle text-light">
-          <button
-            class="btn btn-link p-0 text-light"
-            id="themeToggle"
-            {% comment %} aria-label="Toggle theme" {% endcomment %}
-            type="button"
-          >
-            <i id="themeIcon" class="bi bi-moon fs-5"></i>
-            <span class="visually-hidden">Toggle dark mode</span>
-          </button>
-        </div>
-        {% else %}
-        <div class="d-flex align-items-center gap-3">
-          {% if user.is_subscribed %}
+        <!-- Exams Dropdown -->
+        {% comment %} <li class="nav-item dropdown">
+          
           <a
-            class="btn btn-success px-2 rounded-pill d-none d-md-flex"
-            href="{% url 'subscription' %}"
+            class="nav-link dropdown-toggle {% if 'ibibazo-byo-mubwoko-' in request.path %}active{% endif %}"
+            href="#"
+            id="examsDropdown"
             role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
           >
-            Ifatabuguzi | 
-            {%if user.subscription.super_subscription %}
-             Super <i class="bi bi-person-check"></i>
-            {% else %}
-            {{ user.subscription.plan.get_plan_display|default:"None" }}
-
-            {% endif %}
+            <i class="bi bi-journal-bookmark-fill"></i> Ibibazo
           </a>
-          {% else %}
-          <a
-            class="btn btn-outline-secondary rounded-pill text-danger px-1 px-md-3 py-0 py-md-2 "
-            href="{% url 'subscription' %}"
-            role="button"
-            aria-label="Subscription"
-
+          <ul
+            class="dropdown-menu dropdown-menu-end"
+            style="background-color: rgba(var(--card-bg-rgb), 0.98)"
           >
-          <i class="bi bi-bag"></i>
-            Gura ifatabuguzi
-          </a>
-          {% endif %} {% if user.is_staff %}
+            {% for exam_type in exam_types %}
+            <li>
+              <a
+                class="dropdown-item text-theme"
+                href="{% url 'exams' exam_type.name %}"
+                >{{ exam_type.name }}</a
+              >
+            </li>
+            {% empty %}
+            <li><span class="dropdown-item text-muted">Nta bwoko</span></li>
+            {% endfor %}
+          </ul>
+        </li> {% endcomment %}
+
+        <li class="nav-item">
           <a
-            class="btn px-4 py-2 rounded-pill d-flex align-items-center text-light gap-2"
+            class="nav-link {% if request.path == '/contact/' %}active{% endif %}"
+            href="{% url 'contact' %}"
+          >
+            <i class="bi bi-envelope-fill"></i> Twandikire
+          </a>
+        </li>
+        {% if user.is_staff %}
+        <li class="nav-item">
+          <a
+            class="nav-link {% if request.path == '/admin/' %}active{% endif %}"
 
             href="/admin"
             aria-label="Admin Dashboard"
           >
             <i class="bi bi-speedometer2"></i>
-            <span class="d-none d-md-inline">Dashboard</span>
+            Dashboard
           </a>
+        </li>
+        <li class="nav-item">
           <a
-            class="btn px-4 py-2 rounded-pill d-flex align-items-center text-light gap-2 d-none d-md-inline"
+            class="nav-link {% if request.path == '/create-exam/' %}active{% endif %}"
 
             href="{% url 'create_exam' %}"
             aria-label="Create Exam"
           >
-            <i class="fa-solid fa-plus"></i>
-            <span class="d-none d-md-inline">Create Exam</span>
+            <i class="fa-solid fa-plus"></i>Create Exam
           </a>
+        </li>
+        <li class="nav-item">
           <a
-            class="btn px-4 py-2 rounded-pill d-flex align-items-center text-light gap-2 d-none d-md-inline"
+            class="nav-link {% if request.path == '/schedule-exams/' %}active{% endif %}"
 
             href="{% url 'auto_schedule_exams' %}"
             aria-label="Schedule Exams"
           >
             <i class="fa-solid fa-clock"></i>
-            <span class="">Schedule Exams</span>
+            Schedule Exams
           </a>
+        </li>
           {% endif %}
-
-          <!-- Theme Toggle with proper accessibility -->
-          <div class="theme-toggle">
-            <button
-              class="btn btn-link p-0 text-light"
-              id="themeToggle"
-              aria-label="Toggle theme"
-              type="button"
-            >
-              <i id="themeIcon" class="bi bi-moon fs-5"></i>
-              <span class="visually-hidden">Toggle dark mode</span>
-            </button>
-          </div> 
-
-          <!-- User Menu Dropdown with proper accessibility -->
-          <div class="dropdown">
-            <button
-              class="btn btn-link dropdown-toggle text-light p-0"
-              type="button"
-              id="userMenu"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-              aria-label="User menu"
-            >
-              <i class="bi bi-person-circle fs-5"></i>
-            </button>
-            <ul
-              class="dropdown-menu dropdown-menu-end shadow-sm border-theme"
-              aria-labelledby="userMenu"
-            >
-              <li class="px-3 py-2">
-                <div class="d-flex align-items-center gap-2">
-
-                  <a href="{% url "profile" %}"><i class="bi bi-person-circle fs-3"></i></a>
-                  {% comment %} {% endif %} {% endcomment %}
-                  <div class="text-truncate">
-                    <div class="fw-bold">
-                     <a  href="{% url "profile" %}">
-                       {{ user.name|default:"User"|escape }}
-                     </a>
-                    </div>
-                    <div class="small text-muted text-truncate">
-                      {{ user.email|default:user.phone_number|escape }}
-                    </div>
-                  </div>
-                </div>
-              </li>
-
-              <li>
-                {% if user.is_subscribed %}
-
-                <a
-                  class="btn btn-success px-1 py-0 mx-2 rounded-pill d-flex justify-content-center d-md-none"
-                  href="{% url 'subscription' %}"
-                  role="button"
-                  style="font-size: 13px"
-                >
-                  Ifatabuguzi :
-                  {%if user.subscription.super_subscription %} Super
-                  <i class="bi bi-person-check"></i>
-                  {% else %}
-                  {{ user.subscription.plan.get_plan_display|default:"None" }}
-                  {% endif %}
-                </a>
-                {% else %}
-                  <a
-                  class="btn btn-danger px-1 py-0 mx-2 rounded-pill d-flex justify-content-center align-items-center"
-                  href="{% url 'subscription' %}"
-                  role="button"
-                  style="font-size: 13px"
-                  >Ntafatabuguzi ufite <i class="fa fa-ban"></i>
-              </a>
-                {% endif %}
-              </li>
-              {% if user.is_staff %}
-              <li class="d-md-none">
-                <hr class="dropdown-divider" />
-              </li>
-              <li>
-                <div class="d-flex flex-column d-md-none justify-content-center gap-2">
-
-                <a
-                  class="btn mx-1 py-0  d-flex align-items-center text-theme gap-2"
-
-                  href="{% url 'create_exam' %}"
-                  aria-label="Create Exam"
-                >
-                  <i class="fa-solid fa-plus border border-2 rounded-circle p-1"></i>
-                  <i>Add Exams</i>
-
-                </a>
-                <a
-                  class="btn mx-1 py-0 d-flex align-items-center text-theme gap-2"
-
-                  href="{% url 'auto_schedule_exams' %}"
-                  aria-label="Schedule Exams"
-                >
-                  <i class="fa-solid fa-calendar p-1"></i>
-                  <i>Schedule</i>
-                </a>
-              </div>
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            id="userDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="bi bi-person-circle"></i> {{ request.user.name }}
+          </a>
+          <ul
+            class="dropdown-menu dropdown-menu-end"
+            style="background-color: rgba(var(--card-bg-rgb), 0.98)"
+          >
+            <li>
+              <a class="dropdown-item text-theme" href="{% url 'profile' %}"
+                ><i class="bi bi-person-fill"></i> Profile</a
+              >
             </li>
-            {% endif %}
-              <li>
-                <hr class="dropdown-divider" />
-              </li>
-              <li>
-                <button
-                  class="dropdown-item text-danger fw-bold d-flex align-items-center gap-2"
+            <li>
+              <a
+                class="dropdown-item text-theme"
+                href="{% url 'subscription' %}"
+                ><i class="bi bi-wallet-fill"></i> Subscription</a
+              >
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+               <button
+                  class="dropdown-item text-theme fw-bold d-flex align-items-center gap-2"
                   type="button"
                   data-bs-toggle="modal"
                   data-bs-target="#logoutModal"
                 >
                   <i class="bi bi-box-arrow-right"></i>
-                  <span>Logout</span>
+                  <span>Sohoka</span>
                 </button>
-              </li>
-            </ul>
-          </div>
-        </div>
+            </li>
+          </ul>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a
+            class="nav-link {% if request.path == '/login/' %}active{% endif %}"
+            href="{% url 'login' %}"
+          >
+            <i class="bi bi-box-arrow-in-right"></i> Injira
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link {% if request.path == '/register/' %}active{% endif %}"
+            href="{% url 'register' %}"
+          >
+            <i class="bi bi-person-plus-fill"></i> Iyandikishe
+          </a>
+        </li>
         {% endif %}
-      </div>
+      </ul>
     </div>
   </div>
-  <div id="scheduled-hours-wrapper" class="w-100" style="transition: transform 0.3s ease; transform: translateY(0);">
-    {% include 'scheduled_hours.html' %}
-  </div>
-  
-  
 </nav>
-<script>
-  let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  const scheduledWrapper = document.getElementById('scheduled-hours-wrapper');
-
-  window.addEventListener('scroll', () => {
-    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-
-    if (currentScroll > lastScrollTop) {
-      // scroll down
-      scheduledWrapper.style.transform = "translateY(-100%)";
-    } else {
-      // scroll up
-      scheduledWrapper.style.transform = "translateY(0)";
-    }
-
-    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
-  });
-</script>
-

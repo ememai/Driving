@@ -48,7 +48,7 @@ def percentage(value, total):
         return (value / total) * 100
     except (ValueError, TypeError):
         return 0
-
+    
 @register.filter
 def current_date(value):
     return timezone.now().date()
@@ -77,9 +77,9 @@ def get_plan_description(plan_value):
 @register.filter
 def get_old_price(value):
     return {
-        #'Daily': '1000',
-        'Weekly': '4000',
-        'Monthly': '10000',
+        # 'Daily': '1000 RWF',
+        'Weekly': '4000 RWF',
+        'Monthly': '10000 RWF',
         }.get(value, '')
 
 @register.filter
@@ -172,3 +172,8 @@ def is_answered(q_num, args):
 def isin(value, container):
     """Check if value is in container."""
     return str(value) in container
+
+@register.filter
+def dictkey(value, key):
+    """Allows template access like {{ mydict|dictkey:some_key }}"""
+    return value.get(key)

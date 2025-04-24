@@ -25,6 +25,26 @@
   --nav-bg-rgb: 255, 255, 255;
   --card-bg-rgb: 255, 255, 255;
   --btn-bg-rgb: var(--primary-rgb);
+
+  /* Gradient backgrounds */
+  --background-gradient-light: linear-gradient(180deg, #f5f7fa, #e3e6ec);
+  --background-gradient-dark: linear-gradient(180deg, rgb(2, 3, 19), rgb(1, 15, 36));
+  --background-gradient: var(--background-gradient-dark);
+}
+
+[data-bs-theme="light"] {
+  --background-gradient: var(--background-gradient-light);
+}
+
+[data-bs-theme="dark"] {
+  --background-gradient: var(--background-gradient-dark);
+}
+
+body.bg-theme {
+  background: var(--background-gradient);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 /* Dark theme overrides */
@@ -54,7 +74,7 @@
 /* Component styles */
 .navbar {
   background-color: rgba(var(--nav-bg-rgb), 0.95);
-  -webkit-backdrop-filter: blur(10px); /* For Safari support */
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(var(--border-rgb), 0.1);
 }
@@ -63,8 +83,6 @@
   background-color: rgba(var(--card-bg-rgb), 1);
   border: 1px solid rgba(var(--border-rgb), 0.1);
 }
-
-
 
 .green-btn:hover {
   background-color: rgba(var(--success-rgb), 0.1);

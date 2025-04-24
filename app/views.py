@@ -31,8 +31,10 @@ import random
 from django.urls import reverse
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-
+from django.template.loader import render_to_string
+from django.http import JsonResponse
 User = get_user_model()
+
 
 def check_unique_field(request):
     field = request.GET.get("field")
@@ -62,6 +64,21 @@ def home(request):
         'num':num
     }
     return render(request, 'home.html', context)
+
+def navbar(request):
+    # Get unique exam types that have exams
+    exam_types = ExamType.objects.filter(exam__isnull=False, exam__for_scheduling=False).distinct().order_by('order')
+    
+    # Prefetch related exams for each type
+    exam_types = exam_types.prefetch_related('exam_set')
+    num = exam_types.count()
+    
+    context = {
+        'exam_types': exam_types,
+        'num':num
+    }
+    return render(request, 'default-navbar.html', context)
+
 
 
 class SubscriptionRequiredView(View):
@@ -146,22 +163,176 @@ def check_exam_status(request, exam_id):
     except ScheduledExam.DoesNotExist:  # Changed to match model name
         return JsonResponse({"error": "Exam not found"}, status=404)
 
+# @login_required(login_url='login')
+# def exams_by_type(request, exam_type):
+#     returned_exams = Exam.objects.filter(
+#         for_scheduling=False,
+#         exam_type__name=exam_type
+#     ).order_by('-updated_at')
+    
+#     # Get all exams completed by this user
+#     completed_exam_ids = UserExam.objects.filter(
+#         user=request.user,
+#         completed_at__isnull=False
+#     ).values_list('exam_id', flat=True)
+
+#     counted_exams = returned_exams.count()
+    
+#     context = {
+#         'exam_type': exam_type,
+#         'returned_exams': returned_exams,
+#         'completed_exam_ids': list(completed_exam_ids),
+#         'counted_exams': counted_exams,
+#     }    
+#     return render(request, "same_exams.html", context)
+
 
 @login_required(login_url='login')
 def exams_by_type(request, exam_type):
-    
     returned_exams = Exam.objects.filter(
         for_scheduling=False,
         exam_type__name=exam_type
-        ).order_by('-updated_at')
-    counted_exams = returned_exams.count()
+    ).order_by('-updated_at')
+
+    # Dictionary of completed exams: {exam_id: completed_at}
+    completed_exams = UserExam.objects.filter(
+        user=request.user,
+        completed_at__isnull=False
+    ).values('exam_id', 'completed_at')
+
+    completed_exam_map = {
+        item['exam_id']: item['completed_at'] for item in completed_exams
+    }
+
     context = {
-        'exam_type' : exam_type,
-        'returned_exams' : returned_exams,
-        'counted_exams' : counted_exams,
+        'exam_type': exam_type,
+        'returned_exams': returned_exams,
+        'completed_exam_map': completed_exam_map,
+        'counted_exams': returned_exams.count(),
     }    
     return render(request, "same_exams.html", context)
 
+
+@login_required
+@subscription_required
+def ajax_question(request, exam_id, question_number):
+    exam = get_object_or_404(Exam, id=exam_id)
+    questions = list(exam.questions.all())
+    total_questions = len(questions)
+    question = questions[question_number - 1]
+    
+    # Get choices
+    choices = []
+    for i in range(1, 5):
+        choice_text = getattr(question, f'choice{i}_text', None)
+        choice_sign = getattr(question, f'choice{i}_sign', None)
+        if choice_text:
+            choices.append({'type': 'text', 'content': choice_text, 'id': i})
+        elif choice_sign:
+            choices.append({'type': 'image', 'content': choice_sign.image_url, 'id': i})
+
+    context = {
+        'exam': exam,
+        'question': question,
+        'question_number': question_number,
+        'total_questions': total_questions,
+        'choices': choices,
+        'questions': questions,
+    }
+
+    html = render_to_string('partials/question_block.html', context, request=request)
+    return JsonResponse({'html': html})
+
+# @login_required(login_url='login')
+# @subscription_required
+# def exam(request, exam_id, question_number):
+#     exam = get_object_or_404(Exam, id=exam_id)
+#     questions = list(exam.questions.all())
+#     total_questions = len(questions)
+
+#     user_exam, created = UserExam.objects.get_or_create(
+#         user=request.user,
+#         exam=exam,
+#         defaults={'score': 0, 'completed_at': None, 'started_at': timezone.now()})
+
+#     if user_exam.completed_at:
+#         return redirect('retake_exam', exam_id=exam_id)
+
+#     if question_number < 1 or question_number > total_questions:
+#         messages.error(request, "Invalid question number.")
+#         return redirect('exam', exam_id=exam_id, question_number=1)
+
+#     current_question = questions[question_number - 1]
+
+#     exam_end_time = (user_exam.started_at + timedelta(minutes=exam.duration)).timestamp()
+
+#     if 'answers' not in request.session:
+#         request.session['answers'] = {}    
+
+
+#     if request.method == 'POST':
+#         user_answer = request.POST.get('answer')
+#         if user_answer:
+#             request.session['answers'][str(current_question.id)] = user_answer
+#             request.session.modified = True
+
+#         if 'next' in request.POST and question_number < total_questions:
+#             return redirect('exam', exam_id=exam_id, question_number=question_number + 1)
+#         elif 'previous' in request.POST and question_number > 1:
+#             return redirect('exam', exam_id=exam_id, question_number=question_number - 1)
+#         elif 'go_to' in request.POST:
+#             go_to_question = int(request.POST['go_to'])
+#             if 1 <= go_to_question <= total_questions:
+#                 return redirect('exam', exam_id=exam_id, question_number=go_to_question)
+
+#         elif 'submit' in request.POST:
+#             score = 0
+#             for question in questions:
+#                 correct_choice = question.correct_choice
+#                 user_choice = request.session['answers'].get(str(question.id))
+#                 if user_choice and int(user_choice) == correct_choice:
+#                     score += 1
+#                 UserExamAnswer.objects.update_or_create(
+#                     user_exam=user_exam,
+#                     question=question,
+#                     defaults={'selected_choice_number': user_choice}
+#                 )
+
+#             user_exam.score = score
+#             user_exam.completed_at = timezone.now()
+#             try:
+#                 user_exam.save()
+#             except ValidationError as e:
+#                 messages.error(request, str(e))
+#                 return redirect('subscription')
+
+#             request.session.pop('answers', None)
+#             messages.success(request, f"Exam submitted! Your score: {score}/{total_questions}.")
+#             return redirect('exam_results', user_exam_id=user_exam.id)
+#     q_nums = range(1, total_questions + 1)
+
+#     choices = []
+#     for i in range(1, 5):
+#         choice_text = getattr(current_question, f'choice{i}_text', None)
+#         choice_sign = getattr(current_question, f'choice{i}_sign', None)
+#         if choice_text:
+#             choices.append({'type': 'text', 'content': choice_text, 'id': i})
+#         elif choice_sign:
+#             choices.append({'type': 'image', 'content': choice_sign.image_url, 'id': i})
+
+#     context = {
+#         'exam': exam,
+#         'question': current_question,
+#         'question_number': question_number,
+#         'q_nums': q_nums,
+#         'total_questions': total_questions,
+#         'choices': choices,
+#         'exam_end_time': exam_end_time,
+#         'exam_duration': exam.duration * 60,
+#         'user_exam': user_exam,
+#         'questions': questions,
+#             }
+#     return render(request, 'exam.html', context)
 
 @login_required(login_url='login')
 @subscription_required
@@ -173,7 +344,8 @@ def exam(request, exam_id, question_number):
     user_exam, created = UserExam.objects.get_or_create(
         user=request.user,
         exam=exam,
-        defaults={'score': 0, 'completed_at': None, 'started_at': timezone.now()})
+        defaults={'score': 0, 'completed_at': None, 'started_at': timezone.now()}
+    )
 
     if user_exam.completed_at:
         return redirect('retake_exam', exam_id=exam_id)
@@ -184,11 +356,14 @@ def exam(request, exam_id, question_number):
 
     current_question = questions[question_number - 1]
 
+    # Time left for countdown
     exam_end_time = (user_exam.started_at + timedelta(minutes=exam.duration)).timestamp()
 
+    # Initialize answer session if not present
     if 'answers' not in request.session:
         request.session['answers'] = {}
 
+    # Handle answer submission and navigation
     if request.method == 'POST':
         user_answer = request.POST.get('answer')
         if user_answer:
@@ -203,7 +378,6 @@ def exam(request, exam_id, question_number):
             go_to_question = int(request.POST['go_to'])
             if 1 <= go_to_question <= total_questions:
                 return redirect('exam', exam_id=exam_id, question_number=go_to_question)
-
         elif 'submit' in request.POST:
             score = 0
             for question in questions:
@@ -219,6 +393,7 @@ def exam(request, exam_id, question_number):
 
             user_exam.score = score
             user_exam.completed_at = timezone.now()
+
             try:
                 user_exam.save()
             except ValidationError as e:
@@ -228,8 +403,10 @@ def exam(request, exam_id, question_number):
             request.session.pop('answers', None)
             messages.success(request, f"Exam submitted! Your score: {score}/{total_questions}.")
             return redirect('exam_results', user_exam_id=user_exam.id)
+
     q_nums = range(1, total_questions + 1)
 
+    # Prepare choices for current question
     choices = []
     for i in range(1, 5):
         choice_text = getattr(current_question, f'choice{i}_text', None)
@@ -250,9 +427,9 @@ def exam(request, exam_id, question_number):
         'exam_duration': exam.duration * 60,
         'user_exam': user_exam,
         'questions': questions,
-            }
-    return render(request, 'exam.html', context)
+    }
 
+    return render(request, 'exam.html', context)
 
 @login_required(login_url='login')
 def exam_results(request, user_exam_id):
@@ -304,48 +481,33 @@ def retake_exam(request, exam_id):
 def contact(request):
     if request.method == 'POST':
         name = request.POST.get('name')
-        email = request.POST.get('email')
+        contact_method = request.POST.get('contact_method')
+        email = request.POST.get('email', '').strip()
+        whatsapp = request.POST.get('whatsapp', '').strip()
         message_text = request.POST.get('message')
-        ContactMessage.objects.create(name=name, email=email, message=message_text)
-        messages.success(request, "Your message has been sent successfully!")
+
+        if contact_method == 'email' and not email:
+            messages.error(request, "Andika imeyili yawe nkuko wabihisempo.")
+            return redirect('contact')
+        elif contact_method == 'whatsapp' and not whatsapp:
+            messages.error(request, "Andika nimero ya WhatsApp nkuko wabihisempo.")
+            return redirect('contact')
+        elif not contact_method:
+            messages.error(request, "Hitamo uburyo bwo kugusubizaho.")
+            return redirect('contact')
+
+        ContactMessage.objects.create(
+            name=name,
+            email=email if contact_method == 'email' else None,
+            whatsapp=whatsapp if contact_method == 'whatsapp' else None,
+            message=message_text
+        )
+        messages.success(request, "Ubutumwa bwawe bwoherejwe neza! Tuzagusubiza vuba.")
         return redirect('contact')
+
     return render(request, 'contact.html')
 
 
-# @redirect_authenticated_users
-# def register_view(request):
-#     if request.method == 'POST':
-#         form = RegisterForm(request.POST)
-#         if form.is_valid():
-#             user = form.save(commit=False)
-#             user.set_password(form.cleaned_data["password1"])
-            
-#             if form.cleaned_data.get("phone_number"):
-#                 user.otp_verified = True  
-#                 user.save()
-#                 messages.success(request, 'Guhanga konti byagenze neza. Ushobora kwinjira.')
-#                 return redirect("login")
-
-#             if form.cleaned_data.get("email"):
-#                 try:
-#                     # user.save()
-#                     user.send_otp_email()  # This method should raise ValidationError if sending fails
-#                     messages.success(request, 'OTP yoherejwe kuri email. Yandike hano.')
-#                     return redirect('verify_otp', user_id=user.id)
-
-#                 except Exception as e:
-#                     form.add_error('email', "Imeri wanditse ntago ibasha koherezwaho. Ongera usuzume neza.")
-#                     print(f"Failed to send OTP to {user.email}: {e}")
-                    
-            
-#         else:
-#             for field, errors in form.errors.items():
-#                 for error in errors:
-#                     # messages.error(request, f"{field.capitalize()}: {error}")
-#                     messages.error(request, f"!!! 🙇🏼‍♂️ {error}")
-#     else:
-#         form = RegisterForm()
-#     return render(request, 'registration/register.html', {'form': form})
 
 @redirect_authenticated_users
 def register_view(request):
@@ -601,6 +763,7 @@ class PrivacyPolicyView(View):
 
 # Add this to your existing views
 def base_view(request):
+    
     context = {
         'current_year': datetime.datetime.now().year,
     }

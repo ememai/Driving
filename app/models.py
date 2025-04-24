@@ -436,6 +436,12 @@ class ScheduledExam(models.Model):
             return False
 
         return self.scheduled_datetime <= timezone.now()
+    
+    @property
+    def is_live(self):
+        """Check if the exam is live based on the scheduled time."""
+        return timezone.now().hour == self.scheduled_datetime.hour and timezone.now().date() == self.scheduled_datetime.date()
+    
 
 
 
@@ -569,6 +575,7 @@ class UserExamAnswer(models.Model):
 
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
+    whatsapp_number = models.CharField(max_length=20, blank=True, null=True)
     email = models.EmailField()
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

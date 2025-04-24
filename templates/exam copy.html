@@ -318,12 +318,10 @@
   (function() {
     // Beforeunload Warning
     function beforeUnloadHandler(e) {
-      const message = "Urashaka kuva ku rupapuro rw’ikizamini? Ushobora gutakaza ibisubizo byawe.";
       e.preventDefault();
-      e.returnValue = message;
-      return message;
+      e.returnValue = 'Are you sure you want to leave the exam? Your progress might be lost.';
+      return 'Are you sure you want to leave the exam? Your progress might be lost.';
     }
-    
     window.addEventListener('beforeunload', beforeUnloadHandler);
 
     // Remove warning when navigating within the exam or submitting the form

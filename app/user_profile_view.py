@@ -1,7 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-from .models import Notification, UserExam, UserActivity
+from .models import *
+from django.template.loader import render_to_string
+
 
 @login_required
 def profile_view(request):
@@ -28,6 +30,27 @@ def profile_view(request):
     return render(request, 'profile.html', context)
 
 @login_required
+def load_more_exams(request):
+    exam_type = request.GET.get('type')
+    offset = int(request.GET.get('offset', 0))
+
+    if exam_type == "exams":
+        queryset = request.user.userexam_set.all().order_by('-completed_at')
+    elif exam_type == "passed":
+        queryset = UserExam.objects.with_percent_score().filter(user=request.user, percent_score_db__gte=60)
+    elif exam_type == "failed":
+        queryset = UserExam.objects.with_percent_score().filter(user=request.user, percent_score_db__lt=60)
+    else:
+        return JsonResponse({"error": "Invalid type"}, status=400)
+
+    exams = queryset[offset:offset + 5]
+    html = render_to_string("partials/exam_card.html", {"exams": exams})
+    has_more = queryset.count() > offset + 5
+
+    return JsonResponse({"html": html, "has_more": has_more})
+
+
+@login_required 
 def mark_notification_read(request):
     """
     AJAX endpoint to mark a notification as read.

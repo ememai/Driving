@@ -151,7 +151,8 @@
 
     /* Optimized Base Styles */
     body {
-        font-family: 'Roboto', sans-serif;
+        font-family: 'Inter', sans-serif;
+          
         background-color: rgba(var(--background-rgb), 1);
         color: rgba(var(--text-rgb), 1);
         min-height: 100vh;
@@ -161,7 +162,6 @@
     }
 
     main {
-        padding-top: 100px;
         flex: 1;
     }
 
@@ -214,9 +214,24 @@
   footer a:hover::after {
     width: 100%;
   } */
-.btn{
-    transition: transform 0.3s ease-in-out;
-}
+  #scrollTopBtn {
+    border-radius: 50%;
+    padding: 0.75rem 1rem;
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+  }
+  #scrollTopBtn:hover {
+    background-color: #0b5ed7;
+  }
+
+.btn {
+    transition: all 0.3s ease;
+  }
+  .btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
    /* Link styles */
 .btn:active {
        opacity: 0.5;

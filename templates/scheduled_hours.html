@@ -1,4 +1,3 @@
- 
 <style>
   .mobile-exam-times {
     padding: 0rem 0;
@@ -8,7 +7,7 @@
     background-color: rgba(var(--surface-rgb), 0.8);
     color: rgba(var(--text-rgb), 1);
     border-radius: 0.5rem 0.5rem 0 0;
-    padding: 0rem 1rem;
+    padding: 0.5rem 1rem;
     text-align: center;
     font-weight: 600;
     font-size: 1.1rem;
@@ -89,19 +88,37 @@
   }
 
   @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
   }
 
   @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
+
+  
+  
 </style>
 
 <div class="mobile-exam-times">
@@ -111,17 +128,19 @@
       {% for exam in exams_scheduled|dictsort:"scheduled_datetime" %}
       <div class="exam-hour" id="exam-hour-{{ exam.id }}">
         {% if exam.exam.id in completed_exam_ids %}
-          <div class="completed-check">✓</div>
-        {% endif %}
-        {% if exam.is_published %}
-          <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link position-relative">
-            <span class="live-badge">LIVE</span>
-            {{ exam.scheduled_datetime|time:"H:00" }}
-          </a>
+        <div class="completed-check">✓</div>
+        {% endif %} {% if exam.is_published %}
+        <a
+          href="{% url 'exam_detail' exam.exam.id %}"
+          class="hour-link position-relative"
+        >
+          <span class="live-badge">LIVE</span>
+          {{ exam.scheduled_datetime|time:"H:00" }}
+        </a>
         {% else %}
-          <span class="hour-link disabled" title="Isaha ntago iragera">
-            {{ exam.scheduled_datetime|time:"H:00" }}
-          </span>
+        <span class="hour-link disabled" title="Isaha ntago iragera">
+          {{ exam.scheduled_datetime|time:"H:00" }}
+        </span>
         {% endif %}
       </div>
       {% empty %}
@@ -134,82 +153,129 @@
 </div>
 
 <script>
-  // Global flag to track active checks
   let isChecking = false;
-  
-  function checkExamStatus(examId) {
-      if (!examId) {
-          console.error("Exam ID is undefined!");
-          return Promise.resolve();
+  function scrollToLiveExam() {
+    const liveBadge = document.querySelector(".live-badge");
+    if (liveBadge) {
+      const liveExam = liveBadge.closest(".exam-hour");
+      if (liveExam) {
+        liveExam.scrollIntoView({
+          behavior: "smooth",
+          inline: "center",
+          block: "nearest"
+        });
+        liveExam.classList.add("highlighted"); // Optional visual effect
       }
-  
-      return fetch(`/check-exam-status/${examId}/`)
-          .then(response => response.json())
-          .then(data => {
-              let examDiv = document.getElementById("exam-hour-" + examId);
-              if (examDiv && data.is_published) {
-                  let checkMark = '';
-                  if (data.completed) {
-                      checkMark = '<div class="completed-check">✓</div>';
-                  }
-                  examDiv.innerHTML = checkMark + `<a href="${data.exam_url}" class="hour-link">${data.exam_time}</a>`;
-              }
-              return data;
-          })
-          .catch(error => {
-              console.error("Error fetching exam status:", error);
-              throw error;
-          });
+    }
   }
   
+
+  function checkExamStatus(examId) {
+    if (!examId) {
+      console.error("Exam ID is undefined!");
+      return Promise.resolve();
+    }
+
+    return fetch(`/check-exam-status/${examId}/`)
+      .then(response => response.json())
+      .then(data => {
+        let examDiv = document.getElementById("exam-hour-" + examId);
+        if (!examDiv) return;
+
+        if (data.is_published) {
+          let checkMark = data.completed ? '<div class="completed-check">✓</div>' : "";
+          examDiv.innerHTML = `<a href="${data.exam_url}" class="hour-link">${data.exam_time}</a>`
+          let liveBadge = '<span class="live-badge">LIVE</span>';
+          let currentHour = new Date().getHours();
+          let examHour = parseInt(data.exam_time.split(':')[0], 10);
+
+          // Update the content dynamically
+          if (currentHour === examHour) {
+            examDiv.innerHTML = `
+              ${checkMark}
+              <a href="${data.exam_url}" class="hour-link position-relative">
+                <span class="live-badge">LIVE</span>
+                ${data.exam_time}
+              </a>
+            `;
+            scrollToLiveExam(); // 👈 Scroll when this exam becomes LIVE
+          } else {
+            examDiv.innerHTML = `
+              ${checkMark}
+              <a href="${data.exam_url}" class="hour-link position-relative">
+                ${data.exam_time}
+              </a>
+            `;
+          }
+          
+        } else {
+          // If the exam is not published, show the disabled state
+          examDiv.innerHTML = `
+            <span class="hour-link disabled" title="Isaha ntago iragera">
+              ${data.exam_time}
+            </span>
+          `;
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching exam status:", error);
+      });
+  }
+
+
   function getExamIds() {
       return Array.from(document.querySelectorAll(".exam-hour"))
                  .map(div => div.id.replace("exam-hour-", ""))
                  .filter(id => id);
   }
-  
+
   function runChecks() {
       if (isChecking) return;
-      
+
       const examIds = getExamIds();
       if (examIds.length === 0) {
           console.warn("No exams Scheduled at moment.");
           return;
       }
-      
+
       isChecking = true;
-      
+
       Promise.all(examIds.map(checkExamStatus))
           .then(() => console.log('All checks completed'))
           .catch(() => console.log('Some checks failed'))
           .finally(() => { isChecking = false; });
   }
-  
+
   function scheduleChecks() {
       const now = new Date();
       const currentMinutes = now.getMinutes();
       const currentSeconds = now.getSeconds();
       const currentMs = now.getMilliseconds();
-  
+
       const minutesToNextInterval = 30 - (currentMinutes % 30);
-      const msUntilNextInterval = 
+      const msUntilNextInterval =
           (minutesToNextInterval * 60 * 1000) -
           (currentSeconds * 1000) -
           currentMs;
-  
+
       setTimeout(() => {
           runChecks();
-          
+
           setInterval(() => {
               runChecks();
-              const nextRun = new Date(Date.now() + 10 * 60 * 1000);
-          }, 30 * 60 * 1000);
-          
+              const nextRun = new Date(Date.now() + 30 * 60 * 1000);
+          },  30 * 60 * 1000); // 30 minutes
+
       }, msUntilNextInterval);
   }
-  
+
+
   document.addEventListener("DOMContentLoaded", function() {
-      runChecks();
-      scheduleChecks();
+    runChecks();
+    scheduleChecks();
+  
+    // Scroll to LIVE after slight delay (in case already rendered)
+    setTimeout(scrollToLiveExam, 800);
   });
+  
 </script>

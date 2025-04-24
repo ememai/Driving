@@ -1,33 +1,163 @@
+{% extends "base.html" %}
+{% load static custom_filters%}
 
-{% extends "base.html" %} {% load static %} {% block title %}Exams{% endblock %}
+{% block title %}Exams{% endblock %}
 {% block content %}
-<!--  -->
-<!--  -->
-<div class="container mt-5">
-  <div class="text-center mb-4">
-   <h2> Ibizamini bifite ibibazo byo mu bwoko "{{ exam_type }}"
-  </h2>
+
+<style>
+  .exam-header {
+    margin-top: 4rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .exam-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: rgba(var(--text-rgb), 1);
+  }
+
+  .exam-header p.lead {
+    font-size: 1.1rem;
+    color: rgba(var(--text-rgb), 0.65);
+  }
+
+  .exam-card {
+    background-color: rgba(var(--card-bg-rgb), 0.8);
+    border: 1px solid rgba(var(--border-rgb), 0.2);
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+    color: rgba(var(--text-rgb), 1);
+  }
+
+  .exam-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .exam-icon {
+    font-size: 2.5rem;
+    text-align: center;
+  }
+
+  .exam-icon i {
+    background: linear-gradient(135deg, #00f2fe, #4facfe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: transform 0.4s ease;
+    display: inline-block;
+  }
+
+  .exam-card:hover .exam-icon i {
+    transform: scale(1.25) rotate(2deg);
+    animation: pulseIcon 1s ease-in-out infinite;
+  }
+
+  @keyframes pulseIcon {
+    0%, 100% { transform: scale(1.15); }
+    50% { transform: scale(1.25) rotate(2deg); }
+  }
+
+  .exam-card h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .exam-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .badge-easy { background-color: rgba(var(--success-rgb), 1); }
+  .badge-medium { background-color: rgba(var(--warning-rgb), 1); color: #000; }
+  .badge-hard { background-color: rgba(var(--danger-rgb), 1); }
+
+  .no-exams {
+    text-align: center;
+    margin-top: 3rem;
+    font-size: 1.2rem;
+    color: rgba(var(--warning-rgb), 1);
+  }
+
+  .exam-card.completed {
+    background-color: rgba(40, 167, 69, 0.05);
+  }
+  
+</style>
+
+<div class="container">
+  <div class="exam-header">
+    <h2>Ibizamini bifite ibibazo byo mu bwoko "{{ exam_type }}"</h2>
     <p class="lead">Umubare w'ibibonetse: {{ counted_exams }}</p>
   </div>
-  <div class="row">
-    {% if returned_exams %} {% for exam in returned_exams %}
-    <div class="col-md-4 col-sm-5 mb-3">
-      <div class="card shadow-lg border rounded-0 border-theme">
+
+  <div class="row g-4">
+    {% if returned_exams %}
+      {% for exam in returned_exams %}
+      <div class="col-md-6 col-lg-4">
         
-        <div class="card-body">
-          <h2 class="card-title text-center text-muted">Icya {{ forloop.counter }}</h2>
-          <p class="card-text"> <strong>Cyateguwe Taliki:</strong> {{ exam.created_at|date:"d.m.Y" }}</p>
-          <p class="card-text"> <strong>Kivugururwa :</strong> {{ exam.updated_at|date:"d.m.Y" }}</p>
-          <p class="card-text"><strong >Umubare w'ibibazo:</strong> {{ exam.total_questions }}</p>
-          <a href="{% url 'exam_detail' exam.id %}" class="btn btn-primary"
-            >Gikore</a
-          >
+        
+        <div class="exam-card {% if exam.id in completed_exam_ids %}border-success{% endif %}">
+          {% if exam.id in completed_exam_map %}
+            <div class="progress mt-0">
+              <div class="progress-bar bg-success" style="width: 100%;">
+                Waragikoze kuri: {{ completed_exam_map|dictkey:exam.id|date:"d - m - Y  H:i" }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="exam-icon">
+            {% if "amatara" in exam_type|lower %}
+              <i class="fa-solid fa-traffic-light"></i>
+            {% elif "ibimenyetso" in exam_type|lower or "ibyapa" in exam_type|lower %}
+              <i class="fa-solid fa-road"></i>
+            {% elif "imibare" in exam_type|lower %}
+              <i class="fa-solid fa-square-root-variable"></i>
+            {% elif "ibibazo birebire" in exam_type|lower or "birebire" in exam_type|lower %}
+              <i class="fa-solid fa-paragraph"></i>
+            {% elif "ibivanze" in exam_type|lower or "ibivanze" in exam_type|lower %}
+              <i class="fa-solid fa-layer-group"></i>
+            {% elif "amashusho" in exam_type|lower %}
+              <i class="fa-solid fa-image"></i>
+            {% else %}
+              <i class="fa-solid fa-question-circle"></i>
+            {% endif %}
+          </div>
+
+          <h2>Icya {{ forloop.counter }}</h2>
+          <p><strong>Cyateguwe:</strong> {{ exam.created_at|date:"d.m.Y" }}</p>
+          <p><strong>Kivugururwa:</strong> {{ exam.updated_at|date:"d.m.Y" }}</p>
+          <p><strong>Ibibazo:</strong> {{ exam.total_questions }}</p>
+
+          {% if exam.difficulty == 'easy' %}
+            <span class="exam-badge badge-easy">Byoroshye</span>
+          {% elif exam.difficulty == 'medium' %}
+            <span class="exam-badge badge-medium">Hagati</span>
+          {% elif exam.difficulty == 'hard' %}
+            <span class="exam-badge badge-hard">Bikomeye</span>
+          {% endif %}
+
+          <a href="{% url 'exam_detail' exam.id %}" class="btn btn-outline-primary">Gikore</a>
         </div>
       </div>
-    </div>
-    {% endfor %} {% else %}
-    <p class="text-center">No exams found for this category.</p>
+      {% endfor %}
+    {% else %}
+      <p class="no-exams">Nta bizamini bibonetse muri ubu bwoko.</p>
     {% endif %}
   </div>
 </div>
+
 {% endblock %}

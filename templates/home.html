@@ -5,99 +5,120 @@
 {% block content %}
 
 <style>
-  .container {
-    max-width: 100vw;
+  main {
+    padding-top: 100px;
+  }
+  #navbar,
+  #scheduled-hours-wrapper {
+    position: fixed;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1050;
+    transition: transform 0.4s ease, opacity 0.4s ease;
   }
 
+  
+
+  #navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1050;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+  }
+  
+  #scheduled-hours-wrapper {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    z-index: 1040; /* Lower than navbar */
+    background-color: rgba(var(--surface-rgb), 0.95);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+    transition: top 0.4s ease;
+  }
+  
+  /* On scroll */
+  .navbar.hidden + #scheduled-hours-wrapper {
+    top: 0;
+  }
+  .navbar.hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  
+  /* Override for small screens */
+  @media (max-width: 991.98px) {
+    #scheduled-hours-wrapper {
+      {% comment %} position: relative; {% endcomment %}
+      top: 56px;
+      z-index: auto;
+    }
+  }
+  
+
   .hero-container {
+    margin-top: 130px; /* space for both navbar and hours */
+    position: relative;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    min-height: 60vh;
+    min-height: 65vh;
     padding: 2rem;
-    position: relative;
     overflow: hidden;
     border-radius: 1rem;
+    background: var(--background-light);
   }
 
- 
-
-  [data-bs-theme="light"] .hero-container {
-    background: linear-gradient(180deg, #f5f7fa, #e3e6ec);
+  [data-bs-theme="dark"] .hero-container {
+    background: var(--background-dark);
   }
 
   .hero-container::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: url('{% static "img/hero-bg.jpg" %}') no-repeat center center;
     background-size: cover;
-    opacity: 0.2;
+    opacity: 0.15;
     z-index: -1;
   }
 
   .hero-content {
     flex: 1;
     padding: 2rem;
+    animation: fadeInUp 1s ease forwards;
   }
 
-  [data-bs-theme="dark"] .hero-content,
-  [data-bs-theme="dark"] .exam-card,
-  [data-bs-theme="dark"] .welcome-card {
-    color: white;
-  }
-
-  [data-bs-theme="light"] .hero-content,
-  [data-bs-theme="light"] .exam-card,
-  [data-bs-theme="light"] .welcome-card {
-    color: #111;
-  }
   .hero-content h1 {
     font-size: 3rem;
     font-weight: 700;
-    animation: fadeInDown 0.8s ease;
-  }
-  .hero-content p {
-    font-size: 1.25rem;
-    animation: fadeInUp 0.8s ease;
-  }
-  @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 
-  .exam-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  .hero-content p {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
   }
-  .exam-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+
+  .hero-content .btn {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 0.5rem;
   }
+
   .action-panel {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    animation: fadeInRight 1s ease forwards;
   }
 
   .welcome-card {
@@ -105,12 +126,14 @@
     backdrop-filter: blur(10px);
     border-radius: 1rem;
     padding: 2rem;
-    width: 90%;
+    width: 100%;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    transform: translateY(10px);
+    animation: floatIn 1.2s ease forwards;
   }
 
   [data-bs-theme="light"] .welcome-card {
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgba(255, 255, 255, 0.75);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
   }
 
@@ -118,108 +141,156 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    width: 100%;
   }
-
-  .btn-auth {
-    padding: 0.75rem;
-    font-size: 1.1rem;
-    border-radius: 8px;
-    transition: transform 0.2s ease, box-shadow 0.3s ease;
-  }
-
-  .btn-auth:hover {
-    transform: scale(1.03);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-  }
-
-  .auth-divider {
-    display: flex;
-    align-items: center;
-    font-weight: 500;
-    color: #999;
-  }
-
-  .auth-divider::before,
-  .auth-divider::after {
-    content: "";
-    flex: 1;
-    border-bottom: 1px solid #ccc;
-  }
-
-  .auth-divider::before { margin-right: 1rem; }
-  .auth-divider::after { margin-left: 1rem; }
 
   .exam-types {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     margin-top: 2rem;
   }
 
   .exam-card {
     background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 1rem;
     padding: 1.5rem;
     text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  [data-bs-theme="light"] .exam-card {
-    background-color: #fff;
-    border: 1px solid #dee2e6;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   }
 
   .exam-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transform: scale(1.03);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes floatIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   @media (max-width: 768px) {
     .hero-container {
       flex-direction: column;
       text-align: center;
+      padding: 1.5rem 1rem;
+    }
+    .exam-types {
+      grid-template-columns: 1fr;
     }
   }
+
+  .exam-card i {
+    display: inline-block;
+    transition: transform 0.4s ease, color 0.4s ease;
+    background: linear-gradient(135deg, #00f2fe, #4facfe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .exam-card:hover i {
+    transform: scale(1.25) rotate(3deg);
+    animation: pulseIcon 1s ease-in-out infinite;
+  }
+  
+  @keyframes pulseIcon {
+    0%, 100% { transform: scale(1.2); }
+    50% { transform: scale(1.25) rotate(2deg); }
+  }
+  
 </style>
 
-{% include "flash_message.html" %}
+
+
+<div id="scheduled-hours-wrapper">
+  {% include 'scheduled_hours.html' %}
+</div>
 
 <div class="hero-container my-4">
-  <div class="hero-content">
-    <h1 class="display-4 fw-bold">Kigali Driving School</h1>
-    <p class="lead">Iga amategeko y'umuhanda & witoze ikizamini cya provisior mu buryo bugezweho.</p>
-  </div>
+  {% comment %} <div class="hero-content">
+    <h1>Kigali Driving School</h1>
+    <p>Iga amategeko y'umuhanda & witoze ikizamini cya provisior mu buryo bugezweho.</p>
+    {% if not user.is_authenticated %}
+    <a href="/register/" class="btn btn-success"><i class="bi bi-person-plus-fill"></i> Tangira Ubu</a>
+    {% endif %}
+  </div> {% endcomment %}
   <div class="action-panel">
     <div class="welcome-card">
       {% if not user.is_authenticated %}
       <div class="auth-buttons">
-        <a class="btn btn-success btn-auth d-flex align-items-center justify-content-center gap-2" href="/register/">
+        <a class="btn btn-success d-flex align-items-center justify-content-center gap-2" href="/register/">
           <i class="bi bi-person-plus-fill"></i> Hanga Konti
         </a>
         <div class="auth-divider">Cyangwa Winjize</div>
-        <button class="btn btn-primary btn-auth d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#loginModal">
+        <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#loginModal">
           <i class="bi bi-box-arrow-in-right"></i> Konti isanzwe
         </button>
       </div>
       {% else %}
-      <h3 class="mb-3">Ubwoko bw'ibibazo wakora</h3>
+      <h3 class="mb-3 text-center">Ubwoko bw'ibibazo wakora</h3>
       <div class="exam-types">
         {% for exam_type in exam_types %}
-        <div class="exam-card">
-          <i class="bi bi-journal-code fs-3 mb-2"></i>
-          <h4>{{ exam_type.name }}</h4>
-          <a href="{% url 'exams' exam_type.name %}" class="btn btn-outline-primary mt-3">Fungura</a>
-        </div>
+          <div class="exam-card">
+            {% if "Ibyapa" in exam_type.name %}
+              <i class="fa fa-road fs-3 mb-2"></i>
+            {% elif "Imibare(Ibipimpo)" in exam_type.name  %}
+              <i class="fa fa-square-root-variable fs-3 mb-2"></i>
+            {% elif "Amatara" in exam_type.name  %}
+              <i class="fa-solid fa-traffic-light"></i>
+            {% elif "Amashusho" in exam_type.name %}
+              <i class="fa fa-image fs-3 mb-2"></i>
+            {% elif "Ibivanze" in exam_type.name %}
+              <i class="fa fa-layer-group fs-3 mb-2"></i>
+            {% elif "Ibibazo birebire" in exam_type.name %}
+              <i class="fa fa-paragraph fs-3 mb-2"></i>
+            {% else %}
+              <i class="fa fa-question-circle fs-3 mb-2"></i>
+            {% endif %}
+            <h4>{{ exam_type.name }}</h4>
+            <a href="{% url 'exams' exam_type.name %}" class="btn btn-outline-primary mt-3">Fungura</a>
+          </div>
         {% empty %}
-        <p>Ntibibazo bihari ubu.</p>
+          <p>Ntibibazo bihari ubu.</p>
         {% endfor %}
       </div>
+      
       {% endif %}
     </div>
   </div>
 </div>
+
+<script>
+  let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const navbar = document.getElementById('navbar');
+  const scheduledWrapper = document.getElementById('scheduled-hours-wrapper');
+
+  window.addEventListener('scroll', () => {
+    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+    if (currentScroll > lastScrollTop) {
+      // scrolling down
+      navbar.classList.add("hidden");
+      scheduledWrapper.style.top = "0"; // Move up the scheduled hours wrapper
+      scheduledWrapper.style.transition = "top 0.4s ease"; // Smooth transition
+    } else {
+      // scrolling up
+      navbar.classList.remove("hidden");
+      scheduledWrapper.style.top = "56px"; // Move back down the scheduled hours wrapper
+
+    }
+
+    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+  });
+</script>
 
 {% endblock %}
