@@ -1,5 +1,9 @@
 {% extends 'base.html' %} {% block title %}Exam Detail - {{ exam.title }}{% endblock %} {% block content %}
-
+<style>
+.mobile-exam-times {
+  display: none;
+}
+</style>
 <div class="card">
   <div class="card-header">
     <h3>Ubwoko bw'ibibazo : {{ exam.exam_type }}</h3>
@@ -16,7 +20,7 @@
     </p>
     <p><strong>Kivugururwa:</strong> {{ exam.updated_at|date:"M d, Y" }}</p>
     <!-- You can add more exam details or instructions here -->
-    
+
     <p>
         Ugiye gukora ikizamini, ibibazo {{exam.total_questions}} mu minota
         {{exam.duration}} Nukanda Tangira, iminota iratangira kubara.
@@ -24,7 +28,7 @@
     </p>
     </div>
     <strong>AMAHIRWE MASA!!!</strong><br>
-    <a href="{% url 'exam' exam.id 1 %}" class="btn btn-success">Tangira</a>
+    <a href="{% url 'exam' exam.id 1 %}" class="btn btn-success" target="_blank">Tangira</a>
   </div>
 </div>
 {% endblock %}

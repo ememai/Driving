@@ -48,7 +48,7 @@ def percentage(value, total):
         return (value / total) * 100
     except (ValueError, TypeError):
         return 0
-    
+
 @register.filter
 def current_date(value):
     return timezone.now().date()
@@ -77,7 +77,7 @@ def get_plan_description(plan_value):
 @register.filter
 def get_old_price(value):
     return {
-        'Daily': '1000',
+        #'Daily': '1000',
         'Weekly': '4000',
         'Monthly': '10000',
         }.get(value, '')
@@ -85,7 +85,7 @@ def get_old_price(value):
 @register.filter
 def get_plan_price(value):
     return {
-        'Daily': '500',
+        'Daily': '1000',
         'Weekly': '2000',
         'Monthly': '5000',
         }.get(value, '')
@@ -143,3 +143,32 @@ def all(iterable, attr):
 @register.filter(name='add_class')
 def add_class(field, css):
     return field.as_widget(attrs={"class": css})
+
+@register.filter
+def get_id(questions, index):
+    try:
+        return questions[index - 1].id
+    except:
+        return None
+
+@register.filter
+def get_question_id(q_num, questions):
+    """Takes a question number and list of questions, returns the question's ID."""
+    try:
+        return questions[int(q_num)-1].id
+    except (IndexError, ValueError, TypeError):
+        return None
+
+@register.filter
+def is_answered(q_num, args):
+    """Check if a question number has been answered."""
+    questions, answers = args
+    try:
+        question_id = questions[int(q_num) - 1].id
+        return str(question_id) in answers
+    except (IndexError, ValueError, TypeError):
+        return False
+@register.filter
+def isin(value, container):
+    """Check if value is in container."""
+    return str(value) in container

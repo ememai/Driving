@@ -1,5 +1,10 @@
 {% load static %}
 <style>
+  #scheduled-hours-wrapper {
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.3);
+    background-color: rgba(var(--surface-rgb), 0.95);
+  }
+  
 </style>
 <nav class="fixed-top">
   <div class="navbar navbar-expand-md border-bottom border-theme shadow-sm" id="navbar" role="navigation" style="background-color: rgb(0, 0, 83); ">
@@ -120,7 +125,7 @@
               <i id="themeIcon" class="bi bi-moon fs-5"></i>
               <span class="visually-hidden">Toggle dark mode</span>
             </button>
-          </div>
+          </div> 
 
           <!-- User Menu Dropdown with proper accessibility -->
           <div class="dropdown">
@@ -232,5 +237,28 @@
       </div>
     </div>
   </div>
-  {% include 'scheduled_hours.html' %}
+  <div id="scheduled-hours-wrapper" class="w-100" style="transition: transform 0.3s ease; transform: translateY(0);">
+    {% include 'scheduled_hours.html' %}
+  </div>
+  
+  
 </nav>
+<script>
+  let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scheduledWrapper = document.getElementById('scheduled-hours-wrapper');
+
+  window.addEventListener('scroll', () => {
+    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+    if (currentScroll > lastScrollTop) {
+      // scroll down
+      scheduledWrapper.style.transform = "translateY(-100%)";
+    } else {
+      // scroll up
+      scheduledWrapper.style.transform = "translateY(0)";
+    }
+
+    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+  });
+</script>
+

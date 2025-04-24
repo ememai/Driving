@@ -48,7 +48,7 @@ def check_unique_field(request):
 
 # ---------------------
 
-@login_required(login_url='login')
+@login_required(login_url='register')
 def home(request):
     # Get unique exam types that have exams
     exam_types = ExamType.objects.filter(exam__isnull=False, exam__for_scheduling=False).distinct().order_by('order')
@@ -199,6 +199,11 @@ def exam(request, exam_id, question_number):
             return redirect('exam', exam_id=exam_id, question_number=question_number + 1)
         elif 'previous' in request.POST and question_number > 1:
             return redirect('exam', exam_id=exam_id, question_number=question_number - 1)
+        elif 'go_to' in request.POST:
+            go_to_question = int(request.POST['go_to'])
+            if 1 <= go_to_question <= total_questions:
+                return redirect('exam', exam_id=exam_id, question_number=go_to_question)
+
         elif 'submit' in request.POST:
             score = 0
             for question in questions:
@@ -223,6 +228,7 @@ def exam(request, exam_id, question_number):
             request.session.pop('answers', None)
             messages.success(request, f"Exam submitted! Your score: {score}/{total_questions}.")
             return redirect('exam_results', user_exam_id=user_exam.id)
+    q_nums = range(1, total_questions + 1)
 
     choices = []
     for i in range(1, 5):
@@ -237,11 +243,13 @@ def exam(request, exam_id, question_number):
         'exam': exam,
         'question': current_question,
         'question_number': question_number,
+        'q_nums': q_nums,
         'total_questions': total_questions,
         'choices': choices,
         'exam_end_time': exam_end_time,
         'exam_duration': exam.duration * 60,
         'user_exam': user_exam,
+        'questions': questions,
             }
     return render(request, 'exam.html', context)
 

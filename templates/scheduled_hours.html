@@ -1,276 +1,132 @@
-<!-- <style>
-  .hours {
-    background-color: rgb(20 20 40);
-    font-weight: 700;
-    font-size: 1.5rem;
-
-  }
-
-  /* Scrollable container styling */
-  .scrollable-times {
-    display: flex;
-    flex-wrap: nowrap;
-    /* Force items to stay on one line */
-    overflow-x: auto;
-    gap: 1rem;
-    /* Space between hour items */
-    padding: 0.1rem 0.5rem;
-
-
-
-    /* Optional horizontal padding */
-    -ms-overflow-style: none;
-    /* IE/Edge hide scrollbar */
-    scrollbar-width: none;
-    /* Firefox hide scrollbar */
-  }
-
-  .scrollable-times::-webkit-scrollbar {
-    display: none;
-    /* Chrome/Safari hide scrollbar */
-  }
-
-  /* Each exam-hour is a flex item that doesn't shrink */
-  .exam-hour {
-    flex: 0 0 auto;
-    
-  }
-
-  /* Basic styling for hour links */
-  .hour-link {
-    color: #a6ff00;
-  }
-  
-  .hour-link.disabled {
-    color:rgb(114, 174, 1);
-    cursor: not-allowed;
-  }
-
-  .note {
-
-    {% comment %} background-color:rgba(52, 58, 64, 1);
-    color: rgba(255, 255, 255, 1); {% endcomment %}
-    background-color: rgba(var(--surface-rgb), 1);
-    color: rgba(var(--text-rgb), 1);
-
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-top: none;
-  }
-</style>
-
-<div class="mobile-exam-times hours">
-  <div class="container-fluid">
-    <div class="note text-center mb-0 pt-lg-1">
-      <h6 class="text-center mb-0">Kanda ku isaha ukore ikizamini</h6>
-    </div>
-    <div class="scrollable-times gap-3" id="js-update">
-      {% for exam in exams_scheduled|dictsort:"scheduled_datetime" %}
-      <div class="exam-hour" id="exam-hour-{{ exam.id }}">
-        {% if exam.is_published %}
-        <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link">
-          {{ exam.scheduled_datetime|time:"H:00" }}
-        </a>
-        {% else %}
-        <span class="hour-link disabled" title="Isaha ntago iragera">
-          {{ exam.scheduled_datetime|time:"H:00" }}
-        </span>
-        {% endif %}
-      </div>
-      {% empty %}
-      <div class="exam-hour text-center">
-        <small class="text-warning">Nta kizamini kiboneka</small>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</div>
-
-<script>
-  // Global flag to track active checks
-  let isChecking = false;
-  
-  function checkExamStatus(examId) {
-      if (!examId) {
-          console.error("Exam ID is undefined!");
-          return Promise.resolve(); // Return resolved promise to keep the chain
-      }
-  
-      return fetch(`/check-exam-status/${examId}/`)
-          .then(response => response.json())
-          .then(data => {
-              let examDiv = document.getElementById("exam-hour-" + examId);
-              if (examDiv && data.is_published) {
-                  examDiv.innerHTML = `<a href="${data.exam_url}" class="hour-link">${data.exam_time}</a>`;
-              }
-              return data; // Pass data through for potential logging
-          })
-          .catch(error => {
-              console.error("Error fetching exam status:", error);
-              throw error; // Re-throw to allow error handling in runChecks
-          });
-  }
-  
-  function getExamIds() {
-      return Array.from(document.querySelectorAll(".exam-hour"))
-                 .map(div => div.id.replace("exam-hour-", ""))
-                 .filter(id => id);
-  }
-  
-  
-  function runChecks() {
-      if (isChecking) {
-          
-          return;
-      }
-      
-      const examIds = getExamIds();
-      if (examIds.length === 0) {
-          console.warn("No exams Scheduled at moment.");
-          return;
-      }
-      
-     
-      isChecking = true;
-      
-      // Use Promise.all to wait for all checks to complete
-      Promise.all(examIds.map(checkExamStatus))
-          .then(() => {
-              console.log('All checks completed');
-          })
-          .catch(() => {
-              console.log('Some checks failed');
-          })
-          .finally(() => {
-              isChecking = false; // Reset flag
-          });
-  }
-  
-  function scheduleChecks() {
-      const now = new Date();
-      const currentMinutes = now.getMinutes();
-      const currentSeconds = now.getSeconds();
-      const currentMs = now.getMilliseconds();
-  
-      // Calculate ms until next 15-minute interval
-      const minutesToNextInterval = 30 - (currentMinutes % 30);
-      const msUntilNextInterval = 
-          (minutesToNextInterval * 60 * 1000) -  // minutes to ms
-          (currentSeconds * 1000) -              // seconds to ms
-          currentMs;                            // remaining ms
-  
-      // Calculate exact time of next run
-      const nextRunDate = new Date(now.getTime() + msUntilNextInterval);
-      //logNextRunTime(nextRunDate);
-  
-      // Initial run at next interval
-      setTimeout(() => {
-          runChecks();
-          
-          // Set up 15-minute interval
-          setInterval(() => {
-              runChecks();
-              const nextRun = new Date(Date.now() + 10 * 60 * 1000);
-              logNextRunTime(nextRun);
-          }, 30 * 60 * 1000);
-          
-      }, msUntilNextInterval);
-  }
-  
-  // Start the process
-  document.addEventListener("DOMContentLoaded", function() {
-      //console.log('Initial check at:', new Date().toLocaleTimeString());
-      runChecks();  // Immediate first run
-      scheduleChecks();  // Scheduled subsequent runs
-  });
-</script> -->
  
 <style>
-  .hours {
-    background-color: rgb(20 20 40);
-    font-weight: 700;
-    font-size: 1.5rem;
+  .mobile-exam-times {
+    padding: 0rem 0;
   }
 
-  /* Scrollable container styling */
+  .note {
+    background-color: rgba(var(--surface-rgb), 0.8);
+    color: rgba(var(--text-rgb), 1);
+    border-radius: 0.5rem 0.5rem 0 0;
+    padding: 0rem 1rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
   .scrollable-times {
     display: flex;
-    flex-wrap: nowrap;
     overflow-x: auto;
     gap: 1rem;
-    padding: 0.1rem 0.5rem;
-    -ms-overflow-style: none;
+    padding: 0.75rem 1rem;
+    background-color: rgba(var(--surface-rgb), 0.5);
+    border-radius: 0 0 0.5rem 0.5rem;
     scrollbar-width: none;
+    animation: fadeIn 0.8s ease-in-out;
   }
 
   .scrollable-times::-webkit-scrollbar {
     display: none;
   }
 
-  /* Each exam-hour is a flex item that doesn't shrink */
   .exam-hour {
     flex: 0 0 auto;
-    /* position: relative; For positioning the check mark */
+    position: relative;
+    font-weight: 500;
+    animation: slideUp 0.5s ease;
   }
 
-  /* Basic styling for hour links */
-  {% comment %} .hour-link {
-    color:rgb(255, 255, 255);
-  }  {% endcomment %}
+  .hour-link {
+    padding: 0.5rem 1rem;
+    background-color: rgba(0, 200, 80, 0.2);
+    border: 1px solid rgba(0, 200, 80, 0.6);
+    border-radius: 0.5rem;
+    color: rgb(0, 222, 78);
+    text-decoration: none;
+    position: relative;
+    transition: background-color 0.3s ease;
+  }
+
+  .hour-link:hover {
+    background-color: rgba(0, 222, 78, 0.4);
+  }
+
   .hour-link.disabled {
-    color:rgb(151, 152, 156);
+    background-color: rgba(180, 180, 180, 0.2);
+    color: #888;
     cursor: not-allowed;
+    border: 1px dashed #aaa;
   }
 
-  .note {
-    background-color: rgba(var(--surface-rgb), 1);
-    color: rgba(var(--text-rgb), 1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-top: none;
-  }
-
-  /* Style for completed exam check mark */
   .completed-check {
     position: absolute;
-     top: -3px;
+    top: -8px;
     right: -8px;
     background-color: #28a745;
     color: white;
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 10px;
     border: 1px solid white;
     z-index: 1;
   }
+
+  .live-badge {
+    position: absolute;
+    top: -10px;
+    left: -5px;
+    background: red;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 4px;
+    padding: 1px 4px;
+    animation: blink 1.2s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 </style>
 
-<div class="mobile-exam-times hours">
+<div class="mobile-exam-times">
   <div class="container-fluid">
-    <div class="note text-center mb-0 pt-lg-1">
-      <h6 class="text-center p-0 m-0">Kanda ku isaha ukore ikizamini</h6>
-    </div>
-    <div class="scrollable-times gap-3" id="js-update">
+    <div class="note">Kanda ku isaha ukore ikizamini</div>
+    <div class="scrollable-times" id="js-update">
       {% for exam in exams_scheduled|dictsort:"scheduled_datetime" %}
       <div class="exam-hour" id="exam-hour-{{ exam.id }}">
         {% if exam.exam.id in completed_exam_ids %}
-        <div class="completed-check">✓</div>
+          <div class="completed-check">✓</div>
         {% endif %}
         {% if exam.is_published %}
-        <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link text-primary">
-          {{ exam.scheduled_datetime|time:"H:00" }}
-        </a>
+          <a href="{% url 'exam_detail' exam.exam.id %}" class="hour-link position-relative">
+            <span class="live-badge">LIVE</span>
+            {{ exam.scheduled_datetime|time:"H:00" }}
+          </a>
         {% else %}
-        <span class="hour-link text-secondary disabled" title="Isaha ntago iragera">
-          {{ exam.scheduled_datetime|time:"H:00" }}
-        </span>
+          <span class="hour-link disabled" title="Isaha ntago iragera">
+            {{ exam.scheduled_datetime|time:"H:00" }}
+          </span>
         {% endif %}
       </div>
       {% empty %}
-      <div class="exam-hour text-center">
-        <small class="text-warning">Nta kizamini kiboneka</small>
+      <div class="exam-hour text-center text-warning small">
+        Nta kizamini kiboneka
       </div>
       {% endfor %}
     </div>
