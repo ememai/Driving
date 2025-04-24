@@ -1,26 +1,16 @@
 {% extends "base.html" %}
-{% load custom_filters %}
-{% load static %}
+{% load custom_filters static %}
+
 {% block title %}Ifatabuguzi{% endblock %}
+
 {% block extra_css %}
 <style>
-  .underline {
-    text-decoration: underline;
-  }
-  .cursor-pointer {
-    cursor: pointer;
-  }
-
-  hr {
-    border: 2px solid;
-  }
-
-  .hours{
-    display:none;
-  }
+  .underline { text-decoration: underline; }
+  .cursor-pointer { cursor: pointer; }
+  hr { border: 2px solid; }
+  .hours { display: none; }
 
   .card {
-   
     height: 200px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -31,16 +21,13 @@
     padding-top: 0;
   }
 
-  .card:hover {
-    transform: scale(1.05);
-  }
+  .card:hover { transform: scale(1.05); }
 
   @media (min-width: 589px) {
     .card {
       width: 500px;
       height: auto;
       padding-bottom: 20px;
-      margin: 0 auto;
     }
   }
 
@@ -49,138 +36,116 @@
     border-bottom: 1px solid #dee2e6;
   }
 
-  input[type="radio"] {
-    display: none; /* Hide the default radio button */
+  input[type="radio"] { display: none; }
+
+  #plan-carousel {
+    scroll-behavior: smooth;
   }
 
   #plan-carousel::-webkit-scrollbar {
     display: none;
   }
-  
-  #plan-carousel {
-    scroll-behavior: smooth;
-  }
-  
-  .plan-card {    
+
+  .plan-card {
     cursor: pointer;
     user-select: none;
     width: 100%;
-    height: auto;
-  }
-  .plan-card {
     transition: transform 0.5s ease, box-shadow 0.5s ease;
     transform: scale(0.9);
     opacity: 0.6;
   }
-  
+
   .plan-card.active {
     transform: scale(1.15);
     opacity: 1;
     z-index: 2;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   }
 
   .plan-description {
-  line-height: 1.7;
-  font-size: 1rem;
-  color: rgba(var(--text-rgb), 1);
-  }
-  .plan-description li {
-  margin-bottom: 0.4rem;
+    line-height: 1.7;
+    font-size: 1rem;
+    color: rgba(var(--text-rgb), 1);
   }
 
-  
+  .plan-description li {
+    margin-bottom: 0.4rem;
+  }
+
   .method {
-    background-image: url('{% static 'img/mtn.jpg' %}'); 
-    background-color: rgba(248, 247, 187, 0.9); 
+    background-image: url('{% static 'img/mtn.jpg' %}');
+    background-color: rgba(248, 247, 187, 0.9);
     background-blend-mode: overlay;
-    {% comment %} background-size: cover; {% endcomment %}
     background-position: center;
     color: #000;
   }
 
-  .method h2{
-    font-style: italic;
-  }
-
-  .method h4{
-    font-family: 'Times New Roman', Times, serif;
-  }
+  .method h2 { font-style: italic; }
+  .method h4 { font-family: 'Times New Roman', Times, serif; }
 </style>
 {% endblock %}
+
 {% block content %}
 <div class="container py-4">
-  {% comment %} <h1 class="text-center mb-4">Ifatabuguzi</h1> {% endcomment %}
-
   <div class="text-center">
     {% if user.is_subscribed %}
-    {% if  user.subscription.super_subscription %}
-    <strong class=" text-success">
-      Ufite Super Subscription
-      <i class="bi bi-person-check"></i>
-    </strong>
-    {% else %}
-    <p class="fw-bold text-success">
-      Ifatabuguzi ryawe riracyariho kugeza ku itariki ya
-      <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong>.
-    </p>
-    {% endif %}
+      {% if user.subscription.super_subscription %}
+        <strong class="text-success">
+          Ufite Super Subscription <i class="bi bi-person-check"></i>
+        </strong>
+      {% else %}
+        <p class="fw-bold text-success">
+          Ifatabuguzi ryawe riracyariho kugeza ku itariki ya
+          <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong>.
+        </p>
+      {% endif %}
     {% elif user.has_ended_subscription %}
-    <p class="fw-bold text-danger">
-      Ifatabuguzi ryawe ryararangiye kuri itariki ya
-      <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong>
-    </p>
+      <p class="fw-bold text-danger">
+        Ifatabuguzi ryawe ryararangiye kuri itariki ya
+        <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong>
+      </p>
     {% else %}
-    <p class="fw-bold text-warning">Ntafatabuguzi ufite.</p>
+      <p class="fw-bold text-warning">Ntafatabuguzi ufite.</p>
     {% endif %}
   </div>
 
   <div class="alert text-center fs-5" role="alert">
-    <p class="fw-bold ">
-      Hitamo Ifatabuguzi rikunogeye!
-    </p>
+    <p class="fw-bold">Hitamo Ifatabuguzi rikunogeye!</p>
     <form method="post">
       {% csrf_token %}
-      <div class="position-relative">
-        
-        <div id="plan-carousel" class="d-flex flex-nowrap overflow-auto gap-4 px-5 py-3">
-          {% for plan_value, plan_label in plans %}
-            <div class="card flex-shrink-0 text-center plan-card"
-                 data-plan-price="{{ plan_value|get_plan_price }}"
-                 data-plan-id="plan_{{ plan_value }}"
-                 data-plan-value="{{ plan_value }}"
-                  data-plan-label="{{ plan_label }}">
-              <div class="card-header d-flex align-items-center justify-content-center text-primary fw-bold gap-2 py-0">
-                <input
-                  class="form-check-input"
-                  type="radio"
-                  name="plan"
-                  id="plan_{{ plan_value }}"
-                  value="{{ plan_value|get_plan_price }}"
-                  {% if plan_value == user.subscription.plan %} checked {% endif %}>
-                <div>
-                  <label class="form-check-label d-block mb-0 fs-6" for="plan_{{ plan_value }}" style="text-decoration: line-through; color:rgb(63, 96, 242)">
-                  {{ plan_value|get_old_price }} RWF
+      <div id="plan-carousel" class="d-flex flex-nowrap overflow-auto gap-4 px-5 py-3">
+        {% for plan_value, plan_label in plans %}
+          <div class="card flex-shrink-0 text-center plan-card"
+               data-plan-price="{{ plan_value|get_plan_price }}"
+               data-plan-id="plan_{{ plan_value }}"
+               data-plan-value="{{ plan_value }}"
+               data-plan-label="{{ plan_label }}">
+            <div class="card-header d-flex align-items-center justify-content-center text-primary fw-bold gap-2 py-0">
+              <input class="form-check-input" type="radio" name="plan"
+                     id="plan_{{ plan_value }}"
+                     value="{{ plan_value|get_plan_price }}"
+                     {% if plan_value == user.subscription.plan %}checked{% endif %}>
+              <div>
+                <label class="form-check-label d-block mb-0 fs-6 text-decoration-line-through text-primary"
+                       for="plan_{{ plan_value }}">
+                  {{ plan_value|get_old_price }}
                 </label>
-
-                <label class="form-check-label fs-2" for="plan_{{ plan_value }}">{{ plan_value|get_plan_price }} RWF
+                <label class="form-check-label fs-2" for="plan_{{ plan_value }}">
+                  {{ plan_value|get_plan_price }} RWF
                 </label>
               </div>
-              </div>
-              <ul class="plan-description list-unstyled text-start px-1">
-                {% for icon, line in plan_value|get_plan_description %}
-                  <li><i class="bi bi-check-circle-fill text-success me-0"></i> {{ line }} {{ icon }}</li>
-                {% endfor %}
-              </ul>
-              
             </div>
-          {% endfor %}
-        </div>
+            <ul class="plan-description list-unstyled text-start px-1">
+              {% for icon, line in plan_value|get_plan_description %}
+                <li><i class="bi bi-check-circle-fill text-success me-0"></i> {{ line }} {{ icon }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
       </div>
-      
-      <div class="method text-center fs-5 mt-2 pb-2">
-        <h2 class="fw-bold " >Uburyo bwo kwishyura:</h2>
 
+      <div class="method text-center fs-5 mt-2 pb-2">
+        <h2 class="fw-bold">Uburyo bwo kwishyura:</h2>
         <h4 class="underline">Koresha code:</h4>
         <strong>*182*8*1*187756*<strong id="js-plan">0</strong>#</strong><br>
         <button id="callButton" class="btn btn-outline-primary">
@@ -192,212 +157,126 @@
         <button type="button" class="btn btn-primary d-block mx-auto" data-bs-toggle="modal" data-bs-target="#whatsappModal">
           Nasoje kwishyura
         </button>
-        
       </div>
     </form>
   </div>
 
-  <!-- WhatsApp Confirmation Modal -->
-<div class="modal fade" id="whatsappModal" tabindex="-1" aria-labelledby="whatsappModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <form>
-        <div class="modal-header">
-          <h5 class="modal-title" id="whatsappModalLabel">Telefone n'amazina by'uwishyuye</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Funga"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <input type="text" id="phone" class="form-control" placeholder="Nimero wishyuriyeho" required>
+  <!-- WhatsApp Modal -->
+  <div class="modal fade" id="whatsappModal" tabindex="-1" aria-labelledby="whatsappModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form>
+          <div class="modal-header">
+            <h5 class="modal-title" id="whatsappModalLabel">Telefone n'amazina by'uwishyuye</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Funga"></button>
           </div>
-          <div class="mb-3">
+          <div class="modal-body">
+            <input type="text" id="phone" class="form-control mb-3" placeholder="Nimero yishyuye" required>
             <input type="text" id="name" class="form-control" placeholder="Amazina" required>
           </div>
-        </div>
-        <div class="modal-footer">
-          {% comment %} <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Funga</button> {% endcomment %}
-          <button type="button" class="btn btn-success" onclick="sendToWhatsApp()">Emeza ubwishyu</button>
-        </div>
-      </form>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" onclick="sendToWhatsApp()">Emeza ubwishyu</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</div>
-
-  
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const plans = document.querySelectorAll('input[name="plan"]');
     const planLabel = document.getElementById('js-plan');
-    const whatsappForm = document.getElementById('whatsapp-form');
-    const finishedButton = document.getElementById('js-finished');
     const callButton = document.getElementById('callButton');
-    
+
     callButton.addEventListener('click', () => {
-     const alertMessage = "Banza uhitempo ifatabuguzi wifuza kwishyura.";
-     let selectedPlan = document.querySelector('input[name="plan"]:checked');
-     if (!selectedPlan) {
-       alert(alertMessage);
-       return;
-     }
-      let planPrice = selectedPlan ? selectedPlan.value : 0;
-
-      // Construct the USSD code
-      const ussdCode = `*182*8*1*187756*${planPrice}#`;
-  
-      // Redirect to the tel: link
-      window.location.href = 'tel:' + encodeURIComponent(ussdCode);
-
+      const selectedPlan = document.querySelector('input[name="plan"]:checked');
+      if (!selectedPlan) {
+        alert("Banza uhitemo ifatabuguzi wifuza kwishyura.");
+        return;
+      }
+      const planPrice = selectedPlan.value;
+      window.location.href = 'tel:' + encodeURIComponent(`*182*8*1*187756*${planPrice}#`);
     });
 
-    finishedButton.addEventListener('click', () => {
-      whatsappForm.classList.toggle('visually-hidden');
-    });
-
-
-    plans.forEach((plan) => {
+    document.querySelectorAll('input[name="plan"]').forEach(plan => {
       plan.addEventListener('change', () => {
         planLabel.textContent = plan.value;
       });
     });
   });
 
-  
   function sendToWhatsApp() {
-    let phoneNumber = "250785287885";
-    let userPhone = document.getElementById("phone").value;
-    let userName = document.getElementById("name").value;
-    let selectedPlan = document.querySelector('input[name="plan"]:checked');
-
-    let alertMessage = "Hitamo ifatabuguzi wishyuye mbere yo kwemeza ubwishyu.";
-    selectPlan(alertMessage);
-
-    if (!userPhone || !userName) {
-        alert("Nimero ya telefone n'amazina by'uwishyuye birakenewe!!!.");
-        return;
-    }
-
-    let planPrice = selectedPlan ? selectedPlan.value : 0;
-    let planCard = selectedPlan ? selectedPlan.closest('.plan-card') : null;
+    const phone = document.getElementById("phone").value;
+    const name = document.getElementById("name").value;
+    const selectedPlan = document.querySelector('input[name="plan"]:checked');
     
-    // Get both the value and human-readable label
-    let planValue = planCard ? planCard.dataset.planValue : "No plan selected";
-    let planLabel = planCard ? planCard.dataset.planLabel : "No plan selected";
-
-    // Construct the message
-    let message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n` +
-                  `📌 Izina: ${userName}\n` +
-                  `📞 Numero: ${userPhone}\n` +
-                  `💳 Ifatabuguzi: ${planLabel} - ${planPrice} RWF\n\n` +
-                  `🔹Murakoze!`;
-
-    let encodedMessage = encodeURIComponent(message);
-    let whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-
-    window.location.href = whatsappURL;
-  }
-
-  function selectPlan(message) {
-    let selectedPlan = document.querySelector('input[name="plan"]:checked');
-    if (!selectedPlan) {
-      alert(message);
+    if (!selectedPlan || !phone || !name) {
+      alert("Shyiramo amazina, nimero, ndetse uhitemo ifatabuguzi.");
       return;
     }
+
+    const planPrice = selectedPlan.value;
+    const planLabel = selectedPlan.closest('.plan-card').dataset.planLabel;
+    const message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n📌 Izina: ${name}\n📞 Numero: ${phone}\n💳 Ifatabuguzi: ${planLabel} - ${planPrice} RWF\n\n🔹Murakoze!`;
+
+    window.location.href = `https://wa.me/250785287885?text=${encodeURIComponent(message)}`;
   }
 </script>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", () => {
     const cards = document.querySelectorAll('.plan-card');
-    const planLabel = document.getElementById('js-plan');
-    let current = 0;
-    let isPaused = false;
-    let scrollTimeout; // Variable to store the timeout reference
+    {% comment %} const planLabel = document.getElementById('js-plan'); {% endcomment %}
+    let current = 0, scrollTimeout;
 
     function scrollToCard(carousel, targetScrollLeft, duration = 1000) {
-        const start = carousel.scrollLeft;
-        const change = targetScrollLeft - start;
-        const startTime = performance.now();
-    
-        function easeOutQuad(t) {
-            return t * (2 - t);
-        }
-    
-        function animateScroll(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = easeOutQuad(progress);
-    
-            carousel.scrollLeft = start + change * eased;
-    
-            if (progress < 1) {
-                requestAnimationFrame(animateScroll);
-            }
-        }
-    
-        requestAnimationFrame(animateScroll);
+      const start = carousel.scrollLeft, change = targetScrollLeft - start, startTime = performance.now();
+      function easeOutQuad(t) { return t * (2 - t); }
+      function animateScroll(currentTime) {
+        const progress = Math.min((currentTime - startTime) / duration, 1);
+        carousel.scrollLeft = start + change * easeOutQuad(progress);
+        if (progress < 1) requestAnimationFrame(animateScroll);
+      }
+      requestAnimationFrame(animateScroll);
     }
-    
+
     function activateCard(index) {
-        cards.forEach((card, i) => {
-            card.classList.toggle('active', i === index);
-        });
-    
-        const carousel = document.getElementById('plan-carousel');
-        const targetCard = cards[index];
-        const cardOffset = targetCard.offsetLeft - (carousel.offsetWidth / 2) + (targetCard.offsetWidth / 2);
-    
-        scrollToCard(carousel, cardOffset);
-    
-        const input = targetCard.querySelector('input[type="radio"]');
-        if (input) {
-            input.checked = true;
-            planLabel.textContent = input.value;
-        }
+      cards.forEach((card, i) => card.classList.toggle('active', i === index));
+      const carousel = document.getElementById('plan-carousel');
+      const card = cards[index];
+      const offset = card.offsetLeft - (carousel.offsetWidth / 2) + (card.offsetWidth / 2);
+      scrollToCard(carousel, offset);
+      const input = card.querySelector('input[type="radio"]');
+      if (input) {
+        input.checked = true;
+        {% comment %} planLabel.textContent = input.value; {% endcomment %}
+      }
     }
-    
+
     function runCarouselOnce() {
-        // Clear any existing timeout to prevent multiple timeouts running
-        if (scrollTimeout) {
-            clearTimeout(scrollTimeout);
-        }
-        
-        if (current < cards.length) {
-            activateCard(current);
-            // Store the timeout reference
-            scrollTimeout = setTimeout(() => {
-                current++;
-                runCarouselOnce();
-            }, 3000);
-        } else {
-            const middleIndex = Math.floor((cards.length - 1) / 2);
-            activateCard(middleIndex);
-        }
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      if (current < cards.length) {
+        activateCard(current);
+        scrollTimeout = setTimeout(() => {
+          current++;
+          runCarouselOnce();
+        }, 3000);
+      } else {
+        activateCard(Math.floor((cards.length - 1) / 2));
+      }
     }
-  
-    // Initial run
-    runCarouselOnce();
-  
-    // Allow manual selection
+
     cards.forEach((card, index) => {
-        card.addEventListener('click', () => {
-            // Clear the timeout when user clicks
-            if (scrollTimeout) {
-                clearTimeout(scrollTimeout);
-            }
-            current = index;
-            activateCard(index);
-            // Stop further automatic scrolling
-            current = cards.length; // This will prevent runCarouselOnce from continuing
-        });
-  
-        card.addEventListener('mouseenter', () => isPaused = true);
-        card.addEventListener('mouseleave', () => isPaused = false);
+      card.addEventListener('click', () => {
+        if (scrollTimeout) clearTimeout(scrollTimeout);
+        current = index;
+        activateCard(index);
+      });
     });
+
+    runCarouselOnce();
   });
 </script>
-  
 {% endblock %}
