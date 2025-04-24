@@ -20,6 +20,8 @@ urlpatterns = [
     path('undo-last-exam/', undo_last_exam_action, name='undo_last_exam_action'),
     path('schedule-exams/', schedule_recent_exams, name='auto_schedule_exams'),
     path('exam/<int:exam_id>/<int:question_number>/', subscription_required(views.exam), name='exam'),
+    path('exam/<int:exam_id>/ajax/<int:question_number>/', views.ajax_question, name='ajax_question'),
+
     path('exam-results/<int:user_exam_id>/', subscription_required(views.exam_results), name='exam_results'),
 
     path('exam/<int:exam_id>/retake/', views.retake_exam, name='retake_exam'),

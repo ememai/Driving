@@ -1,21 +1,112 @@
-{% extends "base.html" %}
-{% block title %}Contact{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Twandikire{% endblock %}
+
 {% block content %}
-    <h2>Twandikire</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="name" class="form-label">Amazina</label>
-            <input type="text" id="name" name="name" class="form-control" minlength="3" required>
+<div class="text-center mb-4">
+    <h1 class="display-5 fw-bold">Twandikire</h1>
+    <p class="lead">Turakwishimiye! Twohereze ubutumwa bwawe.</p>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-success text-center">
+            <lottie-player src="https://assets9.lottiefiles.com/packages/lf20_jbrw3hcz.json"
+                           background="transparent"
+                           speed="1"
+                           style="width: 100px; height: 100px; margin: auto;"
+                           autoplay>
+            </lottie-player>
+            <strong>{{ message }}</strong>
         </div>
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" id="email" name="email" class="form-control">
+    {% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <!-- Contact Form -->
+    <div class="col-md-6">
+        <div class="card shadow centered-form">
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="name" class="form-label"><i class="fa fa-user"></i> Izina ryawe</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                
+                    <div class="mb-3">
+                        <label for="contact_method" class="form-label"><i class="fa fa-phone"></i> Hitamo uburyo bwo kugusubizaho</label>
+                        <select class="form-select" id="contact_method" name="contact_method" required>
+                            <option value="">-- Hitamo --</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="email">Imeyili</option>
+                        </select>
+                    </div>
+                
+                    <div class="mb-3 d-none" id="email_field">
+                        <label for="email" class="form-label"><i class="fa fa-envelope"></i> Imeyili</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com">
+                    </div>
+                
+                    <div class="mb-3 d-none" id="whatsapp_field">
+                        <label for="whatsapp" class="form-label"><i class="fa-brands fa-whatsapp"></i> Nimero ya WhatsApp</label>
+                        <input type="text" class="form-control" id="whatsapp" name="whatsapp" placeholder="+2507xxxxxxx">
+                    </div>
+                
+                    <div class="mb-3">
+                        <label for="message" class="form-label"><i class="fa fa-comment"></i> Ubutumwa</label>
+                        <textarea class="form-control border border-theme" id="message" name="message" rows="5" required></textarea>
+                    </div>
+                
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fa fa-paper-plane"></i> Ohereza Ubutumwa
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="message" class="form-label">Message</label>
-            <textarea id="message" name="message" class="form-control" rows="4" required></textarea>
+    </div>
+
+    <!-- Google Map -->
+    <div class="col-md-6">
+        <div class="card shadow h-100">
+            <div class="card-body p-0">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15955.170070070991!2d30.0609552!3d-1.9440726!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca6f0197e94a9%3A0xd0c2f6b89ffb7b0f!2sKigali!5e0!3m2!1sen!2srw!4v1681412345678"
+                    width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy">
+                </iframe>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">Ohereza</button>
-    </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Lottie for animation -->
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const methodSelect = document.getElementById('contact_method');
+        const emailField = document.getElementById('email_field');
+        const whatsappField = document.getElementById('whatsapp_field');
+
+        methodSelect.addEventListener('change', function () {
+            const selected = this.value;
+
+            if (selected === "email") {
+                emailField.classList.remove('d-none');
+                whatsappField.classList.add('d-none');
+            } else if (selected === "whatsapp") {
+                whatsappField.classList.remove('d-none');
+                emailField.classList.add('d-none');
+            } else {
+                emailField.classList.add('d-none');
+                whatsappField.classList.add('d-none');
+            }
+        });
+    });
+</script>
+
 {% endblock %}

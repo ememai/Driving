@@ -6,8 +6,8 @@
 {% block extra_css %}
 <style>
   .profile-header {
-    {% comment %} display: flex;
-    align-items: center; {% endcomment %}
+    display: flex;
+    align-items: center;
     gap: 1rem;
     padding: 2rem;
     border-radius: 1rem;
@@ -57,53 +57,34 @@
 {% block content %}
 <div class="container my-5">
 
-  {% comment %} <div class="profile-header">
+  <div class="profile-header">
     <div class="profile-avatar">
       <i class="bi bi-person-circle"></i>
     </div>
     <div>
       <h2 class="mb-0">{{ user.name }}</h2>
       <p class="mb-1 small text-theme">{{ user.email }} | {{ user.phone_number }}</p>
-      
-    </div>
-  </div> {% endcomment %}
-  <div class="profile-header gap-4">
-    <div class="d-flex gap-3 align-items-center">
-    
-    <div class="profile-avatar">{{ user.name|first }}</div>
-    <div>
-      <h3 class="mb-1">{{ user.name }}</h3>
-      <p class="text-muted mb-0">
-        {% if user.email %}<i class="bi bi-envelope-fill"></i> {{ user.email }}{% endif %}
-        {% if user.phone_number %}<br><i class="bi bi-phone-fill"></i> {{ user.phone_number }}{% endif %}
-      </p>
-    </div>
-    </div>
-    <div class="profile-badges">
-      <span class="profile-badge text-info">Ibizamini wakoze: {{ exam_history.count }}</span>
-      <span class="profile-badge text-success">Ibyo watsinze: {{ pass_exams.count }}</span>
-      <span class="profile-badge text-danger">Ibyo watsinzwe: {{ fail_exams.count }}</span>
+      <div class="profile-badges">
+        <span class="profile-badge text-success">Ibizamini byatsinzwe: {{ pass_exams.count }}</span>
+        <span class="profile-badge text-danger">Byatsinzwe: {{ fail_exams.count }}</span>
+        <span class="profile-badge text-info">Ibyakozwe: {{ exam_history.count }}</span>
+      </div>
     </div>
   </div>
 
   <ul class="nav nav-tabs my-4" id="profileTabs" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">Reba byose</button>
+      <button class="nav-link active" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">Ibizamini byose</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="pass-tab" data-bs-toggle="tab" data-bs-target="#pass" type="button" role="tab">
-       Reba ibyo watsinze
-
-      </button>
+      <button class="nav-link" id="pass-tab" data-bs-toggle="tab" data-bs-target="#pass" type="button" role="tab">Byatsinzwe</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="fail-tab" data-bs-toggle="tab" data-bs-target="#fail" type="button" role="tab">
-       Reba ibyo watsinzwe
-      </button>
+      <button class="nav-link" id="fail-tab" data-bs-toggle="tab" data-bs-target="#fail" type="button" role="tab">Byatsinzwe</button>
     </li>
-    {% comment %} <li class="nav-item" role="presentation">
+    <li class="nav-item" role="presentation">
       <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab">Ibikorwa</button>
-    </li> {% endcomment %}
+    </li>
   </ul>
 
   <div class="tab-content" id="profileTabsContent">

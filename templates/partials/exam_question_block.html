@@ -1,0 +1,38 @@
+<!-- partials/exam_question_block.html -->
+<form method="POST" id="examForm" class="p-4 shadow-lg">
+  {% csrf_token %}
+  <div class="mb-5">
+    <p class="fs-1 d-none d-md-block">{{ question_number }}. {{ question.question_text }}</p>
+  </div>
+
+  {% if question.question_sign %}
+    <div class="mt-2 mb-4 text-center">
+      <img src="{{ question.question_sign.sign_image.url }}" class="img-thumbnail q-sign">
+    </div>
+  {% endif %}
+
+  <fieldset class="mt-5 mb-4">
+    {% for choice in choices %}
+    <div class="form-check mb-3 border p-2 rounded-3 border-secondary">
+      <input class="form-check-input" type="radio" name="answer" id="choice-{{ choice.id }}" value="{{ choice.id }}">
+      <label class="form-check-label d-flex align-items-start" for="choice-{{ choice.id }}">
+        <span class="fs-2 me-2">{{ forloop.counter0|letter }})</span>
+        {% if choice.type == 'text' %}
+          <span class="fs-3">{{ choice.content }}</span>
+        {% elif choice.type == 'image' %}
+          <img src="{{ choice.content }}" class="img-thumbnail me-2" style="max-width: 30vw; height: auto;">
+        {% endif %}
+      </label>
+    </div>
+    {% endfor %}
+  </fieldset>
+
+  <div class="d-flex justify-content-between">
+    <button type="submit" name="previous" class="btn btn-secondary" {% if question_number == 1 %}disabled{% endif %}>Subira inyuma</button>
+    {% if question_number < total_questions %}
+    <button type="submit" name="next" class="btn btn-primary">Next</button>
+    {% else %}
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#submitModal">Soza</button>
+    {% endif %}
+  </div>
+</form>

@@ -1,0 +1,5 @@
+<div class="exam-entry">
+  <h5>Icya {{ forloop.counter }}</h5>
+  <p>Wakoze: {{ exam.completed_at|date:"d/m/Y H:i" }} | Amanota: {{ exam.score }}/{{ exam.exam.total_score }} | Ijanisha: {{ exam.percent_score }}%</p>
+  <a href="{% url 'exam_results' exam.id %}" class="btn btn-sm btn-outline-info">Reba Cyose</a>
+</div>

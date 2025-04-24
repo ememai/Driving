@@ -172,3 +172,8 @@ def is_answered(q_num, args):
 def isin(value, container):
     """Check if value is in container."""
     return str(value) in container
+
+@register.filter
+def dictkey(value, key):
+    """Allows template access like {{ mydict|dictkey:some_key }}"""
+    return value.get(key)

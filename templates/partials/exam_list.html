@@ -1,0 +1,16 @@
+<ul class="list-group">
+  {% for exam in exams %}
+  <li class="list-group-item">
+    <div class="d-flex justify-content-between align-items-center">
+      <strong class="text-primary">Icya {{ forloop.counter }}</strong>
+      <a href="{% url 'exam_results' exam.id %}" class="btn btn-sm btn-outline-info">Reba byose</a>
+    </div>
+    <p class="mb-0">Amanota: {{ exam.score }}/{{ exam.exam.total_score }} ({{ exam.percent_score }}%)</p>
+    <small class="text-muted">
+      Wagikoze: {{ exam.completed_at|date:"d-m-Y H:i" }} 
+    </small>
+  </li>
+  {% empty %}
+  <li class="list-group-item text-muted">Nta kizamini gihari.</li>
+  {% endfor %}
+</ul>
