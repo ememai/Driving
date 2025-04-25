@@ -228,7 +228,7 @@
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const cards = document.querySelectorAll('.plan-card');
-    {% comment %} const planLabel = document.getElementById('js-plan'); {% endcomment %}
+    const planLabel = document.getElementById('js-plan');
     let current = 0, scrollTimeout;
 
     function scrollToCard(carousel, targetScrollLeft, duration = 1000) {
@@ -251,7 +251,7 @@
       const input = card.querySelector('input[type="radio"]');
       if (input) {
         input.checked = true;
-        {% comment %} planLabel.textContent = input.value; {% endcomment %}
+        planLabel.textContent = input.value;
       }
     }
 
