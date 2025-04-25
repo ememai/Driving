@@ -202,10 +202,11 @@
                 ><i class="bi bi-wallet-fill"></i> Gura ifatabuguzi</a
               >
               {% else %}
-              <span class="dropdown-item text-success">
+              <a class="dropdown-item text-success"
+              href="{% url 'subscription' %}">
                 <i class="bi bi-wallet-fill"></i>Ifatabuguzi |
                  {{ request.user.subscription.plan.get_plan_display|default:"None" }}
-              </span>
+              </a>
               {% endif %}
             </li>
             <li><hr class="dropdown-divider" /></li>
