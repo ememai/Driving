@@ -21,6 +21,7 @@ Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
     width: 100%;
     z-index: 1050;
     transition: transform 0.4s ease, opacity 0.4s ease;
+    
   }
 
 
@@ -269,6 +270,7 @@ Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
     if (scrollTop > lastScrollTop) {
       navbar.classList.add("hidden");
       scheduledWrapper.style.top = "0";
+      scheduledWrapper.style.transition = "top 0.4s ease";
       scheduledWrapper.style.zIndex = "1040"; 
     } else {
       navbar.classList.remove("hidden");
