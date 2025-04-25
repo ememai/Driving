@@ -24,8 +24,11 @@
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
         <div class="card shadow rounded-4 p-4">
-            <h3 class="mb-4 text-center text-primary-emphasis">Guhanga konti</h3>
-
+          <h3 class="mb-2 text-center text-primary-emphasis">Iyandikishe niba uri mushya</h3>
+          <div class="text-center mb-4 small">
+            Wariyandikishije? <a href="{% url "login" %}" class="link-primary medium" data-bs-toggle="modal" data-bs-target="#loginModal"><em><i class="bi bi-box-arrow-in-right me-1"></i>Kanda hano</em></a>
+          </div>
+          {% include "flash_message.html" %}
             {% if registration_success %}
                 <div class="alert alert-success text-center">
                     <i class="bi bi-check-circle-fill me-2"></i>
@@ -38,6 +41,7 @@
                     });
                 </script>
             {% endif %}
+            
 
             <form method="post" novalidate id="registrationForm">
                 {% csrf_token %}
@@ -149,9 +153,7 @@
 
                 </div>
 
-                <div class="text-center mt-3 medium">
-                    Ufite konti? <a href="{% url "login" %}" class="link-primary fs-5" data-bs-toggle="modal" data-bs-target="#loginModal"><em>Kanda hano</em></a>
-                </div>
+                
             </form>
         </div>
     </div>

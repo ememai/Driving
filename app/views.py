@@ -84,6 +84,7 @@ def navbar(request):
 class SubscriptionRequiredView(View):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_subscribed:
+            messages.error(request, "Gura ifatabuguzi kugirango ubashe gukomeza!")
             return redirect('subscription')
         return super().dispatch(request, *args, **kwargs)
 
@@ -91,7 +92,7 @@ class SubscriptionRequiredView(View):
 def exam_detail(request, pk):
     exam_obj = get_object_or_404(Exam, pk=pk)
     if not request.user.is_authenticated or not request.user.is_subscribed:
-        messages.warning(request, "Your subscription has expired. Please subscribe to continue.")
+        
         return redirect('subscription')
     return render(request, 'exam_detail.html', {'exam': exam_obj})
 
@@ -401,7 +402,7 @@ def exam(request, exam_id, question_number):
                 return redirect('subscription')
 
             request.session.pop('answers', None)
-            messages.success(request, f"Exam submitted! Your score: {score}/{total_questions}.")
+            messages.success(request, f"Ikizamini cyarangiye! Ugize amanota: {score}/{total_questions}.")
             return redirect('exam_results', user_exam_id=user_exam.id)
 
     q_nums = range(1, total_questions + 1)
@@ -465,7 +466,7 @@ def retake_exam(request, exam_id):
         if 'answers' in request.session:
             del request.session['answers']
 
-        messages.info(request, "Your exam has been reset. Good luck!")
+        messages.info(request, "Gusubirampo ikizamini byemeye. amahirwe masa!")
         return redirect('exam', exam_id=exam_id, question_number=1)
 
     context = {
@@ -526,17 +527,17 @@ def register_view(request):
             if form.cleaned_data.get("phone_number"):
                 user.otp_verified = True  
                 user.save()
-                messages.success(request, 'Guhanga konti byagenze neza')
+                messages.success(request, 'Kwiyandikisha muri Kigali Driving School byagenze neza')
                 return render(request, 'registration/register.html', {'registration_success': True})
                 # return redirect("whatsapp_consent")  # Redirect to consent page
 
             if form.cleaned_data.get("email"):
                 try:
                     user.send_otp_email()
-                    messages.success(request, 'OTP yoherejwe kuri email. Yandike hano.')
+                    messages.success(request, 'Code isuzuma yoherejwe kuri email. Yandike hano.')
                     return redirect('verify_otp', user_id=user.id)
                 except Exception as e:
-                    form.add_error('email', "Imeri wanditse ntago ibasha koherezwaho. Ongera usuzume neza.")
+                    form.add_error('email', "Imeri wanditse ntago ibasha koherezwaho code. Ongera usuzume neza.")
         # else:
         #     for field, errors in form.errors.items():
         #         for error in errors:
@@ -608,10 +609,10 @@ def verify_otp(request, user_id):
             # Keep session active
             update_session_auth_hash(request, user_profile)
 
-            messages.success(request, 'Account verified successfully. Welcome!')
+            messages.success(request, 'Kwemeza email yawe byakunze. uhawe ikaze!')
             return redirect('home')
         else:
-            messages.error(request, 'Invalid OTP. Please try again.')
+            messages.error(request, 'Code ntago ariyo, ongera ugerageze.')
     return render(request, 'registration/verify_otp.html', {'user': user_profile})
 
 
@@ -647,7 +648,7 @@ def login_view(request):
                 
                 if authenticated_user:
                     login(request, authenticated_user)
-                    messages.success(request, "Kwinjira bikozwe neza cyane! Welcome back.")
+                    messages.success(request, "Kwinjira bikozwe neza cyane! Ikaze nanone.")
                     return redirect("home")
                 else:
                     messages.error(request, "Ijambobanga ritariryo, ongera ugerageze.")
@@ -673,8 +674,8 @@ def login_view(request):
 @login_required(login_url='login')
 def user_logout(request):
     logout(request)
-    messages.success(request, "Gusohoka bigenze neza.")
-    return redirect('home')
+    messages.info(request, "Gusohoka byakunze.")
+    return redirect('login')
 
 
 # ---------------------
@@ -761,7 +762,7 @@ class PrivacyPolicyView(View):
     def get(self, request):
         return render(request, 'privacy_policy.html')
 
-# Add this to your existing views
+
 def base_view(request):
     
     context = {
@@ -831,7 +832,7 @@ def schedule_recent_exams(request):
 # ---------------------
 #404 Error Page
 def custom_page_not_found(request, exception):
-    # You can add extra context if needed
+    
     context = {}
     return render(request, '404.html', context, status=404)
 

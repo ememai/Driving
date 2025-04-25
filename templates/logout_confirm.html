@@ -14,7 +14,9 @@
                     <i class="bi bi-shield-exclamation fs-1 text-warning"></i>
                 </div>
                 <div class="mb-0">
-                <p>Uzakenere kuzuza <strong> Telefone </strong> n' <strong> Ijambobanga  </strong>nushaka kugaruka.</p>
+                <p>Uzakenera <strong>
+                    {% if request.user.phone_number %} Telefone: {{request.user.phone_number}} {% else %} Email: {{request.user.email}} {% endif %}
+                </strong> n' <strong> Ijambobanga  </strong>nushaka kugaruka.</p>
                   <h2> Nibyo koko ushaka gusohoka?</h2>
                 </div>
             </div>
