@@ -6,12 +6,21 @@ Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
 {% endblock %}
 
 {% block content %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
+{% endblock %}
+
+{% block content %}
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
 
 <style>
   main {
     padding-top: 100px;
   }
+
 
   #navbar,
   #scheduled-hours-wrapper {
@@ -48,6 +57,7 @@ Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   }
 
   .navbar.hidden {
@@ -69,6 +79,7 @@ Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    padding: 2rem;
     padding: 2rem;
     min-height: 65vh;
     padding: 2rem;
@@ -197,6 +208,7 @@ Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
       padding: 1.5rem 1rem;
     }
 
+
     .exam-types {
       grid-template-columns: 1fr;
     }
@@ -225,9 +237,14 @@ Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
 <div id="scheduled-hours-wrapper">
   {% include 'scheduled_hours.html' %}
 </div>
+<!-- Fixed hours panel -->
+<div id="scheduled-hours-wrapper">
+  {% include 'scheduled_hours.html' %}
+</div>
 
 <div class="hero-container my-4" data-aos="fade-up">
   <div class="action-panel" data-aos="fade-right">
+    <div class="hero-content" data-aos="fade-up" data-aos-delay="200">
     <div class="hero-content" data-aos="fade-up" data-aos-delay="200">
       <p class="fw-bold my-0 py-0">
         Ushobora gukora ikizamini gifite ibibazo by'ubwoko bumwe.
@@ -236,11 +253,17 @@ Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
 
     <div class="welcome-card" data-aos="zoom-in" data-aos-delay="300">
       <h3 class="text-center mb-3">Ubwoko bw'ibibazo wakora</h3>
+
+    <div class="welcome-card" data-aos="zoom-in" data-aos-delay="300">
+      <h3 class="text-center mb-3">Ubwoko bw'ibibazo wakora</h3>
       <div class="exam-types">
         {% for exam_type in exam_types %}
         {% comment %} <div class="exam-card" data-aos="flip-left" data-aos-delay="{{ forloop.counter0|add:1 }}00"> {% endcomment %}
         <div class="exam-card" >
+        {% comment %} <div class="exam-card" data-aos="flip-left" data-aos-delay="{{ forloop.counter0|add:1 }}00"> {% endcomment %}
+        <div class="exam-card" >
           <h4>{{ exam_type.name }}</h4>
+          <a href="{% url 'exams' exam_type.name %}" class="btn btn-outline-primary mt-3">Fungura</a>
           <a href="{% url 'exams' exam_type.name %}" class="btn btn-outline-primary mt-3">Fungura</a>
         </div>
         {% endfor %}
@@ -250,22 +273,30 @@ Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
 </div>
 
 <!-- AOS Scripts -->
+
+<!-- AOS Scripts -->
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
   AOS.init({
     duration: 1000,
     once: true,
     easing: 'ease-in-out',
+    easing: 'ease-in-out',
   });
 </script>
+
+<!-- Navbar Scroll Behavior -->
 
 <!-- Navbar Scroll Behavior -->
 <script>
   const navbar = document.getElementById("navbar");
   const scheduledWrapper = document.getElementById("scheduled-hours-wrapper");
   let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
   window.addEventListener("scroll", () => {
+    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    if (scrollTop > lastScrollTop) {
     let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     if (scrollTop > lastScrollTop) {
       navbar.classList.add("hidden");
@@ -275,7 +306,9 @@ Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
     } else {
       navbar.classList.remove("hidden");
       scheduledWrapper.style.top = "56px";
+      scheduledWrapper.style.top = "56px";
     }
+    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
     lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
   });
 </script>
