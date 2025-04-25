@@ -7,7 +7,11 @@
     </div>
     <p class="mb-0">Amanota: {{ exam.score }}/{{ exam.exam.total_score }} ({{ exam.percent_score }}%)</p>
     <small class="text-muted">
+      
       Wagikoze: {{ exam.completed_at|date:"d-m-Y H:i" }} 
+    </small>
+    <small class="text-muted d-block">
+      Iminota: {{ exam.time_taken }} 
     </small>
   </li>
   {% empty %}

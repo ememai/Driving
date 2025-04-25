@@ -544,12 +544,13 @@ class UserExam(models.Model):
     @property
     def time_taken(self):
         if self.completed_at:
-            return int((self.completed_at - self.started_at).total_seconds() / 60)
-        return 0
+            duration = int((self.completed_at - self.started_at).total_seconds() / 60)
+            return duration if duration <= 20 else 'Ntiwasoje'
+        return 'None'
 
     def save(self, *args, **kwargs):
         if not self.user.is_subscribed:
-            raise ValidationError("Umukoresha ntabwo yishyuye kugirango akore ijazo.")
+            raise ValidationError("Ntiwishyuye.")
 
         if self.completed_at and self.completed_at < timezone.now() - timedelta(hours=24):
             raise ValidationError("You cannot modify exams older than 24 hours.")
