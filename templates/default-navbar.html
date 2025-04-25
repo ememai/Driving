@@ -6,7 +6,7 @@
     border-radius: 50%;
     background: var(--bs-primary); /* You can choose a color or use a random color generator */
     color: white;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     display: flex;
     align-items: center;
@@ -176,7 +176,7 @@
             >
                 <!-- Avatar with First Name Initial -->
                 <div class="avatar-circle me-2">
-                    {{ request.user.name|slice:":3"|upper }}
+                    {{ request.user.name|slice:":2"|upper }}
                 </div>
                
             </a>
