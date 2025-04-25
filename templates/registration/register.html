@@ -5,14 +5,19 @@
 
 {% block content %}
 <style>
+.mobile-exam-times {
+  display: none;
+}
+</style>
+<style>
   .rda {
     background: linear-gradient(to bottom,
     #00a9e0 0%,      /* Blue */
-    #00a9e0 50%,     
-    #fcd116 50%,     
-    #fcd116 75%,     
-    #20603d 75%,     
-    #20603d 100%);   
+    #00a9e0 50%,
+    #fcd116 50%,
+    #fcd116 75%,
+    #20603d 75%,
+    #20603d 100%);
   }
 </style>
 
@@ -48,7 +53,7 @@
                           <i class="bi"></i>
                       </span>
                   </div>
-                  
+
                     {% if form.name.errors %}
                         <div class="text-danger name-errors">{{ form.name.errors.0 }}</div>
                     {% else %}
@@ -59,8 +64,8 @@
                 <!-- Toggle Input Mode -->
                 <div class="mb-3">
                     <label class="form-label">Hitamo:</label>
-                    
-                    
+
+
                     <div class="form-check form-check-inline">
                       <input class="form-check-input" type="radio" name="contact_mode" id="phoneMode" checked>
                       <label class="form-check-label" for="phoneMode">Telefoni</label>
@@ -80,9 +85,9 @@
                       <input type="email" name="email" id="id_email"
                              class="form-control {% if form.email.errors %}is-invalid {% endif %}"
                              value="{{ form.email.value|default_if_none:'' }}">
-                      
+
                     </div>
-                  
+
                     {% if form.email.errors %}
                         <div class="text-danger email-errors" >{{ form.email.errors.0 }}</div>
                     {% else %}
@@ -100,7 +105,7 @@
                              placeholder="Urugero: 78..." value="{{ form.phone_number.value|default_if_none:'' }}" maxlength="10"/>
                       {% comment %} <span class="position-absolute validate-icon end-0 top-50 translate-middle-y ms-2"></span> {% endcomment %}
                   </div>
-                  
+
                     {% if form.phone_number.errors %}
                         <div class="text-danger phone-errors">{{ form.phone_number.errors.0 }}</div>
                     {% else %}
@@ -108,7 +113,7 @@
                     {% endif %}
                 </div>
 
-               
+
                 <!-- Password -->
               <div class="mb-3 position-relative">
                 <label for="id_password1" class="form-label">Ijambobanga</label>
@@ -141,7 +146,7 @@
                   <button type="submit" class="btn btn-primary" disabled>
                     <i class="bi bi-person-plus-fill me-1"></i> Emeza
                 </button>
-                
+
                 </div>
 
                 <div class="text-center mt-3 medium">
@@ -158,10 +163,10 @@
     <div class="modal-content bg-theme text-theme">
       <div class="modal-body">
         <h3 class="card-title text-center mb-4">Emeza Ubutumwa kuri <i class="bi bi-whatsapp text-green"></i>WhatsApp</h3>
-        
+
         <form method="POST" id="consentForm" action="{% url 'whatsapp_consent' %}">
           {% csrf_token %}
-          
+
           <div class="mb-4">
             <p class="mb-1 text-theme">
               <strong>
@@ -180,14 +185,14 @@
             <div class="d-flex gap-2 mb-3">
               <input type="radio" class="btn-check" name="consent" id="consent_yes" value="yes" autocomplete="off">
               <label class="btn fw-bolder fs-5 btn-outline-success flex-grow-1 py-2" for="consent_yes">Yego</label>
-              
+
               <input type="radio" class="btn-check" name="consent" id="consent_no" value="no" autocomplete="off">
               <label class="btn fs-5 btn-outline-warning fw-bold flex-grow-1 py-2" for="consent_no">Oya</label>
             </div>
-            
+
             <div id="whatsappNumberField" class="mb-3" style="display: none;">
               <label for="id_whatsapp_number" class="form-label fs-4 text-theme">Nimero ukoresha <i class="bi bi-whatsapp text-green"></i>:</label>
-              <input type="text" name="whatsapp_number" class="form-control p-2 border border-theme" 
+              <input type="text" name="whatsapp_number" class="form-control p-2 border border-theme"
                      placeholder="Shyiramo numero ya WhatsApp (+25078...)" id="id_whatsapp_number">
               {% if form.whatsapp_number.errors %}
                 <div class="text-danger mt-1">
@@ -196,7 +201,7 @@
               {% endif %}
             </div>
           </div>
-          
+
           <button type="submit" class="btn btn-primary d-none w-100 py-2 mt-3" id="consentSubmitBtn"></button>
         </form>
       </div>
@@ -227,7 +232,7 @@
       };
       return messages[name] || 'Andika neza ibisabwa kuri iki gice.';
     }
-  
+
 
     function showFieldError(field, message) {
         const container = field.closest('.mb-3');
@@ -260,7 +265,7 @@
       let name = field.name;
       const value = field.value.trim();
       let isValid = true;
-  
+
       if (!field._touched) return;
 
       //if (name === 'contact_mode') {
@@ -268,7 +273,7 @@
       //  const checked = document.querySelector('input[name="contact_mode"]:checked');
        // isValid = checked !== null;
       //}
-  
+
       // Validation logic
       if (name === 'name') {
           const regex = /^[A-Za-zÀ-ÿ '-]+$/;
@@ -292,13 +297,13 @@
             name = 'low_number';
             isValid =false;
           }
-           
+
           if (!regex_char.test(value)){
             name = 'char_phone';
             isValid = false;
           }
 
-          
+
       } else if (name === 'password1') {
           isValid = value.length >= 4;
       } else if (name === 'password2') {
@@ -307,7 +312,7 @@
       } else {
           isValid = field.checkValidity();
       }
-  
+
       // Handle error UI
       if (value === '') {
           field.classList.remove('is-valid', 'is-invalid');
@@ -318,7 +323,7 @@
           field.classList.add('is-invalid');
           field.classList.remove('is-valid');
       }
-  
+
       const container = field.closest('.mb-3');
       const existingError = container.querySelector('.live-error-msg');
       if (!isValid) {
@@ -335,17 +340,17 @@
       } else if (existingError) {
           existingError.remove();
       }
-  
+
       // Async check for existing email/phone (if valid format)
       if (isValid && (name === 'email' || name === 'phone_number')) {
           checkExisting(field);
       }
-  
+
       return isValid || value === '';
-    
+
     }
-  
-    
+
+
     function checkFormValidity() {
         let isFormValid = true;
         fields.forEach(field => {
@@ -355,7 +360,7 @@
                     const valid = validateField(field);
                     if (!valid) {
                     isFormValid = false;
-                    
+
                     }
                 } else {
                     isFormValid = false;
@@ -363,7 +368,7 @@
             }
         });
         submitBtn.disabled = !isFormValid;
-      
+
         submitBtn.innerHTML = !isFormValid ? 'Uzuza ibisabwa wemeze': 'Emeza';
     }
 
@@ -379,18 +384,18 @@
       const name = field.name;
       const value = field.value.trim();
       if (!value || (name !== 'email' && name !== 'phone_number')) return;
-  
+
       // Pre-check format before sending request
       if (name === 'email') {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(value)) return;
       }
-  
+
       if (name === 'phone_number') {
           const phoneRegex = /^(?:\+250)?7[2389]\d{7}$/;
           if (!phoneRegex.test(value.replace(/\s|-/g, ''))) return;
       }
-  
+
       try {
           const res = await fetch(`/check-unique/?field=${name}&value=${encodeURIComponent(value)}`);
           const data = await res.json();
@@ -404,7 +409,7 @@
           console.error(`Failed to check ${name}`, err);
       }
   }
-  
+
 
     fields.forEach(field => {
         field._touched = false;
@@ -456,7 +461,7 @@
         } else if (noRadio.checked) {
           consentSubmitBtn.textContent = 'Komeza';
           consentSubmitBtn.classList.remove('d-none');
-        } 
+        }
       }
 
       // Add event listeners to radio buttons
@@ -486,9 +491,9 @@
 });
 
 </script>
-  
-  
-  
+
+
+
 <script>
 
       function togglePassword(id, btn) {
@@ -530,6 +535,6 @@
         toggleContactField();
     });
 
-   
+
 </script>
 {% endblock %}
