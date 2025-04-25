@@ -201,7 +201,7 @@ class Subscription(models.Model):
 
         if self.plan and self.plan.plan == "Daily":
             self.duration_days = 1
-            self.price = 500
+            self.price = 1000
         elif self.plan and self.plan.plan == "Weekly":
             self.duration_days = 7
             self.price = 2000
@@ -441,9 +441,6 @@ class ScheduledExam(models.Model):
     def is_live(self):
         """Check if the exam is live based on the scheduled time."""
         return timezone.now().hour == self.scheduled_datetime.hour and timezone.now().date() == self.scheduled_datetime.date()
-    
-
-
 
 
     def save(self, *args, **kwargs):
@@ -572,7 +569,6 @@ class UserExamAnswer(models.Model):
     def __str__(self):
         return f"{self.user_exam.user.username} - {self.question.question_text[:50]} - Choice {self.selected_choice_number}"
 
-
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
     whatsapp_number = models.CharField(max_length=20, blank=True, null=True)
@@ -586,9 +582,6 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"Message from {self.name} ({self.email})"
-
-
-
 
 class UserActivity(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)

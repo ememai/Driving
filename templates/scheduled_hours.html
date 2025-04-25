@@ -134,7 +134,9 @@
           href="{% url 'exam_detail' exam.exam.id %}"
           class="hour-link position-relative"
         >
+          {% if exam.is_live %}
           <span class="live-badge">LIVE</span>
+          {% endif %}
           {{ exam.scheduled_datetime|time:"H:00" }}
         </a>
         {% else %}

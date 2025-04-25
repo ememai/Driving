@@ -7,6 +7,12 @@ from django.utils import timezone
 register = template.Library()
 
 @register.filter
+def first_name(value):
+    if value:
+        return value.split()[0]
+    return ""
+
+@register.filter
 def get(dictionary, key):
     """
     Returns the value for the given key from a dictionary.
@@ -52,6 +58,8 @@ def percentage(value, total):
 @register.filter
 def current_date(value):
     return timezone.now().date()
+
+
 
 @register.filter
 def get_plan_description(plan_value):

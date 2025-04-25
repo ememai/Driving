@@ -1,4 +1,19 @@
-{% load static %}
+{% load static custom_filters %}
+<style>
+  .avatar-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--bs-primary); /* You can choose a color or use a random color generator */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+</style>
 <nav class="navbar navbar-expand-lg shadow-sm" id="navbar">
   <div
     class="container-fluid px-2 d-flex justify-content-between align-items-center gap-2"
@@ -144,30 +159,44 @@
           {% endif %}
         <li class="nav-item dropdown">
           <a
-            class="nav-link dropdown-toggle"
-            href="#"
-            id="userDropdown"
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            <i class="bi bi-person-circle"></i> {{ request.user.name }}
-          </a>
+                class="nav-link dropdown-toggle d-flex align-items-center"
+                href="#"
+                id="userDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+            >
+                <!-- Avatar with First Name Initial -->
+                <div class="avatar-circle me-2">
+                    {{ request.user.name|slice:":3"|upper }}
+                </div>
+               
+            </a>
+
           <ul
             class="dropdown-menu dropdown-menu-end"
             style="background-color: rgba(var(--card-bg-rgb), 0.98)"
           >
             <li>
               <a class="dropdown-item text-theme" href="{% url 'profile' %}"
-                ><i class="bi bi-person-fill"></i> Profile</a
+                ><i class="bi bi-person-fill"></i>  {{ request.user.name|first_name }}
+                </a
               >
             </li>
             <li>
+              {% if not request.user.is_subscribed %}
+              
               <a
-                class="dropdown-item text-theme"
+                class="dropdown-item text-danger"
                 href="{% url 'subscription' %}"
-                ><i class="bi bi-wallet-fill"></i> Subscription</a
+                ><i class="bi bi-wallet-fill"></i> Gura ifatabuguzi</a
               >
+              {% else %}
+              <span class="dropdown-item text-success">
+                <i class="bi bi-wallet-fill"></i>Ifatabuguzi |
+                 {{ request.user.subscription.plan.get_plan_display|default:"None" }}
+              </span>
+              {% endif %}
             </li>
             <li><hr class="dropdown-divider" /></li>
             <li>
