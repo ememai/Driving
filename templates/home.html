@@ -1,20 +1,18 @@
-{% extends "base.html" %} {% load static %}
-<title>
-  {% block title %}Amategeko y'Umuhanda & Ikizamini cya Provisior{% endblock %}
-  | Kigali Driving School
-</title>
-<meta
-  name="description"
-  content="Menya amategeko y'umuhanda, witoze ikizamini cya provisior, kandi wige iby'ikinyabiziga hamwe na Kigali Driving School. Igazeti y'amategeko, umuvuduko, rumoroki, makuzungu n'ibindi."
-/>
-<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Amategeko y'Umuhanda & Ikizamini cya Provisior | Kigali Driving School
+{% endblock %}
 
 {% block content %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
 
 <style>
   main {
     padding-top: 100px;
   }
+
   #navbar,
   #scheduled-hours-wrapper {
     position: fixed;
@@ -48,27 +46,20 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
-    transition: top 0.4s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   }
 
-  /* On scroll */
-  .navbar.hidden + #scheduled-hours-wrapper {
-    top: 0;
-  }
   .navbar.hidden {
     transform: translateY(-100%);
     opacity: 0;
   }
 
-  /* Override for small screens */
   @media (max-width: 991.98px) {
     #scheduled-hours-wrapper {
-      {% comment %} position: relative; {% endcomment %}
       top: 56px;
       z-index: auto;
     }
   }
-
 
   .hero-container {
     margin-top: 130px; /* space for both navbar and hours */
@@ -77,6 +68,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    padding: 2rem;
     min-height: 65vh;
     padding: 2rem;
     overflow: hidden;
@@ -203,6 +195,7 @@
       text-align: center;
       padding: 1.5rem 1rem;
     }
+
     .exam-types {
       grid-template-columns: 1fr;
     }
@@ -227,64 +220,61 @@
   }
 </style>
 
-<div id="scheduled-hours-wrapper">{% include 'scheduled_hours.html' %}</div>
+<!-- Fixed hours panel -->
+<div id="scheduled-hours-wrapper">
+  {% include 'scheduled_hours.html' %}
+</div>
 
 <div class="hero-container my-4" data-aos="fade-up">
   <div class="action-panel" data-aos="fade-right">
-    <div class="hero-content" data-aos="fade-up" data-aos-duration="1000">
+    <div class="hero-content" data-aos="fade-up" data-aos-delay="200">
       <p class="fw-bold my-0 py-0">
         Ushobora gukora ikizamini gifite ibibazo by'ubwoko bumwe.
       </p>
     </div>
-    <div class="welcome-card" data-aos="zoom-in">
-      <h3 class="mb-3 text-center ">Ubwoko bw'ibibazo wakora</h3>
+
+    <div class="welcome-card" data-aos="zoom-in" data-aos-delay="300">
+      <h3 class="text-center mb-3">Ubwoko bw'ibibazo wakora</h3>
       <div class="exam-types">
         {% for exam_type in exam_types %}
-        <div class="exam-card" data-aos="flip-left">
+        {% comment %} <div class="exam-card" data-aos="flip-left" data-aos-delay="{{ forloop.counter0|add:1 }}00"> {% endcomment %}
+        <div class="exam-card" >
           <h4>{{ exam_type.name }}</h4>
-          <a
-            href="{% url 'exams' exam_type.name %}"
-            class="btn btn-outline-primary mt-3"
-            >Fungura</a
-          >
+          <a href="{% url 'exams' exam_type.name %}" class="btn btn-outline-primary mt-3">Fungura</a>
         </div>
         {% endfor %}
       </div>
     </div>
   </div>
 </div>
+
+<!-- AOS Scripts -->
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
   AOS.init({
     duration: 1000,
     once: true,
-    easing: "ease-in-out",
+    easing: 'ease-in-out',
   });
 </script>
+
+<!-- Navbar Scroll Behavior -->
 <script>
-  let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
   const navbar = document.getElementById("navbar");
   const scheduledWrapper = document.getElementById("scheduled-hours-wrapper");
+  let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
   window.addEventListener("scroll", () => {
-    const currentScroll =
-      window.pageYOffset || document.documentElement.scrollTop;
-
-    if (currentScroll > lastScrollTop) {
-      // scrolling down
+    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    if (scrollTop > lastScrollTop) {
       navbar.classList.add("hidden");
-      scheduledWrapper.style.top = "0"; // Move up the scheduled hours wrapper
-      scheduledWrapper.style.transition = "top 0.4s ease"; // Smooth transition
-      scheduledWrapper.style.zIndex = "1040"; // Ensure it stays above the content
+      scheduledWrapper.style.top = "0";
+      scheduledWrapper.style.zIndex = "1040"; 
     } else {
-      // scrolling up
       navbar.classList.remove("hidden");
-      scheduledWrapper.style.top = "56px"; // Move back down the scheduled hours wrapper
+      scheduledWrapper.style.top = "56px";
     }
-
-    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
   });
 </script>
-
-
 {% endblock %}
