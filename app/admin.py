@@ -34,7 +34,7 @@ class PlanAdmin(admin.ModelAdmin):
     list_display = ('plan', 'price', 'duration_days', 'delta_display')
     list_editable = ('price', 'duration_days')
     search_fields = ('plan',)
-    ordering = ('plan',)
+    ordering = ('price',)
 
     def delta_display(self, obj):
         if obj.delta_hours:
@@ -52,7 +52,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_per_page = 10
     list_filter = ('super_subscription', 'plan')
     search_fields = ('user__username', 'user__email', 'user__phone_number')
-    ordering = ('-started_at',)
+    ordering = ('-expires_at','-updated_at')
     
     @admin.display(description='Plan')
     def ss(self, obj):
