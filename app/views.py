@@ -685,6 +685,7 @@ def payment(request):
     plans = Plan.PLAN_CHOICES
     context = {
         'plans': plans,
+        'range_10': range(10),
     }
     return render(request, 'payment.html', context)
 # ---------------------
