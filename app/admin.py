@@ -348,7 +348,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('user', 'plan', 'active_subscription','started_at','updated','updated_at','expires_at','duration_days')
     #list_editable = ('duration_days',)
     search_fields = ('user__email', 'plan__plan')
-    ordering = ('expires_at',)
+    ordering = ('-started_at',)
 
 
 
