@@ -569,7 +569,7 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
 class SubscriptionForm(forms.ModelForm):
     class Meta:
         model = Subscription
-        fields = ['user','plan', 'super_subscription', ]
+        fields = ['user','plan', 'super_subscription', 'updated']
         
 class PhoneOrEmailPasswordResetForm(PasswordResetForm):
     query = forms.CharField(

@@ -95,14 +95,16 @@
         </strong>
       {% else %}
         <p class="fw-bold text-success">
-          Ifatabuguzi ryawe riracyariho kugeza ku itariki ya
+          Ifatabuguzi ryawe riracyariho kugeza tariki ya
           <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong>.
         </p>
       {% endif %}
     {% elif user.has_ended_subscription %}
       <p class="fw-bold text-danger">
-        Ifatabuguzi ryawe ryararangiye kuri itariki ya
-        <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong>
+        Ifatabuguzi ryawe ryarangiye kuri
+        <strong>
+          {{ user.subscription.expires_at|date:"j.m.Y" }} Saa  {{ user.subscription.expires_at|date:"H:i" }}
+        </strong>
       </p>
     {% else %}
       <p class="fw-bold text-warning">Ntafatabuguzi ufite!!!</p>
