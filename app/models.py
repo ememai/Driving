@@ -166,20 +166,47 @@ class UserProfile(AbstractUser):
 
 #instances should be first created
 class Plan(models.Model):
-    PLAN_CHOICES = [
-        ('Daily', "Ry'umunsi"),
-        ('Weekly', "Ry'icyumweru"),
-        ('Monthly', "Ry'ukwezi"),
-    ]
-    plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default="Daily", null=True)
+    PLAN_CHOICES = (
+        ('Daily', 'Daily'),
+        ('Weekly', 'Weekly'),
+        ('Monthly', 'Monthly'),
+    )
+
+    plan = models.CharField(max_length=20, choices=PLAN_CHOICES, unique=True)
+    duration_days = models.IntegerField()
+    price = models.IntegerField()
+    delta_hours = models.IntegerField(default=0)
+    delta_days = models.IntegerField(default=0)
+
+    def get_delta(self):
+        if self.delta_hours:
+            return timezone.timedelta(hours=self.delta_hours)
+        elif self.delta_days:
+            return timezone.timedelta(days=self.delta_days)
+        return None
+
+    def clean(self):
+        # Validation rules
+        if not self.delta_hours and not self.delta_days:
+            raise ValidationError("Either 'delta_hours' or 'delta_days' must be set.")
+
+        if self.delta_hours < 0 or self.delta_days < 0:
+            raise ValidationError("Delta values cannot be negative.")
+
+        if self.duration_days <= 0:
+            raise ValidationError("'duration_days' must be greater than zero.")
+
+        if self.price <= 0:
+            raise ValidationError("'price' must be greater than zero.")
 
     def __str__(self):
         return self.plan
 
+
 class Subscription(models.Model):
-    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+    user = models.OneToOneField('UserProfile', on_delete=models.CASCADE)
     super_subscription = models.BooleanField(default=False)
-    plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True, blank=True)
+    plan = models.ForeignKey('Plan', on_delete=models.SET_NULL, null=True, blank=True)
     price = models.IntegerField(null=True, blank=True)
     duration_days = models.IntegerField(default=0, null=True, blank=True)
     phone_number = models.CharField(max_length=13, default="25078")
@@ -191,47 +218,52 @@ class Subscription(models.Model):
 
     def clean(self):
         if self.super_subscription and self.plan:
-            raise ValidationError("Super subscription with Plan not allowed")
+            raise ValidationError("Super subscription should not be linked with a plan.")
+        
+        if not self.super_subscription and not self.plan:
+            raise ValidationError("Either super subscription must be enabled or a plan must be selected.")
+
+        if self.super_subscription:
+            if self.price or self.duration_days:
+                raise ValidationError("Super subscription should not have price or duration.")
+        
+        if self.plan:
+            if self.plan.duration_days <= 0 or self.plan.price <= 0:
+                raise ValidationError("Plan must have a valid price and duration.")
 
     def save(self, *args, **kwargs):
         now = timezone.now()
 
         if self.super_subscription:
+            # Super subscription — no expiry
             self.expires_at = None
             self.price = None
             self.duration_days = None
         elif self.plan:
-            if self.plan.plan == "Daily":
-                self.duration_days = 1
-                self.price = 1000
-                delta = timezone.timedelta(hours=25)
-            elif self.plan.plan == "Weekly":
-                self.duration_days = 7
-                self.price = 2000
-                delta = timezone.timedelta(days=7)
-            elif self.plan.plan == "Monthly":
-                self.duration_days = 30
-                self.price = 5000
-                delta = timezone.timedelta(days=30)
-            else:
-                delta = None
+            # Set based on the Plan settings
+            self.duration_days = self.plan.duration_days
+            self.price = self.plan.price
+            delta = self.plan.get_delta()
 
             if delta:
-                reference_time = self.updated_at if self.updated else self.started_at
+                reference_time = self.updated_at if self.pk and self.updated else now
                 self.expires_at = reference_time + delta
 
-        super().save(*args, **kwargs)  # Save the object after setting all fields
+        super().save(*args, **kwargs)
 
     @property
     def active_subscription(self):
         """Check if the subscription is currently active."""
-        
         if self.super_subscription:
             return True
         if self.expires_at and self.expires_at >= timezone.now():
             return True
         return False
-    
+
+    def __str__(self):
+        return f"Subscription for {self.user}"
+
+  
 class Payment(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)

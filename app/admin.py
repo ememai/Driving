@@ -3,7 +3,7 @@ from .models import *
 from .forms import *
 from django.shortcuts import redirect
 
-from django.urls import reverse
+from django.urls import reverse, path
 from django.utils.html import format_html
 from django.contrib.admin import AdminSite
 
@@ -12,6 +12,7 @@ from django.utils.timezone import now, make_aware
 from datetime import timedelta, datetime
 # Register your models here.
 class SubscriptionInline(admin.StackedInline):  # or TabularInline
+    
     model = Subscription
     can_delete = False
     extra = 0
@@ -28,14 +29,95 @@ class UserProfileAdmin(admin.ModelAdmin):
     def subscription_expires_at(self, obj):
         return obj.subscription.expires_at if hasattr(obj, 'subscription') else '❌'
 
+@admin.register(Plan)
+class PlanAdmin(admin.ModelAdmin):
+    list_display = ('plan', 'price', 'duration_days', 'delta_display')
+    list_editable = ('price', 'duration_days')
+    search_fields = ('plan',)
+    ordering = ('plan',)
 
+    def delta_display(self, obj):
+        if obj.delta_hours:
+            return f"{obj.delta_hours} hours"
+        if obj.delta_days:
+            return f"{obj.delta_days} days"
+        return "-"
+    delta_display.short_description = "Delta"
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    form = SubscriptionForm
+    list_display = ('user', 'ss', 'price', 'started', 'updated_at', 'expires_at', 'colored_is_active', 'renew_subscription')
+
+    list_per_page = 10
+    list_filter = ('super_subscription', 'plan')
+    search_fields = ('user__username', 'user__email', 'user__phone_number')
+    ordering = ('-started_at',)
+    
+    @admin.display(description='Plan')
+    def ss(self, obj):
+        return "Super" if obj.super_subscription else obj.plan.plan 
+   
+    @admin.display(description='Started')
+    def started(self, obj):
+        return obj.started_at
+
+    @admin.display(description='Updated')
+    def updated(self, obj):
+        return obj.started_at
+    
+   
+    def colored_is_active(self, obj):
+        if obj.active_subscription:
+            return format_html('<span style="color: green; font-weight: bold;">✅ Active</span>')
+        else:
+            return format_html('<span style="color: red; font-weight: bold;">❌ Expired</span>')
+    colored_is_active.short_description = 'Status'
+
+    def renew_subscription(self, obj):
+        if not obj.super_subscription and obj.plan:
+            return format_html(
+                '<a class="button" href="{}">Renew</a>',
+                f"/admin/app/subscription/{obj.pk}/renew/"
+            )
+        return "-"
+    renew_subscription.short_description = 'Renew'
+
+    renew_subscription.allow_tags = True
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                '<int:subscription_id>/renew/',
+                self.admin_site.admin_view(self.process_renew),
+                name='subscription-renew',
+            ),
+        ]
+        return custom_urls + urls
+
+    def process_renew(self, request, subscription_id):
+        subscription = self.get_object(request, subscription_id)
+        if subscription and subscription.plan:
+            now = timezone.now()
+            delta = subscription.plan.get_delta()
+            if delta:
+                subscription.updated = True
+                subscription.updated_at = now
+                subscription.expires_at = now + delta
+                subscription.save()
+                self.message_user(request, f"Subscription for {subscription.user} successfully renewed!", messages.SUCCESS)
+            else:
+                self.message_user(request, "No valid duration set for plan.", messages.ERROR)
+        else:
+            self.message_user(request, "Cannot renew: missing plan.", messages.ERROR)
+        return redirect(request.META.get('HTTP_REFERER', '/admin/'))
 
 @admin.register(SignType)
 class SignTypeAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
     list_filter = ['name']
-
 
 @admin.register(RoadSign)
 class RoadSignAdmin(admin.ModelAdmin):
@@ -91,7 +173,6 @@ class RoadSignAdmin(admin.ModelAdmin):
         return obj.image_preview()
     image_preview.short_description = 'Preview'
     image_preview.allow_tags = True
-
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
@@ -235,7 +316,6 @@ class ExamTypeAdmin(admin.ModelAdmin):
     ordering = ['order']
 
 
-
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('exam_type','schedule_hour', 'total_questions','for_scheduling', 'created_at', 'updated_at')
@@ -302,7 +382,6 @@ class ExamAdmin(admin.ModelAdmin):
         }
 
 
-
 @admin.register(TodayExam)
 class TodayExamAdmin(admin.ModelAdmin):
     list_display = ('exam__exam_type','exam__schedule_hour', 'exam__for_scheduling', 'exam__created_at', 'exam__updated_at')
@@ -334,23 +413,6 @@ class UserExamAdmin(admin.ModelAdmin):
     list_display = ('user', 'exam', 'score','started_at', 'completed_at')
     search_fields = ('user__email', 'exam__exam_type')
     list_filter = ('completed_at',)
-
-
-@admin.register(Plan)
-class PlanAdmin(admin.ModelAdmin):
-    list_display = ('plan',)
-    search_fields = ('plan',)
-
-
-@admin.register(Subscription)
-class SubscriptionAdmin(admin.ModelAdmin):
-    form = SubscriptionForm
-    list_display = ('user', 'plan', 'active_subscription','started_at','updated','updated_at','expires_at','duration_days')
-    #list_editable = ('duration_days',)
-    search_fields = ('user__email', 'plan__plan')
-    ordering = ('-started_at',)
-
-
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
