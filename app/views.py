@@ -36,6 +36,7 @@ from django.http import JsonResponse
 User = get_user_model()
 
 
+
 def check_unique_field(request):
     field = request.GET.get("field")
     value = request.GET.get("value")

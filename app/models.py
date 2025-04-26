@@ -119,7 +119,7 @@ class UserProfile(AbstractUser):
             return False
         return (
             self.subscription.expires_at and
-            self.subscription.expires_at >= timezone.now().date() or
+            self.subscription.expires_at >= timezone.now() or
             self.subscription.active_subscription
         )
 
@@ -176,9 +176,7 @@ class Plan(models.Model):
     def __str__(self):
         return self.plan
 
-
 class Subscription(models.Model):
-
     user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     super_subscription = models.BooleanField(default=False)
     plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True, blank=True)
@@ -186,58 +184,54 @@ class Subscription(models.Model):
     duration_days = models.IntegerField(default=0, null=True, blank=True)
     phone_number = models.CharField(max_length=13, default="25078")
     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    started_at = models.DateField(auto_now_add=True)
+    started_at = models.DateTimeField(auto_now_add=True)
     updated = models.BooleanField(default=False)
-    updated_at = models.DateField(auto_now=True)
-    expires_at = models.DateField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
 
     def clean(self):
         if self.super_subscription and self.plan:
             raise ValidationError("Super subscription with Plan not allowed")
 
+    def save(self, *args, **kwargs):
+        now = timezone.now()
+
+        if self.super_subscription:
+            self.expires_at = None
+            self.price = None
+            self.duration_days = None
+        elif self.plan:
+            if self.plan.plan == "Daily":
+                self.duration_days = 1
+                self.price = 1000
+                delta = timezone.timedelta(hours=24)
+            elif self.plan.plan == "Weekly":
+                self.duration_days = 7
+                self.price = 2000
+                delta = timezone.timedelta(days=7)
+            elif self.plan.plan == "Monthly":
+                self.duration_days = 30
+                self.price = 5000
+                delta = timezone.timedelta(days=30)
+            else:
+                delta = None
+
+            if delta:
+                reference_time = self.updated_at if self.updated else self.started_at
+                self.expires_at = reference_time + delta
+
+        super().save(*args, **kwargs)  # Save the object after setting all fields
+
     @property
     def active_subscription(self):
-        """Check if the subscription is active."""
-
-        if self.plan and self.plan.plan == "Daily":
-            self.duration_days = 1
-            self.price = 1000
-        elif self.plan and self.plan.plan == "Weekly":
-            self.duration_days = 7
-            self.price = 2000
-        elif self.plan and self.plan.plan == "Monthly":
-            self.duration_days = 30
-            self.price = 5000
-
-
-        if self.duration_days:
-            if self.updated:                
-                self.expires_at = self.updated_at + timezone.timedelta(days=self.duration_days)
-            else:
-                self.updated_at = self.started_at
-                self.expires_at = self.started_at + timezone.timedelta(days=self.duration_days)
-
-        if self.expires_at and self.expires_at >= timezone.now().date():
+        """Check if the subscription is currently active."""
+        
+        if self.super_subscription:
             return True
-        elif self.super_subscription:
-            self.expires_at = None
-            self.price = "Undefined"
+        if self.expires_at and self.expires_at >= timezone.now():
             return True
-        else:
-             return False
-
-
-    def deactivate(self):
-        #  """Deactivate the subscription."""
-        if self.expires_at < timezone.now():
-            self.active_subscription = False
-            self.save()
-
-
-    def __str__(self):
-        return f"{self.user.name} - {'Active' if self.active_subscription else 'Inactive'}"
-
-
+        return False
+    
 class Payment(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -301,11 +295,9 @@ class RoadSign(models.Model):
         """Returns full URL or None"""
         return self.sign_image.url if self.sign_image else None
 
-
 class QuestionManager(models.Manager):
     def get_questions_with_index(self):
         return [(index + 1, question) for index, question in enumerate(self.all())]
-
 
 class Question(models.Model):
     QUESTION_CHOICES = [(i, f"Choice {i}") for i in range(1, 5)]
@@ -423,7 +415,6 @@ class Exam(models.Model):
     def __str__(self):
         return f"{self.schedule_hour.strftime('%H:%M') if self.schedule_hour else 'No Hour'} / {self.updated_at.strftime('%d.%m.%Y')} - {self.exam_type.name if self.exam_type else 'None'}"
 
-
 class ScheduledExam(models.Model):
     exam = models.OneToOneField("Exam", on_delete=models.CASCADE) # Ensure CASCADE to avoid null exams
     scheduled_datetime = models.DateTimeField(help_text="Date & time when the exam should be published")
@@ -478,7 +469,6 @@ class ScheduledExam(models.Model):
 
     def __str__(self):
         return f"Scheduled: {self.exam.exam_type} at {self.scheduled_datetime}"
-
 
 class TodayExam(ScheduledExam):
     class Meta:

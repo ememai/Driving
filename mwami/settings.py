@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from decouple import config
 import dj_database_url
+from datetime import datetime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,6 +37,7 @@ CSRF_TRUSTED_ORIGINS = config('MY_CSRF_TRUSTED_ORIGINS', cast=lambda v: v.split(
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,6 +50,29 @@ INSTALLED_APPS = [
     'django_apscheduler',
     "django_browser_reload",
 ]
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Kigali Driving School",
+    "site_header": "Kigali Driving School",
+    "site_brand": "Kigali Driving School",
+    "site_logo": "img/logo.png",
+    "welcome_sign": "Welcome to Kigali Driving School",
+    "copyright": f"&copy; {datetime.now().year} Kigali Driving School",
+    
+    "search_model": ["app.UserProfile", "app.Subscription", "app.Exam", "app.Question"],
+
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "sidebar": "dark",  # Dark sidebar
+    "theme": "darkly",  # Full dark mode
+
+    "show_ui_builder": False,
+
+    "topmenu_links": [
+        {"name": "Home", "url": "/", "permissions": ["auth.view_user"]},
+    ],
+}
+
 
 if DEBUG:
     INSTALLED_APPS += [
