@@ -128,7 +128,7 @@ class UserProfile(AbstractUser):
     def has_ended_subscription(self):
         if not hasattr(self, 'subscription'):
             return False
-        return self.subscription.expires_at and self.subscription.expires_at < timezone.now().date()
+        return self.subscription.expires_at and self.subscription.expires_at < timezone.now()
 
     def send_otp_email(self):
         """Generates and sends an OTP via email."""
@@ -204,7 +204,7 @@ class Subscription(models.Model):
             if self.plan.plan == "Daily":
                 self.duration_days = 1
                 self.price = 1000
-                delta = timezone.timedelta(hours=24)
+                delta = timezone.timedelta(hours=25)
             elif self.plan.plan == "Weekly":
                 self.duration_days = 7
                 self.price = 2000
