@@ -10,7 +10,7 @@
     padding: 0.5rem 1rem;
     text-align: center;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
 
   .scrollable-times {
@@ -123,7 +123,7 @@
 
 <div class="mobile-exam-times">
   <div class="container-fluid">
-    <div class="note">Kanda ku isaha ukore ikizamini</div>
+    <div class="note">Kanda ku isaha ukosore ikizamini cyakozwe</div>
     <div class="scrollable-times" id="js-update">
       {% for exam in exams_scheduled|dictsort:"scheduled_datetime" %}
       <div class="exam-hour" id="exam-hour-{{ exam.id }}">
@@ -147,7 +147,7 @@
       </div>
       {% empty %}
       <div class="exam-hour text-center text-warning small">
-        Nta kizamini kiboneka
+        Nta kizamini cyakozwe
       </div>
       {% endfor %}
     </div>

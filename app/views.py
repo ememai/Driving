@@ -820,7 +820,7 @@ def create_exam_page(request):
 @staff_member_required
 def schedule_recent_exams(request):
     """
-    Schedule 10 most recent exams (7 a.m to 5 p.m) randomly, only on POST request.
+    Schedule 9 most recent exams (8 a.m to 4 p.m) randomly, only on POST request.
     """
     if request.method == 'POST':
         # Filter the most recent 10 exams that are for scheduling and not already scheduled

@@ -60,22 +60,20 @@ def notify_admin(message):
     except Exception as e:
         logger.error(f"🚨 Admin notification failed: {str(e)}", exc_info=True)
 
-
 def job_auto_schedule_exams():
     connections.close_all()
     print("🕛 Running daily auto-schedule...")
     try:        
-        # auto_create_exams(11)  
-        exams_created, _ = auto_create_exams(11)      
+        # auto_create_exams(9)  
+        exams_created, _ = auto_create_exams(9)      
         notify_admin(f"{timezone.now().strftime('%d-%m-%Y %H:%M')} ✅ {exams_created}Exams Created successfully!")
-        auto_schedule_recent_exams()
+        scheduled_exams_count = auto_schedule_recent_exams()
         
-        notify_admin(f"✅ {timezone.now().strftime('%d-%m-%Y %H:%M')} Recent exams scheduled.")
+        notify_admin(f"✅ {timezone.now().strftime('%d-%m-%Y %H:%M')} {scheduled_exams_count} Recent exams scheduled.")
     
     except Exception as e:
         notify_admin(f"❌ Error in auto-scheduling: {str(e)}")
         print(f"❌ Error: {str(e)}")
-
 
 def validate_greenapi_credentials():
     """Validate GreenAPI credentials before use"""
@@ -154,7 +152,7 @@ def job_notify_new_published_exams():
     for scheduled in newly_published:
         exam = scheduled.exam
         exam_url = f"{settings.BASE_URL}{reverse('exam_detail', args=[exam.id])}"
-        scheduled_time = scheduled.scheduled_datetime.astimezone(ZoneInfo('Africa/Kigali')).strftime('%H:%M')
+        scheduled_time = scheduled.scheduled_datetime.astimezone(ZoneInfo('Africa/Kigali')).strftime('%H:00')
         # today_date = now.strftime('%d-%m-') + str(now.year)[-3:]
         today_date = now.strftime('%d-%m-%Y')
 
@@ -166,7 +164,8 @@ def job_notify_new_published_exams():
             📝 Gikore uciye aha: {exam_url}
                 
             📞 Ukeneye ubufasha: 0785287885
-            📅 {today_date}
+            
+                    📅 {today_date}
             ''')
 
         for user in users:
@@ -195,14 +194,14 @@ def start():
         # 1. Run exam scheduling every day at 00:00
         scheduler.add_job(
             job_auto_schedule_exams,
-            CronTrigger(hour=0, minute=0, second=50), 
+            CronTrigger(hour=0, minute=0, second=00),
             id="auto_schedule_exams"
         )
 
         # 2. Run email notifications every hour between 07:00 and 17:00
         scheduler.add_job(
             job_notify_new_published_exams,
-            CronTrigger(minute='00', hour='7-17'),
+            CronTrigger(minute='20', hour='8-16', second=0),
             id="notify_emails"
         )
         
