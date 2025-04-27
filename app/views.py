@@ -824,9 +824,9 @@ def schedule_recent_exams(request):
     """
     if request.method == 'POST':
         # Filter the most recent 10 exams that are for scheduling and not already scheduled
-        auto_schedule_recent_exams()
+        _ , message =  auto_schedule_recent_exams()
 
-        messages.success(request, "✅ recent exams have been scheduled successfully!")
+        messages.success(request, message)
         return redirect('auto_schedule_exams')  # Or redirect to a success page
 
     return render(request, 'exams/schedule_recent_exams.html')

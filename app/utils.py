@@ -149,10 +149,12 @@ def auto_schedule_recent_exams():
     scheduled_exams_count = 0
     recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:9]
     today = timezone.localtime(timezone.now()).date()
+    message = ''
     
     if today.weekday() == 6:  # Sunday is represented by 6
-        print("❌ No exams scheduled on Sundays.")
-        return scheduled_exams_count
+        message = "❌ No exams to schedule on Sundays."
+        print(message)
+        return scheduled_exams_count, message
 
     for exam in recent_exams:
         scheduled_time = timezone.make_aware(
@@ -164,5 +166,6 @@ def auto_schedule_recent_exams():
             defaults={'scheduled_datetime': scheduled_time}
         )
         scheduled_exams_count += 1
+        message += f"🏁 Exam '{exam.schedule_hour}' scheduled successfully!\n"
         
-    return scheduled_exams_count
+    return scheduled_exams_count, message
