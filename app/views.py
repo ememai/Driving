@@ -122,6 +122,13 @@ def scheduled_hours(request):
     )
 
     current_hour = now.hour
+    pending = True
+    
+    if exams_scheduled.exists():
+        for exam in exams_scheduled:
+            if exam.scheduled_datetime.hour > current_hour:
+                pending = True
+                break
 
     completed_exam_ids = []
     if request.user.is_authenticated:
@@ -134,6 +141,7 @@ def scheduled_hours(request):
         'exams_scheduled': exams_scheduled,
         'now': now,
         'current_hour': current_hour,
+        'pending': pending,
         'completed_exam_ids': list(completed_exam_ids),
     }
 

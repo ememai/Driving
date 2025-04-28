@@ -168,7 +168,7 @@
         </a>
         {% else %}
         <span class="hour-link disabled" title="Isaha ntago iragera">
-          <span class="pending-check"></span>
+          {% comment %} <span class="pending-check"></span> {% endcomment %}
           {{ exam.scheduled_datetime|time:"H:00" }}
         </span>
         {% endif %}
