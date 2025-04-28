@@ -32,7 +32,6 @@ def set_price_and_duration(plan):
         duration = None
     return price, duration
 
-
 def check_exam_availability(hour):
     """
     Determine whether an exam is available at a given hour.
@@ -57,7 +56,6 @@ def check_exam_availability(hour):
     ).exists()
 
     return exam_exists
-
 
 # def auto_create_exams(number):
 #     exams_created = 0
@@ -144,7 +142,6 @@ def auto_create_exams(number):
 
     return exams_created, created_exam_ids
 
-
 def auto_schedule_recent_exams():
     scheduled_exams_count = 0
     recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:9]
@@ -158,7 +155,7 @@ def auto_schedule_recent_exams():
 
     for exam in recent_exams:
         scheduled_time = timezone.make_aware(
-            datetime.combine(today, time(hour=exam.schedule_hour.hour, minute=20))
+            datetime.combine(today, time(hour=exam.schedule_hour.hour, minute=5))
         )
 
         ScheduledExam.objects.update_or_create(

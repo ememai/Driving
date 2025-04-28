@@ -198,10 +198,10 @@ def start():
             id="auto_schedule_exams"
         )
 
-        # 2. Run email notifications every hour between 07:00 and 17:00
+        
         scheduler.add_job(
             job_notify_new_published_exams,
-            CronTrigger(minute='20', hour='8-16', second=0),
+            CronTrigger(minute='5', hour='8-16', second=0),
             id="notify_emails"
         )
         
@@ -210,3 +210,4 @@ def start():
     except Exception as e:
         logger.error(f"Failed to start scheduler: {str(e)}", exc_info=True)
         raise
+    

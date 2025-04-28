@@ -64,6 +64,8 @@
     color: #888;
     cursor: not-allowed;
     border: 1px dashed #aaa;
+  position: relative; 
+
   }
 
   .completed-check {
@@ -95,6 +97,22 @@
     padding: 1px 4px;
     animation: blink 1.2s infinite;
   }
+
+  .pending-check {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #ffc107;
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: blink 1.2s infinite;
+    z-index: 1;
+}
+
 
   @keyframes blink {
     0%,
@@ -150,6 +168,7 @@
         </a>
         {% else %}
         <span class="hour-link disabled" title="Isaha ntago iragera">
+          <span class="pending-check"></span>
           {{ exam.scheduled_datetime|time:"H:00" }}
         </span>
         {% endif %}
@@ -263,7 +282,7 @@
       const currentSeconds = now.getSeconds();
       const currentMs = now.getMilliseconds();
 
-      const minutesToNextInterval = 30 - (currentMinutes % 30);
+      const minutesToNextInterval = 5 - (currentMinutes % 5);
       const msUntilNextInterval =
           (minutesToNextInterval * 60 * 1000) -
           (currentSeconds * 1000) -
@@ -274,8 +293,8 @@
 
           setInterval(() => {
               runChecks();
-              const nextRun = new Date(Date.now() + 30 * 60 * 1000);
-          },  30 * 60 * 1000); // 30 minutes
+              const nextRun = new Date(Date.now() + 5 * 60 * 1000);
+          },  5 * 60 * 1000); 
 
       }, msUntilNextInterval);
   }

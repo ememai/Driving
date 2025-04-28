@@ -80,8 +80,6 @@ def navbar(request):
     }
     return render(request, 'default-navbar.html', context)
 
-
-
 class SubscriptionRequiredView(View):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_subscribed:
@@ -96,7 +94,6 @@ def exam_detail(request, pk):
         
         return redirect('subscription')
     return render(request, 'exam_detail.html', {'exam': exam_obj})
-
 
 def exam_schedule_view(request):
     selected_time = request.GET.get('time')
@@ -142,7 +139,6 @@ def scheduled_hours(request):
 
     return render(request, 'scheduled_hours.html', context)
 
-
 def exam_timer(request, exam_id):
     try:
         scheduled_exam = ScheduledExam.objects.get(exam_id=exam_id)
@@ -150,7 +146,6 @@ def exam_timer(request, exam_id):
         return JsonResponse({'time_remaining': max(time_remaining, 0)})
     except ScheduledExam.DoesNotExist:
         return JsonResponse({'error': 'Exam not found'}, status=404)
-
 
 @require_GET
 def check_exam_status(request, exam_id):
