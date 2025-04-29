@@ -170,7 +170,7 @@ class Plan(models.Model):
         ('Daily', "Ry'umunsi"),
         ('Weekly', "Ry'icyumweru"),
         ('Monthly', "Ry'ukwezi"),
-        # ('Super', "Super"),
+        ('Super', "Super"),
         # ('Free', "Ubuntu"),
         # ('Trial', "Igihe gito"),
     )
@@ -205,7 +205,6 @@ class Plan(models.Model):
     def __str__(self):
         return self.plan
 
-
 class Subscription(models.Model):
     user = models.OneToOneField('UserProfile', on_delete=models.CASCADE)
     super_subscription = models.BooleanField(default=False)
@@ -226,10 +225,7 @@ class Subscription(models.Model):
         if not self.super_subscription and not self.plan:
             raise ValidationError("Either super subscription must be enabled or a plan must be selected.")
 
-        if self.super_subscription:
-            if self.price or self.duration_days:
-                raise ValidationError("Super subscription should not have price or duration.")
-        
+               
         if self.plan:
             if self.plan.duration_days <= 0 or self.plan.price <= 0:
                 raise ValidationError("Plan must have a valid price and duration.")
@@ -238,10 +234,12 @@ class Subscription(models.Model):
         now = timezone.now()
 
         if self.super_subscription:
-            # Super subscription — no expiry
-            self.expires_at = None
-            self.price = None
-            self.duration_days = None
+            self.price = 10000 
+            delta = timezone.timedelta(days=self.duration_days) if self.duration_days else None
+            if delta:               
+                reference_time = self.updated_at if self.pk and self.updated else now
+                self.expires_at = reference_time + delta
+        
         elif self.plan:
             # Set based on the Plan settings
             self.duration_days = self.plan.duration_days
@@ -257,8 +255,7 @@ class Subscription(models.Model):
     @property
     def active_subscription(self):
         """Check if the subscription is currently active."""
-        if self.super_subscription:
-            return True
+        
         if self.expires_at and self.expires_at >= timezone.now():
             return True
         return False

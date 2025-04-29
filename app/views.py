@@ -168,29 +168,6 @@ def check_exam_status(request, exam_id):
     except ScheduledExam.DoesNotExist:  # Changed to match model name
         return JsonResponse({"error": "Exam not found"}, status=404)
 
-# @login_required(login_url='login')
-# def exams_by_type(request, exam_type):
-#     returned_exams = Exam.objects.filter(
-#         for_scheduling=False,
-#         exam_type__name=exam_type
-#     ).order_by('-updated_at')
-    
-#     # Get all exams completed by this user
-#     completed_exam_ids = UserExam.objects.filter(
-#         user=request.user,
-#         completed_at__isnull=False
-#     ).values_list('exam_id', flat=True)
-
-#     counted_exams = returned_exams.count()
-    
-#     context = {
-#         'exam_type': exam_type,
-#         'returned_exams': returned_exams,
-#         'completed_exam_ids': list(completed_exam_ids),
-#         'counted_exams': counted_exams,
-#     }    
-#     return render(request, "same_exams.html", context)
-
 
 @login_required(login_url='login')
 def exams_by_type(request, exam_type):
@@ -248,96 +225,7 @@ def ajax_question(request, exam_id, question_number):
     html = render_to_string('partials/question_block.html', context, request=request)
     return JsonResponse({'html': html})
 
-# @login_required(login_url='login')
-# @subscription_required
-# def exam(request, exam_id, question_number):
-#     exam = get_object_or_404(Exam, id=exam_id)
-#     questions = list(exam.questions.all())
-#     total_questions = len(questions)
 
-#     user_exam, created = UserExam.objects.get_or_create(
-#         user=request.user,
-#         exam=exam,
-#         defaults={'score': 0, 'completed_at': None, 'started_at': timezone.now()})
-
-#     if user_exam.completed_at:
-#         return redirect('retake_exam', exam_id=exam_id)
-
-#     if question_number < 1 or question_number > total_questions:
-#         messages.error(request, "Invalid question number.")
-#         return redirect('exam', exam_id=exam_id, question_number=1)
-
-#     current_question = questions[question_number - 1]
-
-#     exam_end_time = (user_exam.started_at + timedelta(minutes=exam.duration)).timestamp()
-
-#     if 'answers' not in request.session:
-#         request.session['answers'] = {}    
-
-
-#     if request.method == 'POST':
-#         user_answer = request.POST.get('answer')
-#         if user_answer:
-#             request.session['answers'][str(current_question.id)] = user_answer
-#             request.session.modified = True
-
-#         if 'next' in request.POST and question_number < total_questions:
-#             return redirect('exam', exam_id=exam_id, question_number=question_number + 1)
-#         elif 'previous' in request.POST and question_number > 1:
-#             return redirect('exam', exam_id=exam_id, question_number=question_number - 1)
-#         elif 'go_to' in request.POST:
-#             go_to_question = int(request.POST['go_to'])
-#             if 1 <= go_to_question <= total_questions:
-#                 return redirect('exam', exam_id=exam_id, question_number=go_to_question)
-
-#         elif 'submit' in request.POST:
-#             score = 0
-#             for question in questions:
-#                 correct_choice = question.correct_choice
-#                 user_choice = request.session['answers'].get(str(question.id))
-#                 if user_choice and int(user_choice) == correct_choice:
-#                     score += 1
-#                 UserExamAnswer.objects.update_or_create(
-#                     user_exam=user_exam,
-#                     question=question,
-#                     defaults={'selected_choice_number': user_choice}
-#                 )
-
-#             user_exam.score = score
-#             user_exam.completed_at = timezone.now()
-#             try:
-#                 user_exam.save()
-#             except ValidationError as e:
-#                 messages.error(request, str(e))
-#                 return redirect('subscription')
-
-#             request.session.pop('answers', None)
-#             messages.success(request, f"Exam submitted! Your score: {score}/{total_questions}.")
-#             return redirect('exam_results', user_exam_id=user_exam.id)
-#     q_nums = range(1, total_questions + 1)
-
-#     choices = []
-#     for i in range(1, 5):
-#         choice_text = getattr(current_question, f'choice{i}_text', None)
-#         choice_sign = getattr(current_question, f'choice{i}_sign', None)
-#         if choice_text:
-#             choices.append({'type': 'text', 'content': choice_text, 'id': i})
-#         elif choice_sign:
-#             choices.append({'type': 'image', 'content': choice_sign.image_url, 'id': i})
-
-#     context = {
-#         'exam': exam,
-#         'question': current_question,
-#         'question_number': question_number,
-#         'q_nums': q_nums,
-#         'total_questions': total_questions,
-#         'choices': choices,
-#         'exam_end_time': exam_end_time,
-#         'exam_duration': exam.duration * 60,
-#         'user_exam': user_exam,
-#         'questions': questions,
-#             }
-#     return render(request, 'exam.html', context)
 
 @login_required(login_url='login')
 @subscription_required

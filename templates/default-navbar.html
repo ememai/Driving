@@ -205,7 +205,7 @@
               <a class="dropdown-item text-success"
               href="{% url 'subscription' %}">
                 <i class="bi bi-wallet-fill"></i>Ifatabuguzi |
-                 {{ request.user.subscription.plan.get_plan_display|default:"None" }}
+                 {{ request.user.subscription.plan.get_plan_display}}
               </a>
               {% endif %}
             </li>

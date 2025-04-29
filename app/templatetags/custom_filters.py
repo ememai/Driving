@@ -72,12 +72,17 @@ def get_plan_description(plan_value):
         'Weekly': [
             ('📆', 'Rimara Icyumweru Cyose'),
             ('📝', 'Ukora ibizamini byose ushaka'),
-            ('🤝', 'Uhabwa ubufasha igihe cyose'),
+            ('🤝', 'Uhabwa ubufasha ku bibazo udasobanukiwe'),
         ],
         'Monthly': [
             ('🗓️', 'Rimara Ukwezi kose'),
             ('📝', 'Ukora ibizamini byose ushaka'),
-            ('🤝', 'Uhabwa ubufasha bwose ushaka'),
+            ('🤝', 'Uhabwa ubufasha ku bibazo udasobanukiwe'),
+        ],
+        'Super': [
+            ('🗓️', 'Kugeza igihe uzakorera ikizamini'),
+            ('📝', 'Ukora ibizamini byose ushaka'),
+            ('🤝', "Uhabwa amasomo agufasha kwiga n'ubundi bufasha"),
         ],
     }.get(plan_value, [])
 
@@ -88,6 +93,7 @@ def get_old_price(value):
         # 'Daily': '1000 RWF',
         'Weekly': '4000 RWF',
         'Monthly': '10000 RWF',
+        'Super': '15000 RWF',
         }.get(value, '')
 
 @register.filter
@@ -96,6 +102,7 @@ def get_plan_price(value):
         'Daily': '1000',
         'Weekly': '2000',
         'Monthly': '5000',
+        'Super': '10000',
         }.get(value, '')
 
 @register.filter
@@ -176,6 +183,7 @@ def is_answered(q_num, args):
         return str(question_id) in answers
     except (IndexError, ValueError, TypeError):
         return False
+
 @register.filter
 def isin(value, container):
     """Check if value is in container."""

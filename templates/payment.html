@@ -88,17 +88,14 @@
 {% block content %}
 <div class="container py-4">
   <div class="text-center">
-    {% if user.is_subscribed %}
-      {% if user.subscription.super_subscription %}
-        <strong class="text-success">
-          Ufite Super Subscription <i class="bi bi-person-check"></i>
-        </strong>
-      {% else %}
+    {% if user.is_subscribed %}     
         <p class="fw-bold text-success">
           Ifatabuguzi ryawe riracyariho kugeza tariki ya
-          <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong>.
+          <strong>
+            {{ user.subscription.expires_at|date:"j.m.Y" }}
+            Saa  {{ user.subscription.expires_at|date:"H:i" }}
+          </strong>.
         </p>
-      {% endif %}
     {% elif user.has_ended_subscription %}
       <p class="fw-bold text-danger">
         Ifatabuguzi ryawe ryarangiye kuri
@@ -313,7 +310,7 @@
           runCarouselOnce();
         }, 3000);
       } else {
-        activateCard(Math.floor((cards.length - 1) / 2));
+        activateCard(Math.floor((cards.length - 1)));
       }
     }
 
