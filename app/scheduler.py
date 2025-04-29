@@ -201,7 +201,7 @@ def start():
         
         scheduler.add_job(
             job_notify_new_published_exams,
-            CronTrigger(minute='5', hour='8-16', second=0),
+            CronTrigger(minute='20', hour='8-16', second=0),
             id="notify_emails"
         )
         

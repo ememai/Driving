@@ -90,6 +90,10 @@
   @media (max-width: 768px) {
     #question-nav {
       grid-template-columns: repeat(8, 40px);
+      
+    }
+    main {
+      padding-top: 80px;
     }
   }
   
@@ -154,11 +158,9 @@
    min-height: 40px; /* Set a minimum height for rows */
   }
 
+  
 </style>
-<!-- We'll work through improvements template by template. Starting with base.html -->
-<!-- BASE TEMPLATE IMPROVEMENTS -->
 
-<!-- EXAM TEMPLATE IMPROVEMENTS -->
 <style>
   /* Add smooth fade-in for question and answers */
   .question-container, .choices-container {
@@ -183,8 +185,6 @@
   
 </style>
 
-
-
 <!-- Button tweaks -->
 <style>
   .btn {
@@ -202,10 +202,8 @@
 <!-- Continue with exam_detail.html next... -->
 
 <div class="container mt-5">
-  <!-- DEBUGGING -->
 
-
-  <form method="POST" action="{% url 'exam' exam.id question_number %}">
+  <form method="POST" class="q-nums-form" action="{% url 'exam' exam.id question_number %}">
     {% csrf_token %}
     <div class="container">
       <div id="question-nav">

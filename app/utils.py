@@ -155,7 +155,7 @@ def auto_schedule_recent_exams():
 
     for exam in recent_exams:
         scheduled_time = timezone.make_aware(
-            datetime.combine(today, time(hour=exam.schedule_hour.hour, minute=5))
+            datetime.combine(today, time(hour=exam.schedule_hour.hour, minute=20))
         )
 
         ScheduledExam.objects.update_or_create(
