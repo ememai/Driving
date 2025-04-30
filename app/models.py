@@ -447,6 +447,7 @@ class Exam(models.Model):
     def __str__(self):
         return f"{self.schedule_hour.strftime('%H:%M') if self.schedule_hour else 'No Hour'} / {self.updated_at.strftime('%d.%m.%Y')} - {self.exam_type.name if self.exam_type else 'None'}"
 
+
 class ScheduledExam(models.Model):
     exam = models.OneToOneField("Exam", on_delete=models.CASCADE) # Ensure CASCADE to avoid null exams
     scheduled_datetime = models.DateTimeField(help_text="Date & time when the exam should be published")
@@ -464,6 +465,18 @@ class ScheduledExam(models.Model):
     def is_live(self):
         """Check if the exam is live based on the scheduled time."""
         return timezone.now().hour == self.scheduled_datetime.hour and timezone.now().date() == self.scheduled_datetime.date()
+    
+    @property
+    def remaining_time(self):
+        """Calculate remaining seconds until the exam is live."""
+        now = timezone.localtime(timezone.now())
+        scheduled_time = timezone.localtime(self.scheduled_datetime)
+
+        if scheduled_time > now:
+            delta = scheduled_time - now
+            return int(delta.total_seconds() * 1000) 
+        return 0
+
 
 
     def save(self, *args, **kwargs):
@@ -475,10 +488,7 @@ class ScheduledExam(models.Model):
             self.is_published
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"Scheduled: {self.exam.exam_type} at {self.scheduled_datetime}"
-
-            # Notify all subscribed users
+    
     def send_notification(self):
         """Send an email notification to all users when the exam goes live"""
         subject = f"New Exam is Live: {timezone.localtime(timezone.now())}"
@@ -501,6 +511,7 @@ class ScheduledExam(models.Model):
 
     def __str__(self):
         return f"Scheduled: {self.exam.exam_type} at {self.scheduled_datetime}"
+
 
 class TodayExam(ScheduledExam):
     class Meta:

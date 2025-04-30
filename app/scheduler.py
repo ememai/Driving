@@ -63,9 +63,8 @@ def notify_admin(message):
 def job_auto_schedule_exams():
     connections.close_all()
     print("🕛 Running daily auto-schedule...")
-    try:        
-        # auto_create_exams(9)  
-        exams_created, _ = auto_create_exams(9)      
+    try:
+        exams_created, _ = auto_create_exams(8)      
         notify_admin(f"{timezone.now().strftime('%d-%m-%Y %H:%M')} ✅ {exams_created}Exams Created successfully!")
         scheduled_exams_count, message = auto_schedule_recent_exams()
         

@@ -144,7 +144,7 @@ def auto_create_exams(number):
 
 def auto_schedule_recent_exams():
     scheduled_exams_count = 0
-    recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:9]
+    recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:8]
     today = timezone.localtime(timezone.now()).date()
     message = ''
     

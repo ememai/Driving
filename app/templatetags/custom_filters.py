@@ -193,3 +193,18 @@ def isin(value, container):
 def dictkey(value, key):
     """Allows template access like {{ mydict|dictkey:some_key }}"""
     return value.get(key)
+
+@register.filter
+def seconds(value):
+    """Convert milliseconds to seconds."""
+    try:
+        return int((value) % 60000) // 1000
+    except (ValueError, TypeError):
+        return 0
+@register.filter
+def minutes(value):
+    """Convert milliseconds to minutes."""
+    try:
+        return int(value) // 60000
+    except (ValueError, TypeError):
+        return 0

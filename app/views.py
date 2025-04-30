@@ -112,6 +112,7 @@ def exam_schedule_view(request):
     }
     return render(request, 'exam_schedule.html', context)
 
+
 def scheduled_hours(request):
     now = localtime(timezone.now())
     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -147,14 +148,6 @@ def scheduled_hours(request):
 
     return render(request, 'scheduled_hours.html', context)
 
-def exam_timer(request, exam_id):
-    try:
-        scheduled_exam = ScheduledExam.objects.get(exam_id=exam_id)
-        time_remaining = (scheduled_exam.scheduled_datetime - timezone.now()).total_seconds()
-        return JsonResponse({'time_remaining': max(time_remaining, 0)})
-    except ScheduledExam.DoesNotExist:
-        return JsonResponse({'error': 'Exam not found'}, status=404)
-
 @require_GET
 def check_exam_status(request, exam_id):
     try:
@@ -164,9 +157,20 @@ def check_exam_status(request, exam_id):
             "is_published": exam.is_published,
             "exam_url": reverse('exam_detail', kwargs={'pk': exam.exam.id}),  # Changed to kwargs
             "exam_time": exam_time.strftime("%H:00"),
+            "remaining_time": exam.remaining_time
+
         })
     except ScheduledExam.DoesNotExist:  # Changed to match model name
         return JsonResponse({"error": "Exam not found"}, status=404)
+
+
+def exam_timer(request, exam_id):
+    try:
+        scheduled_exam = ScheduledExam.objects.get(exam_id=exam_id)
+        time_remaining = (scheduled_exam.scheduled_datetime - timezone.now()).total_seconds()
+        return JsonResponse({'time_remaining': max(time_remaining, 0)})
+    except ScheduledExam.DoesNotExist:
+        return JsonResponse({'error': 'Exam not found'}, status=404)
 
 
 @login_required(login_url='login')
@@ -710,11 +714,9 @@ def create_exam_page(request):
 
 @staff_member_required
 def schedule_recent_exams(request):
-    """
-    Schedule 9 most recent exams (8 a.m to 4 p.m) randomly, only on POST request.
-    """
+    
     if request.method == 'POST':
-        # Filter the most recent 10 exams that are for scheduling and not already scheduled
+        
         _ , message =  auto_schedule_recent_exams()
 
         messages.success(request, message)
