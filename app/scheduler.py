@@ -160,7 +160,7 @@ def job_notify_new_published_exams():
         
         message = textwrap.dedent(f'''\
 
-            ⏰ Ikizamini cya Saa {scheduled_time} cyagezeho.
+            ⏰ Ikizamini cya Saa {scheduled_time} cyageze ku rubuga.
             📝 Gikore uciye aha: {exam_url}
                 
             📞 Ukeneye ubufasha: 0785287885
