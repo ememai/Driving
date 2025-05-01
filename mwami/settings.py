@@ -52,24 +52,46 @@ INSTALLED_APPS = [
 ]
 
 JAZZMIN_SETTINGS = {
-    "site_title": "Kigali Driving School",
+    # Branding
+    "site_title": "Kigali Driving School Admin",
     "site_header": "Kigali Driving School",
-    "site_brand": "Kigali Driving School",
+    "site_brand": "KDS Admin",
     "site_logo": "img/logo.png",
-    "welcome_sign": "Welcome to Kigali Driving School",
-    "copyright": f"&copy; {datetime.now().year} Kigali Driving School",
+    "site_logo_classes": "img-circle",
+    "site_logo_small": "img/logo.png",
+    "site_icon": "img/favicon.ico",
+    "welcome_sign": f"Welcome to Kigali Driving School Admin | {datetime.now().year}",
+    "copyright": f"Kigali Driving School",
     
-    "search_model": ["app.UserProfile", "app.Subscription", "app.Exam", "app.Question"],
+    # Search
+    "search_model": [
+        "app.UserProfile",
+        "app.Subscription", 
+        "app.Exam", 
+        "app.Question"
+    ],
 
+    # UI
     "show_sidebar": True,
-    "navigation_expanded": True,
-    "sidebar": "dark",  # Dark sidebar
-    "theme": "darkly",  # Full dark mode
+    "navigation_expanded": False,
+    "order_with_respect_to": ["app.UserProfile", "app.Subscription", ],
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    
+    "theme": "darkly",  # Always use dark theme
+    "dark_mode_theme": "darkly",  # Ensure dark mode uses same theme
+    "theme_toggle": False,  # Disable switching to light theme
 
+    
+    # Customization
     "show_ui_builder": False,
-
+    "changeform_format": "horizontal_tabs",
+    "related_modal_active": True,
+    
+    # Top Menu
     "topmenu_links": [
         {"name": "Home", "url": "/", "permissions": ["auth.view_user"]},
+        
     ],
 }
 

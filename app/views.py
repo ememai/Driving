@@ -401,7 +401,6 @@ def weekly_exams(request):
     return render(request, 'exams/weekly_exams.html', context)
 
 
-
 def contact(request):
     if request.method == 'POST':
         name = request.POST.get('name')

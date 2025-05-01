@@ -164,7 +164,7 @@ class UserProfile(AbstractUser):
         return self.email if self.email else f"{self.name} - {self.phone_number}"
 
 
-#instances should be first created
+
 class Plan(models.Model):
     PLAN_CHOICES = (
         ('Daily', "Ry'umunsi"),
@@ -210,15 +210,33 @@ class Subscription(models.Model):
     super_subscription = models.BooleanField(default=False)
     plan = models.ForeignKey('Plan', on_delete=models.SET_NULL, null=True, blank=True)
     price = models.IntegerField(null=True, blank=True)
-    duration_days = models.IntegerField(default=0, null=True, blank=True)
     phone_number = models.CharField(max_length=13, default="25078")
     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
     started_at = models.DateTimeField(auto_now_add=True)
     updated = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
     expires_at = models.DateTimeField(null=True, blank=True)
+    delta_hours = models.IntegerField(default=0)
+    delta_days = models.IntegerField(default=0)
+
+    def get_delta(self):
+        if self.delta_hours:
+            return timezone.timedelta(hours=self.delta_hours)
+        elif self.delta_days:
+            return timezone.timedelta(days=self.delta_days)
+        return None
 
     def clean(self):
+        if self.super_subscription:
+            if not self.delta_hours and not self.delta_days:
+                raise ValidationError("Either 'delta_hours' or 'delta_days' must be set.")
+
+            if self.delta_hours < 0 or self.delta_days < 0:
+                raise ValidationError("Delta values cannot be negative.")
+
+            if not self.price or self.price <= 0:
+                raise ValidationError("'price' must be greater than zero.")
+            
         if self.super_subscription and self.plan:
             raise ValidationError("Super subscription should not be linked with a plan.")
         
@@ -232,20 +250,18 @@ class Subscription(models.Model):
 
     def save(self, *args, **kwargs):
         now = timezone.now()
-
-        if self.super_subscription:
-            self.price = 10000 
-            delta = timezone.timedelta(days=self.duration_days) if self.duration_days else None
+        if self.super_subscription: 
+            delta = self.get_delta()
             if delta:               
                 reference_time = self.updated_at if self.pk and self.updated else now
                 self.expires_at = reference_time + delta
         
         elif self.plan:
-            # Set based on the Plan settings
-            self.duration_days = self.plan.duration_days
-            self.price = self.plan.price
+            self.price = self.plan.price            
             delta = self.plan.get_delta()
-
+            self.delta_hours = self.plan.delta_hours
+            self.delta_days = self.plan.delta_days
+            
             if delta:
                 reference_time = self.updated_at if self.pk and self.updated else now
                 self.expires_at = reference_time + delta
@@ -262,7 +278,6 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"Subscription for {self.user}"
-
   
 class Payment(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
@@ -297,7 +312,6 @@ class ImagePreviewMixin:
             )
         return "No Image"
     image_preview.allow_tags = True
-
 
 class RoadSign(models.Model):
     sign_image = models.ImageField(
@@ -447,7 +461,6 @@ class Exam(models.Model):
     def __str__(self):
         return f"{self.schedule_hour.strftime('%H:%M') if self.schedule_hour else 'No Hour'} / {self.updated_at.strftime('%d.%m.%Y')} - {self.exam_type.name if self.exam_type else 'None'}"
 
-
 class ScheduledExam(models.Model):
     exam = models.OneToOneField("Exam", on_delete=models.CASCADE) # Ensure CASCADE to avoid null exams
     scheduled_datetime = models.DateTimeField(help_text="Date & time when the exam should be published")
@@ -511,7 +524,6 @@ class ScheduledExam(models.Model):
 
     def __str__(self):
         return f"Scheduled: {self.exam.exam_type} at {self.scheduled_datetime}"
-
 
 class TodayExam(ScheduledExam):
     class Meta:

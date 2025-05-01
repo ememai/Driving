@@ -47,20 +47,52 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user', 'ss', 'price', 'started', 'updated_at', 'expires_at', 'colored_is_active', 'renew_subscription')
+    list_display = ('user__name', 'ss', 'price', 'started', 'upd_at','delta_display', 'expires_at', 'colored_is_active', 'renew_subscription')
 
     list_per_page = 10
     list_filter = ('super_subscription', 'plan')
-    search_fields = ('user__username', 'user__email', 'user__phone_number')
+    search_fields = ('user__name', 'user__email', 'user__phone_number')
     ordering = ('-expires_at','-updated_at')
+    
+    fieldsets = (
+        (None, {
+            "fields": (
+                'user',
+                'plan',
+                'updated',              
+            ),
+        }),
+        ('Super Subscription', {
+            'fields': (
+                'super_subscription',
+                'price',
+                'delta_hours',
+                'delta_days',
+                ),
+            'classes': ('collapse',),
+        }),
+    )
+    
+    def delta_display(self, obj):
+        if obj.delta_hours:
+            return f"{obj.delta_hours} hours"
+        if obj.delta_days:
+            return f"{obj.delta_days} days"
+        return "-"
+    delta_display.short_description = "Delta"
+    
     
     @admin.display(description='Plan')
     def ss(self, obj):
         return "Super" if obj.super_subscription else obj.plan.plan 
    
-    @admin.display(description='Started')
+    @admin.display(description='S.A')
     def started(self, obj):
-        return obj.started_at
+        return obj.started_at.strftime("%d-%m-%y") if obj.started_at else "-"
+    
+    @admin.display(description='U.A')
+    def upd_at(self, obj):
+        return obj.updated_at.strftime("%d-%m-%y") if obj.updated_at else "-"
 
     @admin.display(description='Updated')
     def updated(self, obj):

@@ -459,7 +459,6 @@ class RoadSignAdminForm(forms.ModelForm):
         if 'sign_image' in self._errors and self.cleaned_data.get('image_choice') == self.USE_EXISTING:
             del self._errors['sign_image']
 
-
 class QuestionForm(forms.ModelForm, ImageLabelMixin):
     remove_question_image = forms.BooleanField(
         required=False,
@@ -569,7 +568,7 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
 class SubscriptionForm(forms.ModelForm):
     class Meta:
         model = Subscription
-        fields = ['user','plan', 'super_subscription','duration_days', 'updated']
+        fields = ['user','plan', 'super_subscription', 'price','updated']
         
 class PhoneOrEmailPasswordResetForm(PasswordResetForm):
     query = forms.CharField(
