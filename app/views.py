@@ -379,17 +379,28 @@ def get_weekly_scheduled_exams():
 @login_required(login_url='login')
 def weekly_exams(request):
     exams = get_weekly_scheduled_exams()
-    user_exam_ids = set(
-        UserExam.objects.filter(user=request.user).values_list('exam_id', flat=True)
-    )
 
-    # Mark each exam with `attempted` status
+    # Get a list of tuples: (exam_id, completed_at)
+    user_exam_data = UserExam.objects.filter(
+        user=request.user,
+        completed_at__isnull=False
+    ).values_list('exam_id', 'completed_at')
+
+    # Convert to a dictionary: {exam_id: completed_at}
+    attempted_exams = {exam_id: completed_at for exam_id, completed_at in user_exam_data}
+
+    # Attach status and time to each exam
     for exam in exams:
-        exam.attempted = exam.exam.id in user_exam_ids
+        exam_id = exam.exam.id
+        exam.attempted = exam_id in attempted_exams
+        exam.completed_at = attempted_exams.get(exam_id)
+
     context = {
         'exams': exams,
     }
     return render(request, 'exams/weekly_exams.html', context)
+
+
 
 def contact(request):
     if request.method == 'POST':
