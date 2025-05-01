@@ -260,10 +260,9 @@ class Subscription(models.Model):
             self.price = self.plan.price            
             delta = self.plan.get_delta()
             self.delta_hours = self.plan.delta_hours
-            self.delta_days = self.plan.delta_days
-            
+            self.delta_days = self.plan.delta_days            
             if delta:
-                reference_time = self.updated_at if self.pk and self.updated else now
+                reference_time = self.updated_at if self.pk and self.updated else self.started_at
                 self.expires_at = reference_time + delta
 
         super().save(*args, **kwargs)
