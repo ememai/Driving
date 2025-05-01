@@ -93,7 +93,7 @@ def exam_detail(request, pk):
     if not request.user.is_authenticated or not request.user.is_subscribed:
         
         return redirect('subscription')
-    return render(request, 'exam_detail.html', {'exam': exam_obj})
+    return render(request, 'exams/exam_detail.html', {'exam': exam_obj})
 
 def exam_schedule_view(request):
     selected_time = request.GET.get('time')
@@ -110,8 +110,7 @@ def exam_schedule_view(request):
         'selected_time': f"{hour % 12 or 12} {'AM' if hour < 12 else 'PM'}",
         'is_available': is_available
     }
-    return render(request, 'exam_schedule.html', context)
-
+    return render(request, 'exams/exam_schedule.html', context)
 
 def scheduled_hours(request):
     now = localtime(timezone.now())
@@ -163,7 +162,6 @@ def check_exam_status(request, exam_id):
     except ScheduledExam.DoesNotExist:  # Changed to match model name
         return JsonResponse({"error": "Exam not found"}, status=404)
 
-
 def exam_timer(request, exam_id):
     try:
         scheduled_exam = ScheduledExam.objects.get(exam_id=exam_id)
@@ -171,7 +169,6 @@ def exam_timer(request, exam_id):
         return JsonResponse({'time_remaining': max(time_remaining, 0)})
     except ScheduledExam.DoesNotExist:
         return JsonResponse({'error': 'Exam not found'}, status=404)
-
 
 @login_required(login_url='login')
 def exams_by_type(request, exam_type):
@@ -196,8 +193,7 @@ def exams_by_type(request, exam_type):
         'completed_exam_map': completed_exam_map,
         'counted_exams': returned_exams.count(),
     }    
-    return render(request, "same_exams.html", context)
-
+    return render(request, "exams/same_exams.html", context)
 
 @login_required
 @subscription_required
@@ -228,7 +224,6 @@ def ajax_question(request, exam_id, question_number):
 
     html = render_to_string('partials/question_block.html', context, request=request)
     return JsonResponse({'html': html})
-
 
 
 @login_required(login_url='login')
@@ -326,7 +321,7 @@ def exam(request, exam_id, question_number):
         'questions': questions,
     }
 
-    return render(request, 'exam.html', context)
+    return render(request, 'exams/exam.html', context)
 
 @login_required(login_url='login')
 def exam_results(request, user_exam_id):
@@ -342,7 +337,7 @@ def exam_results(request, user_exam_id):
         'percentage' : user_exam.percent_score,
         'decision' : user_exam.is_passed,
     }
-    return render(request, 'exam_results.html', context)
+    return render(request, 'exams/exam_results.html', context)
 
 @login_required(login_url='login')
 @subscription_required
@@ -369,11 +364,32 @@ def retake_exam(request, exam_id):
         'exam': exam,
         'user_exam': user_exam,
     }
-    return render(request, 'confirm_retake_exam.html', context)
+    return render(request, 'exams/confirm_retake_exam.html', context)
 
-# ---------------------
-# Contact / Registration / Login Views
-# ---------------------
+def get_weekly_scheduled_exams():
+    now = timezone.now()
+    start_of_week = now - timedelta(days=now.weekday())  # Monday
+    end_of_week = start_of_week + timedelta(days=7)      # Sunday
+
+    return ScheduledExam.objects.filter(
+        scheduled_datetime__range=(start_of_week, end_of_week),
+        scheduled_datetime__lte=now
+    ).select_related('exam', 'exam__exam_type').order_by('-scheduled_datetime')
+
+@login_required(login_url='login')
+def weekly_exams(request):
+    exams = get_weekly_scheduled_exams()
+    user_exam_ids = set(
+        UserExam.objects.filter(user=request.user).values_list('exam_id', flat=True)
+    )
+
+    # Mark each exam with `attempted` status
+    for exam in exams:
+        exam.attempted = exam.exam.id in user_exam_ids
+    context = {
+        'exams': exams,
+    }
+    return render(request, 'exams/weekly_exams.html', context)
 
 def contact(request):
     if request.method == 'POST':
@@ -403,8 +419,6 @@ def contact(request):
         return redirect('contact')
 
     return render(request, 'contact.html')
-
-
 
 @redirect_authenticated_users
 def register_view(request):

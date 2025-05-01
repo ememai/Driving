@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Exam Detail - {{ exam.title }}{% endblock %}
+
+{% block content %}
+<style>
+  .exam-detail-card {
+    max-width: 700px;
+    margin: 2rem auto;
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    background-color: rgba(var(--card-bg-rgb), 1);
+    color: rgba(var(--text-rgb), 1);
+    border: 1px solid rgba(var(--border-rgb), 0.2);
+    overflow: hidden;
+  }
+
+  .exam-detail-card .card-header {
+    background-color: rgba(var(--surface-accent-rgb), 0.5);
+    border-bottom: 1px solid rgba(var(--border-rgb), 0.2);
+    padding: 1.25rem 1.5rem;
+    font-weight: bold;
+    font-size: 1.25rem;
+    text-align: center;
+  }
+
+  .exam-detail-card .card-body {
+    padding: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .exam-detail-card p {
+    margin-bottom: 0.75rem;
+  }
+
+  .exam-detail-card h4 {
+    margin-top: 1.5rem;
+    color: rgba(var(--success-rgb), 1);
+  }
+
+  .exam-detail-card .btn-success {
+    background-color: rgba(var(--success-rgb), 1);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    margin-top: 1.5rem;
+    width: 100%;
+    border-radius: 0.5rem;
+  }
+
+  .exam-detail-card .btn-success:hover {
+    background-color: rgba(var(--success-rgb), 0.85);
+  }
+
+  .mobile-exam-times {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .exam-detail-card {
+      margin: 1rem;
+    }
+  }
+</style>
+
+<div class="exam-detail-card card">
+  <div class="card-header">
+    Ubwoko bw'ibibazo : {{ exam.exam_type }}
+  </div>
+  <div class="card-body">
+    {% if exam.for_scheduling %}
+    <p><strong>Ikizamini Cya:</strong> Saa {{ exam.schedule_hour|time:"H:00" }}</p>
+    {% endif %}
+    <p><strong>Cyateguwe:</strong> {{ exam.created_at|date:"M d, Y" }}</p>
+    <p><strong>Kivugururwa:</strong> {{ exam.updated_at|date:"M d, Y" }}</p>
+
+    <p class="mt-3">
+      Ugiye gukora ikizamini gifite ibibazo <strong>{{ exam.total_questions }}</strong> mu minota <strong>{{ exam.duration }}</strong>.
+      Nukanda <em>Tangira</em>, iminota iratangira kubara.
+    </p>
+
+    <h4>Amanota yo gutsinda: 12 / 20</h4>
+
+    <p class="text-center mt-3 mb-0 fw-semibold">AMAHIRWE MASA!!!</p>
+
+    <a href="{% url 'exam' exam.id 1 %}" class="btn btn-success">
+      Tangira Ikizamini
+    </a>
+  </div>
+</div>
+{% endblock %}

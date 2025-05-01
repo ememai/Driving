@@ -208,3 +208,17 @@ def minutes(value):
         return int(value) // 60000
     except (ValueError, TypeError):
         return 0
+    
+DAY_TRANSLATIONS = {
+    'Monday': 'Kuwa Mbere',
+    'Tuesday': 'Kuwa Kabiri',
+    'Wednesday': 'Kuwa Gatatu',
+    'Thursday': 'Kuwa Kane',
+    'Friday': 'Kuwa Gatanu',
+    'Saturday': 'Kuwa Gatandatu',
+    'Sunday': 'Ku Cyumweru',
+}
+
+@register.filter
+def kinyarwanda_day(date):
+    return DAY_TRANSLATIONS.get(date.strftime('%A'), date.strftime('%A'))

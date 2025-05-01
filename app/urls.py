@@ -25,7 +25,7 @@ urlpatterns = [
     path('exam-results/<int:user_exam_id>/', subscription_required(views.exam_results), name='exam_results'),
 
     path('exam/<int:exam_id>/retake/', views.retake_exam, name='retake_exam'),
-
+    path('ibizamini-byicyumweru/', views.weekly_exams, name='weekly_exams'),
 
     path('check-exam-status/<int:exam_id>/', check_exam_status, name='check_exam_status'),
     path('exam-timer/<int:exam_id>/', subscription_required(views.exam_timer), name='exam_timer'),

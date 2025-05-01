@@ -183,7 +183,19 @@
           {% endif %}
         </div>
       {% empty %}
-        <div class="exam-hour text-center text-warning small">Nta kizamini cyakozwe</div>
+      <style>
+       
+        .note {
+          display: none;
+        }
+      </style>
+        <div class="exam-hour text-warning ">
+         <strong> Nta kizamini cyakozwe uyu munsi <i class="bi bi-exclamation-triangle"></i> 
+        </strong> <br>
+          <a href="{% url 'weekly_exams' %}" class="mt-2 ">
+            <em>Reba ibizamini byo muri iki cyumweru</em>
+          </a>
+        </div>
       {% endfor %}
     </div>
   </div>
