@@ -253,7 +253,7 @@ class Subscription(models.Model):
         if self.super_subscription: 
             delta = self.get_delta()
             if delta:               
-                reference_time = self.updated_at if self.pk and self.updated else now
+                reference_time = self.updated_at if self.pk and self.updated else self.started_at
                 self.expires_at = reference_time + delta
         
         elif self.plan:
