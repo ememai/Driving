@@ -163,8 +163,6 @@ class UserProfile(AbstractUser):
     def __str__(self):
         return self.email if self.email else f"{self.name} - {self.phone_number}"
 
-
-
 class Plan(models.Model):
     PLAN_CHOICES = (
         ('Daily', "Ry'umunsi"),
@@ -249,23 +247,27 @@ class Subscription(models.Model):
                 raise ValidationError("Plan must have a valid price and duration.")
 
     def save(self, *args, **kwargs):
-        now = timezone.now()
-        if self.super_subscription: 
-            delta = self.get_delta()
-            if delta:               
-                reference_time = self.updated_at if self.pk and self.updated else self.started_at
-                self.expires_at = reference_time + delta
-        
-        elif self.plan:
-            self.price = self.plan.price            
-            delta = self.plan.get_delta()
-            self.delta_hours = self.plan.delta_hours
-            self.delta_days = self.plan.delta_days            
-            if delta:
-                reference_time = self.updated_at if self.pk and self.updated else self.started_at
-                self.expires_at = reference_time + delta
+        is_new = self.pk is None
+        super().save(*args, **kwargs)  # Save first to ensure `started_at` is populated
 
-        super().save(*args, **kwargs)
+        now = timezone.now()
+        reference_time = self.updated_at if not is_new and self.updated else self.started_at
+
+        if self.super_subscription:
+            delta = self.get_delta()
+            if delta and reference_time:
+                self.expires_at = reference_time + delta
+                super().save(update_fields=['expires_at'])
+
+        elif self.plan:
+            self.price = self.plan.price
+            self.delta_hours = self.plan.delta_hours
+            self.delta_days = self.plan.delta_days
+            delta = self.plan.get_delta()
+            if delta and reference_time:
+                self.expires_at = reference_time + delta
+                super().save(update_fields=['price', 'delta_hours', 'delta_days', 'expires_at'])
+
 
     @property
     def active_subscription(self):
