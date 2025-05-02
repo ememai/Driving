@@ -16,7 +16,7 @@ class SubscriptionInline(admin.StackedInline):  # or TabularInline
     model = Subscription
     can_delete = False
     extra = 0
-    readonly_fields = ('active_subscription','updated','updated_at', 'expires_at', 'price', 'started_at')
+    readonly_fields = ('active_subscription','updated_at', 'expires_at', 'started_at')
     
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
