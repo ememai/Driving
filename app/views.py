@@ -36,7 +36,6 @@ from django.http import JsonResponse
 User = get_user_model()
 
 
-
 def check_unique_field(request):
     field = request.GET.get("field")
     value = request.GET.get("value")
@@ -85,19 +84,20 @@ def navbar(request):
 
 class SubscriptionRequiredView(View):
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_subscribed:
+        if not request.user.is_subscribed and not request.user.is_staff:
             messages.error(request, "Gura ifatabuguzi kugirango ubashe gukomeza!")
             return redirect('subscription')
         return super().dispatch(request, *args, **kwargs)
 
-@login_required
+@login_required(login_url='login')
+@subscription_required
 def exam_detail(request, pk):
     exam_obj = get_object_or_404(Exam, pk=pk)
-    if not request.user.is_authenticated or not request.user.is_subscribed:
-        
-        return redirect('subscription')
+    # if not request.user.is_authenticated or not request.user.is_subscribed:        
+    #     return redirect('subscription')
     return render(request, 'exams/exam_detail.html', {'exam': exam_obj})
 
+@staff_member_required
 def exam_schedule_view(request):
     selected_time = request.GET.get('time')
     try:
@@ -198,7 +198,7 @@ def exams_by_type(request, exam_type):
     }    
     return render(request, "exams/same_exams.html", context)
 
-@login_required
+@login_required(login_url='login')
 @subscription_required
 def ajax_question(request, exam_id, question_number):
     exam = get_object_or_404(Exam, id=exam_id)

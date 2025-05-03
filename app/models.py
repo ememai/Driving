@@ -595,7 +595,7 @@ class UserExam(models.Model):
         return 'None'
 
     def save(self, *args, **kwargs):
-        if not self.user.is_subscribed:
+        if not self.user.is_subscribed and not self.user.is_staff :
             raise ValidationError("Ntiwishyuye.")
 
         if self.completed_at and self.completed_at < timezone.now() - timedelta(hours=24):

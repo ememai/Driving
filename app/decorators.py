@@ -19,16 +19,13 @@ from django.contrib.auth.decorators import login_required, permission_required
 def edit_view(request):
     return render(request, 'edit_page.html')
 
-
 def subscription_required(view_func):
     @login_required
     def wrapper(request, *args, **kwargs):
-        if not request.user.is_subscribed:
-            
+        if not request.user.is_subscribed and not request.user.is_staff:            
             return redirect('subscription')
         return view_func(request, *args, **kwargs)
     return wrapper
-
 
 def redirect_authenticated_users(view_func):
     @wraps(view_func)
