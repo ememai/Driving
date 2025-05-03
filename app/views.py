@@ -441,10 +441,8 @@ def register_view(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password1"])
-            
-            # Save user first to get an ID
             user.save()
-            
+
             # Store user ID in session for WhatsApp consent step
             request.session['new_user_id'] = user.id
             
@@ -465,7 +463,6 @@ def register_view(request):
         form = RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
-
 def whatsapp_consent(request):
     # Get the newly registered user from session
     user_id = request.session.get('new_user_id')
@@ -485,7 +482,7 @@ def whatsapp_consent(request):
                 user.whatsapp_consent = True
                 user.whatsapp_notifications = True
                 user.whatsapp_number = form.cleaned_data['whatsapp_number']
-            
+                          
             user.save()
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('home')

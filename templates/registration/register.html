@@ -261,27 +261,24 @@
   document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('registrationForm');
     const submitBtn = form.querySelector('button[type="submit"]');
-    const fields = form.querySelectorAll('input:not([name="contact_mode"])');
-    const whatsappConsentModal = new bootstrap.Modal(document.getElementById('whatsappConsentModal'));
+    const fields = form.querySelectorAll('input');
 
     // Error messages
     const errorMessages = {
-      name: 'Andika izina rifite nibura inyuguti  4 kandi ritari imibare.',
-      email: 'Shyiramo email yemewe. Urugero: izina@example.com',
-      phone_number: 'Telefone igomba gutangira na 07.',
-      low_number: 'Shyiramo imibare yuzuye itangira na 07',
-      char_phone: 'Telefone igomba kuba imibare',
-      password1: 'Ijambobanga rigomba kuba rifite nibura inyuguti 4*',
-      password2: "Reba ko risa n'iryo hejuru!",
+        name: 'Izina rigomba kuba rifite inyuguti nibura 4 kandi ritari imibare gusa.',
+        email: 'Shyiramo email yujuje ibisabwa. Urugero: izina@example.com',
+        phone_number: 'Telefoni igomba gutangira na 07 kandi ikaba imibare 10.',
+        password1: 'Ijambobanga rigomba kuba rifite inyuguti nibura 4.',
+        password2: "Reba ko ijambobanga risa n'iryo hejuru.",
     };
 
     // Show error message
     function showFieldError(field, message) {
-      const container = field.closest('.mb-3');
-      const existingError = container.querySelector('.live-error-msg');
+        const container = field.closest('.mb-3');
+        const existingError = container.querySelector('.live-error-msg');
 
-      field.classList.add('is-invalid');
-      field.classList.remove('is-valid');
+        field.classList.add('is-invalid');
+        field.classList.remove('is-valid');
 
       if (!existingError) {
         const div = document.createElement('div');
@@ -297,71 +294,89 @@
 
     // Clear error message
     function clearFieldError(field) {
-      const container = field.closest('.mb-3');
-      const existingError = container.querySelector('.live-error-msg');
-      field.classList.add('is-valid');
-      field.classList.remove('is-invalid');
-      if (existingError) existingError.remove();
+        const container = field.closest('.mb-3');
+        const existingError = container.querySelector('.live-error-msg');
+        field.classList.add('is-valid');
+        field.classList.remove('is-invalid');
+        if (existingError) existingError.remove();
     }
 
     // Validate field
-    function validateField(field) {
-      const name = field.name;
-      const value = field.value.trim();
-      let isValid = true;
+    async function validateField(field) {
+        const name = field.name;
+        const value = field.value.trim();
+        let isValid = true;
 
-      if (!field._touched) return;
-
-      if (name === 'name') {
-        const regex = /^[A-Za-zÀ-ÿ '-]+$/;
-        isValid = value !== '' && regex.test(value) && !/^\d+$/.test(value) && value.length >= 4;
-      } else if (name === 'email') {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        isValid = !value || regex.test(value);
-      } else if (name === 'phone_number') {
-        const regex_char = /^[0-9]+$/;
-        const regex = /^07/;
-        const clean = value.trim().replace(/^\s+|[-\s]/g, '');
-        if (value && !regex.test(clean)) {
-          isValid = false;
-        } else if (value && value.length < 10) {
-          showFieldError(field, errorMessages.low_number);
-          isValid = false;
+        if (name === 'name') {
+            const regex = /^[A-Za-zÀ-ÿ '-]+$/;
+            isValid = value.length >= 4 && regex.test(value) && !/^\d+$/.test(value);
+        } else if (name === 'email') {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            isValid = !value || regex.test(value);
+        } else if (name === 'phone_number') {
+            const regex = /^07\d{8}$/;
+            isValid = regex.test(value);
+        } else if (name === 'password1') {
+            isValid = value.length >= 4;
+        } else if (name === 'password2') {
+            const password1 = form.querySelector('input[name="password1"]').value;
+            isValid = value === password1;
         }
-        if (!regex_char.test(value)) {
-          showFieldError(field, errorMessages.char_phone);
-          isValid = false;
+
+        if (isValid) {
+            clearFieldError(field);
+
+            // Check for uniqueness if the field is name, email, or phone_number
+            if (['name', 'email', 'phone_number'].includes(name)) {
+                await checkExisting(field);
+            } else {
+                field.classList.add('is-valid');
+            }
+        } else {
+            showFieldError(field, errorMessages[name] || 'Andika neza ibisabwa kuri iki gice.');
+            field.classList.remove('is-valid');
+            field.classList.add('is-invalid');
         }
-      } else if (name === 'password1') {
-        isValid = value.length >= 4;
-      } else if (name === 'password2') {
-        const pw1 = document.getElementById('id_password1').value;
-        isValid = value.length >= 4 && value === pw1;
-      } else {
-        isValid = field.checkValidity();
-      }
 
-      if (isValid) {
-        clearFieldError(field);
-      } else {
-        showFieldError(field, errorMessages[name] || 'Andika neza ibisabwa kuri iki gice.');
-      }
+        return isValid;
+    }
 
-      if (['email', 'phone_number', 'name'].includes(field.name)) {
-        checkExisting(field);
-      }
+    // Check if field value is unique
+    async function checkExisting(field) {
+        const name = field.name;
+        const value = field.value.trim();
+        if (!value) return;
 
-      return isValid || value === '';
+        try {
+            const response = await fetch(`/ajax/check-unique/?field=${name}&value=${encodeURIComponent(value)}`);
+            const data = await response.json();
+
+            if (data.exists) {
+                showFieldError(field, name === 'email'
+                    ? 'Iyi email isanzweho*'
+                    : name === 'phone_number'
+                    ? `Iyi telefone '${value}' isanzweho*`
+                    : `Izina '${value}' risanzweho*`);
+                field.classList.remove('is-valid');
+                field.classList.add('is-invalid');
+            } else {
+                clearFieldError(field);
+                field.classList.add('is-valid');
+            }
+
+        } catch (err) {
+            console.error(`Failed to check ${name}`, err);
+        }
     }
 
     // Check form validity
-    function checkFormValidity() {
+    async function checkFormValidity() {
       let isFormValid = true;
-      fields.forEach(field => {
+      for (const field of fields) {
         if (field.offsetParent !== null) {
           const value = field.value.trim();
           if (value !== '') {
-            const valid = validateField(field);
+            const valid = await validateField(field);
             if (!valid) {
               isFormValid = false;
             }
@@ -369,60 +384,26 @@
             isFormValid = false;
           }
         }
-      });
-      submitBtn.disabled = !isFormValid;
-      submitBtn.innerHTML = !isFormValid ? 'Uzuza ibisabwa wemeze' : 'Emeza';
-    }
-
-    // Debounce function
-    function debounce(fn, delay = 400) {
-      let timer;
-      return function (...args) {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn.apply(this, args), delay);
-      };
-    }
-
-    // Check if field value is unique
-    async function checkExisting(field) {
-      const name = field.name;
-      const value = field.value.trim();
-      if (!value || (name !== 'email' && name !== 'phone_number' && name !== 'name')) return;
-
-      try {
-        const res = await fetch(`/ajax/check-unique/?field=${name}&value=${encodeURIComponent(value)}`);
-        const data = await res.json();
-
-        if (data.exists) {
-          showFieldError(field, name === 'email'
-            ? 'Iyi email isanzweho*'
-            : name === 'phone_number'
-            ? `Iyi telefone '${value}' isanzweho*`
-            : `Izina '${value}' risanzweho*`);
-          submitBtn.disabled = true;
-        } else {
-          clearFieldError(field);
-        }
-      } catch (err) {
-        console.error(`Failed to check ${name}`, err);
       }
+      submitBtn.disabled = !isFormValid;
+      submitBtn.innerHTML = !isFormValid ? 'Uzuza ibisabwa wemeze' : '<i class="bi bi-person-plus-fill me-1"></i> Emeza';
     }
 
+    form.addEventListener('submit', (e) => {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'Tegereza <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    });
     // Add event listeners to fields
     fields.forEach(field => {
-      field._touched = false;
+        field.addEventListener('input', async () => {
+            await validateField(field);
+            checkFormValidity();
+        });
 
-      field.addEventListener('input', debounce(() => {
-        field._touched = true;
-        validateField(field);
-        checkFormValidity();
-      }));
-
-      field.addEventListener('blur', () => {
-        field._touched = true;
-        validateField(field);
-        checkFormValidity();
-      });
+        field.addEventListener('blur', async () => {
+            await validateField(field);
+            checkFormValidity();
+        });
     });
 
     checkFormValidity();
