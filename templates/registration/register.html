@@ -4,12 +4,11 @@
 {% block title %}Iyandikishe{% endblock %}
 
 {% block content %}
+
 <style>
-.mobile-exam-times {
+  .mobile-exam-times {
   display: none;
-}
-</style>
-<style>
+  }
   .rda {
     background: linear-gradient(to bottom,
     #00a9e0 0%,      /* Blue */
@@ -43,7 +42,7 @@
             {% endif %}
             
 
-            <form method="post" novalidate id="registrationForm">
+            <form method="post" action="{% url 'register' %}"id="registrationForm"  novalidate>
                 {% csrf_token %}
 
                 <!-- Name -->
@@ -215,287 +214,6 @@
 {% block extra_js %}
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('registrationForm');
-    const submitBtn = form.querySelector('button[type="submit"]');
-    //const fields = form.querySelectorAll('input');
-    const fields = form.querySelectorAll('input:not([name="contact_mode"])');
-
-
-    function getErrorMessage(name, value = '') {
-      const messages = {
-          name: 'Andika izina rifite nibura inyuguti  4 kandi ritari imibare.',
-          email: 'Shyiramo email yemewe. Urugero: izina@example.com',
-          phone_number: 'Telefone igomba gutangira na 07.',
-          low_number :  'Shyiramo imibare yuzuye itangira na 07',
-          char_phone: 'Telefone igomba kuba imibare',
-          password1: 'Ijambobanga rigomba kuba rifite nibura inyuguti 4*',
-          password2: "Reba ko risa n'iryo hejuru!",
-      };
-      return messages[name] || 'Andika neza ibisabwa kuri iki gice.';
-    }
-
-
-    function showFieldError(field, message) {
-        const container = field.closest('.mb-3');
-        const existingError = container.querySelector('.live-error-msg');
-
-        field.classList.add('is-invalid');
-        field.classList.remove('is-valid');
-
-        if (!existingError) {
-            const div = document.createElement('div');
-            div.className = 'text-danger small live-error-msg mb-1';
-            div.textContent = message;
-            const label = container.querySelector('label');
-            const next = label.nextElementSibling;
-            container.insertBefore(div, next);
-        } else {
-            existingError.textContent = message;
-        }
-    }
-
-    function clearFieldError(field) {
-        const container = field.closest('.mb-3');
-        const existingError = container.querySelector('.live-error-msg');
-        field.classList.add('is-valid');
-        field.classList.remove('is-invalid');
-        if (existingError) existingError.remove();
-    }
-
-    function validateField(field) {
-      let name = field.name;
-      const value = field.value.trim();
-      let isValid = true;
-
-      if (!field._touched) return;
-
-      //if (name === 'contact_mode') {
-        // Check if any radio with the name "contact_mode" is checked
-      //  const checked = document.querySelector('input[name="contact_mode"]:checked');
-       // isValid = checked !== null;
-      //}
-
-      // Validation logic
-      if (name === 'name') {
-          const regex = /^[A-Za-zÀ-ÿ '-]+$/;
-          isValid = value !== '' && regex.test(value) && !/^\d+$/.test(value) && value.length >= 4;
-        }
-       else if (name === 'email') {
-          const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          isValid = !value || regex.test(value);
-      } else if (name === 'phone_number') {
-          // const regex = /^(?:\+25)?07[2389]\d{07}$/;
-          const regex_char = /^[0-9]+$/;
-          const regex = /^07/;
-          const clean = value.trim().replace(/^\s+|[-\s]/g, ''); // removes leading space & dashes
-          // isValid = !!value || regex.test(clean);
-
-          if (value && !regex.test(clean))
-          {
-            isValid = false
-          }
-          else if(value && value.length < 10){
-            name = 'low_number';
-            isValid =false;
-          }
-
-          if (!regex_char.test(value)){
-            name = 'char_phone';
-            isValid = false;
-          }
-
-
-      } else if (name === 'password1') {
-          isValid = value.length >= 4;
-      } else if (name === 'password2') {
-          const pw1 = document.getElementById('id_password1').value;
-          isValid = value.length >= 4 && value === pw1;
-      } else {
-          isValid = field.checkValidity();
-      }
-
-      // Handle error UI
-      if (value === '') {
-          field.classList.remove('is-valid', 'is-invalid');
-      } else if (isValid) {
-          field.classList.add('is-valid');
-          field.classList.remove('is-invalid');
-      } else {
-          field.classList.add('is-invalid');
-          field.classList.remove('is-valid');
-      }
-
-      const container = field.closest('.mb-3');
-      const existingError = container.querySelector('.live-error-msg');
-      if (!isValid) {
-          if (!existingError) {
-              const div = document.createElement('div');
-              div.className = 'text-danger small live-error-msg mb-1';
-              div.textContent = getErrorMessage(name);
-              const label = container.querySelector('label');
-              const next = label.nextElementSibling;
-              container.insertBefore(div, next);
-          } else {
-              existingError.textContent = getErrorMessage(name);
-          }
-      } else if (existingError) {
-          existingError.remove();
-      }
-
-      // Async check for existing email/phone (if valid format)
-      if (isValid && (name === 'email' || name === 'phone_number')) {
-          checkExisting(field);
-      }
-
-      return isValid || value === '';
-
-    }
-
-
-    function checkFormValidity() {
-        let isFormValid = true;
-        fields.forEach(field => {
-            if (field.offsetParent !== null) {
-                const value = field.value.trim();
-                if (value !== '') {
-                    const valid = validateField(field);
-                    if (!valid) {
-                    isFormValid = false;
-
-                    }
-                } else {
-                    isFormValid = false;
-                }
-            }
-        });
-        submitBtn.disabled = !isFormValid;
-
-        submitBtn.innerHTML = !isFormValid ? 'Uzuza ibisabwa wemeze': 'Emeza';
-    }
-
-    function debounce(fn, delay = 400) {
-        let timer;
-        return function (...args) {
-            clearTimeout(timer);
-            timer = setTimeout(() => fn.apply(this, args), delay);
-        };
-    }
-
-    async function checkExisting(field) {
-      const name = field.name;
-      const value = field.value.trim();
-      if (!value || (name !== 'email' && name !== 'phone_number')) return;
-
-      // Pre-check format before sending request
-      if (name === 'email') {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(value)) return;
-      }
-
-      if (name === 'phone_number') {
-          const phoneRegex = /^(?:\+250)?7[2389]\d{7}$/;
-          if (!phoneRegex.test(value.replace(/\s|-/g, ''))) return;
-      }
-
-      try {
-          const res = await fetch(`/check-unique/?field=${name}&value=${encodeURIComponent(value)}`);
-          const data = await res.json();
-          if (data.exists) {
-              showFieldError(field, name === 'email'
-                  ? 'Iyi email isanzweho*'
-                  : `Iyi telefone '${value}' isanzweho*`);
-              submitBtn.disabled = true;
-          }
-      } catch (err) {
-          console.error(`Failed to check ${name}`, err);
-      }
-  }
-
-
-    fields.forEach(field => {
-        field._touched = false;
-
-        field.addEventListener('input', debounce(() => {
-            field._touched = true;
-            validateField(field);
-            checkFormValidity();
-
-            if (['email', 'phone_number'].includes(field.name)) {
-                checkExisting(field);
-            }
-        }));
-
-        field.addEventListener('blur', () => {
-            field._touched = true;
-            validateField(field);
-            checkFormValidity();
-        });
-    });
-
-    checkFormValidity();
-
-    const whatsappConsentModal = new bootstrap.Modal(document.getElementById('whatsappConsentModal'));
-
-
-      // WhatsApp consent form logic
-      const yesRadio = document.getElementById('consent_yes');
-      const noRadio = document.getElementById('consent_no');
-      const whatsappField = document.getElementById('whatsappNumberField');
-      const whatsappInput = document.getElementById('id_whatsapp_number');
-      const consentSubmitBtn = document.getElementById('consentSubmitBtn');
-
-      function updateConsentUI() {
-        // Update WhatsApp number field visibility
-        if (yesRadio.checked) {
-          whatsappField.style.display = 'block';
-          whatsappInput.setAttribute('required', 'required');
-        } else {
-          whatsappField.style.display = 'none';
-          whatsappInput.removeAttribute('required');
-        }
-
-        // Update button text based on selection
-        if (yesRadio.checked) {
-          consentSubmitBtn.textContent = 'Ndemeye';
-          consentSubmitBtn.classList.remove('d-none');
-          consentSubmitBtn.classList.add('btn-success');
-        } else if (noRadio.checked) {
-          consentSubmitBtn.textContent = 'Komeza';
-          consentSubmitBtn.classList.remove('d-none');
-        }
-      }
-
-      // Add event listeners to radio buttons
-      document.querySelectorAll('input[name="consent"]').forEach(radio => {
-        radio.addEventListener('change', updateConsentUI);
-      });
-
-      // Handle form submission
-      document.getElementById('consentForm').addEventListener('submit', function(e) {
-        if (noRadio.checked) {
-          e.preventDefault();
-          window.location.href = "{% url 'login' %}";
-        }
-        // If yes is selected, the form will submit normally
-      });
-
-      // Initialize UI on page load
-      updateConsentUI();
-
-      // Set custom validation message for WhatsApp number
-      whatsappInput.oninvalid = function() {
-        this.setCustomValidity('Niba wahisemo yego, andika numero ya WhatsApp');
-      };
-      whatsappInput.oninput = function() {
-        this.setCustomValidity('');
-      };
-  });
-</script>
-
-
-
-<script>
 
       function togglePassword(id, btn) {
           const input = document.getElementById(id);
@@ -537,5 +255,219 @@
     });
 
 
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('registrationForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const fields = form.querySelectorAll('input:not([name="contact_mode"])');
+    const whatsappConsentModal = new bootstrap.Modal(document.getElementById('whatsappConsentModal'));
+
+    // Error messages
+    const errorMessages = {
+      name: 'Andika izina rifite nibura inyuguti  4 kandi ritari imibare.',
+      email: 'Shyiramo email yemewe. Urugero: izina@example.com',
+      phone_number: 'Telefone igomba gutangira na 07.',
+      low_number: 'Shyiramo imibare yuzuye itangira na 07',
+      char_phone: 'Telefone igomba kuba imibare',
+      password1: 'Ijambobanga rigomba kuba rifite nibura inyuguti 4*',
+      password2: "Reba ko risa n'iryo hejuru!",
+    };
+
+    // Show error message
+    function showFieldError(field, message) {
+      const container = field.closest('.mb-3');
+      const existingError = container.querySelector('.live-error-msg');
+
+      field.classList.add('is-invalid');
+      field.classList.remove('is-valid');
+
+      if (!existingError) {
+        const div = document.createElement('div');
+        div.className = 'text-danger small live-error-msg mb-1';
+        div.textContent = message;
+        const label = container.querySelector('label');
+        const next = label.nextElementSibling;
+        container.insertBefore(div, next);
+      } else {
+        existingError.textContent = message;
+      }
+    }
+
+    // Clear error message
+    function clearFieldError(field) {
+      const container = field.closest('.mb-3');
+      const existingError = container.querySelector('.live-error-msg');
+      field.classList.add('is-valid');
+      field.classList.remove('is-invalid');
+      if (existingError) existingError.remove();
+    }
+
+    // Validate field
+    function validateField(field) {
+      const name = field.name;
+      const value = field.value.trim();
+      let isValid = true;
+
+      if (!field._touched) return;
+
+      if (name === 'name') {
+        const regex = /^[A-Za-zÀ-ÿ '-]+$/;
+        isValid = value !== '' && regex.test(value) && !/^\d+$/.test(value) && value.length >= 4;
+      } else if (name === 'email') {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        isValid = !value || regex.test(value);
+      } else if (name === 'phone_number') {
+        const regex_char = /^[0-9]+$/;
+        const regex = /^07/;
+        const clean = value.trim().replace(/^\s+|[-\s]/g, '');
+        if (value && !regex.test(clean)) {
+          isValid = false;
+        } else if (value && value.length < 10) {
+          showFieldError(field, errorMessages.low_number);
+          isValid = false;
+        }
+        if (!regex_char.test(value)) {
+          showFieldError(field, errorMessages.char_phone);
+          isValid = false;
+        }
+      } else if (name === 'password1') {
+        isValid = value.length >= 4;
+      } else if (name === 'password2') {
+        const pw1 = document.getElementById('id_password1').value;
+        isValid = value.length >= 4 && value === pw1;
+      } else {
+        isValid = field.checkValidity();
+      }
+
+      if (isValid) {
+        clearFieldError(field);
+      } else {
+        showFieldError(field, errorMessages[name] || 'Andika neza ibisabwa kuri iki gice.');
+      }
+
+      if (['email', 'phone_number', 'name'].includes(field.name)) {
+        checkExisting(field);
+      }
+
+      return isValid || value === '';
+    }
+
+    // Check form validity
+    function checkFormValidity() {
+      let isFormValid = true;
+      fields.forEach(field => {
+        if (field.offsetParent !== null) {
+          const value = field.value.trim();
+          if (value !== '') {
+            const valid = validateField(field);
+            if (!valid) {
+              isFormValid = false;
+            }
+          } else {
+            isFormValid = false;
+          }
+        }
+      });
+      submitBtn.disabled = !isFormValid;
+      submitBtn.innerHTML = !isFormValid ? 'Uzuza ibisabwa wemeze' : 'Emeza';
+    }
+
+    // Debounce function
+    function debounce(fn, delay = 400) {
+      let timer;
+      return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+      };
+    }
+
+    // Check if field value is unique
+    async function checkExisting(field) {
+      const name = field.name;
+      const value = field.value.trim();
+      if (!value || (name !== 'email' && name !== 'phone_number' && name !== 'name')) return;
+
+      try {
+        const res = await fetch(`/ajax/check-unique/?field=${name}&value=${encodeURIComponent(value)}`);
+        const data = await res.json();
+
+        if (data.exists) {
+          showFieldError(field, name === 'email'
+            ? 'Iyi email isanzweho*'
+            : name === 'phone_number'
+            ? `Iyi telefone '${value}' isanzweho*`
+            : `Izina '${value}' risanzweho*`);
+          submitBtn.disabled = true;
+        } else {
+          clearFieldError(field);
+        }
+      } catch (err) {
+        console.error(`Failed to check ${name}`, err);
+      }
+    }
+
+    // Add event listeners to fields
+    fields.forEach(field => {
+      field._touched = false;
+
+      field.addEventListener('input', debounce(() => {
+        field._touched = true;
+        validateField(field);
+        checkFormValidity();
+      }));
+
+      field.addEventListener('blur', () => {
+        field._touched = true;
+        validateField(field);
+        checkFormValidity();
+      });
+    });
+
+    checkFormValidity();
+
+    // WhatsApp consent logic
+    const yesRadio = document.getElementById('consent_yes');
+    const noRadio = document.getElementById('consent_no');
+    const whatsappField = document.getElementById('whatsappNumberField');
+    const whatsappInput = document.getElementById('id_whatsapp_number');
+    const consentSubmitBtn = document.getElementById('consentSubmitBtn');
+
+    function updateConsentUI() {
+      if (yesRadio.checked) {
+        whatsappField.style.display = 'block';
+        whatsappInput.setAttribute('required', 'required');
+        consentSubmitBtn.textContent = 'Ndemeye';
+        consentSubmitBtn.classList.remove('d-none');
+        consentSubmitBtn.classList.add('btn-success');
+      } else if (noRadio.checked) {
+        whatsappField.style.display = 'none';
+        whatsappInput.removeAttribute('required');
+        consentSubmitBtn.textContent = 'Komeza';
+        consentSubmitBtn.classList.remove('d-none');
+      }
+    }
+
+    document.querySelectorAll('input[name="consent"]').forEach(radio => {
+      radio.addEventListener('change', updateConsentUI);
+    });
+
+    document.getElementById('consentForm').addEventListener('submit', function (e) {
+      if (noRadio.checked) {
+        e.preventDefault();
+        window.location.href = "{% url 'login' %}";
+      }
+    });
+
+    updateConsentUI();
+
+    whatsappInput.oninvalid = function () {
+      this.setCustomValidity('Niba wahisemo yego, andika numero ya WhatsApp');
+    };
+    whatsappInput.oninput = function () {
+      this.setCustomValidity('');
+    };
+  });
 </script>
 {% endblock %}

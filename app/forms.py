@@ -97,7 +97,6 @@ def validate_strong_password(value):
     # if is_sequential(value.lower()):
     #     raise ValidationError("Password cannot be a simple sequence of characters.")
 
-
 class RegisterForm(forms.ModelForm):
     password1 = forms.CharField(
         widget=forms.PasswordInput,
@@ -187,7 +186,6 @@ class RegisterForm(forms.ModelForm):
         if commit:
             user.save()
         return user
-
 
 class WhatsAppConsentForm(forms.Form):
     consent = forms.ChoiceField(

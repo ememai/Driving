@@ -45,11 +45,14 @@ def check_unique_field(request):
     if field == "email" and value:
         response["exists"] = User.objects.filter(email__iexact=value).exists()
     elif field == "phone_number" and value:
-        response["exists"] = User.objects.filter(phone_number=value).exists()
+        
+        if len(value) >= 10:
+            response["exists"] = User.objects.filter(phone_number__icontains=value).exists()
+        # response["exists"] = User.objects.filter(phone_number__contains=value).exists()
+    elif field == "name" and value:
+        response["exists"] = User.objects.filter(name__iexact=value).exists()
 
     return JsonResponse(response)
-
-# ---------------------
 
 @login_required(login_url='register')
 def home(request):
@@ -430,6 +433,7 @@ def contact(request):
 
     return render(request, 'contact.html')
 
+
 @redirect_authenticated_users
 def register_view(request):
     if request.method == 'POST':
@@ -461,6 +465,7 @@ def register_view(request):
         form = RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
+
 def whatsapp_consent(request):
     # Get the newly registered user from session
     user_id = request.session.get('new_user_id')
@@ -491,6 +496,8 @@ def whatsapp_consent(request):
         'form': form,
         'user': user
     })
+
+
 @redirect_authenticated_users
 def verify_otp(request, user_id):
     # Fetch the UserProfile instance
