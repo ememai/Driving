@@ -449,7 +449,6 @@ def register_view(request):
                 user.save()
                 messages.success(request, 'Kwiyandikisha muri Kigali Driving School byagenze neza')
                 return render(request, 'registration/register.html', {'registration_success': True})
-                # return redirect("whatsapp_consent")  # Redirect to consent page
 
             if form.cleaned_data.get("email"):
                 try:
@@ -458,16 +457,12 @@ def register_view(request):
                     return redirect('verify_otp', user_id=user.id)
                 except Exception as e:
                     form.add_error('email', "Imeri wanditse ntago ibasha koherezwaho code. Ongera usuzume neza.")
-        # else:
-        #     for field, errors in form.errors.items():
-        #         for error in errors:
-        #             messages.error(request, f"!!! 🙇🏼‍♂️ {error}")
     else:
         form = RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
-
-def whatsapp_consent(request):# Get the newly registered user from session
+def whatsapp_consent(request):
+    # Get the newly registered user from session
     user_id = request.session.get('new_user_id')
     if not user_id:
         return redirect('register')
@@ -485,17 +480,10 @@ def whatsapp_consent(request):# Get the newly registered user from session
                 user.whatsapp_consent = True
                 user.whatsapp_notifications = True
                 user.whatsapp_number = form.cleaned_data['whatsapp_number']
-                user.save()
+            
+            user.save()
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('home')
-                # messages.success(request, "Urakoze kwemera amakuru kuri WhatsApp.")
-            # else:
-            #     messages.info(request, "Urakoze kwiyandikisha.")
-            
-            # Clear the session and redirect to login
-            # if 'new_user_id' in request.session:
-            #     del request.session['new_user_id']
-            # return redirect('home')
     else:
         form = WhatsAppConsentForm()
     
@@ -503,7 +491,6 @@ def whatsapp_consent(request):# Get the newly registered user from session
         'form': form,
         'user': user
     })
-    
 @redirect_authenticated_users
 def verify_otp(request, user_id):
     # Fetch the UserProfile instance

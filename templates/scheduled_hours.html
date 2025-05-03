@@ -170,7 +170,7 @@
           {% else %}
             <span class="hour-link disabled position-relative" title="Isaha ntago iragera" aria-disabled="true">
               {% comment %} <span class="pending-check" aria-label="Pending">Mu minota</span> {% endcomment %}
-                {% if exam.scheduled_datetime|time:"H" == current_hour %}
+               
               <span id="hour-span" class="countdown fade-in" role="timer" aria-live="polite">
                 {% with exam.remaining_time|minutes as minutes %}
                 {% with exam.remaining_time|seconds as seconds %}
@@ -179,7 +179,7 @@
                 
                 {% endwith %}
               </span>
-              {% endif %}
+              
               <span >{{ exam.scheduled_datetime|time:"H:00" }}</span>
             </span>
           {% endif %}
