@@ -486,14 +486,16 @@ def whatsapp_consent(request):# Get the newly registered user from session
                 user.whatsapp_notifications = True
                 user.whatsapp_number = form.cleaned_data['whatsapp_number']
                 user.save()
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return redirect('home')
                 # messages.success(request, "Urakoze kwemera amakuru kuri WhatsApp.")
             # else:
             #     messages.info(request, "Urakoze kwiyandikisha.")
             
             # Clear the session and redirect to login
-            if 'new_user_id' in request.session:
-                del request.session['new_user_id']
-            return redirect('login')
+            # if 'new_user_id' in request.session:
+            #     del request.session['new_user_id']
+            # return redirect('home')
     else:
         form = WhatsAppConsentForm()
     

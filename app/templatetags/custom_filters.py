@@ -59,8 +59,6 @@ def percentage(value, total):
 def current_date(value):
     return timezone.now().date()
 
-
-
 @register.filter
 def get_plan_description(plan_value):
     return {
@@ -100,7 +98,7 @@ def get_old_price(value):
 def get_plan_price(value):
     return {
         'Daily': '1000',
-        'Weekly': '2000',
+        'Weekly': '3000',
         'Monthly': '5000',
         'Super': '10000',
         }.get(value, '')

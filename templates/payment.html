@@ -112,7 +112,7 @@
       🎉🎊✨
     </div>
     <div class="position-relative text-center p-0" style="overflow: hidden;">
-      <div class="position-absolute top-0 end-0 translate-middle opacity-25" style="font-size: 5rem; transform: rotate(25deg); pointer-events: none; animation: float 6s ease-in-out infinite;">
+      <div class="position-absolute top-0 end-0 translate-middle opacity-25 p-0" style="font-size: 5rem; transform: rotate(25deg); pointer-events: none; animation: float 6s ease-in-out infinite;">
         🌟🎁🔥
       </div>
       <h4 class="fw-bold display-4 mb-3" style="font-size: 2.75rem; animation: popUp 2s ease-out;">
@@ -194,8 +194,8 @@
         <h2 class="fw-bold">Uburyo bwo kwishyura:</h2>
         <h4 class="underline">Koresha code:</h4>
         <strong>*182*8*1*187756*<strong id="js-plan">0</strong>#</strong><br>
-        <button id="callButton" class="btn btn-outline-primary">
-          <i class="bi bi-telephone"></i> Hamagara
+        <button id="callButton" class="btn btn-outline-primary d-md-none">
+          <i class="bi bi-telephone"></i> Emeza
         </button>
         <h4 class="underline">Niba ukoresha nimero:</h4>
         <strong>0785287885</strong><hr class="text-theme">
@@ -310,7 +310,7 @@
           runCarouselOnce();
         }, 3000);
       } else {
-        activateCard(Math.floor((cards.length - 1)));
+        activateCard(Math.floor((cards.length)));
       }
     }
 

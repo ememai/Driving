@@ -347,7 +347,6 @@ class ExamTypeAdmin(admin.ModelAdmin):
     search_fields = ['name']
     ordering = ['order']
 
-
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
     list_display = ('exam_type','schedule_hour', 'total_questions','for_scheduling', 'created_at', 'updated_at')
