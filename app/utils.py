@@ -122,7 +122,7 @@ def auto_create_exams(number):
 
             last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
             next_hour = (last_exam.schedule_hour.hour + 1 if last_exam and last_exam.schedule_hour else 8) % 24
-            next_hour = next_hour if next_hour >= 8 and next_hour <= 16 else 8
+            next_hour = next_hour if next_hour >= 8 and next_hour <= 15 else 8
 
             exam_schedule_hour = time(next_hour, 0)
 
