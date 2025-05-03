@@ -594,13 +594,26 @@ class UserExam(models.Model):
             return duration if duration <= 20 else 'Ntiwasoje'
         return 'None'
 
+    @staticmethod
+    def has_attempted_exams(user):
+        """Check if the user has already attempted any exams."""
+        return UserExam.objects.filter(user=user, completed_at__isnull=False).exists()
+
+    @staticmethod
+    def has_attempted_first_exam(user):
+        """Check if the user has already attempted the first exam instance."""
+        first_exam = Exam.objects.order_by('created_at').first()  # Get the first exam instance
+        if not first_exam:
+            return False
+                
+        return UserExam.objects.filter(user=user, exam_id=first_exam.id, completed_at__isnull=False).exists()
+
     def save(self, *args, **kwargs):
-        if not self.user.is_subscribed and not self.user.is_staff :
-            raise ValidationError("Ntiwishyuye.")
-
-        if self.completed_at and self.completed_at < timezone.now() - timedelta(hours=24):
-            raise ValidationError("You cannot modify exams older than 24 hours.")
-
+        # Allow only the first exam instance to be free
+        first_exam = Exam.objects.filter(exam_type__name__icontains='ibivanze').order_by('created_at').first()# Get the first exam instance
+        if not self.user.is_staff and not self.user.is_subscribed:
+            if self.exam != first_exam:
+                raise ValidationError("You need a subscription to attempt this exam.")
         super().save(*args, **kwargs)
 
     def __str__(self):

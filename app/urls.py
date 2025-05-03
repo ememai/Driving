@@ -22,7 +22,7 @@ urlpatterns = [
     path('exam/<int:exam_id>/<int:question_number>/', subscription_required(views.exam), name='exam'),
     path('exam/<int:exam_id>/ajax/<int:question_number>/', views.ajax_question, name='ajax_question'),
 
-    path('exam-results/<int:user_exam_id>/', subscription_required(views.exam_results), name='exam_results'),
+    path('exam-results/<int:user_exam_id>/', views.exam_results, name='exam_results'),
 
     path('exam/<int:exam_id>/retake/', views.retake_exam, name='retake_exam'),
     path('ibizamini-byicyumweru/', views.weekly_exams, name='weekly_exams'),

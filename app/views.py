@@ -92,9 +92,7 @@ class SubscriptionRequiredView(View):
 @login_required(login_url='login')
 @subscription_required
 def exam_detail(request, pk):
-    exam_obj = get_object_or_404(Exam, pk=pk)
-    # if not request.user.is_authenticated or not request.user.is_subscribed:        
-    #     return redirect('subscription')
+    exam_obj = get_object_or_404(Exam, pk=pk)   
     return render(request, 'exams/exam_detail.html', {'exam': exam_obj})
 
 @staff_member_required
@@ -235,6 +233,13 @@ def exam(request, exam_id, question_number):
     exam = get_object_or_404(Exam, id=exam_id)
     questions = list(exam.questions.all())
     total_questions = len(questions)
+
+    
+    # first_exam = Exam.objects.order_by('created_at').first() # Get the first exam instance
+    # if not request.user.is_staff and not request.user.is_subscribed:
+    #     if exam != first_exam:
+    #         return redirect('subscription')
+        
 
     user_exam, created = UserExam.objects.get_or_create(
         user=request.user,
@@ -594,10 +599,12 @@ def user_logout(request):
 # ---------------------
 @login_required(login_url='login')
 def payment(request):
+    first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze').order_by('created_at').first().id
     plans = Plan.PLAN_CHOICES
     context = {
         'plans': plans,
         'range_10': range(10),
+        'first_exam_id': first_exam_id,
     }
     return render(request, 'payment.html', context)
 # ---------------------
