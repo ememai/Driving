@@ -137,15 +137,19 @@ class UserProfile(AbstractUser):
 
         self.otp_code = str(random.randint(100000, 999999))
         self.save()
+        message = f"Koresha iyi code y'isuzuma👉 {self.otp_code}"
+
 
         try:
             send_mail(
-                'OTP Code yawe',
-                f"Koresha iyi code y'isuzuma👉 {self.otp_code}",
-                settings.DEFAULT_FROM_EMAIL,
-                [self.email, 'kigalids250@gmail.com'],
-                fail_silently=False,
-                )
+                        subject=f"OTP Code yawe",
+                        message=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[self.email],
+                        fail_silently=False,
+                    )
+            logger.info(f"📧 Email sent to {self.email}")
+            logger.debug(f"Attempting to send OTP to {self.email}")
         except (BadHeaderError, SMTPException) as e:
             raise ValidationError(
                 f"Imeri '{self.email}' ntabwo yakiriye ubutumwa. Waba warayanditse nabi cyangwa ntiyabayeho?"

@@ -455,7 +455,9 @@ def register_view(request):
                 user.otp_verified = True  
                 user.save()
                 messages.success(request, 'Kwiyandikisha muri Kigali Driving School byagenze neza')
-                return render(request, 'registration/register.html', {'registration_success': True})
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                return redirect('whatsapp_consent')
+                # return render(request, 'registration/register.html', {'registration_success': True})
 
             if form.cleaned_data.get("email"):
                 try:
@@ -483,10 +485,10 @@ def whatsapp_consent(request):
         form = WhatsAppConsentForm(request.POST)
         
         if form.is_valid():
-            if form.cleaned_data['consent'] == 'yes':
-                user.whatsapp_consent = True
-                user.whatsapp_notifications = True
-                user.whatsapp_number = form.cleaned_data['whatsapp_number']
+            if form.cleaned_data['consent'] == 'no':
+                user.whatsapp_consent = False
+                user.whatsapp_notifications = False
+                # user.whatsapp_number = form.cleaned_data['whatsapp_number']
                           
             user.save()
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
@@ -763,3 +765,15 @@ def csrf_failure(request, reason=""):
         'csrf_token': get_token(request),  # Generate new token
     }
     return render(request, '403.html', ctx, status=403)
+
+
+
+@csrf_exempt
+@login_required
+def resend_otp(request, user_id):
+    if request.method == "POST":
+        user_profile = get_object_or_404(UserProfile, id=user_id)
+        # Logic to resend OTP (e.g., send email or SMS)
+        user_profile.send_otp_email()  # Assuming you have a method to send OTP
+        return JsonResponse({"message": "OTP resent successfully."}, status=200)
+    return JsonResponse({"error": "Invalid request."}, status=400)

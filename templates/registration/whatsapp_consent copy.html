@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+   input:focus::placeholder{
+    color: transparent;
+   }
+</style>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body bg-theme text-theme">
+                    <h3 class="card-title text-center mb-4">Ubutumwa kuri <i class="bi bi-whatsapp text-green"></i>WhatsApp</h3>
+                    
+                    {% if messages %}
+                    <div class="mb-3">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST" id="consentForm">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <p class="mb-1">
+                                <strong>
+                                    Ushaka kujya ubona Ubutumwa bw'ikizamini gishya kuri WhatsApp?
+                                </strong>
+                                
+                            </p>
+                            <ul class="mb-3">
+                                <li>
+                                    <small>ikizamini kijyaho buri Saha kuva saa 8:00 kugera 15:00</small>
+                                </li>
+                                <li>
+                                    <small>
+                                    Wabifunga igihe utakibishaka
+                                    </small>
+                                </li>
+                            </ul>
+
+                            
+                            <div class="d-flex gap-2 mb-3">
+                                <input type="radio" class="btn-check" name="consent" id="consent_yes" value="yes" autocomplete="off">
+                                <label class="btn  fw-bolder fs-5 btn-outline-success flex-grow-1 py-2" for="consent_yes">Yego</label>
+                                
+                                <input type="radio" class="btn-check" name="consent" id="consent_no" value="no" autocomplete="off">
+                                <label class="btn fs-5 btn-outline-warning  fw-bold flex-grow-1 py-2" for="consent_no">Oya</label>
+                            </div>
+                            
+                            {% if form.consent.errors %}
+                            <div class="text-danger error mb-2">
+                                {{ form.consent.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div id="whatsappNumberField" class="mb-3" style="display: none;">
+                            <label for="id_whatsapp_number" class="form-label fs-4">WhatsApp Number:</label>
+                            <input type="text" name="whatsapp_number" class="form-control p-2  border border-theme " 
+                                   placeholder="Shyiramo numero ya WhatsApp (+25078...)" id="id_whatsapp_number">
+                            {% comment %} <small class="form-text text-muted"></small> {% endcomment %}
+                            {% if form.whatsapp_number.errors %}
+                                <div class="text-danger mt-1">
+                                    {{ form.whatsapp_number.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 py-2 mt-3">Ndemeye</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const yesRadio = document.getElementById('consent_yes');
+    const whatsappField = document.getElementById('whatsappNumberField');
+    const whatsappInput = document.getElementById('id_whatsapp_number');
+    
+    function toggleWhatsappField() {
+        if (yesRadio.checked) {
+            whatsappField.style.display = 'block';
+            whatsappInput.setAttribute('required', 'required');
+        } else {
+            whatsappField.style.display = 'none';
+            whatsappInput.removeAttribute('required');
+        }
+    }
+    
+    // Listen to both radio buttons
+    document.querySelectorAll('input[name="consent"]').forEach(radio => {
+        radio.addEventListener('change', toggleWhatsappField);
+    });
+    
+    // Initialize on page load
+    toggleWhatsappField();
+
+    const radioButtons = document.querySelectorAll('input[name="consent"]');
+    const errorDiv = document.querySelector('.error');
+    
+    if (errorDiv) {
+        radioButtons.forEach(radio => {
+            radio.addEventListener('focus', function() {
+                errorDiv.style.display = 'none';
+            });
+            
+            // Optional: Show again when focus is lost if still invalid
+            radio.addEventListener('blur', function() {
+                if (!this.checked && !document.querySelector('input[name="consent"]:checked')) {
+                    errorDiv.style.display = 'block';
+                }
+            });
+        });
+    }
+
+    document.getElementById('id_whatsapp_number').oninvalid = function(e) {
+        e.target.setCustomValidity('Niba wahisempo yego andika numero ya WhatsApp');
+    };
+    document.getElementById('id_whatsapp_number').oninput = function(e) {
+        e.target.setCustomValidity('');
+    };
+    });
+</script>
+
+{% comment %} <style>
+.btn-check:checked + .btn-outline-primary {
+    background-color: var(--bs-primary);
+    color: white;
+    border-color: var(--bs-primary);
+}
+</style> {% endcomment %}
+{% endblock %}
