@@ -107,12 +107,9 @@
       <p class="fw-bold text-warning">Ntafatabuguzi ufite!!!</p>
     {% endif %}
     {% include "flash_message.html" %}
-    <a href="{% url 'exam_detail' first_exam_id %}"
-       class="btn btn-outline-primary fw-bold mt-3 mb-4 {% if user.is_subscribed %}d-none{% endif %}">
-       Kora ikizamini cy'ubuntu <i class="bi bi-check-circle"></i>
-    </a>
+    
   </div>
-  <div class="alert alert-info text-center fs-5 my-4 position-relative" role="alert" style="overflow: hidden;">
+  {% comment %} <div class="alert alert-info text-center fs-5 my-4 position-relative" role="alert" style="overflow: hidden;">
     <div class="position-absolute top-0 start-0 translate-middle" style="font-size: 3rem; opacity: 0.2; transform: rotate(-30deg);">
       🎉🎊✨
     </div>
@@ -158,7 +155,7 @@
       }
     </style>
     
-   </div>
+  </div> {% endcomment %}
 
   <div class="alert text-center fs-5" role="alert">
     <p class="fw-bold">Hitamo Ifatabuguzi rikunogeye!</p>
@@ -211,6 +208,14 @@
       </div>
     </form>
   </div>
+  <div class="text-center mt-4">
+    <p class="fw-bold">Ushaka ubufasha?
+      <i class="fa fa-phone text-primary"> 0785287885</i>
+    </p>
+    <a href="{% url 'exam_detail' first_exam_id %}"
+       class="btn btn-outline-secondary text-theme fw-bold mt-3 mb-4 {% if user.is_subscribed %}d-none{% endif %}">
+       Kora ikizamini cy'ubuntu <i class="bi bi-check-circle"></i>
+    </a>
 
   <!-- WhatsApp Modal -->
   <div class="modal fade" id="whatsappModal" tabindex="-1" aria-labelledby="whatsappModalLabel" aria-hidden="true">
@@ -315,7 +320,8 @@
           runCarouselOnce();
         }, 3000);
       } else {
-        activateCard(Math.floor((cards.length)));
+        activateCard(Math.floor((cards.length - 1) / 2));
+        current = 0;
       }
     }
 
