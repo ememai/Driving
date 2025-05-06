@@ -62,6 +62,10 @@ def current_date(value):
 @register.filter
 def get_plan_description(plan_value):
     return {
+        'Hourly': [
+            ('⏱️', 'Rimara Isaha imwe'),
+            ('📝', 'Ukora ibizamini byose ushaka'),
+        ],
         'Daily': [
             ('⏱️', 'Rimara Umunsi wose'),
             ('📝', 'Ukora ibizamini byose ushaka'),
@@ -80,7 +84,7 @@ def get_plan_description(plan_value):
         'Super': [
             ('🗓️', 'Kugeza igihe uzakorera ikizamini'),
             ('📝', 'Ukora ibizamini byose ushaka'),
-            ('🤝', "Uhabwa amasomo agufasha kwiga n'ubundi bufasha"),
+            ('🤝', "Uhabwa amasomo online iyo ubishaka"),
         ],
     }.get(plan_value, [])
 
@@ -97,6 +101,7 @@ def get_old_price(value):
 @register.filter
 def get_plan_price(value):
     return {
+        'Hourly': '100',
         'Daily': '1000',
         'Weekly': '3000',
         'Monthly': '5000',
@@ -199,6 +204,7 @@ def seconds(value):
         return int((value) % 60000) // 1000
     except (ValueError, TypeError):
         return 0
+
 @register.filter
 def minutes(value):
     """Convert milliseconds to minutes."""

@@ -165,6 +165,7 @@ class UserProfile(AbstractUser):
 
 class Plan(models.Model):
     PLAN_CHOICES = (
+        ('Hourly', "Ry'isaha"),
         ('Daily', "Ry'umunsi"),
         ('Weekly', "Ry'icyumweru"),
         ('Monthly', "Ry'ukwezi"),

@@ -318,7 +318,7 @@
         scrollTimeout = setTimeout(() => {
           current++;
           runCarouselOnce();
-        }, 3000);
+        }, 10000);
       } else {
         activateCard(Math.floor((cards.length - 1) / 2));
         current = 0;
@@ -329,6 +329,11 @@
       card.addEventListener('click', () => {
         if (scrollTimeout) clearTimeout(scrollTimeout);
         current = index;
+        activateCard(index);
+      });
+
+      card.addEventListener('mouseover', () => {
+        if (scrollTimeout) clearTimeout(scrollTimeout);
         activateCard(index);
       });
     });
