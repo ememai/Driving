@@ -17,7 +17,6 @@ def superuser_required(view_func):
     return _wrapped_view
 
 
-
 @login_required
 @permission_required('app_name.can_edit_page')
 def edit_view(request):

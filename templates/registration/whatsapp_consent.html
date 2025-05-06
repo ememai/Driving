@@ -8,16 +8,8 @@
     aria-labelledby="consentModalLabel"
     aria-hidden="true"
     data-bs-backdrop="static"
-    <!--
-    Prevent
-    closing
-    when
-    clicking
-    outside
-    --
-  >
     data-bs-keyboard="false"
-    <!-- Prevent closing with the Escape key -->
+    
     >
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -35,7 +27,11 @@
           </div>
           {% endif %}
 
-          <form method="POST" id="consentForm">
+          <form
+            method="POST"
+            id="consentForm"
+            action="{% url 'whatsapp_consent' %}"
+          >
             {% csrf_token %}
             <div class="mb-4">
               <p class="mb-1">
@@ -93,13 +89,13 @@
             </div>
 
             <button
-              type="submit"
+              type="button"
               id="whatsappNumberField"
               class="btn btn-primary w-100 py-2 mt-3"
               style="display: none"
             >
               <a
-                href="https://chat.whatsapp.com/JWaVSWktgBCKHNKr1TVAzg"
+                href="?join_whatsapp=true"
                 target="_blank"
                 class="text-decoration-none text-white"
               >

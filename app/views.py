@@ -471,11 +471,15 @@ def register_view(request):
     return render(request, 'registration/register.html', {'form': form})
 
 def whatsapp_consent(request):
-    # Get the newly registered user from session
+    # Redirect if the user has already given consent
+    if request.user.whatsapp_consent:
+        return redirect('home')
+
+    # Get the newly registered user from the session
     user_id = request.session.get('new_user_id')
     if not user_id:
         return redirect('register')
-    
+
     try:
         user = UserProfile.objects.get(id=user_id)
     except UserProfile.DoesNotExist:
@@ -483,19 +487,23 @@ def whatsapp_consent(request):
 
     if request.method == 'POST':
         form = WhatsAppConsentForm(request.POST)
-        
+
         if form.is_valid():
-            if form.cleaned_data['consent'] == 'no':
-                user.whatsapp_consent = False
-                user.whatsapp_notifications = False
-                # user.whatsapp_number = form.cleaned_data['whatsapp_number']
-                          
+            if form.cleaned_data['consent'] == 'yes':
+                user.whatsapp_consent = True
+                user.whatsapp_notifications = True
             user.save()
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('home')
     else:
         form = WhatsAppConsentForm()
-    
+
+    # Handle the "Join WhatsApp Group" link click
+    if request.GET.get('join_whatsapp') == 'true':
+        user.whatsapp_consent = True
+        user.whatsapp_notifications = True
+        user.save()
+        return redirect('https://chat.whatsapp.com/JWaVSWktgBCKHNKr1TVAzg')
+
     return render(request, 'registration/whatsapp_consent.html', {
         'form': form,
         'user': user
