@@ -234,13 +234,6 @@ def exam(request, exam_id, question_number):
     questions = list(exam.questions.all())
     total_questions = len(questions)
 
-    
-    # first_exam = Exam.objects.order_by('created_at').first() # Get the first exam instance
-    # if not request.user.is_staff and not request.user.is_subscribed:
-    #     if exam != first_exam:
-    #         return redirect('subscription')
-        
-
     user_exam, created = UserExam.objects.get_or_create(
         user=request.user,
         exam=exam,
@@ -257,7 +250,8 @@ def exam(request, exam_id, question_number):
     current_question = questions[question_number - 1]
 
     # Time left for countdown
-    exam_end_time = (user_exam.started_at + timedelta(minutes=exam.duration)).timestamp()
+    if not request.user.is_staff:
+        exam_end_time = (user_exam.started_at + timedelta(minutes=exam.duration)).timestamp()
 
     # Initialize answer session if not present
     if 'answers' not in request.session:
@@ -323,7 +317,7 @@ def exam(request, exam_id, question_number):
         'q_nums': q_nums,
         'total_questions': total_questions,
         'choices': choices,
-        'exam_end_time': exam_end_time,
+        'exam_end_time': exam_end_time if not request.user.is_staff else None,
         'exam_duration': exam.duration * 60,
         'user_exam': user_exam,
         'questions': questions,

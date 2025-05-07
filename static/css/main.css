@@ -235,7 +235,7 @@
    /* Link styles */
 .btn:active {
        opacity: 0.5;
-       transform: scale(0.9);
+       transform: scale(1.03);
      }
 
 .cy-link {

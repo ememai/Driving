@@ -345,14 +345,16 @@
       button.addEventListener('click', removeBeforeUnload);
     });
 
+    {% if  exam_end_time   %}
+    
     // Countdown Timer
     const examEndTimeTimestamp = parseInt("{{ exam_end_time|default:0 }}", 10) * 1000;
     const countdownElement = document.getElementById("countdown");
-
+    
     function updateCountdown() {
       const now = Date.now();
       const distance = examEndTimeTimestamp - now;
-
+      
       if (distance <= 0) {
         clearInterval(timerInterval);
         countdownElement.innerText = "0:00";
@@ -361,17 +363,19 @@
         }
         return;
       }
-
+      
       const minutes = Math.floor(distance / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
       countdownElement.innerText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
+      
       if (distance < 60000) {
         countdownElement.classList.replace('bg-success', 'bg-danger');
       }
     }
     const timerInterval = setInterval(updateCountdown, 1000);
     updateCountdown();
+    
+    {% endif %}
 
     // Custom Styling for Radio Button Selection
     const radioInputs = document.querySelectorAll('input[type="radio"][name="answer"]');
