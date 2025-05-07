@@ -370,7 +370,7 @@ def retake_exam(request, exam_id):
 
 def get_weekly_scheduled_exams():
     now = timezone.now()
-    start_of_week = now - timedelta(days=now.weekday())  # Monday
+    start_of_week = now - timedelta(days=now.weekday() + 1)  # Monday
     end_of_week = start_of_week + timedelta(days=7)      # Sunday
 
     return ScheduledExam.objects.filter(
