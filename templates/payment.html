@@ -267,6 +267,7 @@
     const phone = document.getElementById("phone").value;
     const name = document.getElementById("name").value;
     const selectedPlan = document.querySelector('input[name="plan"]:checked');
+    const userName = "{{ request.user.name }}"; // Get the username from the Django context
     
     if (!selectedPlan || !phone || !name) {
       alert("Shyiramo amazina, nimero, ndetse uhitemo ifatabuguzi.");
@@ -275,7 +276,7 @@
 
     const planPrice = selectedPlan.value;
     const planLabel = selectedPlan.closest('.plan-card').dataset.planLabel;
-    const message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n📌 Izina: ${name}\n📞 Numero: ${phone}\n💳 Ifatabuguzi: ${planLabel} - ${planPrice} RWF\n\n🔹Murakoze!`;
+    const message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n📌 Izina: ${name}\n📞 Numero: ${phone}\n💳 Ifatabuguzi: ${planLabel} - ${planPrice} RWF\n\n🔹Murakoze! ${userName}`;
 
     window.location.href = `https://wa.me/250785287885?text=${encodeURIComponent(message)}`;
   }
