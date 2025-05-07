@@ -441,9 +441,16 @@ class UnscheduledExamsAdmin(admin.ModelAdmin):
 
 @admin.register(UserExam)
 class UserExamAdmin(admin.ModelAdmin):
-    list_display = ('user', 'exam', 'score','started_at', 'completed_at')
+    list_display = ('user', 'exam', 'marks','started_at', 'completed_at')
     search_fields = ('user__email', 'exam__exam_type')
     list_filter = ('completed_at',)
+    
+    @admin.display(description='Pts')
+    def marks(self, obj):
+        if obj.score is not None:
+            return f"{obj.score} / {obj.exam.total_questions}"
+        return "-"
+    
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
