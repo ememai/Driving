@@ -66,7 +66,6 @@ urlpatterns = [
             ),
             name='password_reset_confirm'
         ),
-    path('ijambobanga-ryemejwe/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-    
+    path('ijambobanga-ryemejwe/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'), 
 
 ]
