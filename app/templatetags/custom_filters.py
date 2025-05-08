@@ -101,7 +101,7 @@ def get_old_price(value):
 @register.filter
 def get_plan_price(value):
     return {
-        'Hourly': '100',
+        'Hourly': '200',
         'Daily': '1000',
         'Weekly': '3000',
         'Monthly': '5000',
