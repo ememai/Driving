@@ -353,6 +353,7 @@ class ExamAdmin(admin.ModelAdmin):
 
     ordering = ('-created_at',)
     list_editable = ('for_scheduling',)
+    list_filter = ('exam_type', 'for_scheduling', )
     list_per_page = 11
     search_fields = ('exam_type',)
     filter_horizontal = ('questions',)
