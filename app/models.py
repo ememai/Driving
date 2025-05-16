@@ -167,16 +167,13 @@ class UserProfile(AbstractUser):
     def __str__(self):
         return self.email if self.email else f"{self.name} - {self.phone_number}"
 
+
 class Plan(models.Model):
     PLAN_CHOICES = (
         ('Hourly', "Ry'isaha"),
         ('Daily', "Ry'umunsi"),
-        ('Weekly', "Ry'icyumweru"),
-        ('Monthly', "Ry'ukwezi"),
-        ('Super', "Super"),
-        # ('Free', "Ubuntu"),
-        # ('Trial', "Igihe gito"),
-    )
+        ('VIP', "VIP"),
+        )
 
     plan = models.CharField(max_length=20, choices=PLAN_CHOICES, unique=True)
     duration_days = models.IntegerField()
@@ -207,6 +204,7 @@ class Plan(models.Model):
 
     def __str__(self):
         return self.plan
+
 
 class Subscription(models.Model):
     user = models.OneToOneField('UserProfile', on_delete=models.CASCADE)
@@ -299,13 +297,14 @@ class Payment(models.Model):
         verbose_name = "User Payment"
         verbose_name_plural = "User Payments"
 
+
 class SignType(models.Model):
     name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
 
-# models.py
+
 class ImagePreviewMixin:
     def image_preview(self, field_name='image', height=100, width=150):
         image = getattr(self, field_name)
@@ -318,6 +317,7 @@ class ImagePreviewMixin:
             )
         return "No Image"
     image_preview.allow_tags = True
+
 
 class RoadSign(models.Model):
     sign_image = models.ImageField(
@@ -347,9 +347,11 @@ class RoadSign(models.Model):
         """Returns full URL or None"""
         return self.sign_image.url if self.sign_image else None
 
+
 class QuestionManager(models.Manager):
     def get_questions_with_index(self):
         return [(index + 1, question) for index, question in enumerate(self.all())]
+
 
 class Question(models.Model):
     QUESTION_CHOICES = [(i, f"Choice {i}") for i in range(1, 5)]
@@ -537,6 +539,7 @@ class TodayExam(ScheduledExam):
         verbose_name = "Exam for Today"
         verbose_name_plural = "Exams Of Today"
 
+
 class UnscheduledExam(Exam):
     class Meta:
         proxy = True
@@ -633,6 +636,7 @@ class UserExamAnswer(models.Model):
 
     def __str__(self):
         return f"{self.user_exam.user.username} - {self.question.question_text[:50]} - Choice {self.selected_choice_number}"
+
 
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
