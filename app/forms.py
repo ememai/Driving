@@ -524,7 +524,7 @@ class QuestionForm(forms.ModelForm, ImageLabelMixin):
                 <button type="button" class="choose-image-btn" data-choice="question">Select from Images</button>
                 '''
             )
-            self.fields['question_sign'].empty_label = None
+            self.fields['question_sign'].empty_label = "None"
 
     def clean(self):
         cleaned_data = super().clean()
