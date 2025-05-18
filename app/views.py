@@ -32,6 +32,7 @@ from django.urls import reverse
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 from django.http import JsonResponse
 User = get_user_model()
 
@@ -344,6 +345,12 @@ def exam_results(request, user_exam_id):
 @login_required(login_url='login')
 @subscription_required
 def retake_exam(request, exam_id):
+    if not request.user.is_subscribed and not request.user.is_staff: 
+        messages.error(request, mark_safe(
+            "<h2>Gura ifatabuguzi kugirango ubashe gukomeza!</h2>"
+        ))
+        return redirect('subscription')
+    
     exam = get_object_or_404(Exam, id=exam_id)
     user_exam = get_object_or_404(UserExam, exam=exam, user=request.user)
 

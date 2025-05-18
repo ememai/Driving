@@ -2,7 +2,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from functools import wraps
 from .models import *
-
+from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required, permission_required
 import logging
 
@@ -34,7 +34,9 @@ def subscription_required(view_func):
         if not request.user.is_subscribed and not request.user.is_staff:
             if first_exam and exam_id and str(exam_id) == str(first_exam.id):
                 return view_func(request, *args, **kwargs)
-            messages.error(request, "Gura ifatabuguzi kugirango ubashe gukomeza!")
+            messages.error(request, mark_safe(
+            "<h2>Gura ifatabuguzi kugirango ubashe gukomeza!</h2>"
+        ))
             return redirect('subscription')
         
         return view_func(request, *args, **kwargs)
