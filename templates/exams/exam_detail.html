@@ -71,9 +71,10 @@
   <div class="card-body">
     {% if exam.for_scheduling %}
     <p><strong>Ikizamini Cya:</strong> Saa {{ exam.schedule_hour|time:"H:00" }}</p>
-    {% endif %}
+    {% else %}    
     <p><strong>Cyateguwe:</strong> {{ exam.created_at|date:"M d, Y" }}</p>
     <p><strong>Kivugururwa:</strong> {{ exam.updated_at|date:"M d, Y" }}</p>
+    {% endif %}
 
     <p class="mt-3">
       Ugiye gukora ikizamini gifite ibibazo <strong>{{ exam.total_questions }}</strong> mu minota <strong>{{ exam.duration }}</strong>.
