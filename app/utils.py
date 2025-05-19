@@ -110,7 +110,7 @@ def auto_create_exams(number):
     exams_created = 0
     created_exam_ids = []
     
-    if timezone.now().weekday() == 6:  # Sunday is represented by 6
+    if timezone.localtime(timezone.now()).weekday() == 6:  # Sunday is represented by 6
         print("❌ No exams created on Sundays.")
         return exams_created, created_exam_ids
     for i in range(number):

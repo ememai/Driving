@@ -433,7 +433,7 @@ class ExamType(models.Model):
         return self.name
 
 class Exam(models.Model):
-    timezone = timezone.now().strftime('%d.%m.%Y %H')
+    timezone = timezone.localtime(timezone.now()).strftime('%d.%m.%Y %H')
 
     exam_type = models.ForeignKey(ExamType, on_delete=models.SET_NULL, null=True, blank=True )
 
@@ -443,6 +443,14 @@ class Exam(models.Model):
     for_scheduling = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        now = timezone.localtime(timezone.now())
+        if not self.pk and not self.created_at:
+            self.created_at = now
+        self.updated_at = now
+        super().save(*args, **kwargs)
+    
 
     is_active = models.BooleanField(default=False)
 

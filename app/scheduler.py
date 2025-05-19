@@ -65,10 +65,10 @@ def job_auto_schedule_exams():
     print("🕛 Running daily auto-schedule...")
     try:
         exams_created, _ = auto_create_exams(8)      
-        notify_admin(f"{timezone.now().strftime('%d-%m-%Y %H:%M')} ✅ {exams_created}Exams Created successfully!")
+        notify_admin(f"{localtime().strftime('%d-%m-%Y %H:%M')} ✅ {exams_created} Exams Created successfully!")
         scheduled_exams_count, message = auto_schedule_recent_exams()
         
-        notify_admin(f"✅ {timezone.now().strftime('%d-%m-%Y %H:%M')} {scheduled_exams_count} {message}")
+        notify_admin(f"✅ {localtime().strftime('%d-%m-%Y %H:%M')} {scheduled_exams_count} {message}")
     
     except Exception as e:
         notify_admin(f"❌ Error in auto-scheduling: {str(e)}")
