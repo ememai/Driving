@@ -38,7 +38,18 @@
     border-bottom: 1px solid #dee2e6;
   }
   input[type="radio"] {
-    display: none;
+    background-color:rgb(255, 255, 255);
+    border: 3px solid rgb(0, 0, 0);
+    border-radius: 50%;
+  }
+
+  .form-check-input:checked {
+    background-color: rgb(38, 255, 0);
+    border-color: rgb(38, 255, 0);
+    background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' fill='green' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M13.485 4.929a1 1 0 0 1 0 1.414l-5.657 5.657a1 1 0 0 1-1.414 0l-2.121-2.121a1 1 0 1 1 1.414-1.415l1.414 1.415 4.95-4.95a1 1 0 0 1 1.414 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 1.2em 1.2em;
   }
   #plan-carousel {
     scroll-behavior: smooth;
@@ -131,14 +142,21 @@
           data-plan-value="{{ plan_value }}"
           data-plan-label="{{ plan_label }}"
           style="height: 100%"
+          {% if forloop.counter == 2 %}id="default-plan"{% endif %}
         >
+
+        
+        {% if forloop.counter == 2 %}
+        <div class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-success text-white mb-5">
+          IRIKUNZWE
+          <i class="bi bi-star-fill text-warning"></i>
+        </div>
+        {% endif %}
           <div
-            class="card-header d-flex align-items-center justify-content-center text-primary fw-bold gap-2 py-0"
-          >
-            <input class="form-check-input" type="radio" name="plan" id="plan_{{ plan_value }}" 
-            value="{{ plan_value|get_plan_price }}" 
-            {% if plan_value == user.subscription.plan %}checked{% endif %}>
-            <div>
+            class="card-header d-flex align-items-center justify-content-center text-primary fw-bold gap-2 py-1"
+            >
+          
+          <div>
               <label
                 class="form-check-label d-block mb-0 fs-6 text-decoration-line-through text-primary"
                 for="plan_{{ plan_value }}"
@@ -150,11 +168,14 @@
                 {{ plan_value|get_plan_price }} RWF
               </label>
             </div>
+            <input class="form-check-input" type="radio" name="plan" id="plan_{{ plan_value }}" 
+            value="{{ plan_value|get_plan_price }}" 
+            {% if forloop.counter == 2 %}checked{% endif %}>
           </div>
           <ul class="plan-description list-unstyled text-start px-1">
             {% for icon, line in plan_value|get_plan_description %}
             <li class="d-flex align-items-center gap-2 fs-5">
-              <i class="bi bi-check-circle-fill text-success me-0"></i>
+              <i class="bi bi-check-circle-fill check-icon text-theme me-0"></i>
               {{ line }} {{ icon }}
             </li>
             {% endfor %}
@@ -239,6 +260,21 @@
               placeholder="Amazina"
               required
             />
+
+            <select
+              class="form-select mt-3"
+              id="plan"
+              name="plan"
+              aria-label="Plan selection"
+              required
+            >
+              <option value="" disabled selected>Hitampo ifatabuguzi wishyuye</option>
+              {% for plan_value, plan_label in plans %}
+              <option value="{{ plan_value|get_plan_price }}">
+                {{ plan_label }} - {{ plan_value|get_plan_price }} RWF
+              </option>
+              {% endfor %}
+            </select>
           </div>
           <div class="modal-footer">
             <button
@@ -257,9 +293,12 @@
 {% endblock %} {% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+
+  
     const planLabel = document.getElementById("js-plan");
     const callButton = document.getElementById("callButton");
     const planCards = document.querySelectorAll(".plan-card");
+    const secondPlanCard = document.getElementById("default-plan");
     const planInputs = document.querySelectorAll('input[name="plan"]');
 
     // Helper to update js-plan
@@ -280,12 +319,28 @@
           input.checked = true;
           input.dispatchEvent(new Event("change", { bubbles: true }));
         }
+        
+        document.querySelectorAll(".plan-card .check-icon").forEach(function(icon) {
+          icon.classList.remove("text-success", "bi-check-circle-fill");
+          icon.classList.add("text-theme", "bi-circle");
+        });
+        // Change all icons in this card to text-success
+        card.querySelectorAll(".check-icon").forEach(function(icon) {
+          icon.classList.remove("text-theme", "bi-circle"); 
+          icon.classList.add("text-success", "bi-check-circle-fill");
+        });
+        // Change all icons in all cards to text-theme first
         // Update active class
         planCards.forEach((c) => c.classList.remove("active"));
         card.classList.add("active");
       });
     });
 
+    // Set default plan on load
+    if (secondPlanCard) {
+      secondPlanCard.click();
+      
+    }
     // Set active class on load and when changed
     function updateActiveCard() {
       planCards.forEach((card) => {
@@ -321,21 +376,23 @@
     });
   });
 
+  // Function to send WhatsApp message
   function sendToWhatsApp() {
-    const phone = document.getElementById("phone").value;
-    const name = document.getElementById("name").value;
-    const selectedPlan = document.querySelector('input[name="plan"]:checked');
+    const phone = document.getElementById("phone").value.trim();
+    const name = document.getElementById("name").value.trim();
+    const planSelect = document.getElementById("plan");
     const userName = "{{ request.user.name }}";
-    if (!selectedPlan || !phone || !name) {
-      alert("Shyiramo amazina, nimero, ndetse uhitemo ifatabuguzi.");
+
+    const planValue = planSelect.value;
+    const planLabel = planSelect.options[planSelect.selectedIndex].text;
+
+    if (!phone || !name || !planValue) {
+      alert("Shyiramo amazina, nimero, ndetse uhitemo ifatabuguzi wishyuye.");
       return;
     }
-    const planPrice = selectedPlan.value;
-    const planLabel = selectedPlan.closest(".plan-card").dataset.planLabel;
-    const message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n📌 Izina: ${name}\n📞 Numero: ${phone}\n💳 Ifatabuguzi: ${planLabel} - ${planPrice} RWF\n\n🔹Murakoze! ${userName}`;
-    window.location.href = `https://wa.me/250785287885?text=${encodeURIComponent(
-      message
-    )}`;
+
+    const message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n📌 Izina: ${name}\n📞 Numero: ${phone}\n💳 Ifatabuguzi: ${planLabel}\n\n🔹Murakoze! ${userName}`;
+    window.location.href = `https://wa.me/250785287885?text=${encodeURIComponent(message)}`;
   }
 </script>
 {% endblock %}
