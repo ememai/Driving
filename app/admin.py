@@ -17,7 +17,8 @@ class SubscriptionInline(admin.StackedInline):  # or TabularInline
     can_delete = False
     extra = 0
     readonly_fields = ('active_subscription','updated_at', 'expires_at', 'started_at')
-    
+
+  
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     inlines = [SubscriptionInline]
@@ -28,6 +29,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     @admin.display(description='Subscription Ends')
     def subscription_expires_at(self, obj):
         return obj.subscription.expires_at if hasattr(obj, 'subscription') else '❌'
+
 
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
@@ -443,7 +445,8 @@ class UnscheduledExamsAdmin(admin.ModelAdmin):
 @admin.register(UserExam)
 class UserExamAdmin(admin.ModelAdmin):
     list_display = ('user', 'exam', 'marks','started_at', 'completed_at')
-    search_fields = ('user__email', 'exam__exam_type')
+    search_fields = ('user__email', 'exam__exam_type','user__name')
+    ordering = ('-completed_at',)
     list_filter = ('completed_at',)
     
     @admin.display(description='Pts')

@@ -30,6 +30,13 @@ from django.db.models import Q
 import dns.resolver
 from django.core.exceptions import ValidationError
 import re
+import dns.resolver
+
+# Optional: configure DNS resolver timeout
+resolver = dns.resolver.Resolver()
+resolver.timeout = 3
+resolver.lifetime = 3
+
 
 class ImageLabelMixin:
     def get_image_label(self, obj, label_field="definition", image_field="sign_image", max_height=50, max_width=100):
@@ -43,13 +50,6 @@ class ImageLabelMixin:
             ''',
             image_url, max_height, max_width, label
         )
-
-import dns.resolver
-
-# Optional: configure DNS resolver timeout
-resolver = dns.resolver.Resolver()
-resolver.timeout = 3
-resolver.lifetime = 3
 
 def email_domain_exists(email):
     domain = email.split('@')[-1].lower()

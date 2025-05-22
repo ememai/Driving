@@ -36,24 +36,6 @@ from django.utils.safestring import mark_safe
 from django.http import JsonResponse
 User = get_user_model()
 
-
-def check_unique_field(request):
-    field = request.GET.get("field")
-    value = request.GET.get("value")
-    response = {"exists": False}
-
-    if field == "email" and value:
-        response["exists"] = User.objects.filter(email__iexact=value).exists()
-    elif field == "phone_number" and value:
-        
-        if len(value) >= 10:
-            response["exists"] = User.objects.filter(phone_number__icontains=value).exists()
-        # response["exists"] = User.objects.filter(phone_number__contains=value).exists()
-    elif field == "name" and value:
-        response["exists"] = User.objects.filter(name__iexact=value).exists()
-
-    return JsonResponse(response)
-
 @login_required(login_url='register')
 def home(request):
     # Get unique exam types that have exams
@@ -438,6 +420,24 @@ def contact(request):
         return redirect('contact')
 
     return render(request, 'contact.html')
+
+
+def check_unique_field(request):
+    field = request.GET.get("field")
+    value = request.GET.get("value")
+    response = {"exists": False}
+
+    if field == "email" and value:
+        response["exists"] = User.objects.filter(email__iexact=value).exists()
+    elif field == "phone_number" and value:
+        
+        if len(value) >= 10:
+            response["exists"] = User.objects.filter(phone_number__icontains=value).exists()
+        # response["exists"] = User.objects.filter(phone_number__contains=value).exists()
+    elif field == "name" and value:
+        response["exists"] = User.objects.filter(name__iexact=value).exists()
+
+    return JsonResponse(response)
 
 
 @redirect_authenticated_users
