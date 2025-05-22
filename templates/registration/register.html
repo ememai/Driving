@@ -65,7 +65,7 @@
                 </div>
 
                 <!-- Toggle Input Mode -->
-                <div class="mb-3">
+                {% comment %} <div class="mb-3">
                     <label class="form-label">Hitamo:</label>
 
 
@@ -78,10 +78,10 @@
                       <input class="form-check-input" type="radio" name="contact_mode" id="emailMode" >
                       <label class="form-check-label" for="emailMode">Email</label>
                   </div>
-                </div>
+                </div> {% endcomment %}
 
                 <!-- Email -->
-                <div class="mb-3 contact-method " id="emailField">
+                <div class="mb-3 contact-method d-none" id="emailField">
                     <label for="id_email" class="form-label">Email:</label>
                     <div class="input-group has-validation">
                       <span class="px-4 input-group-text border-end-0 text-secondary"><i class="fa-solid fa-envelope"></i></span>
@@ -99,7 +99,7 @@
                 </div>
 
                 <!-- Phone Number -->
-                <div class="mb-3 contact-method d-none" id="phoneField">
+                <div class="mb-3 contact-method " id="phoneField">
                     <label for="id_phone_number" class="form-label">Telefoni</label>
                     <div class="input-group has-validation">
                       <span class="rda px-4"></span>
@@ -229,7 +229,7 @@
           }
       }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    {% comment %} document.addEventListener('DOMContentLoaded', () => {
         const emailMode = document.getElementById('emailMode');
         const phoneMode = document.getElementById('phoneMode');
         const emailField = document.getElementById('emailField');
@@ -252,7 +252,7 @@
         emailMode.addEventListener('change', toggleContactField);
         phoneMode.addEventListener('change', toggleContactField);
         toggleContactField();
-    });
+    }); {% endcomment %}
 
 
 </script>

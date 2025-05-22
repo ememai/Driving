@@ -22,9 +22,19 @@ class SubscriptionInline(admin.StackedInline):  # or TabularInline
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     inlines = [SubscriptionInline]
-    list_display = ('name', 'email', 'phone_number','is_subscribed','subscription_expires_at','whatsapp_consent','whatsapp_number','date_joined', 'otp_verified')
+    list_display = ('name', 'contact','is_subscribed','subscription_expires_at','whatsapp_consent','whatsapp_number','date_joined', 'otp_verified')
     search_fields = ('name', 'email', 'phone_number')
     list_filter = ('date_joined',)
+
+    @admin.display(description='Contact')
+    def contact(self, obj):
+        if obj.phone_number and obj.email:
+            return format_html(f"Phone: {obj.phone_number}<br>Email: {obj.email}")
+        elif obj.phone_number:
+            return f"Phone: {obj.phone_number}"
+        elif obj.email:
+            return f"Email: {obj.email}"
+        return "No contact info"
 
     @admin.display(description='Subscription Ends')
     def subscription_expires_at(self, obj):

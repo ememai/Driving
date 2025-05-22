@@ -30,9 +30,9 @@
           {% csrf_token %}
 
           <div class="mb-3">
-            <label for="username" class="form-label fw-medium">Telefone cg Email:</label>
+            <label for="username" class="form-label fw-medium">Telefone wandikishije:</label>
             <input type="text" name="username" class="form-control text-theme {% if form.username.errors %}is-invalid{% endif %}" 
-                   id="username" placeholder="Andika telefone cyangwa email" required value="{{ form.username.value|default:'' }}">
+                   id="username" placeholder="Andika telefone" required value="{{ form.username.value|default:'' }}">
             {% if form.username.errors %}
               <div class="invalid-feedback">
                 {{ form.username.errors.0 }}
