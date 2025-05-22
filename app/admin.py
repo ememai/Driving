@@ -33,8 +33,8 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
-    list_display = ('plan', 'price', 'duration_days', 'delta_display')
-    list_editable = ('price', 'duration_days')
+    list_display = ('plan', 'price',  'delta_display')
+    list_editable = ('price', )
     search_fields = ('plan',)
     ordering = ('price',)
 

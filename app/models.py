@@ -176,8 +176,7 @@ class Plan(models.Model):
         )
 
     plan = models.CharField(max_length=20, choices=PLAN_CHOICES, unique=True)
-    duration_days = models.IntegerField()
-    price = models.IntegerField()
+    price = models.PositiveIntegerField()
     delta_hours = models.IntegerField(default=0)
     delta_days = models.IntegerField(default=0)
 
@@ -195,9 +194,6 @@ class Plan(models.Model):
 
         if self.delta_hours < 0 or self.delta_days < 0:
             raise ValidationError("Delta values cannot be negative.")
-
-        if self.duration_days <= 0:
-            raise ValidationError("'duration_days' must be greater than zero.")
 
         if self.price <= 0:
             raise ValidationError("'price' must be greater than zero.")
@@ -246,7 +242,7 @@ class Subscription(models.Model):
 
                
         if self.plan:
-            if self.plan.duration_days <= 0 or self.plan.price <= 0:
+            if self.plan.delta_hours < 0 or self.plan.delta_days < 0  or self.plan.price <= 0:
                 raise ValidationError("Plan must have a valid price and duration.")
 
     def save(self, *args, **kwargs):

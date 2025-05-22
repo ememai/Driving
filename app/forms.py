@@ -317,45 +317,6 @@ class ExamCreationForm(forms.ModelForm):
             if field_name.startswith('questions_'):
                 exam.questions.add(*value)
 
-
-# class ExamForm(forms.ModelForm):
-#     class Meta:
-#         model = Exam
-#         fields = ['exam_type', 'duration', 'is_active', 'for_scheduling']
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-
-#         # Get all question types that have associated questions
-#         question_types = ExamType.objects.annotate(
-#             num_questions=Count('question')
-#         ).filter(num_questions__gt=0).order_by('order')
-
-#         for q_type in question_types:
-#             field_name = f'questions_{q_type.id}'
-#             self.fields[field_name] = forms.ModelMultipleChoiceField(
-#                 queryset=Question.objects.filter(question_type=q_type).order_by('order'),
-#                 required=False,
-#                 label=f"{q_type.name} Questions",
-#                 widget=forms.CheckboxSelectMultiple
-#             )
-
-#             # Pre-fill initial values when editing an exam
-#             if self.instance.pk:
-#                 self.fields[field_name].initial = self.instance.questions.filter(question_type=q_type)
-
-#     def save(self, commit=True):
-#         exam = super().save(commit=commit)
-
-#         if commit:
-#             exam.questions.clear()  # Remove old questions
-#             for field_name, value in self.cleaned_data.items():
-#                 if field_name.startswith('questions_'):
-#                     exam.questions.add(*value)
-
-#         return exam
-
-
 class ScheduleExamForm(forms.ModelForm):
     class Meta:
         model = ScheduledExam
