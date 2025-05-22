@@ -646,7 +646,7 @@ class UserExamAnswer(models.Model):
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
     whatsapp_number = models.CharField(max_length=20, blank=True, null=True)
-    email = models.EmailField()
+    email = models.EmailField(null=True, blank=True)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 

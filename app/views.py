@@ -413,7 +413,7 @@ def contact(request):
         ContactMessage.objects.create(
             name=name,
             email=email if contact_method == 'email' else None,
-            whatsapp=whatsapp if contact_method == 'whatsapp' else None,
+            whatsapp_number=whatsapp if contact_method == 'whatsapp' else None,
             message=message_text
         )
         messages.success(request, "Ubutumwa bwawe bwoherejwe neza! Tuzagusubiza vuba.")

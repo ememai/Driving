@@ -464,11 +464,16 @@ class PaymentAdmin(admin.ModelAdmin):
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'created_at')
+    list_display = ('name', 'method','message', 'created_at')
     search_fields = ('name', 'email')
 
-# admin.py
-
+    @admin.display(description='Contact Method')
+    def method(self, obj):
+        if obj.whatsapp_number:
+            return f"Phone: {obj.whatsapp_number}"
+        elif obj.email:
+            return f"Email: {obj.email}"
+        return "Unknown"
 @admin.action(description='Activate selected subscriptions')
 def activate_subscriptions(modeladmin, request, queryset):
     queryset.update(active_subscription=True)
