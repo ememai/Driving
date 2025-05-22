@@ -67,7 +67,7 @@ def get_plan_description(plan_value):
             ('📝', 'Ukora ibizamini byose ushaka'),
         ],
         'Daily': [
-            ('⏱️', 'Rimara Umunsi wose'),
+            ('⏱️', 'Rimara Umunsi wose (AMASAHA 24+1) '),
             ('📝', 'Ukora ibizamini byose ushaka'),
             ('🤝', 'Uhabwa ubufasha igihe cyose'),
         ],
