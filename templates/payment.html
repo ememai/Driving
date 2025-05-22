@@ -391,9 +391,9 @@
       return;
     }
 
-    const domain = window.location.hostname;
+    const domain = window.location.hostname.replace(/^www\./, '');
     const protocol = window.location.protocol;
-    const url = `${protocol}//${domain}`;
+    const url = `${domain}`;
     const message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n📌 Izina: ${name}\n📞 Numero: ${phone}\n💳 Ifatabuguzi: ${planLabel}\n\n🔹Murakoze! ${userName} \n\n ${url}`;
     window.location.href = `https://wa.me/250735777412?text=${encodeURIComponent(message)}`;
   }
