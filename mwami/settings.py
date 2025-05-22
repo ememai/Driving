@@ -84,7 +84,7 @@ JAZZMIN_SETTINGS = {
 
     
     # Customization
-    "show_ui_builder": False,
+    "show_ui_builder": True,
     "changeform_format": "horizontal_tabs",
     "related_modal_active": True,
     
