@@ -14,6 +14,7 @@ from django.conf import settings
 import phonenumbers
 from django.contrib import messages
 from django.utils import timezone
+from django.utils.timezone import localtime
 from django.utils.html import format_html
 from django.core.validators import FileExtensionValidator
 import json  # Import the json module
@@ -471,7 +472,7 @@ class Exam(models.Model):
     #     return self.max_attempts - attempts
 
     def __str__(self):
-        return f"{self.schedule_hour.strftime('%H:%M') if self.schedule_hour else 'No Hour'} / {self.updated_at.strftime('%d.%m.%Y')} - {self.exam_type.name if self.exam_type else 'None'}"
+        return f"{self.schedule_hour.strftime('%H:%M') if self.schedule_hour else 'No Hour'} / {localtime(self.created_at).strftime('%d.%m.%Y')} - {self.exam_type.name if self.exam_type else 'None'}"
 
 class ScheduledExam(models.Model):
     exam = models.OneToOneField("Exam", on_delete=models.CASCADE) # Ensure CASCADE to avoid null exams
