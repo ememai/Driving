@@ -391,7 +391,10 @@
       return;
     }
 
-    const message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n📌 Izina: ${name}\n📞 Numero: ${phone}\n💳 Ifatabuguzi: ${planLabel}\n\n🔹Murakoze! ${userName}`;
+    const domain = window.location.hostname;
+    const protocol = window.location.protocol;
+    const url = `${protocol}//${domain}`;
+    const message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n📌 Izina: ${name}\n📞 Numero: ${phone}\n💳 Ifatabuguzi: ${planLabel}\n\n🔹Murakoze! ${userName} \n\n ${url}`;
     window.location.href = `https://wa.me/250735777412?text=${encodeURIComponent(message)}`;
   }
 </script>
