@@ -176,9 +176,9 @@ class Plan(models.Model):
         )
 
     plan = models.CharField(max_length=20, choices=PLAN_CHOICES, unique=True)
-    price = models.PositiveIntegerField()
-    delta_hours = models.IntegerField(default=0)
-    delta_days = models.IntegerField(default=0)
+    price = models.PositiveIntegerField(default=0)  
+    delta_hours = models.PositiveIntegerField(default=0)
+    delta_days = models.PositiveIntegerField(default=0)
 
     def get_delta(self):
         if self.delta_hours:
