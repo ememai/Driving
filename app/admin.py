@@ -445,7 +445,7 @@ class UnscheduledExamsAdmin(admin.ModelAdmin):
 @admin.register(UserExam)
 class UserExamAdmin(admin.ModelAdmin):
     list_display = ('user', 'exam', 'marks','started_at', 'completed_at')
-    search_fields = ('user__email', 'exam__exam_type','user__name')
+    search_fields = ('user__email', 'exam__exam_type__name','user__name')
     ordering = ('-completed_at',)
     list_filter = ('completed_at',)
     
