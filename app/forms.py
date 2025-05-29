@@ -528,6 +528,17 @@ class SubscriptionForm(forms.ModelForm):
     class Meta:
         model = Subscription
         fields = ['user','plan', 'super_subscription', 'price','updated']
+        widgets = {
+            'user': forms.Select(attrs={'class': 'form-control'}),
+            'plan': forms.Select(attrs={'class': 'form-control'}),
+            'super_subscription': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'updated': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields['user'].queryset = UserProfile.objects.all().order_by('-date_joined')
         
 class PhoneOrEmailPasswordResetForm(PasswordResetForm):
     query = forms.CharField(
