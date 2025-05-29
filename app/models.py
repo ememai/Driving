@@ -217,6 +217,7 @@ class Subscription(models.Model):
     delta_hours = models.IntegerField(default=0)
     delta_days = models.IntegerField(default=0)
 
+
     def get_delta(self):
         if self.delta_hours:
             return timezone.timedelta(hours=self.delta_hours)
@@ -251,7 +252,7 @@ class Subscription(models.Model):
         super().save(*args, **kwargs)  # Save first to ensure `started_at` is populated
 
         now = timezone.now()
-        reference_time = self.updated_at if not is_new and self.updated else self.started_at
+        reference_time = self.updated_at if not is_new and self.updated else self.started_at 
 
         if self.super_subscription:
             delta = self.get_delta()
@@ -276,6 +277,7 @@ class Subscription(models.Model):
         if self.expires_at and self.expires_at >= timezone.now():
             return True
         return False
+    
 
     def __str__(self):
         return f"Subscription for {self.user}"

@@ -14,7 +14,7 @@ from datetime import timedelta, datetime
 class SubscriptionInline(admin.StackedInline):  # or TabularInline
     
     model = Subscription
-    can_delete = False
+    can_delete = True
     extra = 0
     readonly_fields = ('active_subscription','updated_at', 'expires_at', 'started_at')
 
@@ -59,7 +59,9 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user__name', 'ss', 'price', 'started', 'upd_at','delta_display', 'expires_at', 'colored_is_active', 'renew_subscription')
+    list_display = ('user__name','plan', 'price', 'started', 'upd_at','delta_display', 'expires_at', 'colored_is_active','updated', 'renew_subscription','end_subscription')
+    
+    list_editable = ('plan', 'updated', )    
 
     list_per_page = 10
     list_filter = ('super_subscription', 'plan')
@@ -95,8 +97,12 @@ class SubscriptionAdmin(admin.ModelAdmin):
     
     
     @admin.display(description='Plan')
-    def ss(self, obj):
-        return "Super" if obj.super_subscription else obj.plan.plan 
+    def plan(self, obj):
+        if obj.super_subscription:
+           return "Super" 
+        elif obj.plan is not None:
+            return obj.plan.plan
+        return "None"
    
     @admin.display(description='S.A')
     def started(self, obj):
@@ -126,6 +132,15 @@ class SubscriptionAdmin(admin.ModelAdmin):
             )
         return "-"
     renew_subscription.short_description = 'Renew'
+    
+    def end_subscription(self, obj):
+        return format_html(
+                '<a class="button" href="{}">End</a>',
+                reverse('admin:subscription-end', args=[obj.pk])
+            )
+        return "-"
+    
+    
 
     renew_subscription.allow_tags = True
 
@@ -136,6 +151,11 @@ class SubscriptionAdmin(admin.ModelAdmin):
                 '<int:subscription_id>/renew/',
                 self.admin_site.admin_view(self.process_renew),
                 name='subscription-renew',
+            ),
+            path(
+                '<int:subscription_id>/end/',
+                self.admin_site.admin_view(self.process_end),
+                name='subscription-end',
             ),
         ]
         return custom_urls + urls
@@ -148,13 +168,28 @@ class SubscriptionAdmin(admin.ModelAdmin):
             if delta:
                 subscription.updated = True
                 subscription.updated_at = now
-                subscription.expires_at = now + delta
                 subscription.save()
                 self.message_user(request, f"Subscription for {subscription.user} successfully renewed!", messages.SUCCESS)
             else:
                 self.message_user(request, "No valid duration set for plan.", messages.ERROR)
         else:
             self.message_user(request, "Cannot renew: missing plan.", messages.ERROR)
+        return redirect(request.META.get('HTTP_REFERER', '/admin/'))
+    
+    def process_end(self, request, subscription_id):
+        subscription = self.get_object(request, subscription_id)
+        if subscription:
+            subscription.updated = False
+            subscription.plan = None
+            subscription.super_subscription = False
+            subscription.price = 0
+            subscription.delta_hours = 0
+            subscription.delta_days = 0
+            subscription.expires_at = timezone.now() + timedelta(days=0)  # Resetting the expiration date 
+            subscription.save()
+            self.message_user(request, f"Subscription for {subscription.user} successfully ended!", messages.SUCCESS)
+        else:
+            self.message_user(request, "Subscription not found.", messages.ERROR)
         return redirect(request.META.get('HTTP_REFERER', '/admin/'))
 
 @admin.register(SignType)
