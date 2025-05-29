@@ -63,7 +63,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
     
     list_editable = ('plan', 'updated', )    
 
-    list_per_page = 10
     list_filter = ('super_subscription', 'plan')
     search_fields = ('user__name', 'user__email', 'user__phone_number')
     ordering = ('-expires_at','-updated_at')
@@ -134,13 +133,16 @@ class SubscriptionAdmin(admin.ModelAdmin):
     renew_subscription.short_description = 'Renew'
     
     def end_subscription(self, obj):
+        
+        if obj.active_subscription:
+            return format_html(
+                    '<a class="button" href="{}">End</a>',
+                    reverse('admin:subscription-end', args=[obj.pk])
+                )
         return format_html(
-                '<a class="button" href="{}">End</a>',
-                reverse('admin:subscription-end', args=[obj.pk])
+                '<span style="color: red; font-weight: bold;">❌ Ended</span>'
             )
-        return "-"
-    
-    
+       
 
     renew_subscription.allow_tags = True
 
