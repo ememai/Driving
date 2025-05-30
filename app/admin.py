@@ -65,7 +65,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
     list_filter = ('super_subscription', 'plan')
     search_fields = ('user__name', 'user__email', 'user__phone_number')
-    ordering = ('-expires_at','-updated_at')
+    ordering = ('-updated_at','-started_at','-price',)
     
     fieldsets = (
         (None, {
