@@ -66,6 +66,10 @@ def get_plan_description(plan_value):
             ('⏱️', 'Rimara Isaha imwe'),
             ('📝', 'Ukora ibizamini byose ushaka'),
         ],
+        'Half-Day': [
+            ('⏱️', 'Rimara amasaha 12'),
+            ('📝', 'Ukora ibizamini byose ushaka'),
+        ],
         'Daily': [
             ('⏱️', 'Rimara Umunsi wose (AMASAHA 24+1) '),
             ('📝', 'Ukora ibizamini byose ushaka'),
@@ -83,7 +87,8 @@ def get_plan_description(plan_value):
 @register.filter
 def get_old_price(value):
     return {
-        # 'Daily': '1000 RWF',
+        'Hourly': '500 RWF',
+        'Half-Day': '1000 RWF',
         'VIP': '5000 RWF',
         
         }.get(value, '')
@@ -91,7 +96,8 @@ def get_old_price(value):
 @register.filter
 def get_plan_price(value):
     return {
-        'Hourly': '200',
+        'Hourly': '300',
+        'Half-Day': '500',
         'Daily': '1000',
         'VIP': '4000',
         }.get(value, '')

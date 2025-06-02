@@ -142,11 +142,11 @@
           data-plan-value="{{ plan_value }}"
           data-plan-label="{{ plan_label }}"
           style="height: 100%"
-          {% if forloop.counter == 2 %}id="default-plan"{% endif %}
+          {% if forloop.counter == 3 %}id="default-plan"{% endif %}
         >
 
         
-        {% if forloop.counter == 2 %}
+        {% if forloop.counter == 3 %}
         <div class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-success text-white mb-5">
           IRIKUNZWE
           <i class="bi bi-star-fill text-warning"></i>
@@ -230,7 +230,7 @@
     tabindex="-1"
     aria-labelledby="whatsappModalLabel"
     aria-hidden="true"
-  >
+    >
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <form>
@@ -298,7 +298,7 @@
     const planLabel = document.getElementById("js-plan");
     const callButton = document.getElementById("callButton");
     const planCards = document.querySelectorAll(".plan-card");
-    const secondPlanCard = document.getElementById("default-plan");
+    const defaultPlanCard = document.getElementById("default-plan");
     const planInputs = document.querySelectorAll('input[name="plan"]');
 
     // Helper to update js-plan
@@ -337,8 +337,8 @@
     });
 
     // Set default plan on load
-    if (secondPlanCard) {
-      secondPlanCard.click();
+    if (defaultPlanCard) {
+      defaultPlanCard.click();
       
     }
     // Set active class on load and when changed
