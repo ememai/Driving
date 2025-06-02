@@ -59,7 +59,7 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user__name','plan', 'price', 'started', 'upd_at','delta_display', 'expires_at', 'colored_is_active','updated', 'renew_subscription','end_subscription')
+    list_display = ('user__name','plan', 'price_display', 'started', 'upd_at','delta_display', 'expires_at', 'colored_is_active','updated', 'renew_subscription','end_subscription')
     
     list_editable = ('plan', 'updated', )    
 
@@ -84,7 +84,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
                 ),
             'classes': ('collapse',),
         }),
-    )
+        )
     
     def delta_display(self, obj):
         if obj.delta_hours:
@@ -102,6 +102,12 @@ class SubscriptionAdmin(admin.ModelAdmin):
         elif obj.plan is not None:
             return obj.plan.plan
         return "None"
+   
+    @admin.display(description='Price')
+    def price_display(self, obj):
+        if obj.plan is not None:
+            return f"{obj.plan.get_price}"
+        return "Not set"
    
     @admin.display(description='S.A')
     def started(self, obj):

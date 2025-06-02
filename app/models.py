@@ -189,6 +189,12 @@ class Plan(models.Model):
             return timezone.timedelta(days=self.delta_days)
         return None
 
+
+    @property
+    def get_price(self):
+        """Returns the price of the plan."""
+        return self.price
+    
     def clean(self):
         # Validation rules
         if not self.delta_hours and not self.delta_days:
