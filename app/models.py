@@ -211,7 +211,9 @@ class Plan(models.Model):
 
 
 class Subscription(models.Model):
-    user = models.OneToOneField('UserProfile', on_delete=models.CASCADE)
+    # user = models.OneToOneField('UserProfile', on_delete=models.CASCADE) 
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)  # ✅ Allows multiple
+
     super_subscription = models.BooleanField(default=False)
     plan = models.ForeignKey('Plan', on_delete=models.SET_NULL, null=True, blank=True)
     price = models.IntegerField(null=True, blank=True)

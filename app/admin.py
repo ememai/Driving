@@ -194,6 +194,29 @@ class SubscriptionAdmin(admin.ModelAdmin):
             self.message_user(request, "Subscription not found.", messages.ERROR)
         return redirect(request.META.get('HTTP_REFERER', '/admin/'))
 
+
+    # def save_model(self, request, obj, form, change):
+    #     existing = Subscription.objects.filter(user=obj.user).first()
+
+    #     if existing and not change:
+    #         # If trying to add a new subscription but one exists, update it instead
+    #         existing.plan = obj.plan
+    #         existing.super_subscription = obj.super_subscription
+    #         existing.price = obj.price
+    #         existing.phone_number = obj.phone_number
+    #         existing.transaction_id = obj.transaction_id
+    #         existing.delta_days = obj.delta_days
+    #         existing.delta_hours = obj.delta_hours
+    #         existing.updated = True
+    #         existing.updated_at = timezone.now()
+
+    #         # Force-save to apply new expiration logic
+    #         existing.save()
+    #     else:
+    #         # New or updated normally
+    #         super().save_model(request, obj, form, change)
+
+
 @admin.register(SignType)
 class SignTypeAdmin(admin.ModelAdmin):
     list_display = ['name']
