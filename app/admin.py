@@ -46,6 +46,7 @@ class PlanAdmin(admin.ModelAdmin):
     list_display = ('plan', 'price',  'delta_display')
     list_editable = ('price', )
     search_fields = ('plan',)
+    actions = ['activate_subscriptions']
     ordering = ('price',)
 
     def delta_display(self, obj):
