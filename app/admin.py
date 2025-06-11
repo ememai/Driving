@@ -38,7 +38,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     @admin.display(description='Subscription Ends')
     def subscription_expires_at(self, obj):
-        return obj.subscription.expires_at if hasattr(obj, 'subscription') else '❌'
+        return obj.subscription.expires_at.strftime("%d,%m %Y Saa %H:%M") if hasattr(obj, 'subscription') else '❌'
 
 
 @admin.register(Plan)
@@ -60,7 +60,7 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user__name','plan', 'price', 'started', 'upd_at','delta_display', 'expires_at', 'colored_is_active','updated', 'renew_subscription','end_subscription')
+    list_display = ('user__name','plan', 'price', 'started', 'upd_at','delta_display', 'expires', 'colored_is_active','updated', 'renew_subscription','end_subscription')
     
     list_editable = ('plan', 'updated', )    
 
@@ -116,6 +116,11 @@ class SubscriptionAdmin(admin.ModelAdmin):
     def updated(self, obj):
         return obj.started_at
     
+    @admin.display(description="Subscription Expires") 
+    def expires(self, obj):
+        if obj.expires_at:
+            return obj.expires_at.strftime("%d,%m  %Y Saa %H:%M")
+        return "Not set"
    
     def colored_is_active(self, obj):
         if obj.active_subscription:
@@ -268,6 +273,7 @@ class RoadSignAdmin(admin.ModelAdmin):
     #         return readonly_fields + ('image_choice', 'existing_image')
     #     return readonly_fields
 
+    
     def save_model(self, request, obj, form, change):
         if form.cleaned_data['image_choice'] == form.USE_EXISTING:
             existing_image_name = form.cleaned_data['existing_image']
