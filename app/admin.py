@@ -10,6 +10,7 @@ from django.contrib.admin import AdminSite
 from django.db.models import Count
 from django.utils.timezone import now, make_aware
 from datetime import timedelta, datetime
+from django.utils.timezone import localtime
 # Register your models here.
 class SubscriptionInline(admin.StackedInline):  # or TabularInline
     
@@ -38,7 +39,9 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     @admin.display(description='Subscription Ends')
     def subscription_expires_at(self, obj):
-        return obj.subscription.expires_at.strftime("%d,%m %Y Saa %H:%M") if hasattr(obj, 'subscription') else '❌'
+        if hasattr(obj, 'subscription') and obj.subscription.expires_at:
+            return localtime(obj.subscription.expires_at).strftime("%d,%m %Y Saa %H:%M")
+        return '❌'
 
 
 @admin.register(Plan)
@@ -119,7 +122,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
     @admin.display(description="Subscription Expires") 
     def expires(self, obj):
         if obj.expires_at:
-            return obj.expires_at.strftime("%d,%m  %Y Saa %H:%M")
+            return localtime(obj.expires_at).strftime("%d,%m  %Y Saa %H:%M")
         return "Not set"
    
     def colored_is_active(self, obj):
