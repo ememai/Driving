@@ -105,7 +105,7 @@
     top: -10px;
     right: -5px;
     background: black;
-    color: yellow;
+    color: white;
     font-weight: bold;
     border-radius: 4px;
     padding: 1px 4px;
@@ -172,12 +172,11 @@
               {% comment %} <span class="pending-check" aria-label="Pending">Mu minota</span> {% endcomment %}
                
               <span id="hour-span" class="countdown fade-in" role="timer" aria-live="polite">
-                {% with exam.remaining_time|minutes as minutes %}
+              {% with exam.remaining_time|minutes as minutes %}
                 {% with exam.remaining_time|seconds as seconds %}
-                {{ minutes }}:{{ seconds|default:"00"|stringformat:"02d" }}
-                {% endwith %}
-                
-                {% endwith %}
+                  {{ minutes }}:{{ seconds|default:"00"|stringformat:"02d" }}
+                {% endwith %}                
+              {% endwith %}
               </span>
               
               <span >{{ exam.scheduled_datetime|time:"H:00" }}</span>
