@@ -191,12 +191,15 @@
           display: none;
         }
       </style>
-        <div class="exam-hour text-warning ">
-         <strong> Nta kizamini cyakozwe uyu munsi <i class="bi bi-exclamation-triangle"></i> 
-        </strong> <br>
-          <a href="{% url 'weekly_exams' %}" class="mt-2 ">
-            <em>Reba ibizamini byo muri iki cyumweru</em>
-          </a>
+        <div class="week d-flex justify-content-center align-items-center flex-column">
+          
+          
+         {% comment %} <strong> Nta kizamini cyakozwe uyu munsi <i class="bi bi-exclamation-triangle"></i> 
+        </strong> <br> {% endcomment %}
+            <a href="{% url 'weekly_exams' %}" class="mx-2 fs-5" style="text-decoration: underline; text-underline-offset: 4px; ">
+            <em>Reba ibizamini by'icyumweru</em>
+            <i class="fa-solid fa-calendar-days text-muted"></i>
+            </a>
         </div>
       {% endfor %}
     </div>
