@@ -19,10 +19,9 @@
           </h5>
         </div>
         <div class="modal-body">
-          {% include "flash_message.html" %}
+         
 
-          <form
-            method="POST"
+          <form method="POST"
             id="consentForm" >
             {% csrf_token %}
             <div class="mb-4">
@@ -80,25 +79,13 @@
               {% endif %}
             </div>
 
-            {% comment %} <button
-              type="button"
-              id="whatsappNumberField"
-              class="btn btn-primary w-100 py-2 mt-3"
-              style="display: none"
-            >
-              <a
-                href="?join_whatsapp=true"
-                target="_blank"
-                class="text-decoration-none text-white"
-              >
-                Injira muri WhatsApp group <i class="bi bi-whatsapp"></i>
-              </a>
-            </button> {% endcomment %}
+            
+            {% include "flash_message.html" %}
             <div
               id="whatsappNumberField"
               class="form-floating mb-3"
-              style="display: none"
-            >
+                style="{% if "flash_message.html" %}display: block{% else %}display: none{% endif %}">
+
               <input
                 type="phone"
                 class="form-control"
@@ -107,14 +94,14 @@
                 placeholder="Urugero: +250788123456"
                 pattern="^\+?[0-9]{1,15}$"
                 title="Injiza nimero ya WhatsApp yawe, urugero: +2507..."
-                required
+                
                 maxlength="16"
                 oninvalid="this.setCustomValidity('Niba wahisemo yego, andika numero ya WhatsApp neza')"
                 oninput="this.setCustomValidity('')"
                 {% if form.whatsapp_number.value %}
                 value="{{ form.whatsapp_number.value }}"
                 {% endif %}
-
+                required
               />
               <label for="whatsappNumber" class="form-label text-secondary">
                 <i class="bi bi-whatsapp text-green"></i>
@@ -133,9 +120,9 @@
             <button
               type="submit"
               id="submitBtn"
-              class="btn btn-primary w-100 py-2 mt-3 d-none"
-            >
-              Komeza
+              class="btn btn-primary w-100 py-2 mt-3 "
+              style="{% if "flash_message.html" %}display: block{% else %}display: none{% endif %}">
+              Emeza              
             </button>
           </form>
         </div>
@@ -155,18 +142,22 @@
     const yesRadio = document.getElementById("consent_yes");
     const noRadio = document.getElementById("consent_no");
     const whatsappField = document.getElementById("whatsappNumberField");
+    const whatsappInput = document.getElementById("whatsappNumber");
+    const form = document.getElementById("consentForm");
     const submitBtn = document.getElementById("submitBtn");
 
     function toggleWhatsappField() {
       if (yesRadio.checked) {
         whatsappField.style.display = "block";
-        document.getElementById("whatsappNumber").focus();
+        whatsappInput.disabled = false;
+        whatsappInput.focus();
         submitBtn.classList.remove("d-none");
         submitBtn.innerHTML = "Emeza";
       } else if (noRadio.checked) {
         whatsappField.style.display = "none";
-        submitBtn.innerHTML = "Komeza";
+        whatsappInput.disabled = true;
         submitBtn.classList.remove("d-none");
+        submitBtn.innerHTML = "Komeza";
       }
     }
 
@@ -176,27 +167,11 @@
 
     toggleWhatsappField();
 
-    const errorDiv = document.querySelector(".error");
-    if (errorDiv) {
-      document.querySelectorAll('input[name="consent"]').forEach((radio) => {
-        radio.addEventListener(
-          "focus",
-          () => (errorDiv.style.display = "none")
-        );
-        radio.addEventListener("blur", () => {
-          if (!document.querySelector('input[name="consent"]:checked')) {
-            errorDiv.style.display = "block";
-          }
-        });
-      });
-    }
-
-    whatsappInput.oninvalid = function () {
-      this.setCustomValidity('Niba wahisemo yego, andika numero ya WhatsApp');
-    };
-    whatsappInput.oninput = function () {
-      this.setCustomValidity('');
-    };
+    
+     form.addEventListener('submit', (e) => {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    });
   });
 </script>
 {% endblock %}

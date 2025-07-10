@@ -474,7 +474,7 @@ def register_view(request):
 
 
 def whatsapp_consent(request):
-    # Redirect if the user has already given consent
+    #Redirect if the user has already given consent
     if request.user.whatsapp_consent:
         return redirect('home')
 
@@ -486,12 +486,14 @@ def whatsapp_consent(request):
     try:
         user = UserProfile.objects.get(id=user_id)
     except UserProfile.DoesNotExist:
+        messages.error(request, 'User not found. Please register again.')
         return redirect('register')
 
     if request.method == 'POST':
         form = WhatsAppConsentForm(request.POST)
 
         if form.is_valid():
+            
             if form.cleaned_data['consent'] == 'yes':
                 user.whatsapp_consent = True
                 user.whatsapp_notifications = True
@@ -507,18 +509,16 @@ def whatsapp_consent(request):
                     user.whatsapp_number = phone
                     user.save(update_fields=['whatsapp_number'])                                       
                     notify_admin(f"{user.name} consented to WhatsApp notifications with number: {phone}")
-                    messages.success(request, 'Wemeye gukoresha WhatsApp. Urakoze!')
+                    messages.success(request, "Wemeye kubona ubutumwa  bw'ikizamini gishya kuri WhatsApp. Urakoze!")
+            else:
+                user.whatsapp_consent = False
+                user.whatsapp_notifications = False
+
             user.save()
             return redirect('home')
+
     else:
         form = WhatsAppConsentForm()
-
-    # Handle the "Join WhatsApp Group" link click
-    if request.GET.get('join_whatsapp') == 'true':
-        user.whatsapp_consent = True
-        user.whatsapp_notifications = True
-        user.save()
-        return redirect('https://chat.whatsapp.com/JWaVSWktgBCKHNKr1TVAzg')
 
     return render(request, 'registration/whatsapp_consent.html', {
         'form': form,
