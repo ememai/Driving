@@ -19,19 +19,11 @@
           </h5>
         </div>
         <div class="modal-body">
-          {% if messages %}
-          <div class="mb-3">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-          </div>
-          {% endif %}
+          {% include "flash_message.html" %}
 
           <form
             method="POST"
-            id="consentForm"
-            action="{% url 'whatsapp_consent' %}"
-          >
+            id="consentForm" >
             {% csrf_token %}
             <div class="mb-4">
               <p class="mb-1">
@@ -58,7 +50,7 @@
                   name="consent"
                   id="consent_yes"
                   value="yes"
-                  autocomplete="off"
+                  autocomplete="off"                
                 />
                 <label
                   class="btn fw-bolder fs-5 btn-outline-success flex-grow-1 py-2"
@@ -88,7 +80,7 @@
               {% endif %}
             </div>
 
-            <button
+            {% comment %} <button
               type="button"
               id="whatsappNumberField"
               class="btn btn-primary w-100 py-2 mt-3"
@@ -101,7 +93,42 @@
               >
                 Injira muri WhatsApp group <i class="bi bi-whatsapp"></i>
               </a>
-            </button>
+            </button> {% endcomment %}
+            <div
+              id="whatsappNumberField"
+              class="form-floating mb-3"
+              style="display: none"
+            >
+              <input
+                type="phone"
+                class="form-control"
+                id="whatsappNumber"
+                name="whatsapp_number"
+                placeholder="Urugero: +250788123456"
+                pattern="^\+?[0-9]{1,15}$"
+                title="Injiza nimero ya WhatsApp yawe, urugero: +2507..."
+                required
+                maxlength="16"
+                oninvalid="this.setCustomValidity('Niba wahisemo yego, andika numero ya WhatsApp neza')"
+                oninput="this.setCustomValidity('')"
+                {% if form.whatsapp_number.value %}
+                value="{{ form.whatsapp_number.value }}"
+                {% endif %}
+
+              />
+              <label for="whatsappNumber" class="form-label text-secondary">
+                <i class="bi bi-whatsapp text-green"></i>
+                Andika Nimero ukoresha kuri WhatsApp: </label
+              >
+              <div class="form-text">
+                Urugero: <code>+2507...</code>
+              </div>
+              {% if form.whatsapp_number.errors %}
+                <div class="text-danger mt-1">
+                  {{ form.whatsapp_number.errors.0 }}
+                </div>
+              {% endif %}
+            </div>
 
             <button
               type="submit"
@@ -133,9 +160,12 @@
     function toggleWhatsappField() {
       if (yesRadio.checked) {
         whatsappField.style.display = "block";
-        submitBtn.classList.add("d-none");
+        document.getElementById("whatsappNumber").focus();
+        submitBtn.classList.remove("d-none");
+        submitBtn.innerHTML = "Emeza";
       } else if (noRadio.checked) {
         whatsappField.style.display = "none";
+        submitBtn.innerHTML = "Komeza";
         submitBtn.classList.remove("d-none");
       }
     }
@@ -160,6 +190,13 @@
         });
       });
     }
+
+    whatsappInput.oninvalid = function () {
+      this.setCustomValidity('Niba wahisemo yego, andika numero ya WhatsApp');
+    };
+    whatsappInput.oninput = function () {
+      this.setCustomValidity('');
+    };
   });
 </script>
 {% endblock %}

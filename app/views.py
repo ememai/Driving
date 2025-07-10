@@ -471,6 +471,8 @@ def register_view(request):
         form = RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
+
+
 def whatsapp_consent(request):
     # Redirect if the user has already given consent
     if request.user.whatsapp_consent:
@@ -493,6 +495,19 @@ def whatsapp_consent(request):
             if form.cleaned_data['consent'] == 'yes':
                 user.whatsapp_consent = True
                 user.whatsapp_notifications = True
+                phone = form.cleaned_data.get('whatsapp_number')
+                from .scheduler import notify_admin
+                if phone:
+                    valid_phone = validate_phone_number(phone)
+                    
+                    if not valid_phone:
+                        messages.error(request, 'Andika nimero ya whatsapp neza!')
+                        return render(request, 'registration/whatsapp_consent.html', {'form': form, 'user': user})
+                    
+                    user.whatsapp_number = phone
+                    user.save(update_fields=['whatsapp_number'])                                       
+                    notify_admin(f"{user.name} consented to WhatsApp notifications with number: {phone}")
+                    messages.success(request, 'Wemeye gukoresha WhatsApp. Urakoze!')
             user.save()
             return redirect('home')
     else:
