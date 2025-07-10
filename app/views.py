@@ -503,7 +503,7 @@ def whatsapp_consent(request):
                     valid_phone = validate_phone_number(phone)
                     
                     if not valid_phone:
-                        messages.error(request, 'Andika nimero ya whatsapp neza!')
+                        messages.error(request, 'Niba uhitampo yego, Andika nimero ya whatsapp neza!')
                         return render(request, 'registration/whatsapp_consent.html', {'form': form, 'user': user})
                     
                     user.whatsapp_number = phone
@@ -513,6 +513,7 @@ def whatsapp_consent(request):
             else:
                 user.whatsapp_consent = False
                 user.whatsapp_notifications = False
+                messages.info(request, "Urakoze kwiyandikisha, amahirwe masa mu masomo yawe!")
 
             user.save()
             return redirect('home')

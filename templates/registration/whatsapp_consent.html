@@ -19,7 +19,7 @@
           </h5>
         </div>
         <div class="modal-body">
-         
+         {% include "flash_message.html" %}
 
           <form method="POST"
             id="consentForm" >
@@ -79,12 +79,10 @@
               {% endif %}
             </div>
 
-            
-            {% include "flash_message.html" %}
+  
             <div
               id="whatsappNumberField"
-              class="form-floating mb-3"
-                style="{% if "flash_message.html" %}display: block{% else %}display: none{% endif %}">
+              class="form-floating mb-3 d-none" >
 
               <input
                 type="phone"
@@ -120,9 +118,8 @@
             <button
               type="submit"
               id="submitBtn"
-              class="btn btn-primary w-100 py-2 mt-3 "
-              style="{% if "flash_message.html" %}display: block{% else %}display: none{% endif %}">
-              Emeza              
+              class="btn btn-primary w-100 py-2 mt-3 d-none"
+             >            
             </button>
           </form>
         </div>
@@ -148,21 +145,22 @@
 
     function toggleWhatsappField() {
       if (yesRadio.checked) {
-        whatsappField.style.display = "block";
+        whatsappField.classList.remove("d-none");
         whatsappInput.disabled = false;
         whatsappInput.focus();
-        submitBtn.classList.remove("d-none");
         submitBtn.innerHTML = "Emeza";
       } else if (noRadio.checked) {
-        whatsappField.style.display = "none";
+        whatsappField.classList.add("d-none");
         whatsappInput.disabled = true;
-        submitBtn.classList.remove("d-none");
         submitBtn.innerHTML = "Komeza";
       }
     }
 
     document.querySelectorAll('input[name="consent"]').forEach((radio) => {
-      radio.addEventListener("change", toggleWhatsappField);
+      radio.addEventListener("change", function () {
+      toggleWhatsappField();
+      submitBtn.classList.remove("d-none");      
+    });
     });
 
     toggleWhatsappField();
