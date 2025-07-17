@@ -79,7 +79,7 @@ def get_plan_description(plan_value):
             ('💳', 'Wishyura inshuro imwe gusa'),
             ('📝', 'Ukora ibizamini byose ushaka'),
             ('📆', 'Rigeza igihe uzakorera'),
-            ('🤝', 'Uhabwa ubufasha igihe cyose'),
+            ('🤝', 'Uhabwa amasomo yanditse kubuntu'),
         ],
         }.get(plan_value, [])
 
