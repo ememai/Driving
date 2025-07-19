@@ -71,6 +71,7 @@
   <div class="card-body">
     {% if exam.for_scheduling %}
     <p><strong>Ikizamini Cya:</strong> Saa {{ exam.schedule_hour|time:"H:00" }}</p>
+    <p><strong>Tariki:</strong> {{ exam.scheduledexam.scheduled_datetime|date:"d-m-0y" }}</p>
     {% else %}    
     <p><strong>Cyateguwe:</strong> {{ exam.created_at|date:"M d, Y" }}</p>
     <p><strong>Kivugururwa:</strong> {{ exam.updated_at|date:"M d, Y" }}</p>
