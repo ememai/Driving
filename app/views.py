@@ -75,7 +75,9 @@ class SubscriptionRequiredView(View):
 @login_required(login_url='login')
 @subscription_required
 def exam_detail(request, pk):
-    exam_obj = get_object_or_404(Exam, pk=pk)   
+    exam_obj = get_object_or_404(Exam, pk=pk)
+    if exam_obj.for_scheduling and hasattr(exam_obj, 'scheduledexam') and not exam_obj.scheduledexam.is_published:
+        return render(request, '404.html', status=404)
     return render(request, 'exams/exam_detail.html', {'exam': exam_obj})
 
 @staff_member_required
@@ -222,6 +224,9 @@ def exam(request, exam_id, question_number):
         exam=exam,
         defaults={'score': 0, 'completed_at': None, 'started_at': timezone.now()}
     )
+    
+    if exam.for_scheduling and hasattr(exam, 'scheduledexam') and not exam.scheduledexam.is_published:
+        return render(request, '404.html', status=404)
 
     if user_exam.completed_at:
         return redirect('retake_exam', exam_id=exam_id)
@@ -334,6 +339,8 @@ def retake_exam(request, exam_id):
         return redirect('subscription')
     
     exam = get_object_or_404(Exam, id=exam_id)
+    if exam.for_scheduling and hasattr(exam, 'scheduledexam') and not exam.scheduledexam.is_published:
+        return render(request, '404.html', status=404)
     user_exam = get_object_or_404(UserExam, exam=exam, user=request.user)
 
     if not user_exam.completed_at:
