@@ -136,17 +136,18 @@
       >
         {% for plan_value, plan_label in plans %}
         <div
-          class="card flex-shrink-0 text-center plan-card"
+          class="card flex-shrink-0 text-center plan-card 
+          {% if forloop.last %}pt-2 {% endif %}"
           data-plan-price="{{ plan_value|get_plan_price }}"
           data-plan-id="plan_{{ plan_value }}"
           data-plan-value="{{ plan_value }}"
           data-plan-label="{{ plan_label }}"
           style="height: 100%"
-          {% if forloop.counter == 3 %}id="default-plan"{% endif %}
+          {% if forloop.last %}id="default-plan"{% endif %}
         >
 
         
-        {% if forloop.counter == 3 %}
+        {% if forloop.last %}
         <div class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-success text-white mb-5">
           IRIKUNZWE
           <i class="bi bi-star-fill text-warning"></i>
@@ -188,8 +189,8 @@
         <h2 class="fw-bold">Uburyo bwo kwishyura:</h2>
         <h4 class="underline">Koresha code:</h4>
         <strong>
-          *182*8*1*187756*
-          <strong id="js-plan">0</strong>#</strong>
+          *182*8*1*187756*<strong id="js-plan">0</strong>#
+        </strong>
           <br/>
         <button id="callButton" class="btn btn-outline-primary d-md-none">
           <i class="bi bi-telephone"></i> Emeza
@@ -204,7 +205,7 @@
           data-bs-toggle="modal"
           data-bs-target="#whatsappModal"
         >
-          Nasoje kwishyura
+          Nasoje kwishyura <i class="bi bi-check-circle"></i>
         </button>
       </div>
     </form>
@@ -217,9 +218,9 @@
     </p>
     <a
       href="{% url 'exam_detail' first_exam_id %}"
-      class="btn btn-outline-secondary text-theme fw-bold mt-3 mb-4 {% if user.is_subscribed %}d-none{% endif %}"
+      class="btn btn-outline-secondary bg-secondary text-white fw-bold mt-3 mb-4 rounded-pill"
     >
-      Kora ikizamini cy'ubuntu <i class="bi bi-check-circle"></i>
+      Kora ikizamini cy'ubuntu (Free Trial) <i class="bi bi-lightning-charge "></i>
     </a>
   </div>
 

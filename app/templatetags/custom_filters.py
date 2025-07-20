@@ -69,17 +69,24 @@ def get_plan_description(plan_value):
         'Half-Day': [
             ('⏱️', 'Rimara amasaha 12'),
             ('📝', 'Ukora ibizamini byose ushaka'),
+            ('🤝', 'Tugufasha ibibazo bikugora'),
         ],
         'Daily': [
             ('⏱️', 'Rimara Umunsi wose (AMASAHA 24+1) '),
             ('📝', 'Ukora ibizamini byose ushaka'),
-            ('🤝', 'Uhabwa ubufasha igihe cyose'),
+            ('🤝', 'Tugufasha ibibazo bikugora'),
+        ],
+        
+        'Weekly': [
+            ('⏱️', 'Rimara Icyumweru cyose'),
+            ('📝', 'Ukora ibizamini byose ushaka'),
+            ('🤝', "uhabwa amasomo kubuntu"),
         ],
         'VIP': [
             ('💳', 'Wishyura inshuro imwe gusa'),
+            ('', 'Rirangira wabonye provisior yawe'),
             ('📝', 'Ukora ibizamini byose ushaka'),
-            ('📆', 'Rigeza igihe uzakorera'),
-            ('🤝', 'Uhabwa amasomo yanditse kubuntu'),
+            ('🤝', "Uhabwa amasomo kubuntu"),
         ],
         }.get(plan_value, [])
 
@@ -89,8 +96,9 @@ def get_old_price(value):
     return {
         'Hourly': '500 RWF',
         'Half-Day': '1000 RWF',
-        'VIP': '5000 RWF',
-        
+        'Daily': '2000 RWF',
+        # 'Weekly': '4000',
+        # 'VIP': '5000 RWF',        
         }.get(value, '')
 
 @register.filter
@@ -99,7 +107,8 @@ def get_plan_price(value):
         'Hourly': '300',
         'Half-Day': '500',
         'Daily': '1000',
-        'VIP': '4000',
+        'Weekly': '3500',
+        'VIP': '7000',
         }.get(value, '')
 
 @register.filter

@@ -34,6 +34,7 @@ from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.http import JsonResponse
+from .scheduler import notify_admin
 User = get_user_model()
 
 @login_required(login_url='register')
@@ -505,7 +506,6 @@ def whatsapp_consent(request):
                 user.whatsapp_consent = True
                 user.whatsapp_notifications = True
                 phone = form.cleaned_data.get('whatsapp_number')
-                from .scheduler import notify_admin
                 if phone:
                     valid_phone = validate_phone_number(phone)
                     

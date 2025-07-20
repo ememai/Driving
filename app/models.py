@@ -174,6 +174,7 @@ class Plan(models.Model):
         ('Hourly', "Ry'isaha"),
         ('Half-Day', "Ry'amasaha 12"),
         ('Daily', "Ry'umunsi"),
+        ('Weekly', "Ry'icyumweru"),
         ('VIP', "VIP"),
         )
 

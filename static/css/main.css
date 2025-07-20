@@ -310,3 +310,7 @@
     transition: opacity 0.5s ease-in-out;
     pointer-events: auto;
     }
+
+.offset {
+    text-underline-offset: 5px;
+}

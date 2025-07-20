@@ -3,6 +3,68 @@ from datetime import datetime, timedelta, time, date
 from django.utils.timezone import now, localtime
 import random
 from django.utils import timezone
+from django.conf import settings
+from django.core.mail import send_mail
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+import logging
+import re
+from django.db import connections
+
+# Configure logger for this module
+logger = logging.getLogger(__name__)
+
+
+session = requests.Session()
+retries = Retry(
+    total=3,
+    backoff_factor=1,
+    status_forcelist=[500, 502, 503, 504]
+)
+session.mount('https://', HTTPAdapter(max_retries=retries))
+
+
+def validate_whats_api_credentials():
+    """Validate whats_api credentials before use"""
+    try:
+        response = session.get(
+            f"{settings.WHATSAPP_API_URL}/waInstance{settings.INSTANCE_ID}/getStateInstance/{settings.API_TOKEN}",
+            timeout=15
+        )
+        if response.status_code == 200:
+            return True
+        logger.error(f"whats_api credentials validation failed: {response.text}")
+        return False
+    except Exception as e:
+        logger.error(f"whats_api connection test failed: {str(e)}")
+        return False
+    
+def notify_admin(message):
+    """Send admin notifications via whats_api with improved error handling"""
+    admin_number = "250785287885"  # E.164 format
+    
+    if not validate_whats_api_credentials():
+        logger.error("Cannot send admin notification - whats_api credentials invalid")
+        return
+
+    try:
+        response = session.post(
+            f"{settings.WHATSAPP_API_URL}/waInstance{settings.INSTANCE_ID}/sendMessage/{settings.API_TOKEN}",
+            json={
+                "chatId": f"{admin_number}@c.us",
+                "message": message
+            },
+            timeout=30  # Increased timeout
+        )
+        
+        if response.status_code == 200:
+            logger.info("✅ Admin notification sent")
+        else:
+            logger.error(f"❌ whats_api admin error (HTTP {response.status_code}): {response.text}")
+    except Exception as e:
+        logger.error(f"🚨 Admin notification failed: {str(e)}", exc_info=True)
+
 
 def phone_or_email():
   username = ''
@@ -109,6 +171,8 @@ def check_exam_availability(hour):
 def auto_create_exams(number):
     exams_created = 0
     created_exam_ids = []
+    
+    notify_admin(f"✅done creating {exams_created} exams")
     
     if timezone.localtime(timezone.now()).weekday() == 6:  # Sunday is represented by 6
         print("❌ No exams created on Sundays.")

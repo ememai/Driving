@@ -302,6 +302,10 @@ SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
 
 
-
 # settings.py
 CSRF_FAILURE_VIEW = 'app.views.csrf_failure'
+
+
+WHATSAPP_API_URL = config('WHATSAPP_API_URL', default='https://7105.api.greenapi.com')
+INSTANCE_ID = config('INSTANCE_ID', default='7105229020')
+API_TOKEN = config('API_TOKEN', default='c554e7fe36214785890aded373a3c08625e3460ecce249d283')
