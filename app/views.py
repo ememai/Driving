@@ -33,25 +33,96 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
-from django.http import JsonResponse
+from django.http import JsonResponse,FileResponse,Http404
 from .scheduler import notify_admin
+import mimetypes
+import markdown
+from wsgiref.util import FileWrapper
+
 User = get_user_model()
 
 @login_required(login_url='register')
 def home(request):
-    # Get unique exam types that have exams
-    exam_types = ExamType.objects.filter(exam__isnull=False, exam__for_scheduling=False).distinct().order_by('order')
-    
-    # Prefetch related exams for each type
-    exam_types = exam_types.prefetch_related('exam_set')
-    num = exam_types.count()
-    
+    exam_types = ExamType.objects.filter(
+        exam__isnull=False, exam__for_scheduling=False
+    ).distinct().order_by('order')
+
+    # Annotate each exam type with the count of non-scheduled exams
+    exam_types = exam_types.annotate(
+        actual_exam_count=Count('exam', filter=Q(exam__for_scheduling=False))
+    )
+
+    courses = Course.objects.all()
+    query = request.GET.get('q')
+    category = request.GET.get('category')
+
+    if query:
+        courses = courses.filter(title__icontains=query)
+
+    if category:
+        courses = courses.filter(category=category)
+
     context = {
         'exam_types': exam_types,
-        'num':num
-    }
+        'num': exam_types.count(),
+        'courses': courses,
+        'query': query or '',
+        'selected_category': category or '',
+        'categories': Course._meta.get_field('category').choices,
+        
+        }
     return render(request, 'home.html', context)
 
+@login_required
+@subscription_required
+def secure_download(request, course_id):
+    try:
+        course = Course.objects.get(id=course_id)
+        user = request.user
+
+        # Authorization logic
+        if user.is_subscribed and user.subscription.plan.plan.lower() in ['vip', 'weekly']:
+            return FileResponse(course.course_file.open('rb'), as_attachment=True)
+        else:
+            raise PermissionError("Unauthorized download attempt.")
+
+    except (Course.DoesNotExist, PermissionError):
+        raise Http404("You do not have permission to access this file.")
+
+@login_required
+@subscription_required
+def secure_stream(request, course_id):
+    try:
+        course = Course.objects.get(id=course_id)
+        user = request.user
+
+        if not course.course_file:
+            raise Http404("No file found.")
+
+        if user.is_subscribed and user.subscription.plan.plan.lower() in ['vip', 'weekly', 'daily']:
+            mime_type, _ = mimetypes.guess_type(course.course_file.name)
+            wrapper = FileWrapper(course.course_file.open('rb'))
+            return FileResponse(wrapper, content_type=mime_type or 'application/octet-stream')
+        else:
+            raise PermissionError("Unauthorized")
+    except (Course.DoesNotExist, PermissionError):
+        raise Http404("Access denied.")
+
+
+@login_required(login_url='login')
+@subscription_required
+def course_detail(request, slug):
+    course = get_object_or_404(Course, slug=slug)
+    if not course.course_file:
+        messages.error(request, "This course does not have a file associated with it.")
+        return redirect('home')
+    # Convert markdown to HTML
+    description_html = mark_safe(markdown.markdown(course.description))
+
+    return render(request, 'courses/course_detail.html', {
+        'course': course,
+        'description_html': description_html
+    })
 def navbar(request):
     # Get unique exam types that have exams
     exam_types = ExamType.objects.filter(exam__isnull=False, exam__for_scheduling=False).distinct().order_by('order')

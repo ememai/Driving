@@ -42,6 +42,7 @@ def subscription_required(view_func):
         return view_func(request, *args, **kwargs)
     return wrapper
 
+
 def redirect_authenticated_users(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):

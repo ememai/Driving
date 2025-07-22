@@ -1,7 +1,6 @@
 # Install this with `pip install phonenumbers`
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
-
 import random
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
@@ -21,8 +20,9 @@ import json  # Import the json module
 from django.db.models import Count, F, ExpressionWrapper, FloatField,OuterRef,Subquery
 from django.core.mail import send_mail, BadHeaderError
 from smtplib import SMTPException  # <- correct source
-
+from django.utils.text import slugify
 from django.db.models.functions import Cast
+from ckeditor.fields import RichTextField
 
 class UserProfileManager(BaseUserManager):
     """Custom manager to allow login with either email or phone."""
@@ -306,6 +306,43 @@ class Payment(models.Model):
         verbose_name_plural = "User Payments"
 
 
+class Course(models.Model):
+    title = models.CharField(max_length=200, unique=True)
+    slug = models.SlugField(max_length=200, unique=True)
+    category = models.CharField(max_length=100, choices=[('Video', 'Video'), ('Isomo ryanditse', 'Isomo ryanditse'),], default='Video')
+    exams_type = models.ForeignKey('ExamType', on_delete=models.SET_NULL, null=True, blank=True)
+    description = RichTextField(
+        blank=True, null=True, 
+        help_text="Ibibisobanuro by'isomo"
+    )
+    course_file = models.FileField(upload_to='courses/', validators=[FileExtensionValidator(['pdf', 'mp4', 'avi', 'mkv'])], unique=True)
+    thumbnail = models.ImageField(upload_to='courses/thumbnails/', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # @property
+    # def video_duration(self):
+    #     if self.course_file and self.course_file.name.lower().endswith(('.mp4', '.avi', '.mkv')):
+    #         try:
+    #             from moviepy.editor import VideoFileClip  # <== Lazy import here
+    #             clip = VideoFileClip(self.course_file.path)
+    #             duration = int(clip.duration)  # in seconds
+    #             hours = duration // 3600
+    #             minutes = (duration % 3600) // 60
+    #             seconds = duration % 60
+    #             return f"{hours}:{minutes:02}:{seconds:02}"
+    #         except Exception as e:
+    #             return f"Error: {str(e)}"
+    #     return "Not a video"
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
 class SignType(models.Model):
     name = models.CharField(max_length=50)
 
@@ -435,7 +472,7 @@ class Question(models.Model):
 class ExamType(models.Model):
     name = models.CharField(max_length=500, default='Ibivanze')
     order = models.IntegerField(default=5)
-
+    icon = models.CharField(max_length=50, blank=True, null=True, help_text="Bootstrap icon class name (e.g., 'bi bi-journal-text')")
 
     def __str__(self):
         return self.name

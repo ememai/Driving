@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
     'django_apscheduler',
     "django_browser_reload",
+     'ckeditor',
 ]
 
 JAZZMIN_SETTINGS = {

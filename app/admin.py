@@ -582,3 +582,8 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ('user', 'message', 'timestamp', 'is_read')
     list_filter = ('is_read',)
 
+
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'created_at')
+    prepopulated_fields = {'slug': ('title',)}  # Optional: Auto-fill slug
