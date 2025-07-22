@@ -63,6 +63,48 @@
       display: flex !important;
     }
   </style>
+ 
+  <!-- Add this CSS in the head section -->
+<style>
+  .loading-spinner {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    border: 0.25em solid rgba(0, 0, 0, 0.1);
+    border-left-color: #1E40AF;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 1rem auto;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    width: 100%;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .retry-btn {
+    background-color: #1E40AF;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .retry-btn:hover {
+    background-color: #1E3A8A;
+  }
+</style>
+
 </head>
 <div class="max-w-3xl mx-auto p-4">
   <h1 class="text-3xl font-bold mb-2">{{ course.title }}</h1>
@@ -139,15 +181,20 @@
           Next <i class="fas fa-chevron-right"></i>
         </button>
       </div>
-      <div
-        id="pdf-container"
+      
+      {% comment %} <div id="pdf-container"
         class="border rounded shadow overflow-hidden relative"
-      >
+        >
+
+        <div id="pdf-loading-spinner" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+        </div>
+
         <!-- Navigation Arrows for Fullscreen Mode -->
         <div
           id="fullscreen-arrows"
           class="absolute top-1/2 left-0 right-0 flex justify-between items-center px-1 z-50 hidden pointer-events-none"
-        >
+          >
           <button
             id="fs-prev"
             class="bg-black bg-opacity-10 text-white rounded-full p-3 pointer-events-auto"
@@ -166,6 +213,39 @@
           id="pdf-canvas"
           class="mx-auto transition-transform duration-300 ease-in-out w-full border rounded shadow"
         ></canvas>
+      </div> {% endcomment %}
+      <div
+            id="pdf-container"
+            class="border rounded shadow overflow-hidden relative"
+          >
+            <!-- Loading spinner container -->
+            <div id="loading-spinner" class="loading-container">
+              <div class="loading-spinner"></div>
+            </div>
+            
+            <!-- Navigation Arrows for Fullscreen Mode -->
+            <div
+              id="fullscreen-arrows"
+              class="absolute top-1/2 left-0 right-0 flex justify-between items-center px-1 z-50 hidden pointer-events-none"
+            >
+              <button
+                id="fs-prev"
+                class="bg-black bg-opacity-10 text-white rounded-full p-3 pointer-events-auto"
+              >
+                <i class="fas fa-chevron-left text-2xl"></i>
+              </button>
+              <button
+                id="fs-next"
+                class="bg-black bg-opacity-10 text-white rounded-full p-3 pointer-events-auto"
+              >
+                <i class="fas fa-chevron-right text-2xl"></i>
+              </button>
+            </div>
+
+            <canvas
+              id="pdf-canvas"
+              class="mx-auto transition-transform duration-300 ease-in-out w-full border rounded shadow hidden"
+            ></canvas>
       </div>
 
       <div class="mt-2 flex items-center justify-between">
@@ -240,7 +320,11 @@
 </div>
 
 <script>
+ 
   const url = "{{ course.course_file.url }}";
+  let retryCount = 0;
+  const maxRetries = 3;
+  let retryTimeout;
 
   let pdfDoc = null,
     pageNum = 1,
@@ -252,10 +336,12 @@
 
   const container = document.getElementById("pdf-container");
 
-  
-
   function renderPage(num) {
     pageRendering = true;
+    // Show loading spinner and hide canvas
+    document.getElementById('loading-spinner').style.display = 'flex';
+    document.getElementById('pdf-canvas').classList.add('hidden');
+    
     pdfDoc.getPage(num).then(function (page) {
       const viewport = page.getViewport({ scale });
       canvas.height = viewport.height;
@@ -269,15 +355,100 @@
 
       renderTask.promise.then(function () {
         pageRendering = false;
+        // Hide loading spinner and show canvas when rendering is complete
+        document.getElementById('loading-spinner').style.display = 'none';
+        document.getElementById('pdf-canvas').classList.remove('hidden');
+        
         if (pageNumPending !== null) {
           renderPage(pageNumPending);
           pageNumPending = null;
         }
       });
+    }).catch(function(error) {
+      console.error("Error rendering page:", error);
+      document.getElementById('loading-spinner').innerHTML = `
+        <p class="text-red-500">Error loading page. Please try again.</p>
+        <button class="retry-btn" onclick="retryRenderPage(${num})">Retry Now</button>
+      `;
     });
 
     document.getElementById("page_num").textContent = num;
   }
+
+  function retryRenderPage(num) {
+    clearTimeout(retryTimeout);
+    document.getElementById('loading-spinner').innerHTML = `
+      <div class="loading-spinner"></div>
+      <p>Attempting to load...</p>
+    `;
+    renderPage(num);
+  }
+
+  function loadPDF() {
+    // Show loading state
+    document.getElementById('loading-spinner').innerHTML = `
+      <div class="loading-spinner"></div>
+      <p>Loading document...</p>
+    `;
+    document.getElementById('loading-spinner').style.display = 'flex';
+    
+    pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
+      clearTimeout(retryTimeout);
+      retryCount = 0;
+      pdfDoc = pdfDoc_;
+      document.getElementById("page_count").textContent = pdfDoc.numPages;
+      renderPage(pageNum);
+      setupSwipeNavigation();
+    }).catch(function(error) {
+      retryCount++;
+      if (retryCount <= maxRetries) {
+        const spinnerContainer = document.getElementById('loading-spinner');
+        const retryTime = retryCount * 30000; // 30 seconds for each retry
+        
+        spinnerContainer.innerHTML = `
+          <p class="text-red-500">Error loading PDF (Attempt ${retryCount}/${maxRetries})</p>
+          <p>Retrying in 30 seconds...</p>
+          <button class="retry-btn" onclick="loadPDF()">Retry Now</button>
+        `;
+        
+        retryTimeout = setTimeout(loadPDF, retryTime);
+      } else {
+        const spinnerContainer = document.getElementById('loading-spinner');
+        spinnerContainer.innerHTML = `
+          <p class="text-red-500">Failed to load PDF after ${maxRetries} attempts.</p>
+          <button class="retry-btn" onclick="loadPDF()">Try Again</button>
+        `;
+      }
+    });
+  }
+
+  // Initialize PDF loading
+  loadPDF();
+
+  function queueRenderPage(num) {
+    if (pageRendering) {
+      pageNumPending = num;
+    } else {
+      renderPage(num);
+    }
+  }
+
+  function onPrevPage() {
+    if (pageNum <= 1) return;
+    pageNum--;
+    queueRenderPage(pageNum);
+  }
+
+  function onNextPage() {
+    if (pageNum >= pdfDoc.numPages) return;
+    pageNum++;
+    queueRenderPage(pageNum);
+  }
+
+
+
+
+
 
   function queueRenderPage(num) {
     if (pageRendering) {
