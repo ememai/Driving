@@ -103,6 +103,9 @@ def get_old_price(value):
         'Daily': '2000 RWF',
         # 'Weekly': '4000',
         # 'VIP': '5000 RWF',        
+        'Daily': '2000 RWF',
+        # 'Weekly': '4000',
+        # 'VIP': '5000 RWF',        
         }.get(value, '')
 
 @register.filter
@@ -111,6 +114,8 @@ def get_plan_price(value):
         'Hourly': '300',
         'Half-Day': '500',
         'Daily': '1000',
+        'Weekly': '3500',
+        'VIP': '7000',
         'Weekly': '3500',
         'VIP': '7000',
         }.get(value, '')
