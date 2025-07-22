@@ -307,6 +307,7 @@ class Payment(models.Model):
 
 
 class Course(models.Model):
+    course_file = models.FileField(upload_to='courses/', validators=[FileExtensionValidator(['pdf', 'mp4', 'avi', 'mkv'])], unique=True)
     title = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=200, unique=True)
     category = models.CharField(max_length=100, choices=[('Video', 'Video'), ('Isomo ryanditse', 'Isomo ryanditse'),], default='Video')
@@ -315,7 +316,6 @@ class Course(models.Model):
         blank=True, null=True, 
         help_text="Ibibisobanuro by'isomo"
     )
-    course_file = models.FileField(upload_to='courses/', validators=[FileExtensionValidator(['pdf', 'mp4', 'avi', 'mkv'])], unique=True)
     thumbnail = models.ImageField(upload_to='courses/thumbnails/', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
