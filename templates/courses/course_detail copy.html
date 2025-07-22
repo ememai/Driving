@@ -1,0 +1,463 @@
+{% load custom_filters %}
+
+{% load static %}
+<head>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <title>{{ course.title }} - Course Details | IGAZETI.RW</title>
+  
+  <meta name="description" content="{{ course.description|truncatewords:20 }}">
+
+  {% if course.category %}
+  <meta name="keywords" content="{{ course.category }}">
+{% endif %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="theme-color" content="#1E40AF">
+<meta name="author" content="Igazeti Team">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="{{ course.title }} - Course Details | IGAZETI.RW">
+<meta property="og:description" content="{{ course.description|truncatewords:20 }}">
+<meta property="og:image" content="{{ course.thumbnail.url }}images/default-course-image.jpg">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="IGAZETI.RW">
+
+<style>
+  #pdf-container:fullscreen,
+  #pdf-container:-webkit-full-screen,
+  #pdf-container:-moz-full-screen {
+    width: 100vw;
+    height: 100vh;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #pdf-container canvas {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  #pdf-container:fullscreen #fullscreen-arrows,
+  #pdf-container:-webkit-full-screen #fullscreen-arrows {
+    display: flex !important;
+  }
+
+</style>
+
+</head>
+<div class="max-w-3xl mx-auto p-4">
+  <h1 class="text-3xl font-bold mb-2">{{ course.title }}</h1>
+  <span class="text-sm text-white bg-blue-500 px-2 py-1 rounded">{{ course.category }}</span>
+
+  <p class="mt-4 text-gray-700">{{ course.description }}</p>
+
+  {% if course.course_file %}
+    <div class="mt-6">
+      {% if course.course_file.url|lower|endswith:".mp4" or course.course_file.url|lower|endswith:".avi" or course.course_file.url|lower|endswith:".mkv" %}
+        <video controls class="w-full rounded">
+          <source src="{{ course.course_file.url }}">
+          Your browser does not support the video tag.
+          <i class="fas fa-video text-gray-500"></i>
+        </video>
+      {% elif course.course_file.url|lower|endswith:".pdf" %}
+        <div class="aspect-w-16 aspect-h-9">
+          <div class="mb-3 flex gap-2 items-center">
+            <button id="show-search-btn" class="bg-blue-600 text-white px-4 py-1 rounded">
+              <i class="fas fa-search"></i> Search
+            </button>
+            <input id="search-input" type="text" placeholder="Search text..." class="border rounded px-3 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-400 hidden">
+          </div>
+        </div>
+
+          <div id="match-nav" class="flex gap-2 items-center mt-1 hidden">
+            <button id="prev-match" class="bg-gray-200 px-2 py-1 rounded text-sm"><i class="fas fa-arrow-left"></i></button>
+            <span class="text-sm">Match <span id="match-index">0</span> of <span id="match-count">0</span></span>
+            <button id="next-match" class="bg-gray-200 px-2 py-1 rounded text-sm"><i class="fas fa-arrow-right"></i></button>
+          </div>
+
+
+
+          <div class="mt-6">
+              <div id="pdf-controls" class="flex justify-between items-center mb-2">
+                <button id="prev" class="bg-gray-200 px-2 py-1 rounded">
+                  <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <span>Page: <span id="page_num">1</span> / <span id="page_count">--</span></span>
+                <button id="next" class="bg-gray-200 px-2 py-1 rounded">
+                  Next <i class="fas fa-chevron-right"></i>
+                </button>
+            
+
+              </div>
+            <div id="pdf-container" class="border rounded shadow overflow-hidden relative">
+              <!-- Navigation Arrows for Fullscreen Mode -->
+            <div id="fullscreen-arrows" class="absolute top-1/2 left-0 right-0 flex justify-between items-center px-4 z-50 hidden pointer-events-none">
+              <button id="fs-prev" class="bg-black bg-opacity-50 text-white rounded-full p-3 pointer-events-auto">
+                <i class="fas fa-chevron-left text-2xl"></i>
+              </button>
+              <button id="fs-next" class="bg-black bg-opacity-50 text-white rounded-full p-3 pointer-events-auto">
+                <i class="fas fa-chevron-right text-2xl"></i>
+              </button>
+            </div>
+
+              <canvas id="pdf-canvas" class="mx-auto transition-transform duration-300 ease-in-out w-full  border rounded shadow"></canvas>
+            </div>
+          
+
+            <div class="mt-2 flex items-center justify-between ">
+              {% comment %} <button id="fullscreen" class="ml-3 bg-gray-200 px-2 py-1 rounded text-base">
+                <i class="fas fa-expand"></i> FULLSCREEN
+              </button> {% endcomment %}
+              <button id="fullscreen" class="ml-3 bg-gray-200 px-3 py-2 rounded text-base text-sm md:text-base">
+                <i class="fas fa-expand"></i> <span class="hidden sm:inline">Fullscreen</span>
+              </button>
+
+              <a href="{{ course.course_file.url }}" download class="text-green-900 underline">
+                <i class="fas fa-download"> download</i>
+              </a>
+            </div>
+          </div>
+
+    </div>
+        
+      {% else %}
+        <a href="{{ course.course_file.url }}" download class="text-red-600 underline">Download File</a>
+        <span class="text-black ml-2">File type not supported for preview.</span>
+      {% endif %}
+    
+
+    <div class="my-4 flex justify-between items-center">      
+      <a href="{% url 'exams' course.exams_type %}" class="text-blue-600 underline">
+        <h2 class="text-xl font-semibold">Kora Ibizamini ku isomo {{ course.title }}</h2>
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+  const url = "{{ course.course_file.url }}";
+
+  let pdfDoc = null,
+      pageNum = 1,
+      pageRendering = false,
+      pageNumPending = null,
+      scale = 1.5,
+      canvas = document.getElementById('pdf-canvas'),
+      ctx = canvas.getContext('2d');
+
+  const container = document.getElementById('pdf-container');
+
+  function renderPage(num) {
+    pageRendering = true;
+    pdfDoc.getPage(num).then(function(page) {
+      const viewport = page.getViewport({ scale });
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      const renderContext = {
+        canvasContext: ctx,
+        viewport: viewport
+      };
+      const renderTask = page.render(renderContext);
+
+      renderTask.promise.then(function() {
+        pageRendering = false;
+        if (pageNumPending !== null) {
+          renderPage(pageNumPending);
+          pageNumPending = null;
+        }
+      });
+    });
+
+    document.getElementById('page_num').textContent = num;
+  }
+
+  function queueRenderPage(num) {
+    if (pageRendering) {
+      pageNumPending = num;
+    } else {
+      renderPage(num);
+    }
+  }
+
+  function onPrevPage() {
+    if (pageNum <= 1) return;
+    pageNum--;
+    queueRenderPage(pageNum);
+  }
+
+  function onNextPage() {
+    if (pageNum >= pdfDoc.numPages) return;
+    pageNum++;
+    queueRenderPage(pageNum);
+  }
+
+  
+
+ function toggleFullscreen() {
+  const elem = container;
+
+  const lockOrientation = () => {
+    const orientation = screen.orientation || screen.mozOrientation || screen.msOrientation;
+    if (orientation && orientation.lock) {
+      orientation.lock('landscape').catch((err) => {
+        console.warn("Orientation lock failed:", err.message);
+      });
+    }
+  };
+
+  if (!document.fullscreenElement &&
+      !document.webkitFullscreenElement &&
+      !document.mozFullScreenElement &&
+      !document.msFullscreenElement) {
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().then(lockOrientation);
+    } else if (elem.webkitRequestFullscreen) {
+      elem.webkitRequestFullscreen();
+      lockOrientation();
+    } else if (elem.mozRequestFullScreen) {
+      elem.mozRequestFullScreen();
+      lockOrientation();
+    } else if (elem.msRequestFullscreen) {
+      elem.msRequestFullscreen();
+      lockOrientation();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  }
+}
+
+
+
+  function setupSwipeNavigation() {
+    let startX = null;
+
+    container.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    container.addEventListener("touchend", (e) => {
+      if (startX === null) return;
+      let endX = e.changedTouches[0].clientX;
+      let diffX = startX - endX;
+
+      if (Math.abs(diffX) > 50) {
+        if (diffX > 0) onNextPage();  // swipe left
+        else onPrevPage();            // swipe right
+      }
+
+      startX = null;
+    });
+  }
+
+  pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+    pdfDoc = pdfDoc_;
+    document.getElementById('page_count').textContent = pdfDoc.numPages;
+    renderPage(pageNum);
+    setupSwipeNavigation(); // Enable touch/swipe
+  });
+
+  // Keyboard Shortcuts
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'p') {
+      onPrevPage();
+    } else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'n') {
+      onNextPage();
+    } else if (e.key.toLowerCase() === 'f') {
+      toggleFullscreen();
+    }
+  });
+
+  // Search Functionality
+ 
+  const fullscreenArrows = document.getElementById('fullscreen-arrows');
+const fsPrev = document.getElementById('fs-prev');
+const fsNext = document.getElementById('fs-next');
+
+let hideArrowTimeout;
+
+function showFullscreenArrows() {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) return;
+  fullscreenArrows.classList.remove('hidden');
+  clearTimeout(hideArrowTimeout);
+  hideArrowTimeout = setTimeout(() => {
+    fullscreenArrows.classList.add('hidden');
+  }, 3000);
+}
+
+['mousemove', 'touchstart', 'keydown','click'].forEach(event =>
+  document.addEventListener(event, showFullscreenArrows)
+);
+
+fsPrev.addEventListener('click', () => {
+  onPrevPage();
+  showFullscreenArrows();
+});
+fsNext.addEventListener('click', () => {
+  onNextPage();
+  showFullscreenArrows();
+});
+
+// When entering fullscreen manually, show arrows immediately
+container.addEventListener('fullscreenchange', showFullscreenArrows);
+container.addEventListener('webkitfullscreenchange', showFullscreenArrows);
+
+
+  document.getElementById('prev').addEventListener('click', onPrevPage);
+  document.getElementById('next').addEventListener('click', onNextPage);
+  document.getElementById('fullscreen').addEventListener('click', toggleFullscreen);
+</script>
+
+<script>
+  
+  const searchInput = document.getElementById('search-input');
+  const showSearchBtn = document.getElementById('show-search-btn');
+  const matchIndexLabel = document.getElementById('match-index');
+  const matchCountLabel = document.getElementById('match-count');
+  const nextMatchBtn = document.getElementById('next-match');
+  const prevMatchBtn = document.getElementById('prev-match');
+
+  let allMatches = []; // { pageNum, rect }
+  let currentMatchIndex = 0;
+
+  showSearchBtn.addEventListener('click', () => {
+    searchInput.classList.toggle('hidden');
+    if (!searchInput.classList.contains('hidden')) {
+      searchInput.focus();
+    }
+  });
+
+  async function searchPDFLive(keyword) {
+    allMatches = [];
+    keyword = keyword.trim().toLowerCase();
+    if (!keyword || keyword.length < 2) {
+      matchCountLabel.textContent = '0';
+      matchIndexLabel.textContent = '0';
+      return;
+    }
+
+    const numPages = pdfDoc.numPages;
+
+    for (let i = 1; i <= numPages; i++) {
+      const page = await pdfDoc.getPage(i);
+      const textContent = await page.getTextContent();
+      const viewport = page.getViewport({ scale });
+
+      for (const item of textContent.items) {
+        const itemText = item.str;
+        const itemTextLower = itemText.toLowerCase();
+
+        let startIndex = 0;
+        while (true) {
+          const index = itemTextLower.indexOf(keyword, startIndex);
+          if (index === -1) break;
+
+          // Measure the partial text width
+          const prefix = itemText.slice(0, index);
+          const matchPart = itemText.slice(index, index + keyword.length);
+
+          const widthPerChar = item.width / itemText.length;
+          const matchXOffset = widthPerChar * prefix.length;
+          const matchWidth = widthPerChar * keyword.length;
+
+          const transform = pdfjsLib.Util.transform(viewport.transform, item.transform);
+          const x = transform[4] + matchXOffset;
+          const y = transform[5] - Math.sqrt(transform[2] * transform[2] + transform[3] * transform[3]);
+          const height = Math.abs(transform[3]);
+
+          allMatches.push({
+            pageNum: i,
+            rect: { x, y, width: matchWidth, height }
+          });
+
+          startIndex = index + keyword.length;
+        }
+      }
+    }
+
+    matchCountLabel.textContent = allMatches.length;
+    if (allMatches.length > 0) {
+      currentMatchIndex = 0;
+      goToMatch(currentMatchIndex);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  async function goToMatch(index) {
+    if (!allMatches.length) return;
+
+    const { pageNum, rect } = allMatches[index];
+    currentMatchIndex = index;
+    matchIndexLabel.textContent = currentMatchIndex + 1;
+
+    const page = await pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
+
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    const renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+
+    await page.render(renderContext).promise;
+
+    // Highlight only current match
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+    ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+    ctx.restore();
+
+    document.getElementById('page_num').textContent = pageNum;
+  }
+
+  nextMatchBtn.addEventListener('click', () => {
+    if (allMatches.length === 0) return;
+    currentMatchIndex = (currentMatchIndex + 1) % allMatches.length;
+    goToMatch(currentMatchIndex);
+  });
+
+  prevMatchBtn.addEventListener('click', () => {
+    if (allMatches.length === 0) return;
+    currentMatchIndex = (currentMatchIndex - 1 + allMatches.length) % allMatches.length;
+    goToMatch(currentMatchIndex);
+  });
+
+  // Live search as user types
+  let searchTimeout;
+  const matchNav = document.getElementById('match-nav');
+
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    const keyword = searchInput.value.trim();
+    if (keyword.length > 0) {
+      matchNav.classList.remove('hidden');
+      searchTimeout = setTimeout(() => {
+        searchPDFLive(keyword);
+      }, 300);
+    } else {
+      matchNav.classList.add('hidden');
+      matchCountLabel.textContent = '0';
+      matchIndexLabel.textContent = '0';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  });
+
+</script>
+

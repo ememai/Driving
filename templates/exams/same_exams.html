@@ -47,9 +47,7 @@
   }
 
   .exam-icon i {
-    background: linear-gradient(135deg, #00f2fe, #4facfe);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    
     transition: transform 0.4s ease;
     display: inline-block;
   }
@@ -120,21 +118,7 @@
           {% endif %}
 
           <div class="exam-icon">
-            {% if "amatara" in exam_type|lower %}
-              <i class="fa-solid fa-traffic-light"></i>
-            {% elif "ibimenyetso" in exam_type|lower or "ibyapa" in exam_type|lower %}
-              <i class="fa-solid fa-road"></i>
-            {% elif "imibare" in exam_type|lower %}
-              <i class="fa-solid fa-square-root-variable"></i>
-            {% elif "ibibazo birebire" in exam_type|lower or "birebire" in exam_type|lower %}
-              <i class="fa-solid fa-paragraph"></i>
-            {% elif "ibivanze" in exam_type|lower or "ibivanze" in exam_type|lower %}
-              <i class="fa-solid fa-layer-group"></i>
-            {% elif "amashusho" in exam_type|lower %}
-              <i class="fa-solid fa-image"></i>
-            {% else %}
-              <i class="fa-solid fa-question-circle"></i>
-            {% endif %}
+            <i class="{{ exam.exam_type.icon|default:'fas fa-question-circle' }}" ></i>
           </div>
 
           <h2>Icya {{ forloop.counter }}</h2>

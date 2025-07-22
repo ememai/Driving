@@ -63,23 +63,34 @@ def current_date(value):
 def get_plan_description(plan_value):
     return {
         'Hourly': [
-            ('⏱️', 'Rimara Isaha imwe'),
-            ('📝', 'Ukora ibizamini byose ushaka'),
+            ('', 'Rimara Isaha imwe'),
+            ('', 'Ukora ibizamini byose ushaka'),
+            ('', 'Wemerewe gusoma amasomo yose'),
         ],
         'Half-Day': [
-            ('⏱️', 'Rimara amasaha 12'),
-            ('📝', 'Ukora ibizamini byose ushaka'),
+            ('', 'Rimara amasaha 12'),
+            ('', 'Ukora ibizamini byose ushaka'),
+            ('', 'Wemerewe gusoma amasomo yose'),
+            ('', 'Tugufasha ibibazo bikugora'),
         ],
         'Daily': [
-            ('⏱️', 'Rimara Umunsi wose (AMASAHA 24+1) '),
-            ('📝', 'Ukora ibizamini byose ushaka'),
-            ('🤝', 'Uhabwa ubufasha igihe cyose'),
+            ('', 'Rimara Umunsi wose (AMASAHA 24+1) '),
+            ('', 'Ukora ibizamini byose ushaka'),
+            ('', 'Wemerewe gusoma amasomo yose'),
+            ('', 'Tugufasha ibibazo bikugora'),
+        ],
+        
+        'Weekly': [
+            ('', 'Rimara Icyumweru cyose (IMINSI 7)'),
+            ('', 'Ukora ibizamini byose ushaka'),
+            ('', 'Wemerewe gusoma amasomo yose no ku downloadinga'),
         ],
         'VIP': [
             ('💳', 'Wishyura inshuro imwe gusa'),
-            ('📝', 'Ukora ibizamini byose ushaka'),
-            ('📆', 'Rigeza igihe uzakorera'),
-            ('🤝', 'Uhabwa amasomo yanditse kubuntu'),
+            ('', 'Rirangira wabonye provisior yawe'),
+            ('', 'Ukora ibizamini byose ushaka'),
+            ('', 'Wemerewe gusoma amasomo yose no ku downloadinga'),
+            ('🤝', "Turakwigisha by'umwihariko"),
         ],
         }.get(plan_value, [])
 
@@ -89,8 +100,9 @@ def get_old_price(value):
     return {
         'Hourly': '500 RWF',
         'Half-Day': '1000 RWF',
-        'VIP': '5000 RWF',
-        
+        'Daily': '2000 RWF',
+        # 'Weekly': '4000',
+        # 'VIP': '5000 RWF',        
         }.get(value, '')
 
 @register.filter
@@ -99,7 +111,8 @@ def get_plan_price(value):
         'Hourly': '300',
         'Half-Day': '500',
         'Daily': '1000',
-        'VIP': '4000',
+        'Weekly': '3500',
+        'VIP': '7000',
         }.get(value, '')
 
 @register.filter
@@ -220,3 +233,16 @@ DAY_TRANSLATIONS = {
 @register.filter
 def kinyarwanda_day(date):
     return DAY_TRANSLATIONS.get(date.strftime('%A'), date.strftime('%A'))
+
+@register.filter
+def endswith(value, arg):
+    return value.endswith(arg)
+
+@register.filter
+def plan_allowed(user):
+    """
+    Check if the user's subscription plan allows access to a specific feature.
+    """
+    if user.is_subscribed and user.subscription.plan.plan.lower() in ['vip', 'weekly', 'daily']:
+        return True
+    return False
