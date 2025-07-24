@@ -140,7 +140,7 @@ def start():
         # 1. Run exam scheduling every day at 00:00
         scheduler.add_job(
             job_auto_schedule_exams,
-            CronTrigger(hour=23, minute=4, second=10),
+            CronTrigger(hour=0, minute=0, second=0),
             id="auto_schedule_exams"
         )
 
