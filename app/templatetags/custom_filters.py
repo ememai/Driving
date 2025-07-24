@@ -113,8 +113,6 @@ def get_plan_price(value):
         'Daily': '1000',
         'Weekly': '3000',
         'VIP': '7000',
-        'Weekly': '3500',
-        'VIP': '7000',
         }.get(value, '')
 
 @register.filter
