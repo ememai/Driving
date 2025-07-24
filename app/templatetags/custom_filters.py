@@ -81,7 +81,7 @@ def get_plan_description(plan_value):
         ],
         
         'Weekly': [
-            ('', 'Rimara Icyumweru cyose (IMINSI 7)'),
+            ('', 'Rimara IMINSI 15'),
             ('', 'Ukora ibizamini byose ushaka'),
             ('', 'Wemerewe  amasomo yose no ku downloadinga'),
         ],
@@ -101,7 +101,7 @@ def get_old_price(value):
         'Hourly': '500 RWF',
         'Half-Day': '1000 RWF',
         'Daily': '2000 RWF',
-        'Weekly': '3500',
+        # 'Weekly': '4000 RWF',
         # 'VIP': '5000 RWF',        
         }.get(value, '')
 

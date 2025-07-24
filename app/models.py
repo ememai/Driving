@@ -171,10 +171,10 @@ class UserProfile(AbstractUser):
 
 class Plan(models.Model):
     PLAN_CHOICES = (
-        ('Hourly', "Ry'isaha"),
-        ('Half-Day', "Ry'amasaha 12"),
-        ('Daily', "Ry'umunsi"),
-        ('Weekly', "Ry'icyumweru"),
+        ('Hourly', "Isaha"),
+        ('Half-Day', "Amasaha 12"),
+        ('Daily', "Umunsi"),
+        ('Weekly', "IBYUMWERU 2"),
         ('VIP', "VIP"),
         )
 
