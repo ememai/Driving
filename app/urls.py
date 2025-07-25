@@ -16,6 +16,7 @@ urlpatterns = [
     path("", views.home, name='home'),
     path('isomo/stream/<int:course_id>/', views.secure_stream, name='secure_stream'),
     path('isomo/download/<int:course_id>/', views.secure_download, name='secure_download'),
+    path('amasomo/', views.courses, name='courses'),
     path("ibibazo-byo-mubwoko-/<str:exam_type>/", exams_by_type, name='exams'),
     path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
 

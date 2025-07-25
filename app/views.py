@@ -123,6 +123,22 @@ def course_detail(request, slug):
         'course': course,
         'description_html': description_html
     })
+
+@login_required
+def courses(request):
+    courses = Course.objects.all()
+    query = request.GET.get('q')
+    
+    context = {
+        'courses': courses,
+        'query': query or '',
+    }
+    if query:
+        courses = courses.filter(title__icontains=query)
+        context['courses'] = courses
+    return render(request, 'courses/courses.html', context)
+
+
 def navbar(request):
     # Get unique exam types that have exams
     exam_types = ExamType.objects.filter(exam__isnull=False, exam__for_scheduling=False).distinct().order_by('order')
