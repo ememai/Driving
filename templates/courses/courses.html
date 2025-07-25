@@ -33,6 +33,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for course in courses %}
           <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+            <a href="{% url 'course_detail' course.slug %}" >
             {% if course.thumbnail %}
               <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-full h-40 object-cover">
             {% else %}
@@ -46,6 +47,7 @@
               {% endif %}
               <a href="{% url 'course_detail' course.slug %}" class="mt-4 inline-block text-blue-600 hover:underline font-medium text-sm">
                 Fungura →
+              </a>
               </a>
             </div>
           </div>
