@@ -383,6 +383,7 @@
     const name = document.getElementById("name").value.trim();
     const planSelect = document.getElementById("plan");
     const userName = "{{ request.user.name }}";
+    const userEmail = "{{ request.user.email|default:'' }}";
 
     const planValue = planSelect.value;
     const planLabel = planSelect.options[planSelect.selectedIndex].text;
@@ -395,7 +396,7 @@
     const domain = window.location.hostname.replace(/^www\./, '');
     const protocol = window.location.protocol;
     const url = `${domain}`;
-    const message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n📌 Izina: ${name}\n📞 Numero: ${phone}\n💳 Ifatabuguzi: ${planLabel}\n\n🔹Murakoze! ${userName} \n\n ${url}`;
+    const message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n📌 Izina: ${name}\n📞 Numero: ${phone}\n💳 Ifatabuguzi: ${planLabel}\n\n🔹Murakoze! ${userName} ${userEmail} \n\n ${url}`;
     window.location.href = `https://wa.me/250735777412?text=${encodeURIComponent(message)}`;
   }
 </script>
