@@ -24,24 +24,30 @@
 
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
-        <div class="card shadow rounded-4 p-4">
+      <div class="card shadow rounded-4 p-4">
+          <div class="text-center mb-4 medium">
+                Wariyandikishije? <a href="{% url "login" %}" class="link-primary medium" data-bs-toggle="modal" data-bs-target="#loginModal"><em><i class="bi bi-box-arrow-in-right me-1"></i>Kanda hano</em></a>
+              </div>
           <h3 class="mb-2 text-center text-primary-emphasis">Iyandikishe niba uri mushya</h3>
 
           <div class="my-3 text-center">
             <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.GET.next|default:'/' }}">
             <button class="google-btn">
                 <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google Logo">
-                  <span>Continue with Google</span>
+                  <span>Komeza na Google</span>
               </button>
             </a>
           </div>
-          
-          <div class="text-center mb-4 medium">
-            Wariyandikishije? <a href="{% url "login" %}" class="link-primary medium" data-bs-toggle="modal" data-bs-target="#loginModal"><em><i class="bi bi-box-arrow-in-right me-1"></i>Kanda hano</em></a>
+          <div class="text-center mb-4">
+            <span class="text-secondary">Cyangwa</span>
+            
           </div>
-          <div class="mt-1 text-center">
-               <hr>
-           </div>
+          <h4 class="text-center mb-4">
+            <i class="bi bi-info-circle-fill text-primary-emphasis me-1"></i> 
+          Wuzuze ibikurikira
+          </h4>
+            <hr class="w-50 mx-auto">
+            
           {% include "flash_message.html" %}
             {% if registration_success %}
                 <div class="alert alert-success text-center">
@@ -134,7 +140,7 @@
 
                 <!-- Password -->
               <div class="mb-3 position-relative">
-                <label for="id_password1" class="form-label">Ijambobanga(Password)</label>
+                <label for="id_password1" class="form-label">Hitamo Ijambobanga(Password)</label>
                 <div class="input-group has-validation align-items-center position-relative">
                     <input type="password" name="password1" id="id_password1"
                           class="form-control" required>
