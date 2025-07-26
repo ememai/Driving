@@ -34,5 +34,6 @@ def save_user_names(backend, details, user=None, *args, **kwargs):
         while UserProfile.objects.filter(name=unique_name).exclude(pk=user.pk).exists():
             unique_name = f"{base_name}{counter}"
             counter += 1
-        user.name = unique_name if not user.name else user.name  # Only set if name is empty
+        if user.name is None:
+            user.name = unique_name            
         user.save()
