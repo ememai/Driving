@@ -20,19 +20,24 @@ def save_user_names(backend, details, user=None, *args, **kwargs):
     if user:
         first_name = details.get('first_name', '')
         email = details.get('email', '')
-        # Always ensure uniqueness, even if first_name is present
-        if not first_name or first_name.strip() == '':
-            if email:
-                base_name = email.split('@')[0]
-            else:
-                base_name = f'user_{user.pk or "new"}'
-        else:
+        # Always ensure a non-empty base_name
+        if first_name and first_name.strip():
             base_name = first_name.strip()
+        elif email and email.split('@')[0].strip():
+            base_name = email.split('@')[0].strip()
+        else:
+            base_name = f'user_{user.pk or "new"}'
+        # Fallback to a default if still empty
+        if not base_name:
+            base_name = f'user_{user.pk or "new"}'
         unique_name = base_name
         counter = 1
-       
-        while UserProfile.objects.filter(name=unique_name).exclude(pk=user.pk).exists():
+        # Debug print to trace name assignment
+        print(f"[DEBUG] Initial base_name: '{base_name}'")
+        while not unique_name or UserProfile.objects.filter(name=unique_name).exclude(pk=user.pk).exists():
             unique_name = f"{base_name}{counter}"
+            print(f"[DEBUG] Trying unique_name: '{unique_name}'")
             counter += 1
-        user.name = unique_name 
+        print(f"[DEBUG] Final unique_name assigned: '{unique_name}'")
+        user.name = unique_name
         user.save()

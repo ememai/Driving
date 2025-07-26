@@ -34,6 +34,21 @@ class UserProfileManager(BaseUserManager):
         email = self.normalize_email(email) if email else None
         phone_number = phone_number if phone_number else None  # Ensure None, not ""
 
+        # Guarantee a non-empty, unique name
+        name = extra_fields.get('name', '').strip()
+        if not name:
+            if email:
+                base_name = email.split('@')[0]
+            elif phone_number:
+                base_name = f'user_{phone_number[-6:]}'
+            else:
+                base_name = 'user_new'
+            unique_name = base_name
+            counter = 1
+            while self.model.objects.filter(name=unique_name).exists() or unique_name == '':
+                unique_name = f"{base_name}{counter}"
+                counter += 1
+            extra_fields['name'] = unique_name
         user = self.model(email=email, phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
