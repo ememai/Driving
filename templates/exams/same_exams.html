@@ -134,7 +134,14 @@
             <span class="exam-badge badge-hard">Bikomeye</span>
           {% endif %}
 
-          <a href="{% url 'exam_detail' exam.id %}" class="btn btn-outline-primary">Gikore</a>
+          <a href="{% url 'exam_detail' exam.id %}" class="btn btn-outline-primary">
+            {% if exam.id in completed_exam_map %}
+            Gisubiremo
+            {% else %}
+            Gikore
+            {% endif %}
+          </a>
+
         </div>
       </div>
       {% endfor %}
