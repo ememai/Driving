@@ -44,7 +44,7 @@ def subscription_required(view_func):
                 data-bs-toggle="modal"
                 data-bs-target="#whatsappModal"
                 >
-                Kanda hano<i class="bi bi-check-circle"></i>
+                Kanda hano <i class="bi bi-check-circle"></i>
             </a>'''
         ))
             return redirect('subscription')
