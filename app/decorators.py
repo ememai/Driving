@@ -35,7 +35,17 @@ def subscription_required(view_func):
             if first_exam and exam_id and str(exam_id) == str(first_exam.id):
                 return view_func(request, *args, **kwargs)
             messages.error(request, mark_safe(
-            "<h3>Gura ifatabuguzi kugirango ubashe gukomeza!</h3>"
+            '''<h3>Gura ifatabuguzi kugirango ubashe gukomeza!</h3>
+            <em class="text-muted">
+                Wasoje kwishyura? 
+            </em>
+            <a
+                class="btn text-primary fs-5"
+                data-bs-toggle="modal"
+                data-bs-target="#whatsappModal"
+                >
+                Kanda hano<i class="bi bi-check-circle"></i>
+            </a>'''
         ))
             return redirect('subscription')
         

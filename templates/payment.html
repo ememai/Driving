@@ -121,9 +121,12 @@
          Saa {{ user.subscription.expires_at|date:"H:i" }}
       </strong>
     </p>
+     
     {% else %}
     <p class="fw-bold text-warning">Ntafatabuguzi ufite!!!</p>
+    
     {% endif %} {% include "flash_message.html" %}
+    
   </div>
 
   <div class="alert text-center fs-5 p-0" role="alert">
