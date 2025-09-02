@@ -63,9 +63,9 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user__name','plan', 'price', 'started', 'upd_at','delta_display', 'expires', 'colored_is_active','updated', 'renew_subscription','end_subscription')
+    list_display = ('user__name','plan', 'price', 'started','updated', 'upd_at','delta_display', 'expires', 'colored_is_active', 'renew_subscription','end_subscription')
     
-    list_editable = ('plan', 'updated', )    
+    # list_editable = ('updated', )    
 
     list_filter = ('super_subscription', 'plan')
     search_fields = ('user__name', 'user__email', 'user__phone_number')
