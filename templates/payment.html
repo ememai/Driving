@@ -126,6 +126,25 @@
     <p class="fw-bold text-warning">Ntafatabuguzi ufite!!!</p>
     
     {% endif %} {% include "flash_message.html" %}
+
+    
+
+    <div class="mb-3" id="payment-info">
+      <em class="text-muted">Wasoje kwishyura?</em>
+      <a
+        class="btn text-primary fs-5"
+        data-bs-toggle="modal"
+        data-bs-target="#confirmPayModal"
+      >
+        Kanda hano <i class="bi bi-check-circle"></i>
+        
+      </a>
+
+
+    </div>
+
+   
+
     
   </div>
 
@@ -274,7 +293,7 @@
             >
               <option value="" disabled selected>Hitampo ifatabuguzi wishyuye</option>
               {% for plan_value, plan_label in plans %}
-              <option value="{{ plan_value|get_plan_price }}">
+              <option value="{{ plan_value|get_plan_price }}" class="text-theme">
                 {{ plan_label }} - {{ plan_value|get_plan_price }} RWF
               </option>
               {% endfor %}
