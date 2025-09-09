@@ -206,7 +206,7 @@
           type="button"
           class="btn btn-primary d-block mx-auto"
           data-bs-toggle="modal"
-          data-bs-target="#whatsappModal"
+          data-bs-target="#confirmPayModal"
         >
           Nasoje kwishyura <i class="bi bi-check-circle"></i>
         </button>
@@ -230,64 +230,64 @@
   <!-- WhatsApp Modal -->
   <div
     class="modal fade"
-    id="whatsappModal"
+    id="confirmPayModal"
     tabindex="-1"
-    aria-labelledby="whatsappModalLabel"
+    aria-labelledby="confirmPayModalLabel"
     aria-hidden="true"
     >
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <form>
           <div class="modal-header">
-            <h5 class="modal-title" id="whatsappModalLabel">
-              Telefone n'amazina by'uwishyuye
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Funga"
-            ></button>
+        <h5 class="modal-title" id="confirmPayModalLabel">
+          Telefone n'amazina by'uwishyuye
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Funga"
+        ></button>
           </div>
           <div class="modal-body">
-            <input
-              type="text"
-              id="phone"
-              class="form-control mb-3"
-              placeholder="Nimero yishyuye"
-              required
-            />
-            <input
-              type="text"
-              id="name"
-              class="form-control"
-              placeholder="Amazina"
-              required
-            />
+        <input
+          type="text"
+          id="phone"
+          class="form-control mb-3"
+          placeholder="Nimero yishyuye"
+          required
+        />
+        <input
+          type="text"
+          id="name"
+          class="form-control"
+          placeholder="Amazina"
+          required
+        />
 
-            <select
-              class="form-select mt-3"
-              id="plan"
-              name="plan"
-              aria-label="Plan selection"
-              required
-            >
-              <option value="" disabled selected>Hitampo ifatabuguzi wishyuye</option>
-              {% for plan_value, plan_label in plans %}
-              <option value="{{ plan_value|get_plan_price }}">
-                {{ plan_label }} - {{ plan_value|get_plan_price }} RWF
-              </option>
-              {% endfor %}
-            </select>
+        <select
+          class="form-select mt-3"
+          id="plan"
+          name="plan"
+          aria-label="Plan selection"
+          required
+        >
+          <option value="" disabled selected>Hitampo ifatabuguzi wishyuye</option>
+          {% for plan_value, plan_label in plans %}
+          <option value="{{ plan_value|get_plan_price }}">
+            {{ plan_label }} - {{ plan_value|get_plan_price }} RWF
+          </option>
+          {% endfor %}
+        </select>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-success"
-              onclick="sendToWhatsApp()"
-            >
-              Emeza ubwishyu
-            </button>
+        <button
+          type="button"
+          class="btn btn-success"
+          onclick="sendToWhatsApp()"
+        >
+          Emeza ubwishyu
+        </button>
           </div>
         </form>
       </div>
@@ -296,6 +296,7 @@
 </div>
 {% endblock %} {% block extra_js %}
 <script>
+  
   document.addEventListener("DOMContentLoaded", function () {
 
   
@@ -379,6 +380,21 @@
         "tel:" + encodeURIComponent(`*182*8*1*187756*${planPrice}#`);
     });
   });
+
+
+   // Change URL path when modal is triggered
+        
+    var confirmPayModal = document.getElementById('confirmPayModal');
+    if (confirmPayModal) {
+      confirmPayModal.addEventListener('show.bs.modal', function () {
+        window.history.replaceState(null, '', '/emeza/ubwishyu/');
+        });
+
+      confirmPayModal.addEventListener('hide.bs.modal', function () {
+      window.history.replaceState(null, '', window.location.pathname.replace(/\/payment\/confirm\/$/, '/payment/'));
+      });
+      }
+    
 
   // Function to send WhatsApp message
   function sendToWhatsApp() {
