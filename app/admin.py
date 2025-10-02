@@ -63,9 +63,9 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user__name','plan', 'price', 'started','updated', 'upd_at','delta_display', 'expires', 'colored_is_active', 'renew_subscription','end_subscription')
-    
-    # list_editable = ('updated', )    
+    list_display = ('user', 'plan', 'price', 'started','delta_display', 'expires', 'otp_code','otp_verified', 'colored_is_active','renew_subscription','end_subscription')
+    readonly_fields = ('started_at', 'expires_at', 'otp_code', 'otp_created_at', 'otp_verified')
+ 
 
     list_filter = ('super_subscription', 'plan')
     search_fields = ('user__name', 'user__email', 'user__phone_number')
@@ -98,6 +98,17 @@ class SubscriptionAdmin(admin.ModelAdmin):
         return "-"
     delta_display.short_description = "Delta"
     
+    
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)  # 🔹 Save first (assign PK)
+        if not change and not obj.otp_code:  # Only for new subscriptions
+            obj.generate_otp()
+        
+    @admin.display(description="OTP")
+    def otp_display(self, obj):
+        if obj.otp_verified:
+            return "✅ Verified"
+        return obj.otp_code or "—"
     
     @admin.display(description='Plan')
     def plan(self, obj):
@@ -174,6 +185,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
     def process_renew(self, request, subscription_id):
         subscription = self.get_object(request, subscription_id)
         if subscription and subscription.plan:
+            subscription.generate_otp()
             now = timezone.now()
             delta = subscription.plan.get_delta()
             if delta:

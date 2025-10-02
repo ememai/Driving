@@ -225,29 +225,105 @@ class Plan(models.Model):
     def __str__(self):
         return self.plan
 
-
 class Subscription(models.Model):
-    user = models.OneToOneField('UserProfile', on_delete=models.CASCADE) 
-    # user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)  # ✅ Allows multiple
+    user = models.OneToOneField('UserProfile', on_delete=models.CASCADE)
     super_subscription = models.BooleanField(default=False)
     plan = models.ForeignKey('Plan', on_delete=models.SET_NULL, null=True, blank=True)
     price = models.IntegerField(null=True, blank=True)
     phone_number = models.CharField(max_length=13, default="25078")
     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    started_at = models.DateTimeField(auto_now_add=True)
+
+    # Subscription timing
+    started_at = models.DateTimeField(null=True, blank=True)
     updated = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     delta_hours = models.IntegerField(default=0)
     delta_days = models.IntegerField(default=0)
 
-
+    # OTP fields
+    otp_code = models.CharField(max_length=6, blank=True, null=True)
+    otp_created_at = models.DateTimeField(null=True, blank=True)
+    otp_verified = models.BooleanField(default=False)
+    
+    
     def get_delta(self):
         if self.delta_hours:
             return timezone.timedelta(hours=self.delta_hours)
         elif self.delta_days:
             return timezone.timedelta(days=self.delta_days)
         return None
+
+    def generate_otp(self):
+        """Generate OTP for subscription activation or renewal."""
+        self.otp_code = str(random.randint(1000, 9999))
+        self.otp_created_at = timezone.now()
+        self.otp_verified = False
+        self.started_at = None   # reset until verified
+        self.expires_at = None
+        self.save(update_fields=["otp_code", "otp_created_at", "otp_verified", "started_at", "expires_at"])
+        return self.otp_code
+
+    # def verify_and_start(self, otp):
+    #     """Verify OTP and start subscription timer."""
+    #     if not self.otp_code or self.otp_code != otp:
+    #         return False, "OTP siyo."
+
+    #     # Optional: expire OTP after 1 hour
+    #     if self.otp_created_at and timezone.now() > self.otp_created_at + timezone.timedelta(hours=24):
+    #         return False, "OTP yararangiye. Ongera usabe indi."
+
+    #     # ✅ Start subscription
+    #     self.otp_verified = True
+    #     # self.otp_code = None
+    #     self.started_at = timezone.now()
+
+    #     # Calculate expiry
+    #     delta = None
+    #     if self.super_subscription:
+    #         delta = self.get_delta()
+    #     elif self.plan:
+    #         self.price = self.plan.price
+    #         self.delta_hours = self.plan.delta_hours
+    #         self.delta_days = self.plan.delta_days
+    #         delta = self.plan.get_delta()
+
+    #     if delta:
+    #         self.expires_at = self.started_at + delta
+    #     self.save()
+    #     return True, format_html("<script>windows.alert('Ifatabuguzi ryawe riratangiye,ubu Wemerewe kwiga no gukosora ibizamini ushaka kugeza localtime(self.expires_at).strftime('%d-%m-%Y %H:%M')✅');</script>")
+    def verify_and_start(self, otp):
+        """Verify OTP and start subscription timer."""
+        if not self.otp_code or self.otp_code != otp:
+            return False, "Code siyo.", None
+
+        if self.otp_created_at and timezone.now() > self.otp_created_at + timezone.timedelta(hours=1):
+            False, "OTP yararangiye. Ongera usabe indi code.format_html(<a href='/subscription/'>Subira kuri subscription</a>)", None
+
+        # Mark OTP as verified
+        self.otp_verified = True
+        self.started_at = timezone.now()
+
+        delta = None
+        if self.super_subscription:
+            delta = self.get_delta()
+        elif self.plan:
+            self.price = self.plan.price
+            self.delta_hours = self.plan.delta_hours
+            self.delta_days = self.plan.delta_days
+            delta = self.plan.get_delta()
+
+        if delta:
+            self.expires_at = self.started_at + delta
+        self.save()
+
+        return True, "", self.expires_at
+
+    def renew(self):
+        """Renew subscription by generating a new OTP."""
+        return self.generate_otp()
+
+   
 
     def clean(self):
         if self.super_subscription:
@@ -270,41 +346,94 @@ class Subscription(models.Model):
         if self.plan:
             if self.plan.delta_hours < 0 or self.plan.delta_days < 0  or self.plan.price <= 0:
                 raise ValidationError("Plan must have a valid price and duration.")
-
-    def save(self, *args, **kwargs):
-        is_new = self.pk is None
-        super().save(*args, **kwargs)  # Save first to ensure `started_at` is populated
-
-        now = timezone.now()
-        reference_time = self.updated_at if not is_new and self.updated else self.started_at 
-
-        if self.super_subscription:
-            delta = self.get_delta()
-            if delta and reference_time:
-                self.expires_at = reference_time + delta
-                super().save(update_fields=['expires_at'])
-
-        elif self.plan:
-            self.price = self.plan.price
-            self.delta_hours = self.plan.delta_hours
-            self.delta_days = self.plan.delta_days
-            delta = self.plan.get_delta()
-            if delta and reference_time:
-                self.expires_at = reference_time + delta
-                super().save(update_fields=['price', 'delta_hours', 'delta_days', 'expires_at'])
-
-
+   
     @property
     def active_subscription(self):
-        """Check if the subscription is currently active."""
-        
-        if self.expires_at and self.expires_at >= timezone.now():
-            return True
-        return False
-    
+        return self.expires_at and self.expires_at >= timezone.now()
 
     def __str__(self):
         return f"Subscription for {self.user}"
+
+
+# class Subscription(models.Model):
+#     user = models.OneToOneField('UserProfile', on_delete=models.CASCADE) 
+#     # user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)  # ✅ Allows multiple
+#     super_subscription = models.BooleanField(default=False)
+#     plan = models.ForeignKey('Plan', on_delete=models.SET_NULL, null=True, blank=True)
+#     price = models.IntegerField(null=True, blank=True)
+#     phone_number = models.CharField(max_length=13, default="25078")
+#     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
+#     started_at = models.DateTimeField(auto_now_add=True)
+#     updated = models.BooleanField(default=False)
+#     updated_at = models.DateTimeField(auto_now=True)
+#     expires_at = models.DateTimeField(null=True, blank=True)
+#     delta_hours = models.IntegerField(default=0)
+#     delta_days = models.IntegerField(default=0)
+
+
+#     def get_delta(self):
+#         if self.delta_hours:
+#             return timezone.timedelta(hours=self.delta_hours)
+#         elif self.delta_days:
+#             return timezone.timedelta(days=self.delta_days)
+#         return None
+
+#     def clean(self):
+#         if self.super_subscription:
+#             if not self.delta_hours and not self.delta_days:
+#                 raise ValidationError("Either 'delta_hours' or 'delta_days' must be set.")
+
+#             if self.delta_hours < 0 or self.delta_days < 0:
+#                 raise ValidationError("Delta values cannot be negative.")
+
+#             if not self.price or self.price <= 0:
+#                 raise ValidationError("'price' must be greater than zero.")
+            
+#         if self.super_subscription and self.plan:
+#             raise ValidationError("Super subscription should not be linked with a plan.")
+        
+#         if not self.super_subscription and not self.plan:
+#             raise ValidationError("Either super subscription must be enabled or a plan must be selected.")
+
+               
+#         if self.plan:
+#             if self.plan.delta_hours < 0 or self.plan.delta_days < 0  or self.plan.price <= 0:
+#                 raise ValidationError("Plan must have a valid price and duration.")
+
+#     def save(self, *args, **kwargs):
+#         is_new = self.pk is None
+#         super().save(*args, **kwargs)  # Save first to ensure `started_at` is populated
+
+#         now = timezone.now()
+#         reference_time = self.updated_at if not is_new and self.updated else self.started_at 
+
+#         if self.super_subscription:
+#             delta = self.get_delta()
+#             if delta and reference_time:
+#                 self.expires_at = reference_time + delta
+#                 super().save(update_fields=['expires_at'])
+
+#         elif self.plan:
+#             self.price = self.plan.price
+#             self.delta_hours = self.plan.delta_hours
+#             self.delta_days = self.plan.delta_days
+#             delta = self.plan.get_delta()
+#             if delta and reference_time:
+#                 self.expires_at = reference_time + delta
+#                 super().save(update_fields=['price', 'delta_hours', 'delta_days', 'expires_at'])
+
+
+#     @property
+#     def active_subscription(self):
+#         """Check if the subscription is currently active."""
+        
+#         if self.expires_at and self.expires_at >= timezone.now():
+#             return True
+#         return False
+    
+
+#     def __str__(self):
+#         return f"Subscription for {self.user}"
   
 class Payment(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)

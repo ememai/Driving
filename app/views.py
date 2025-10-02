@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login, logout
@@ -22,14 +22,12 @@ from django.db.models import Q
 from .authentication import EmailOrPhoneBackend  # Import the custom backend
 from django.utils.timezone import now, localtime, make_aware
 from django.utils.dateparse import parse_datetime
-from django.http import JsonResponse
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.views import View
 from django.views.decorators.http import require_POST, require_GET
 from datetime import datetime, timedelta, time, date
 import random
 from django.urls import reverse
-from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
@@ -778,6 +776,56 @@ def subscription_view(request):
         # 'sub': sub
     }
     return render(request, 'subscription.html', context)
+
+@login_required
+def activate_subscription_view(request):
+    context = {}
+
+    if request.method == "POST":
+        otp = request.POST.get("otp")
+        try:
+            subscription = Subscription.objects.get(user=request.user, otp_verified=False)
+        except Subscription.DoesNotExist:
+            otp_used = Subscription.objects.filter(user=request.user, otp_verified=True, otp_code=otp).exists()
+            subscription = Subscription.objects.filter(user=request.user, otp_verified=True).first()
+            otp_used_at = localtime(subscription.started_at).strftime("%d-%m-%Y Saa %H:%M") if otp_used else None
+            
+            expires_at = localtime(subscription.expires_at).strftime("%d-%m-%Y Saa %H:%M") if subscription else "N/A"
+            contact = ""
+            
+            Error_type = f"Code wamaze kuyikoresha!!!" if otp_used else "Code ntago ariyo!!!"
+            context.update({
+                "show_modal": True,
+                "Error_type": Error_type,
+                "modal_title": f"Error: {Error_type}",                
+                "modal_message": f'''                
+                 <br> ifatabuguzi ryafunguwe Taliki:
+                <strong>{otp_used_at}</strong> <br>
+                kugeza Taliki: <strong>{expires_at}</strong>'''
+                if otp_used else f"Ongera ugerageze!",
+                "redirect_url": reverse("activate_subscription"),
+            })
+            return render(request, "activate_subscription.html", context)
+
+        success, message, expires_at = subscription.verify_and_start(otp)
+        if success:
+            # Get human-readable plan name
+            plan_display = dict(Plan.PLAN_CHOICES).get(subscription.plan.plan, subscription.plan.plan)
+            context.update({
+                "show_modal": True,
+                "modal_title": f"Ifatabuguzi <strong>'{plan_display}'</strong> riratangiye🎉",
+                "modal_message": f"{message} Ubu wemerewe kwiga no gukosora ibizamini ushaka kugeza {localtime(expires_at).strftime('%d-%m-%Y %H:%M')} ✅",
+                "redirect_url": reverse("home"),
+            })
+        else:
+            context.update({
+                "show_modal": True,
+                "modal_title": "Error",
+                "modal_message": message,
+                "redirect_url": reverse("subscription"),
+            })
+
+    return render(request, "activate_subscription.html", context)
 
 
 def momo_payment(request):

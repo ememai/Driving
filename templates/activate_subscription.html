@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- OTP Input Modal (Always Rendered) -->
+<div class="modal fade show d-block" id="otpInputModal" tabindex="-1" aria-labelledby="otpInputModalLabel" aria-modal="true" role="dialog" style="background: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="otpInputModalLabel">Shyiramo Code wahawe kuri WhatsApp niba wemeje ubwishyu</h5>
+        {% comment %} <button type="button" class="btn-close btn-close-white"
+                onclick="window.location.href='{{ redirect_url|default:"/" }}'"
+                aria-label="Close"></button> {% endcomment %}
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <input type="text" name="otp" placeholder="Injiza code"
+                     class="form-control" required maxlength="4" pattern="\d{4}" autofocus
+                     title="Shyiramo code igizwe n'imibare 4 gusa">
+          </div>
+          <button type="submit" class="btn btn-primary w-80 mx-auto d-block ">
+            Emeza <i class="bi bi-check-circle"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  body { overflow: hidden; }
+</style>
+
+<!-- Feedback Modal (Error / Success) -->
+{% if show_modal %}
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header {% if 'Error' in modal_title %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
+        <h5 class="modal-title" id="feedbackModalLabel">{{ modal_title|safe }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center gap-3">
+        {{ modal_message|safe }}
+      </div>
+      <div class="modal-footer d-flex flex-column">
+        <a href="{{ redirect_url }}" class="btn btn-primary">OK</a>
+        <small class="text-muted">Ugize ikibazo saba ubufasha: 0785287885</small>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var otpInputModalEl = document.getElementById('otpInputModal');
+    var feedbackModalEl = document.getElementById('feedbackModal');
+
+    if (feedbackModalEl) {
+      // Hide OTP modal first
+      var otpInputModal = bootstrap.Modal.getInstance(otpInputModalEl) 
+                          || new bootstrap.Modal(otpInputModalEl);
+      otpInputModal.hide();
+
+      // Show feedback modal
+      var feedbackModal = new bootstrap.Modal(feedbackModalEl);
+      feedbackModal.show();
+    }
+  });
+</script>
+{% endif %}
+
+{% endblock %}

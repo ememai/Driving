@@ -40,6 +40,7 @@ urlpatterns = [
 
     #subscription and payment
     path('subscription/', views.payment, name='subscription'),
+    path('subscription/activate', views.activate_subscription_view, name='activate_subscription'),
     # path("pay/", momo_payment, name="momo_payment"),
     # path("pay/status/<str:transaction_id>/", momo_payment_status, name="momo_payment_status"),
     

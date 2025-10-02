@@ -133,19 +133,58 @@
       <a
         class="btn text-primary fs-5"
         data-bs-toggle="modal"
-        data-bs-target="#confirmPayModal"
+        data-bs-target="#codeModal"
       >
         Kanda hano <i class="bi bi-check-circle"></i>
-        
       </a>
-
-
     </div>
-
-   
-
-    
   </div>
+
+  <!-- code modal-->
+ <div class="modal fade" id="codeModal" tabindex="-1" aria-labelledby="codeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg rounded-3 border-0">
+      
+      <!-- Header -->
+      <div class="modal-header bg-theme text-theme">
+        <h5 class="modal-title fw-bold" id="codeModalLabel">
+          Wahawe code ifungura ifatabuguzi?
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <!-- Body -->
+      <div class="modal-body text-center py-4">
+
+        <!-- Toggle Buttons -->
+        <div class="btn-group mb-4 gap-1" role="group">
+          <button type="button" class="btn btn-outline-success mx-2 fs-5" id="btnCode">Yego</button>
+          <button type="button" class="btn btn-outline-primary fs-5" id="btnPay">Oya</button>
+        </div>
+        
+        <!-- Action Links (hidden by default) -->
+        <div id="codeOption" class="d-none ">
+          <a href="{% url 'activate_subscription' %}" class="btn btn-success px-4 fs-5">
+            <i class="bi bi-arrow-right-circle"></i> Fungura ifatabuguzi
+          </a>
+        </div>
+        
+        <div id="payOption" class="d-none">
+          <a class="btn btn-primary px-4 fs-5"
+             data-bs-toggle="modal"
+             data-bs-target="#confirmPayModal"
+             data-bs-dismiss="modal">
+            <i class="bi bi-arrow-right-circle"></i> Saba Code
+          </a>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+
+
 
   <div class="alert text-center fs-5 p-0" role="alert">
     <p class="fw-bold">Hitamo Ifatabuguzi rikunogeye!</p>
@@ -313,6 +352,30 @@
   </div>
 </div>
 {% endblock %} {% block extra_js %}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const btnCode = document.getElementById("btnCode");
+    const btnPay = document.getElementById("btnPay");
+    const codeOption = document.getElementById("codeOption");
+    const payOption = document.getElementById("payOption");
+
+    btnCode.addEventListener("click", function() {
+      btnCode.classList.add("active");
+      btnPay.classList.remove("active");
+      codeOption.classList.remove("d-none");
+      payOption.classList.add("d-none");
+    });
+
+    btnPay.addEventListener("click", function() {
+      btnPay.classList.add("active");
+      btnCode.classList.remove("active");
+      payOption.classList.remove("d-none");
+      codeOption.classList.add("d-none");
+    });
+  });
+</script>
+
 <script>
   document.addEventListener("DOMContentLoaded", function () {
 
