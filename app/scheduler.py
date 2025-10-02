@@ -102,8 +102,8 @@ def job_notify_new_published_exams():
         # today_date = now.strftime('%d-%m-') + str(now.year)[-3:]
         today_date = now.strftime('%d-%m-%Y')
 
-        users = UserProfile.objects.filter(is_superuser=True)
-        
+        users = UserProfile.objects.filter(Q(is_superuser=True) |
+            Q(email__isnull=False))      
         message = textwrap.dedent(f'''\
 
             ⏰ Ikizamini cya Saa {scheduled_time} cyageze ku rubuga.
@@ -147,7 +147,7 @@ def start():
         
         scheduler.add_job(
             job_notify_new_published_exams,
-            CronTrigger(minute='20', hour='8-16', second=0),
+            CronTrigger(minute='20', hour='8-15', second=0),
             id="notify_emails"
         )
         
