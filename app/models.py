@@ -93,6 +93,9 @@ class UserProfile(AbstractUser):
             #     self.phone_number = None
             # else:
             self.phone_number = self.normalize_phone_number(self.phone_number)
+            
+        if self.email:
+            self.whatsapp_consent = True
         super().save(*args, **kwargs)
 
 
