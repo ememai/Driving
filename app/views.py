@@ -751,7 +751,7 @@ def payment_confirm(request):
         
         notify_admin(f"New payment confirmation from {request.user.name} , payeer name: {payeer_name}, whatsapp: {whatsapp_number}")
         
-        messages.success(request, "Amakuru yawe yoherejwe neza! Tegereza code mu munota umwe.")
+        messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Tegereza code kuri WHATSAPP:{whatsapp_number} mu munota umwe.")
         return redirect('home')
     return render(request, 'payment.html', {'first_exam_id': first_exam_id})
         
