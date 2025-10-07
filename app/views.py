@@ -38,6 +38,7 @@ import markdown
 from wsgiref.util import FileWrapper
 
 User = get_user_model()
+first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze').order_by('created_at').first().id
 
 @login_required(login_url='register')
 def home(request):
@@ -718,7 +719,7 @@ def user_logout(request):
 # ---------------------
 @login_required(login_url='login')
 def payment(request):
-    first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze').order_by('created_at').first().id
+    # first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze').order_by('created_at').first().id
     plans = Plan.PLAN_CHOICES
     context = {
         'plans': plans,
@@ -729,6 +730,32 @@ def payment(request):
 # ---------------------
 # Subscription and Payment Views
 # ---------------------
+
+
+@login_required(login_url='login')
+def payment_confirm(request):
+    if request.method == 'POST':
+        payeer_name = request.POST.get('payeer_name')
+        payeer_phone = request.POST.get('payeer_phone')
+        plan_choice = request.POST.get('plan')
+        plan = Plan.objects.get(price=plan_choice)
+        whatsapp_number = request.POST.get('whatsapp_number')
+       
+        PaymentConfirm.objects.create(
+             user=request.user,
+             payeer_name=payeer_name,
+             phone_number=payeer_phone,
+             plan=plan,
+             whatsapp_number=whatsapp_number
+        )
+        
+        notify_admin(f"New payment confirmation from {request.user.name} , payeer name: {payeer_name}, whatsapp: {whatsapp_number}")
+        
+        messages.success(request, "Amakuru yawe yoherejwe neza! Tegereza code mu munota umwe.")
+        return redirect('home')
+    return render(request, 'payment.html', {'first_exam_id': first_exam_id})
+        
+        
 
 @login_required(login_url='/?login=true')
 def subscription_view(request):

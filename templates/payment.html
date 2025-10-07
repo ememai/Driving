@@ -294,7 +294,8 @@
     >
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
-        <form>
+        <form method="post" action="{% url 'payment_confirm' %}">
+          {% csrf_token %}
           <div class="modal-header">
             <h5 class="modal-title" id="confirmPayModalLabel">
               Telefone n'amazina by'uwishyuye
@@ -310,6 +311,7 @@
             <input
               type="text"
               id="phone"
+              name = "payeer_phone"
               class="form-control mb-3"
               placeholder="Nimero yishyuye"
               required
@@ -317,6 +319,7 @@
             <input
               type="text"
               id="name"
+              name="payeer_name"
               class="form-control"
               placeholder="Amazina"
               required
@@ -326,22 +329,33 @@
               class="form-select mt-3"
               id="plan"
               name="plan"
+
               aria-label="Plan selection"
               required
             >
               <option value="" disabled selected>Hitampo ifatabuguzi wishyuye</option>
               {% for plan_value, plan_label in plans %}
-              <option value="{{ plan_value|get_plan_price }}" class="text-theme">
+              <option class="text-theme" value="{{ plan_value|get_plan_price }}">
                 {{ plan_label }} - {{ plan_value|get_plan_price }} RWF
               </option>
               {% endfor %}
             </select>
           </div>
+
+          <div class="modal-body">
+            <p class="text-muted">
+              Uzuza n'imero ya WhatsApp izaho Code:
+            </p>
+            <input type="text" id="whatsapp_number" name="whatsapp_number" class="form-control" placeholder="Nimero ya WhatsApp" required/>
+          </div>
+
+
           <div class="modal-footer">
             <button
-              type="button"
+              {% comment %} type="button" {% endcomment %}
               class="btn btn-success"
-              onclick="sendToWhatsApp()"
+              type="submit"
+              {% comment %} onclick="sendToWhatsApp()" {% endcomment %}
             >
               Emeza ubwishyu
             </button>
@@ -351,10 +365,16 @@
     </div>
   </div>
 </div>
-{% endblock %} {% block extra_js %}
-
+{% endblock %} 
+{% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    const planLabel = document.getElementById("js-plan");
+    const callButton = document.getElementById("callButton");
+    const planCards = document.querySelectorAll(".plan-card");
+    const defaultPlanCard = document.getElementById("default-plan");
+    const planInputs = document.querySelectorAll('input[name="plan"]');
+
     const btnCode = document.getElementById("btnCode");
     const btnPay = document.getElementById("btnPay");
     const codeOption = document.getElementById("codeOption");
@@ -373,20 +393,8 @@
       payOption.classList.remove("d-none");
       codeOption.classList.add("d-none");
     });
-  });
-</script>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-
-  
-    const planLabel = document.getElementById("js-plan");
-    const callButton = document.getElementById("callButton");
-    const planCards = document.querySelectorAll(".plan-card");
-    const defaultPlanCard = document.getElementById("default-plan");
-    const planInputs = document.querySelectorAll('input[name="plan"]');
-
-    // Helper to update js-plan
+    // Update selected plan value in USSD code
     function updatePlanLabelFromChecked() {
       const selectedPlan = document.querySelector('input[name="plan"]:checked');
       if (selectedPlan) {
@@ -394,47 +402,39 @@
       }
     }
 
-    // Make plan-card clickable and update js-plan when active
+    // Make plan card clickable
     planCards.forEach((card) => {
       card.addEventListener("click", function (e) {
-        // Prevent double firing if clicking the radio
         if (e.target.tagName === "INPUT") return;
         const input = card.querySelector('input[name="plan"]');
         if (input) {
           input.checked = true;
           input.dispatchEvent(new Event("change", { bubbles: true }));
         }
-        
+
         document.querySelectorAll(".plan-card .check-icon").forEach(function(icon) {
           icon.classList.remove("text-success", "bi-check-circle-fill");
           icon.classList.add("text-theme", "bi-circle");
         });
-        // Change all icons in this card to text-success
+
         card.querySelectorAll(".check-icon").forEach(function(icon) {
-          icon.classList.remove("text-theme", "bi-circle"); 
+          icon.classList.remove("text-theme", "bi-circle");
           icon.classList.add("text-success", "bi-check-circle-fill");
         });
-        // Change all icons in all cards to text-theme first
-        // Update active class
+
         planCards.forEach((c) => c.classList.remove("active"));
         card.classList.add("active");
       });
     });
 
-    // Set default plan on load
     if (defaultPlanCard) {
       defaultPlanCard.click();
-      
     }
-    // Set active class on load and when changed
+
     function updateActiveCard() {
       planCards.forEach((card) => {
         const input = card.querySelector('input[name="plan"]');
-        if (input && input.checked) {
-          card.classList.add("active");
-        } else {
-          card.classList.remove("active");
-        }
+        card.classList.toggle("active", input && input.checked);
       });
     }
 
@@ -445,10 +445,10 @@
       });
     });
 
-    // Initial state
     updatePlanLabelFromChecked();
     updateActiveCard();
 
+    // USSD dial button
     callButton.addEventListener("click", () => {
       const selectedPlan = document.querySelector('input[name="plan"]:checked');
       if (!selectedPlan) {
@@ -456,32 +456,47 @@
         return;
       }
       const planPrice = selectedPlan.value;
-      window.location.href =
-        "tel:" + encodeURIComponent(`*182*8*1*187756*${planPrice}#`);
+      window.location.href = "tel:" + encodeURIComponent(`*182*8*1*187756*${planPrice}#`);
     });
   });
 
-  // Function to send WhatsApp message
+  // ✅ Send WhatsApp message and close modal before opening
   function sendToWhatsApp() {
     const phone = document.getElementById("phone").value.trim();
     const name = document.getElementById("name").value.trim();
     const planSelect = document.getElementById("plan");
-    const userName = "{{ request.user.name }}";
-    const userEmail = "{{ request.user.email|default:'' }}";
 
-    const planValue = planSelect.value;
-    const planLabel = planSelect.options[planSelect.selectedIndex].text;
-
-    if (!phone || !name || !planValue) {
+    if (!phone || !name || !planSelect.value) {
       alert("Shyiramo amazina, nimero, ndetse uhitemo ifatabuguzi wishyuye.");
       return;
     }
 
+    const planLabel = planSelect.options[planSelect.selectedIndex].text;
+    const userName = "{{ request.user.name|default:'' }}";
+    const userEmail = "{{ request.user.email|default:'' }}";
     const domain = window.location.hostname.replace(/^www\./, '');
-    const protocol = window.location.protocol;
     const url = `${domain}`;
-    const message = `Ndagira ngo nemeze ubwishyu bwanjye.\n\n📌 Izina: ${name}\n📞 Numero: ${phone}\n💳 Ifatabuguzi: ${planLabel}\n\n🔹Murakoze! ${userName} ${userEmail} \n\n ${url}`;
-    window.location.href = `https://wa.me/250735777412?text=${encodeURIComponent(message)}`;
+
+    // Build WhatsApp message safely
+    const message = 
+      `Ndagira ngo nemeze ubwishyu bwanjye.%0A%0A` +
+      `📌 Izina: ${encodeURIComponent(name)}%0A` +
+      `📞 Numero: ${encodeURIComponent(phone)}%0A` +
+      `💳 Ifatabuguzi: ${encodeURIComponent(planLabel)}%0A%0A` +
+      `🔹Murakoze! ${encodeURIComponent(userName)} ${encodeURIComponent(userEmail)}%0A%0A` +
+      `${encodeURIComponent(url)}`;
+
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=250735777412&text=${message}`;
+
+    // Close modal cleanly before redirect
+    const confirmModal = bootstrap.Modal.getInstance(document.getElementById("confirmPayModal"));
+    if (confirmModal) confirmModal.hide();
+
+    // Delay slightly to allow modal to close before WhatsApp opens
+    setTimeout(() => {
+      window.open(whatsappUrl, "_blank");
+    }, 300);
   }
 </script>
 {% endblock %}
+

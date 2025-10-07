@@ -358,6 +358,14 @@ class Subscription(models.Model):
         return f"Subscription for {self.user}"
 
 
+class PaymentConfirm(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True)
+    payeer_name = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=15)
+    whatsapp_number = models.CharField(max_length=20, blank=True, null=True)
+    plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True, blank=True)
+    time = models.DateTimeField(auto_now_add=True)
+
 # class Subscription(models.Model):
 #     user = models.OneToOneField('UserProfile', on_delete=models.CASCADE) 
 #     # user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)  # ✅ Allows multiple

@@ -237,6 +237,12 @@ class SubscriptionAdmin(admin.ModelAdmin):
     #         # New or updated normally
     #         super().save_model(request, obj, form, change)
 
+@admin.register(PaymentConfirm)
+class PaymentConfirmAdmin(admin.ModelAdmin):
+    list_display = ('user', 'payeer_name', 'phone_number', 'plan', 'time', 'whatsapp_number')
+    search_fields = ('user__name', 'payeer_name', 'phone_number')
+    list_filter = ('plan', 'time')
+    ordering = ('-time',)
 
 @admin.register(SignType)
 class SignTypeAdmin(admin.ModelAdmin):
