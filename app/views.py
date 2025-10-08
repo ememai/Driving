@@ -19,6 +19,7 @@ from .decorators import *
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_backends
 from django.db.models import Q
+from django.db import transaction
 from .authentication import EmailOrPhoneBackend  # Import the custom backend
 from django.utils.timezone import now, localtime, make_aware
 from django.utils.dateparse import parse_datetime
@@ -733,29 +734,52 @@ def payment(request):
 
 
 @login_required(login_url='login')
+@transaction.atomic
 def payment_confirm(request):
+   
     if request.method == 'POST':
-        payeer_name = request.POST.get('payeer_name')
-        payeer_phone = request.POST.get('payeer_phone')
-        plan_choice = request.POST.get('plan')
-        plan = Plan.objects.get(price=plan_choice)
-        whatsapp_number = request.POST.get('whatsapp_number')
-       
-        PaymentConfirm.objects.create(
-             user=request.user,
-             payeer_name=payeer_name,
-             phone_number=payeer_phone,
-             plan=plan,
-             whatsapp_number=whatsapp_number
-        )
-        
-        notify_admin(f"New payment confirmation from {request.user.name} , payeer name: {payeer_name}, whatsapp: {whatsapp_number}")
-        
-        messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Tegereza code kuri WHATSAPP:{whatsapp_number} mu munota umwe.")
-        return redirect('home')
-    return render(request, 'payment.html', {'first_exam_id': first_exam_id})
-        
-        
+        try:
+            payeer_name = request.POST.get('payeer_name', '').strip()
+            payeer_phone = request.POST.get('payeer_phone', '').strip()
+            plan_choice = request.POST.get('plan', '').strip()
+            whatsapp_number = request.POST.get('whatsapp_number', '').strip()
+            
+            
+            # Validate phone numbers
+            try:
+                validate_phone_number(payeer_phone)
+                validate_phone_number(whatsapp_number)
+            except ValidationError as e:
+                messages.error(request, str(e))
+                return render(request, 'payment.html', {'first_exam_id': first_exam_id})
+            
+            # Get plan
+            try:
+                plan = Plan.objects.get(price=plan_choice)
+            except Plan.DoesNotExist:
+                messages.error(request, "Server error")
+                return render(request, 'payment.html', {'first_exam_id': first_exam_id})
+            
+            # Create/update payment confirmation
+            PaymentConfirm.objects.update_or_create(
+                user=request.user,
+                defaults={
+                    'payeer_name': payeer_name,
+                    'phone_number': payeer_phone,
+                    'plan': plan,
+                    'whatsapp_number': whatsapp_number,
+                    'time': timezone.now()
+                }            
+            )            
+            
+            notify_admin(f"New payment confirmation from {request.user.name}, payeer name: {payeer_name}, whatsapp: {whatsapp_number}")
+            
+            messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Tegereza code kuri WHATSAPP:{whatsapp_number} mu munota umwe.")
+            return redirect('home')
+            
+        except Exception as e:
+            messages.error(request, "An error occurred while processing your payment confirmation. Please try again.")
+   
 
 @login_required(login_url='/?login=true')
 def subscription_view(request):
