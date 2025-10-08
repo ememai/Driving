@@ -39,7 +39,7 @@ import markdown
 from wsgiref.util import FileWrapper
 
 User = get_user_model()
-first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze').order_by('created_at').first().id
+first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze', for_scheduling=False).order_by('created_at').first().id
 
 @login_required(login_url='register')
 def home(request):
@@ -720,7 +720,6 @@ def user_logout(request):
 # ---------------------
 @login_required(login_url='login')
 def payment(request):
-    # first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze').order_by('created_at').first().id
     plans = Plan.PLAN_CHOICES
     context = {
         'plans': plans,
