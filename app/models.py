@@ -359,7 +359,7 @@ class Subscription(models.Model):
 
 
 class PaymentConfirm(models.Model):
-    user = models.OneToOneField('UserProfile', on_delete=models.CASCADE, unique=True)
+    user = models.OneToOneField('UserProfile', on_delete=models.CASCADE, null=True, blank=True)
     payeer_name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15)
     whatsapp_number = models.CharField(max_length=20, blank=True, null=True)
