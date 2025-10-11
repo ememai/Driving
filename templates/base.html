@@ -120,32 +120,52 @@
         </div>
 
         <!-- Footer -->
-        <footer class="bg-dark py-3 mt-0 mx-0">
-            <div class="container-fluid d-flex flex-column gap-4">
-                <div class="d-flex flex-wrap align-items-center justify-content-center gap-3">
-                    <a href="https://wa.me/250785287885" target="_blank" class="text-white" >
-                        <i class="bi bi-whatsapp text-green"></i> 0785287885
-                    </a>
-                    <a href="https://youtube.com/@drivewithmwami?si=Kuv1TcG83IidXEhE" target="_blank" class="text-white">
-                        <i class="bi bi-youtube text-danger"></i>Youtube channel
-                    </a>                    
-                    <a href="https://chat.whatsapp.com/JWaVSWktgBCKHNKr1TVAzg" class="fs-5 text-white offset">
-                        <i class="fa-solid fa-users text-success"></i> Injira muri whatsapp group
-                    </a>
-                    {% comment %} <a class="cy-link text-decoration-none text-light hover:text-info opacity-75-hover text-center"
-                        href="{% url 'contact' %}">
-                        Ubufasha
-                    </a>
-                    <a href="{% url 'privacy_policy' %}"
-                        class="cy-link text-decoration-none text-light hover:text-light opacity-75-hover">
-                        Privacy Policy
-                    </a> {% endcomment %}
+        <footer class="bg-dark text-light py-4 mt-0 mx-0 border-top border-secondary">
+            <div class="container-fluid text-center">
+                <!-- Social Links -->
+                <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 mb-3">
+                <a href="https://wa.me/250785287885" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity">
+                    <i class="bi bi-whatsapp fs-5 text-success"></i>
+                    <span>0785287885</span>
+                </a>
+
+                <a href="https://youtube.com/@drivewithmwami?si=Kuv1TcG83IidXEhE" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity">
+                    <i class="bi bi-youtube fs-5 text-danger"></i>
+                    <span>Youtube Channel</span>
+                </a>
+
+                <a href="https://chat.whatsapp.com/JWaVSWktgBCKHNKr1TVAzg" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity">
+                    <i class="fa-solid fa-users fs-5 text-success"></i>
+                    <span>Injira muri WhatsApp Group</span>
+                </a>
                 </div>
-                <p class="text-center text-light opacity-75 small mb-0">
-                    &copy; {% now "Y" %} IGAZETI.RW. All rights reserved.
-                </p>
+
+                <!-- Divider -->
+                <hr class="border-secondary w-75 mx-auto opacity-25">
+
+                <!-- Footer Info -->
+                <div class="small text-center opacity-75">
+                &copy; {% now "Y" %} <strong>IGAZETI.RW</strong> — All rights reserved.
+                </div>
             </div>
         </footer>
+
+        <style>
+            .hover-opacity {
+                transition: opacity 0.3s ease, transform 0.3s ease;
+            }
+            .hover-opacity:hover {
+                opacity: 0.8;
+                transform: translateY(-2px);
+            }
+            footer i {
+                transition: transform 0.3s ease;
+            }
+            footer a:hover i {
+                transform: scale(1.2);
+            }
+        </style>
+
         {% include "logout_confirm.html" %}
         <!-- Core Scripts -->
 
