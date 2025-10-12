@@ -30,14 +30,14 @@
               </div>
           <h3 class="mb-2 text-center text-primary-emphasis">Iyandikishe niba uri mushya</h3>
 
-          <div class="my-3 text-center">
+          {% comment %} <div class="my-3 text-center">
             <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.GET.next|default:'/' }}">
             <button class="google-btn">
                 <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google Logo">
                   <span>Komeza na Google</span>
               </button>
             </a>
-          </div>
+          </div> {% endcomment %}
           <div class="text-center mb-4">
             <span class="text-secondary">Cyangwa</span>
             
