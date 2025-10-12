@@ -40,10 +40,31 @@ def validate_whats_api_credentials():
         logger.error(f"whats_api connection test failed: {str(e)}")
         return False
     
+
+def clean_phone_number(number):
+    """Clean and validate Rwandan phone number to E.164 format"""
+    number = re.sub(r'\D', '', number)  # Remove non-digit characters
+
+    if number.startswith('0') and len(number) == 10:
+        # Local format like 0781234567
+        return '+250' + number[1:]
+    elif number.startswith('250') and len(number) == 12:
+        # National format like 250781234567
+        return '+' + number
+    elif number.startswith('250') and len(number) < 12:
+        # Possibly missing digits 
+        raise ValueError("Incomplete phone number.")
+    elif number.startswith('+250') and len(number) == 13:
+        # Already in E.164 format
+        return number
+    else:
+        raise ValueError("Invalid phone number format.")
+
+   
 def notify_admin(message):
     """Send admin notifications via whats_api with improved error handling"""
-    admin_number = "250785287885"  # E.164 format
-    
+    admin_number = re.sub(r'\D', '', settings.ADMIN_PHONE_NUMBER ) 
+     
     if not validate_whats_api_credentials():
         logger.error("Cannot send admin notification - whats_api credentials invalid")
         return

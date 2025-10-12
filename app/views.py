@@ -33,10 +33,18 @@ from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.http import JsonResponse,FileResponse,Http404
-from .scheduler import notify_admin
+from .utils import *
 import mimetypes
 import markdown
 from wsgiref.util import FileWrapper
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+# from django.contrib.auth.forms import CustomSetPasswordForm
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+
+
 
 User = get_user_model()
 first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze', for_scheduling=False).order_by('created_at').first().id
@@ -72,6 +80,266 @@ def home(request):
         
         }
     return render(request, 'home.html', context)
+
+@redirect_authenticated_users
+def register_view(request):
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data["password1"])
+            user.save()
+
+            # Store user ID in session for WhatsApp consent step
+            request.session['new_user_id'] = user.id
+            
+            if form.cleaned_data.get("phone_number"):
+                user.otp_verified = True  
+                user.save()
+                messages.success(request, 'Kwiyandikisha muri Kigali Driving School byagenze neza')
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                return redirect('whatsapp_consent')
+                # return render(request, 'registration/register.html', {'registration_success': True})
+
+            if form.cleaned_data.get("email"):
+                try:
+                    user.send_otp_email()
+                    messages.success(request, 'Code isuzuma yoherejwe kuri email. Yandike hano.')
+                    return redirect('verify_otp', user_id=user.id)
+                except Exception as e:
+                    form.add_error('email', "Imeri wanditse ntago ibasha koherezwaho code. Ongera usuzume neza.")
+    else:
+        form = RegisterForm()
+    return render(request, 'registration/register.html', {'form': form})
+
+
+def check_unique_field(request):
+    field = request.GET.get("field")
+    value = request.GET.get("value")
+    response = {"exists": False}
+
+    if field == "email" and value:
+        response["exists"] = User.objects.filter(email__iexact=value).exists()
+    elif field == "phone_number" and value:
+        
+        if len(value) >= 10:
+            response["exists"] = User.objects.filter(phone_number__icontains=value).exists()
+        # response["exists"] = User.objects.filter(phone_number__contains=value).exists()
+    elif field == "name" and value:
+        response["exists"] = User.objects.filter(name__iexact=value).exists()
+
+    return JsonResponse(response)
+
+
+def whatsapp_consent(request):
+    #Redirect if the user has already given consent
+    if request.user.whatsapp_consent:
+        return redirect('home')
+
+    # Get the newly registered user from the session
+    user_id = request.session.get('new_user_id')
+    if not user_id:
+        return redirect('register')
+
+    try:
+        user = UserProfile.objects.get(id=user_id)
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User not found. Please register again.')
+        return redirect('register')
+
+    if request.method == 'POST':
+        form = WhatsAppConsentForm(request.POST)
+
+        if form.is_valid():
+            
+            if form.cleaned_data['consent'] == 'yes':
+                user.whatsapp_consent = True
+                user.whatsapp_notifications = True
+                phone = form.cleaned_data.get('whatsapp_number')
+                if phone:
+                    valid_phone = validate_phone_number(phone)
+                    
+                    if not valid_phone:
+                        messages.error(request, 'Niba uhitampo yego, Andika nimero ya whatsapp neza!')
+                        return render(request, 'registration/whatsapp_consent.html', {'form': form, 'user': user})
+                    
+                    user.whatsapp_number = phone
+                    user.save(update_fields=['whatsapp_number'])                                       
+                    notify_admin(f"{user.name} consented to WhatsApp notifications with number: {phone}")
+                    messages.success(request, "Wemeye kubona ubutumwa  bw'ikizamini gishya kuri WhatsApp. Urakoze!")
+            else:
+                user.whatsapp_consent = False
+                user.whatsapp_notifications = False
+                messages.info(request, "Urakoze kwiyandikisha, amahirwe masa mu masomo yawe!")
+
+            user.save()
+            return redirect('home')
+
+    else:
+        form = WhatsAppConsentForm()
+
+    return render(request, 'registration/whatsapp_consent.html', {
+        'form': form,
+        'user': user
+    })
+
+
+@redirect_authenticated_users
+def verify_otp(request, user_id):
+    # Fetch the UserProfile instance
+    user_profile = get_object_or_404(UserProfile, id=user_id)
+    if request.method == 'POST':
+        otp = request.POST.get('otp')
+        if user_profile.verify_otp(otp):
+            user_profile.otp_verified = True
+            user_profile.save()
+            authenticated_user = authenticate(
+                request,
+                username=user_profile.phone_number or user_profile.email,
+                password=user_profile.password  # Ensure the correct password is stored
+            )
+
+
+            if user_profile.phone_number == "":
+                    user_profile.phone_number = None
+                    user_profile.save(update_fields=["phone_number"])
+
+            backend = get_backends()[0]
+            user_profile.backend = f"{backend.__module__}.{backend.__class__.__name__}"
+            login(request, user_profile)
+            
+            # Keep session active
+            update_session_auth_hash(request, user_profile)
+
+            messages.success(request, 'Kwemeza email yawe byakunze. uhawe ikaze!')
+            return redirect('home')
+        else:
+            messages.error(request, 'Code ntago ariyo, ongera ugerageze.')
+    return render(request, 'registration/verify_otp.html', {'user': user_profile})
+
+
+@redirect_authenticated_users
+def login_view(request):
+    page='login'
+    
+    # show_modal = request.GET.get('login') is not None
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        
+        if form.is_valid():
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+
+            # Fetch user by email or phone number
+             # Normalize phone number if needed
+            if "@" not in username:  
+                username = EmailOrPhoneBackend().normalize_phone_number(username)
+
+            # Fetch user by email or phone number
+            user = UserProfile.objects.filter(Q(phone_number=username) | Q(email=username)).first()
+            if user:
+                # Ensure phone_number is set to None if empty
+                if user.phone_number == "":
+                    user.phone_number = None
+                    user.save(update_fields=["phone_number"])
+                
+                if user.email and not user.otp_verified:
+                    messages.error(request, "Please banza wuzuze kode yoherejwe yemeza ko email ari yawe.")
+                    return redirect("verify_otp", user_id=user.id)
+                authenticated_user = authenticate(request, username=username, password=password)
+                
+                if authenticated_user:
+                    login(request, authenticated_user)
+                    messages.success(request, "Kwinjira bikozwe neza cyane! Ikaze nanone.")
+                    return redirect("home")
+                else:
+                    messages.error(request, "Ijambobanga ritariryo, ongera ugerageze.")
+            else:
+                register_link = mark_safe('<a href="/register" class="alert-link">Hanga konti</a>')
+                messages.error(request, f"Iyi konti ntago ibaho, Gusa wayihanga. {register_link}")
+
+        # Handle form validation errors
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f"{field.capitalize()}: {error}")
+
+    else:
+        form = LoginForm()
+        
+    context = {
+        "form": form,
+        "page":page
+    }
+    return render(request, "base.html",context)
+
+
+@require_POST
+@login_required(login_url='login')
+def user_logout(request):
+    logout(request)
+    messages.info(request, "Gusohoka byakunze.")
+    return redirect('login')
+
+
+@csrf_exempt
+def password_reset(request):
+    
+    if request.method == "POST":
+        phone_number = clean_phone_number(request.POST.get("phone_number"))
+
+        if not phone_number:
+            messages.error(request, "Andika numero ya telefone.")
+            return redirect("password_reset")
+
+        try:
+            # Find user by phone
+            user = UserProfile.objects.get(phone_number=phone_number)
+        except UserProfile.DoesNotExist:
+            messages.error(request, "Iyi numero ntabwo yanditse")
+            return redirect("password_reset")
+
+        # Generate token and reset link
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        reset_url = request.build_absolute_uri(
+            reverse("password_reset_confirm", kwargs={"uidb64": uid, "token": token})
+        )
+
+        # Send the link to admin (not to user)
+        notify_admin(f"🔐 Password reset request for {user.name} ({user.phone_number})\nLink: {reset_url}")
+
+        messages.success(
+            request,
+            "Link yo guhindura ijambobanga yoherejwe, reba kuri WhatsApp cyangwa sms yawe. Niba utabona link, saba ubufasha 0785287885.",
+        )
+        return redirect("login")
+
+    return render(request, "registration/password_reset.html")
+
+def password_reset_confirm(request, uidb64, token):
+    """
+    Step 2: User (or admin) opens the reset link and sets a new password.
+    """
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = UserProfile.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, UserProfile.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == "POST":
+            form = CustomSetPasswordForm(user, request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Ijambo ry'ibanga ryahinduwe neza. rikoreshe winjira.")
+                return redirect("login")
+        else:
+            form = CustomSetPasswordForm(user)
+        return render(request, "registration/password_reset_confirm.html", {"form": form})
+    else:
+        messages.error(request, "Link ntabwo ikiri valid cyangwa yararenze igihe.")
+        return redirect("login")
+
 
 @login_required
 @subscription_required
@@ -515,206 +783,6 @@ def contact(request):
         return redirect('contact')
 
     return render(request, 'contact.html')
-
-
-def check_unique_field(request):
-    field = request.GET.get("field")
-    value = request.GET.get("value")
-    response = {"exists": False}
-
-    if field == "email" and value:
-        response["exists"] = User.objects.filter(email__iexact=value).exists()
-    elif field == "phone_number" and value:
-        
-        if len(value) >= 10:
-            response["exists"] = User.objects.filter(phone_number__icontains=value).exists()
-        # response["exists"] = User.objects.filter(phone_number__contains=value).exists()
-    elif field == "name" and value:
-        response["exists"] = User.objects.filter(name__iexact=value).exists()
-
-    return JsonResponse(response)
-
-
-@redirect_authenticated_users
-def register_view(request):
-    if request.method == 'POST':
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data["password1"])
-            user.save()
-
-            # Store user ID in session for WhatsApp consent step
-            request.session['new_user_id'] = user.id
-            
-            if form.cleaned_data.get("phone_number"):
-                user.otp_verified = True  
-                user.save()
-                messages.success(request, 'Kwiyandikisha muri Kigali Driving School byagenze neza')
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                return redirect('whatsapp_consent')
-                # return render(request, 'registration/register.html', {'registration_success': True})
-
-            if form.cleaned_data.get("email"):
-                try:
-                    user.send_otp_email()
-                    messages.success(request, 'Code isuzuma yoherejwe kuri email. Yandike hano.')
-                    return redirect('verify_otp', user_id=user.id)
-                except Exception as e:
-                    form.add_error('email', "Imeri wanditse ntago ibasha koherezwaho code. Ongera usuzume neza.")
-    else:
-        form = RegisterForm()
-    return render(request, 'registration/register.html', {'form': form})
-
-
-
-def whatsapp_consent(request):
-    #Redirect if the user has already given consent
-    if request.user.whatsapp_consent:
-        return redirect('home')
-
-    # Get the newly registered user from the session
-    user_id = request.session.get('new_user_id')
-    if not user_id:
-        return redirect('register')
-
-    try:
-        user = UserProfile.objects.get(id=user_id)
-    except UserProfile.DoesNotExist:
-        messages.error(request, 'User not found. Please register again.')
-        return redirect('register')
-
-    if request.method == 'POST':
-        form = WhatsAppConsentForm(request.POST)
-
-        if form.is_valid():
-            
-            if form.cleaned_data['consent'] == 'yes':
-                user.whatsapp_consent = True
-                user.whatsapp_notifications = True
-                phone = form.cleaned_data.get('whatsapp_number')
-                if phone:
-                    valid_phone = validate_phone_number(phone)
-                    
-                    if not valid_phone:
-                        messages.error(request, 'Niba uhitampo yego, Andika nimero ya whatsapp neza!')
-                        return render(request, 'registration/whatsapp_consent.html', {'form': form, 'user': user})
-                    
-                    user.whatsapp_number = phone
-                    user.save(update_fields=['whatsapp_number'])                                       
-                    notify_admin(f"{user.name} consented to WhatsApp notifications with number: {phone}")
-                    messages.success(request, "Wemeye kubona ubutumwa  bw'ikizamini gishya kuri WhatsApp. Urakoze!")
-            else:
-                user.whatsapp_consent = False
-                user.whatsapp_notifications = False
-                messages.info(request, "Urakoze kwiyandikisha, amahirwe masa mu masomo yawe!")
-
-            user.save()
-            return redirect('home')
-
-    else:
-        form = WhatsAppConsentForm()
-
-    return render(request, 'registration/whatsapp_consent.html', {
-        'form': form,
-        'user': user
-    })
-
-
-@redirect_authenticated_users
-def verify_otp(request, user_id):
-    # Fetch the UserProfile instance
-    user_profile = get_object_or_404(UserProfile, id=user_id)
-    if request.method == 'POST':
-        otp = request.POST.get('otp')
-        if user_profile.verify_otp(otp):
-            user_profile.otp_verified = True
-            user_profile.save()
-            authenticated_user = authenticate(
-                request,
-                username=user_profile.phone_number or user_profile.email,
-                password=user_profile.password  # Ensure the correct password is stored
-            )
-
-
-            if user_profile.phone_number == "":
-                    user_profile.phone_number = None
-                    user_profile.save(update_fields=["phone_number"])
-
-            backend = get_backends()[0]
-            user_profile.backend = f"{backend.__module__}.{backend.__class__.__name__}"
-            login(request, user_profile)
-            
-            # Keep session active
-            update_session_auth_hash(request, user_profile)
-
-            messages.success(request, 'Kwemeza email yawe byakunze. uhawe ikaze!')
-            return redirect('home')
-        else:
-            messages.error(request, 'Code ntago ariyo, ongera ugerageze.')
-    return render(request, 'registration/verify_otp.html', {'user': user_profile})
-
-
-@redirect_authenticated_users
-def login_view(request):
-    page='login'
-    
-    # show_modal = request.GET.get('login') is not None
-    if request.method == "POST":
-        form = LoginForm(request.POST)
-        
-        if form.is_valid():
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
-
-            # Fetch user by email or phone number
-             # Normalize phone number if needed
-            if "@" not in username:  
-                username = EmailOrPhoneBackend().normalize_phone_number(username)
-
-            # Fetch user by email or phone number
-            user = UserProfile.objects.filter(Q(phone_number=username) | Q(email=username)).first()
-            if user:
-                # Ensure phone_number is set to None if empty
-                if user.phone_number == "":
-                    user.phone_number = None
-                    user.save(update_fields=["phone_number"])
-                
-                if user.email and not user.otp_verified:
-                    messages.error(request, "Please banza wuzuze kode yoherejwe yemeza ko email ari yawe.")
-                    return redirect("verify_otp", user_id=user.id)
-                authenticated_user = authenticate(request, username=username, password=password)
-                
-                if authenticated_user:
-                    login(request, authenticated_user)
-                    messages.success(request, "Kwinjira bikozwe neza cyane! Ikaze nanone.")
-                    return redirect("home")
-                else:
-                    messages.error(request, "Ijambobanga ritariryo, ongera ugerageze.")
-            else:
-                messages.error(request, "Iyi konti ntago ibaho, Gusa wayihanga. <a href='/register/''>Hanga konti</a>")
-
-        # Handle form validation errors
-        for field, errors in form.errors.items():
-            for error in errors:
-                messages.error(request, f"{field.capitalize()}: {error}")
-
-    else:
-        form = LoginForm()
-        
-    context = {
-        "form": form,
-        "page":page
-    }
-    return render(request, "base.html",context)
-
-
-@require_POST
-@login_required(login_url='login')
-def user_logout(request):
-    logout(request)
-    messages.info(request, "Gusohoka byakunze.")
-    return redirect('login')
 
 
 # ---------------------

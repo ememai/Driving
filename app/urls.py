@@ -62,17 +62,6 @@ urlpatterns = [
     
     path('privacy-policy/', views.PrivacyPolicyView.as_view(), name='privacy_policy'),
     
-    path('hindura-ijambobanga/', auth_views.PasswordResetView.as_view(), name='password_reset'),
-    
-    path('email-yemeza/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
-    
-    path('hindura-ijambobanga/<uidb64>/<token>/',
-            auth_views.PasswordResetConfirmView.as_view(
-                form_class=CustomSetPasswordForm,
-                template_name='registration/password_reset_confirm.html'
-            ),
-            name='password_reset_confirm'
-        ),
-    path('ijambobanga-ryemejwe/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'), 
-
+    path('hindura-password/', views.password_reset, name='password_reset'),
+    path('reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
 ]

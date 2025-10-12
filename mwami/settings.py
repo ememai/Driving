@@ -361,3 +361,5 @@ CSRF_FAILURE_VIEW = 'app.views.csrf_failure'
 WHATSAPP_API_URL = config('WHATSAPP_API_URL', default='https://7105.api.greenapi.com')
 INSTANCE_ID = config('INSTANCE_ID', default='7105229020')
 API_TOKEN = config('API_TOKEN', default='c554e7fe36214785890aded373a3c08625e3460ecce249d283')
+
+ADMIN_PHONE_NUMBER = config('ADMIN_PHONE_NUMBER', default='+250785287885')

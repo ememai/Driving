@@ -371,12 +371,13 @@
         try {
             const response = await fetch(`/ajax/check-unique/?field=${name}&value=${encodeURIComponent(value)}`);
             const data = await response.json();
+      
 
             if (data.exists) {
                 showFieldError(field, name === 'email'
                     ? 'Iyi email isanzweho*'
                     : name === 'phone_number'
-                    ? `Iyi telefone '${value}' isanzweho*`
+                    ? `Iyi telefone '${value}' isanzweho* yikoreshe winjira`
                     : `Izina '${value}' risanzweho*`);
                 field.classList.remove('is-valid');
                 field.classList.add('is-invalid');
@@ -412,6 +413,9 @@
 
     form.addEventListener('submit', (e) => {
       submitBtn.disabled = true;
+      form (const field of fields) {
+          field.disabled = true;
+      }
       submitBtn.innerHTML = 'Tegereza <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
     });
     // Add event listeners to fields

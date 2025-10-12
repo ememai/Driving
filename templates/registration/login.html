@@ -49,6 +49,10 @@
                 <i class="bi bi-eye-slash" id="togglePasswordIcon"></i>
               </button>
             </div>
+            <div class="form-text">
+              <span>Wibagiwe ijambobanga?</span>
+              <a href="{% url 'password_reset' %}">Kanda hano</a>
+            </div>
             {% if form.password.errors %}
               <div class="invalid-feedback d-block">
                 {{ form.password.errors.0 }}

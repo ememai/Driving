@@ -162,7 +162,8 @@ class RegisterForm(forms.ModelForm):
             except phonenumbers.NumberParseException:
                 raise ValidationError("Telefone wayujuje nabi. Kurikiza urugero!")
             if UserProfile.objects.filter(phone_number=phone).exists():
-                raise ValidationError(f"Iyi telefone '{phone}' isanzweho*")
+                login_link = mark_safe('<a href="/login" class="alert-link">Injira</a>')
+                raise ValidationError(f"Iyi telefone '{phone}' isanzweho* yikoreshe winjira {login_link}")
         return phone
 
     def clean(self):
@@ -244,7 +245,7 @@ class LoginForm(forms.Form):
 
 class CustomSetPasswordForm(SetPasswordForm):
     new_password1 = forms.CharField(
-        label="Ijambo ry’ibanga",
+        label="Ijambo ry’ibanga rishya",
         strip=False,
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control"}),
         max_length=255,
@@ -252,7 +253,7 @@ class CustomSetPasswordForm(SetPasswordForm):
     )
 
     new_password2 = forms.CharField(
-        label="Emeza ijambo ry’ibanga",
+        label="Emeza ijambo ry’ibanga rishya",
         strip=False,
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control"}),
         max_length=255,
