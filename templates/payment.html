@@ -187,7 +187,7 @@
 
 
   <div class="alert text-center fs-5 p-0" role="alert">
-    <p class="fw-bold">Hitamo Ifatabuguzi rikunogeye!</p>
+    <p class="fw-bold text-center">Hitamo Ifatabuguzi rikunogeye!</p>
     <form method="post">
       {% csrf_token %}
       <div
@@ -242,16 +242,16 @@
             {% endfor %}
           </ul>
           <div class="card-body border-0 mt-0 pt-0 text-center">
-            <button type="button" class="btn btn-outline-primary rounded-pill btnSelectPlan">
-              <i class="fa fa-credit-card text-warning"></i>
-              Ishyura {{ plan_value|get_plan_price }} RWF
+            <button type="button" class="btn btn-outline-primary rounded-pill btnSelectPlan px-4">
+              {% comment %} <i class="fa fa-credit-card text-warning"></i> {% endcomment %}
+              Hitamo 
             </button>
           </div>
         </div>
         {% endfor %}
       </div>
 
-      <div class="method text-center fs-5 mt-2 pb-2">
+      <div class="method text-center fs-5 mt-2 pb-2 p-3 rounded-3 shadow-md ">
         <h2 class="fw-bold">Uburyo bwo kwishyura:</h2>
         <h4 class="underline">Koresha code:</h4>
         <strong>
@@ -263,11 +263,11 @@
         </button>
         <h4 class="underline">Niba ukoresha nimero:</h4>
         <strong>0785287885</strong>
-        <hr class="text-theme" />
-        <h2 class="">Hose amazina ni: "Mwami Modeste"</h2>
+        {% comment %} <hr/> {% endcomment %}
+        <h2 class="mt-1">Hose amazina ni: "Mwami Modeste"</h2>
         <button
           type="button"
-          class="btn btn-primary d-block mx-auto"
+          class="btn btn-outline-primary d-block mx-auto fw-bold"
           data-bs-toggle="modal"
           data-bs-target="#codeModal"
         >
