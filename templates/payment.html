@@ -43,14 +43,7 @@
     border-radius: 50%;
   }
 
-  .form-check-input:checked {
-    background-color: rgba(0, 123, 255, 1);
-    border-color: rgba(0, 132, 255, 1);
-    background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M13.485 4.929a1 1 0 0 1 0 1.414l-5.657 5.657a1 1 0 0 1-1.414 0l-2.121-2.121a1 1 0 1 1 1.414-1.415l1.414 1.415 4.95-4.95a1 1 0 0 1 1.414 0z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 1.2em 1.2em;
-  }
+  
   #plan-carousel {
     scroll-behavior: smooth;
   }
@@ -131,11 +124,11 @@
     <div class="mb-3" id="payment-info">
       <em class="text-muted">Wasoje kwishyura?</em>
       <a
-        class="btn text-primary fs-5"
+        class="btn text-primary fs-5 text-decoration-underline"
         data-bs-toggle="modal"
         data-bs-target="#codeModal"
       >
-        Kanda hano <i class="bi bi-check-circle"></i>
+      Kanda hano
       </a>
     </div>
   </div>
@@ -209,42 +202,40 @@
         
         {% if forloop.last %}
         <div class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary text-white mb-5">
-          IRIKUNZWE
           <i class="bi bi-star-fill text-warning"></i>
+          IRIKUNZWE
         </div>
         {% endif %}
           <div
             class="card-header d-flex align-items-center justify-content-center text-primary fw-bold gap-2 py-1"
             >
           
-          <div>
+          <div class="form-check m-0 p-0 d-flex align-items-center gap-2 ">
               <label
-                class="form-check-label d-block mb-0 fs-6 text-decoration-line-through text-primary"
+                class="form-check-label d-block mb-0 fs-6 text-decoration-line-through text-primary cursor-pointer"
                 for="plan_{{ plan_value }}"
               >
                 {{ plan_value|get_old_price }}
               </label>
-              <label class="form-check-label fs-2" 
+              <label class="form-check-label fs-2 cursor-pointer" 
               for="plan_{{ plan_value }}">
                 {{ plan_value|get_plan_price }} RWF
               </label>
             </div>
-            <input class="form-check-input" type="radio" name="plan" id="plan_{{ plan_value }}" 
-            value="{{ plan_value|get_plan_price }}" 
-            {% if forloop.counter == 2 %}checked{% endif %}>
+            
           </div>
           <ul class="plan-description list-unstyled text-start px-1">
             {% for icon, line in plan_value|get_plan_description %}
             <li class="d-flex align-items-center gap-2 fs-5">
-              <i class="bi bi-check-circle-fill check-icon text-theme me-0"></i>
+              <i class="bi bi-circle-fill check-icon me-0 text-muted"></i>
               {{ line }} {{ icon }}
             </li>
             {% endfor %}
           </ul>
           <div class="card-body border-0 mt-0 pt-0 text-center">
-            <button type="button" class="btn btn-outline-primary rounded-pill btnSelectPlan px-4">
-              {% comment %} <i class="fa fa-credit-card text-warning"></i> {% endcomment %}
-              Hitamo 
+            <button type="button" class="btn btn-outline-primary rounded-pill btnSelectPlan px-4 fw-bold ">
+              <i class="bi bi-check2-circle" aria-hidden="true"></i>
+             Hitampo
             </button>
           </div>
         </div>
@@ -267,11 +258,12 @@
         <h2 class="mt-1">Hose amazina ni: "Mwami Modeste"</h2>
         <button
           type="button"
-          class="btn btn-outline-primary d-block mx-auto fw-bold"
+          class="btn btn-outline-primary d-flex align-items-center mx-auto fw-bold px-auto py-1 gap-1"
           data-bs-toggle="modal"
           data-bs-target="#codeModal"
         >
-          Nasoje kwishyura <i class="bi bi-check-circle"></i>
+        <i class="bi bi-check2-all fs-5" aria-hidden="true"></i>
+          Nasoje kwishyura 
         </button>
       </div>
     </form>
@@ -286,7 +278,8 @@
       href="{% url 'exam_detail' first_exam_id %}"
       class="btn text-primary fw-bold mt-3 mb-4"
     >
-      Kora ikizamini cy'ubuntu (Free Trial) <i class="bi bi-lightning-charge "></i>
+    <i class="bi bi-lightning-charge "></i>
+      Kora ikizamini cy'ubuntu (Free Trial)
     </a>
   </div>
 
@@ -427,7 +420,7 @@
         }
 
         document.querySelectorAll(".plan-card .check-icon").forEach(function(icon) {
-          icon.classList.remove("text-theme", "bi-check-circle-fill");
+          icon.classList.remove("text-theme", "bi-circle-fill");
           icon.classList.add("text-theme", "bi-circle");
         });
 
@@ -466,7 +459,7 @@
     callButton.addEventListener("click", () => {
       const selectedPlan = document.querySelector('input[name="plan"]:checked');
       if (!selectedPlan) {
-        alert("Banza uhitemo ifatabuguzi wifuza kwishyura.");
+        alert("Banza uhitempo ifatabuguzi wifuza kwishyura.");
         return;
       }
       const planPrice = selectedPlan.value;
@@ -481,7 +474,7 @@
     const planSelect = document.getElementById("plan");
 
     if (!phone || !name || !planSelect.value) {
-      alert("Shyiramo amazina, nimero, ndetse uhitemo ifatabuguzi wishyuye.");
+      alert("Shyiramo amazina, nimero, ndetse uhitempo ifatabuguzi wishyuye.");
       return;
     }
 

@@ -295,7 +295,7 @@ def password_reset(request):
             # Find user by phone
             user = UserProfile.objects.get(phone_number=phone_number)
         except UserProfile.DoesNotExist:
-            messages.error(request, "Iyi numero ntabwo yanditse")
+            messages.error(request, "Nta konti ifunguye kuri iyi nimero ya telefone. Ongera usuzume neza!")
             return redirect("password_reset")
 
         # Generate token and reset link
