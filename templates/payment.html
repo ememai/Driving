@@ -225,10 +225,10 @@
 
       <!-- Modal Body -->
       <div class="modal-body text-center px-4 py-4">
+        {% include "flash_message.html" %}
         <h2 class="mb-4">
           Hitamo 
-          </h2>
-        {% include "flash_message.html" %}
+        </h2>
 
         <a href="{% url 'payment' %}" class="btn btn-primary btn-lg fw-bold w-100 mb-3 rounded-3">
           <i class="bi bi-arrow-right-circle me-2"></i>
@@ -281,6 +281,7 @@
     background: linear-gradient(135deg, #1a73e8, #007bff);
   } {% endcomment %}
 </style>
+
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     var subscriptionModal = new bootstrap.Modal(document.getElementById('subscriptionModal'), {
@@ -302,7 +303,7 @@
       id="plan-carousel"
       class="d-flex flex-wrap align-items-center justify-content-center gap-1 px-5 py-3 plans shadow-md rounded-4  bg-theme"
       >
-      <p class="fw-bold text-center position-absolute top-0 start-50 translate-middle badge bg-black text-white">Hitampo Ifatabuguzi rikunogeye!</p>
+      <p class="fw-bold position-absolute top-0 start-50 translate-middle badge bg-black text-white">Hitampo Ifatabuguzi rikunogeye!</p>
         {% for plan_value, plan_label in plans %}
         <div
           class="card flex-shrink-0 text-center plan-card rounded-5
