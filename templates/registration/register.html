@@ -63,7 +63,7 @@
             {% endif %}
             
 
-            <form method="post" action="{% url 'register' %}"id="registrationForm"  novalidate>
+            <form method="post" action="{% url 'register' %}" id="registrationForm"  novalidate>
                 {% csrf_token %}
 
                 <!-- Name -->
@@ -411,13 +411,13 @@
       submitBtn.innerHTML = !isFormValid ? 'Uzuza ibisabwa wemeze' : '<i class="bi bi-person-plus-fill me-1"></i> Emeza';
     }
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', () => {
       submitBtn.disabled = true;
-      form (const field of fields) {
-          field.disabled = true;
-      }
-      submitBtn.innerHTML = 'Tegereza <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      submitBtn.innerHTML =
+        'Tegereza <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
     });
+
+
     // Add event listeners to fields
     fields.forEach(field => {
         field.addEventListener('input', async () => {

@@ -39,8 +39,9 @@ urlpatterns = [
 
 
     #subscription and payment
-    path('subscription/', views.payment, name='subscription'),
+    path('subscription/', views.subscription_status, name='subscription'),
     path('subscription/activate', views.activate_subscription_view, name='activate_subscription'),
+    path('pay/', views.payment, name='payment'),
     
     path('payment/confirm/', views.payment_confirm, name='payment_confirm'),
     # path("pay/", momo_payment, name="momo_payment"),

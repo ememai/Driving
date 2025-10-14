@@ -671,7 +671,14 @@ def exam(request, exam_id, question_number):
 
 @login_required(login_url='login')
 def exam_results(request, user_exam_id):
+    
     user_exam = get_object_or_404(UserExam, id=user_exam_id, user=request.user)
+    
+    if not request.user.is_subscribed and not user_exam.exam.id == first_exam_id:
+        messages.error(request, mark_safe(
+            f"<span>Iki kizamini ufite amanota</span> {user_exam.score}<br><h3>Gura ifatabuguzi kugirango ubashe kureba byose!</h3>"
+        ))
+        return redirect('subscription')
     answers = UserExamAnswer.objects.filter(user_exam=user_exam).select_related('question')
 
     context = {
@@ -690,7 +697,7 @@ def exam_results(request, user_exam_id):
 def retake_exam(request, exam_id):
     if not request.user.is_subscribed and not request.user.is_staff: 
         messages.error(request, mark_safe(
-            "<h2>Gura ifatabuguzi kugirango ubashe gukomeza!</h2>"
+            "<h2>Gura ifatabuguzi kugirango ubashe gusubirampo ikizamini!</h2>"
         ))
         return redirect('subscription')
     
@@ -788,12 +795,22 @@ def contact(request):
 # ---------------------
 @login_required(login_url='login')
 def payment(request):
+    page = 'payment'
     plans = Plan.PLAN_CHOICES
     context = {
         'plans': plans,
         'range_10': range(10),
         'first_exam_id': first_exam_id,
+        'page': page,
     }
+    return render(request, 'payment.html', context)
+
+
+@login_required(login_url='login')
+def subscription_status(request): 
+    page = 'subscription_status'
+    context = {'page': page,
+               'first_exam_id': first_exam_id,}    
     return render(request, 'payment.html', context)
 # ---------------------
 # Subscription and Payment Views
