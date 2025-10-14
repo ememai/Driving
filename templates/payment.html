@@ -239,6 +239,8 @@
           class="btn btn-success fw-bold w-100 mb-3 rounded-3"
           data-bs-toggle="modal"
           data-bs-target="#codeModal"
+          data-bs-dismiss="modal"
+          
         >
           <i class="bi bi-check2-all me-2"></i>
           Wasoje kwishyura
@@ -535,7 +537,12 @@
     const btnSelectPlan = document.querySelectorAll(".btnSelectPlan");
     
     // prevent closing modals by clicking outside or pressing ESC
-    
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) e.stopPropagation();
+      });
+    });   
 
     btnSelectPlan.forEach(btn => {
       btn.addEventListener("click", function() {

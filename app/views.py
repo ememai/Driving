@@ -809,8 +809,11 @@ def payment(request):
 @login_required(login_url='login')
 def subscription_status(request): 
     page = 'subscription_status'
+    plans = Plan.PLAN_CHOICES
     context = {'page': page,
-               'first_exam_id': first_exam_id,}    
+        'plans': plans,
+        'range_10': range(10),
+        'first_exam_id': first_exam_id,}    
     return render(request, 'payment.html', context)
 # ---------------------
 # Subscription and Payment Views
