@@ -216,14 +216,14 @@
           {% if num == question_number %}
             btn-primary
           {% elif q_id|isin:request.session.answers %}
-
             btn-success
           {% else %}
             btn-outline-secondary
           {% endif %}"
         {% if num == question_number %}disabled{% endif %}
         title="Kanda hano kugirango ujye ku kibazo cya {{ num }}"
-        type="submit" name="go_to" value="{{ num }}">
+        type="submit" name="go_to" value="{{ num }}"
+        class="go-to">
         
         {% if num == question_number %}
           <strong>{{ num }}</strong>
@@ -246,6 +246,7 @@
   <!-- Exam Form -->
   <form method="POST" id="examForm" class="p-4 shadow-lg">
     {% csrf_token %}
+    <input type="hidden" name="go_to" id="goToInput">
     <div class="mb-5">
       <p class="fs-1 d-none d-md-block">{{ question_number }}. {{ question.question_text }}</p>
       <p class="fs-3 d-block d-md-none">{{ question_number }}. {{ question.question_text }}</p>
@@ -329,20 +330,33 @@
       window.removeEventListener('beforeunload', beforeUnloadHandler);
     }
 
+
     const nextBtn = document.getElementById('nextBtn');
     const prevBtn = document.querySelector('button[name="previous"]');
     const confirmSubmitBtn = document.getElementById('confirmSubmit');
     const form = document.getElementById('examForm');
     const questionNavButtons = document.querySelectorAll('#question-nav button');
 
+
     if (nextBtn) nextBtn.addEventListener('click', removeBeforeUnload);
     if (prevBtn) prevBtn.addEventListener('click', removeBeforeUnload);
     if (confirmSubmitBtn) confirmSubmitBtn.addEventListener('click', removeBeforeUnload);
     if (form) form.addEventListener('submit', removeBeforeUnload);
 
-    // Remove warning when question navigation buttons are clicked
+    const goToInput = document.getElementById('goToInput');
+
     questionNavButtons.forEach(button => {
-      button.addEventListener('click', removeBeforeUnload);
+      button.addEventListener('click', function (e) {
+        e.preventDefault(); // stop normal form submission of q-nums-form
+        // Set the go_to value to the clicked button’s number
+        goToInput.value = this.value;
+
+        // Remove the "beforeunload" warning
+        removeBeforeUnload();
+
+        // Submit the main exam form instead (which includes user's current answer)
+        HTMLFormElement.prototype.submit.call(form);
+      });
     });
 
     {% if  exam_end_time   %}
