@@ -635,7 +635,7 @@
         alert("Banza uhitempo ifatabuguzi wifuza kwishyura.");
         return;
       }
-      const planPrice = selectedPlan.value;
+      const planPrice = selectedPlan.dataset.planPrice || '0';;
       window.location.href = "tel:" + encodeURIComponent(`*182*8*1*187756*${planPrice}#`);
     });
   });
