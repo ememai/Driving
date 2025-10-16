@@ -163,7 +163,7 @@ class RegisterForm(forms.ModelForm):
                 raise ValidationError("Telefone wayujuje nabi. Kurikiza urugero!")
             if UserProfile.objects.filter(phone_number=phone).exists():
                 login_link = mark_safe('<a href="/login" class="alert-link">Injira</a>')
-                raise ValidationError(f"Iyi telefone '{phone}' isanzweho* yikoreshe winjira {login_link}")
+                raise ValidationError(f"Iyi telefone '{phone}' isanzweho* yikoreshe winjira")
         return phone
 
     def clean(self):
