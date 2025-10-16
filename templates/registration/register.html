@@ -19,6 +19,27 @@
     #20603d 100%);
   }
 
+  /* 🌍 Global spinner styles */
+  .spinner-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    transition: opacity 0.3s ease;
+  }
+  .spinner-overlay.fade-in {
+    opacity: 1;
+    visibility: visible;
+  }
+  .spinner-overlay.d-none {
+    opacity: 0;
+    visibility: hidden;
+  }
   
 </style>
 
@@ -230,6 +251,17 @@
     </div>
   </div>
 </div>
+<!-- 🌍 Global Spinner Overlay -->
+<div id="globalSpinner" class="spinner-overlay d-none">
+  <div class="text-center">
+    <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="text-light mt-3 fs-5">Tegereza gato...</p>
+  </div>
+</div>
+
+
 {% endblock %}
 
 {% block extra_js %}
@@ -250,31 +282,6 @@
           }
       }
 
-    {% comment %} document.addEventListener('DOMContentLoaded', () => {
-        const emailMode = document.getElementById('emailMode');
-        const phoneMode = document.getElementById('phoneMode');
-        const emailField = document.getElementById('emailField');
-        const phoneField = document.getElementById('phoneField');
-
-        function toggleContactField() {
-            if (emailMode.checked) {
-                emailField.classList.remove("d-none");
-                phoneField.classList.add("d-none");
-                document.getElementById("id_email").required = true;
-                document.getElementById("id_phone_number").required = false;
-            } else {
-                phoneField.classList.remove("d-none");
-                emailField.classList.add("d-none");
-                document.getElementById("id_phone_number").required = true;
-                document.getElementById("id_email").required = false;
-            }
-        }
-
-        emailMode.addEventListener('change', toggleContactField);
-        phoneMode.addEventListener('change', toggleContactField);
-        toggleContactField();
-    }); {% endcomment %}
-
 
 </script>
 
@@ -283,6 +290,8 @@
     const form = document.getElementById('registrationForm');
     const submitBtn = form.querySelector('button[type="submit"]');
     const fields = form.querySelectorAll('input');
+    const globalSpinner = document.getElementById('globalSpinner');
+
 
     // Error messages
     const errorMessages = {
@@ -378,7 +387,7 @@
                     ? 'Iyi email isanzweho*'
                     : name === 'phone_number'
                     ? `Iyi telefone '${value}' isanzweho* yikoreshe winjira`
-                    : `Izina '${value}' risanzweho*`);
+                    : `Izina '${value}' rirakoreshwa*`);
                 field.classList.remove('is-valid');
                 field.classList.add('is-invalid');
             } else {
@@ -411,11 +420,20 @@
       submitBtn.innerHTML = !isFormValid ? 'Uzuza ibisabwa wemeze' : '<i class="bi bi-person-plus-fill me-1"></i> Emeza';
     }
 
-    form.addEventListener('submit', () => {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML =
-        'Tegereza <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-    });
+      form.addEventListener('submit', (e) => {
+
+        e.preventDefault();
+          submitBtn.disabled = true;
+
+          // Show global overlay spinner
+          globalSpinner.classList.remove('d-none');
+          globalSpinner.classList.add('fade-in');
+
+          // Optional delay before submit (to ensure UI updates)
+          setTimeout(() => {
+            form.submit();
+          }, 300);
+      });
 
 
     // Add event listeners to fields
