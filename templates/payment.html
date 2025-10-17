@@ -180,8 +180,7 @@
 
       <!-- Modal Body -->
       <div class="modal-body text-center px-4 py-4">
-        {% include "flash_message.html" %}
-        
+                
         {% if unverified_subscription %}
 
         <a href="{% url 'activate_subscription' %}" class="btn btn-primary btn-md fw-bold w-100 mb-3 rounded-pill">
@@ -190,7 +189,7 @@
         </a>    
 
         {% else %}
-
+        {% include "flash_message.html" %}
         <h2 class="mb-4">
           Hitamo 
         </h2> 

@@ -793,8 +793,11 @@ def contact(request):
     return render(request, 'contact.html')
 
 def get_unverified_subscription(request):
-    subscription = Subscription.objects.get(user=request.user, otp_verified=False) if hasattr(request.user, 'subscription') and request.user.subscription.otp_code and not request.user.subscription.otp_verified else None
-   
+    subscription = Subscription.objects.filter(
+        user=request.user, 
+        otp_code__isnull=False,
+        otp_verified=False).first()
+    print(subscription)
     return subscription
 
 # ---------------------
