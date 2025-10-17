@@ -39,7 +39,17 @@ def validate_whats_api_credentials():
     except Exception as e:
         logger.error(f"whats_api connection test failed: {str(e)}")
         return False
-    
+
+
+def get_unverified_subscription(user):
+    if not user.is_authenticated:
+        return None
+    return Subscription.objects.filter(
+        user=user,
+        otp_code__isnull=False,
+        otp_verified=False
+    ).first()
+
 
 def clean_phone_number(number):
     """Clean and validate Rwandan phone number to E.164 format"""

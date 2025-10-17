@@ -314,7 +314,7 @@ class Subscription(models.Model):
             delta = self.plan.get_delta()
 
         if delta:
-            self.expires_at = self.started_at + delta if not self.updated else self.updated_at + delta
+            self.expires_at = self.started_at + delta
         self.save()
 
         return True, "", self.expires_at

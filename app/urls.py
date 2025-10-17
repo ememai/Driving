@@ -10,6 +10,7 @@ from app.forms import CustomSetPasswordForm
 
 urlpatterns = [
     # path('admin/api/questions/', get_questions_for_exam_type),
+    path('check-unverified/', views.check_unverified_subscription, name='check_unverified'),
 
     path("ahabanza/", views.home, name='ahabanza'),
     path('isomo/<slug:slug>/', views.course_detail, name='course_detail'),

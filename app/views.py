@@ -49,6 +49,7 @@ from django.views.decorators.csrf import csrf_exempt
 User = get_user_model()
 first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze', for_scheduling=False).order_by('created_at').first().id
 
+
 @login_required(login_url='register')
 def home(request):
     exam_types = ExamType.objects.filter(
@@ -792,9 +793,9 @@ def contact(request):
 
     return render(request, 'contact.html')
 
-def get_unverified_subscription(request):
+def get_unverified_subscription(user):
     subscription = Subscription.objects.filter(
-        user=request.user, 
+        user=user, 
         otp_code__isnull=False,
         otp_verified=False).first()
     print(subscription)
@@ -818,7 +819,7 @@ def payment(request):
 def subscription_status(request): 
     page = 'subscription_status'
     plans = Plan.PLAN_CHOICES
-    unverified_subscription = get_unverified_subscription(request)
+    unverified_subscription = get_unverified_subscription(request.user)
     # print('un_s', unverified_subscription)
     context = {'page': page,
         'plans': plans,
@@ -929,12 +930,11 @@ def subscription_view(request):
 @login_required
 def activate_subscription_view(request):
     context = {}
-    subscription = get_unverified_subscription(request)
-    if subscription:
-        user_otp = subscription.otp_code
+    unverified_subscription = get_unverified_subscription(request.user)
+    if unverified_subscription:
+        user_otp = unverified_subscription.otp_code
         context['user_otp'] = user_otp
     else:
-        messages.error(request, 'Banza ugure ifatabuguzi cg wemeze ko wasoje kwishyura\nukeneye  ubufasha:0785287885')
         return redirect('subscription')
 
     if request.method == "POST":
@@ -967,10 +967,19 @@ def activate_subscription_view(request):
         if success:
             # Get human-readable plan name
             plan_display = dict(Plan.PLAN_CHOICES).get(subscription.plan.plan, subscription.plan.plan)
+            today = timezone.now().date()
+            expires_date = localtime(expires_at).strftime('%d-%m-%Y')
+            expires_hour = localtime(expires_at).strftime('%H:%M')
+            if expires_date == today:
+                expires_date = ''
+            else:
+                expires_date = "Taliki " + expires_date 
+                
             context.update({
                 "show_modal": True,
                 "modal_title": f"Ifatabuguzi <strong>'{plan_display}'</strong> riratangiye🎉",
-                "modal_message": f"{message} Ubu wemerewe kwiga no gukosora ibizamini ushaka kugeza {localtime(expires_at).strftime('%d-%m-%Y %H:%M')} ✅",
+                "modal_message": f'''{message} Ubu wemerewe kwiga no gukosora ibizamini ushaka kugeza <br> 
+                <strong>{expires_date} Saa {expires_hour}</strong>''',
                 "redirect_url": reverse("home"),
             })
         else:
@@ -1100,3 +1109,13 @@ def resend_otp(request, user_id):
         user_profile.send_otp_email()  # Assuming you have a method to send OTP
         return JsonResponse({"message": "OTP resent successfully."}, status=200)
     return JsonResponse({"error": "Invalid request."}, status=400)
+
+@login_required
+def check_unverified_subscription(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'unverified': False, 'error': 'unauthenticated'}, status=401)
+    
+    unverified_sub = get_unverified_subscription(request.user)
+    if unverified_sub:
+        has_unverified = True
+    return JsonResponse({'unverified': has_unverified}) 

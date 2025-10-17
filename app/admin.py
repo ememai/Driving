@@ -63,8 +63,8 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user', 'plan', 'price', 'started','delta_display', 'expires', 'otp_code','otp_verified', 'colored_is_active','renew_subscription','end_subscription')
-    readonly_fields = ('started_at', 'expires_at', 'otp_code', 'otp_created_at', 'otp_verified')
+    list_display = ('user', 'plan', 'price', 'started','delta_display', 'expires','otp_created_at', 'otp_code','otp_verified', 'colored_is_active','renew_subscription','end_subscription')
+    readonly_fields = ('started_at', 'expires_at', 'otp_code', 'otp_created_at', 'otp_verified') 
  
 
     list_filter = ('super_subscription', 'plan')
@@ -120,7 +120,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
    
     @admin.display(description='S.A')
     def started(self, obj):
-        return obj.started_at.strftime("%d-%m-%y") if obj.started_at else "-"
+        return localtime(obj.started_at).strftime("%d-%m-%y %H:%M")if obj.started_at else "-"
     
     @admin.display(description='U.A')
     def upd_at(self, obj):

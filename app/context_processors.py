@@ -1,6 +1,11 @@
 # app/context_processors.py
 from django.utils import timezone
-from .models import ScheduledExam
+from .models import *
+from .utils import *
+
+def unverified_subscription_context(request):
+    subscription = get_unverified_subscription(request.user)
+    return {'unverified_subscription': subscription}
 
 def exams_slider_context(request):
     now = timezone.localtime(timezone.now())

@@ -322,6 +322,56 @@
             </button>
         </div>
 
+       <!-- Unverified Subscription Modal -->
+<div class="modal fade" id="unverifiedModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-theme text-theme">
+        <h6 class="modal-title fw-bold">Ubwishyu bwawe bwemejwe</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <a href="{% url 'activate_subscription' %}" class="btn rounded-pill shadow-lg" 
+        style="background-color: rgba(var(--text-rgb), 1); 
+            color: rgba(var(--background-rgb), 1);">Fungura ifatabuzi</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    const currentPath = window.location.pathname;
+    const activateUrls = [
+    "{% url 'activate_subscription' %}",
+    "{% url 'payment' %}",
+    "{% url 'subscription' %}",
+    ];
+
+    if (activateUrls.includes(currentPath)) return;
+
+    fetch("{% url 'check_unverified' %}", {
+        headers: {
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return response.json();
+    })
+    .then(data => {
+        if (data.unverified) {
+            const modal = new bootstrap.Modal(document.getElementById("unverifiedModal"), {
+                backdrop: true,   // allow closing by clicking outside
+                keyboard: true    // allow closing with ESC
+            });
+            modal.show();
+        }
+    })
+    .catch(err => console.error("Error checking subscription:", err));
+});
+</script>
+
         <script>
             const scrollTopBtn = document.getElementById('scrollTopBtn');
             const scrollBottomBtn = document.getElementById('scrollBottomBtn');
