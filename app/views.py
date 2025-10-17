@@ -793,7 +793,8 @@ def contact(request):
     return render(request, 'contact.html')
 
 def get_unverified_subscription(request):
-    subscription = Subscription.objects.get(user=request.user, otp_verified=False) if hasattr(request.user, 'subscription') and not request.user.subscription.otp_verified else None
+    subscription = Subscription.objects.get(user=request.user, otp_verified=False) if hasattr(request.user, 'subscription') and request.user.subscription.otp_code and not request.user.subscription.otp_verified else None
+   
     return subscription
 
 # ---------------------
@@ -815,7 +816,7 @@ def subscription_status(request):
     page = 'subscription_status'
     plans = Plan.PLAN_CHOICES
     unverified_subscription = get_unverified_subscription(request)
-     
+    # print('un_s', unverified_subscription)
     context = {'page': page,
         'plans': plans,
         'range_10': range(10),

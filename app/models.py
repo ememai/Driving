@@ -291,34 +291,7 @@ class Subscription(models.Model):
         self.save(update_fields=["otp_code", "otp_created_at", "otp_verified", "started_at", "expires_at"])
         return self.otp_code
 
-    # def verify_and_start(self, otp):
-    #     """Verify OTP and start subscription timer."""
-    #     if not self.otp_code or self.otp_code != otp:
-    #         return False, "OTP siyo."
-
-    #     # Optional: expire OTP after 1 hour
-    #     if self.otp_created_at and timezone.now() > self.otp_created_at + timezone.timedelta(hours=24):
-    #         return False, "OTP yararangiye. Ongera usabe indi."
-
-    #     # ✅ Start subscription
-    #     self.otp_verified = True
-    #     # self.otp_code = None
-    #     self.started_at = timezone.now()
-
-    #     # Calculate expiry
-    #     delta = None
-    #     if self.super_subscription:
-    #         delta = self.get_delta()
-    #     elif self.plan:
-    #         self.price = self.plan.price
-    #         self.delta_hours = self.plan.delta_hours
-    #         self.delta_days = self.plan.delta_days
-    #         delta = self.plan.get_delta()
-
-    #     if delta:
-    #         self.expires_at = self.started_at + delta
-    #     self.save()
-    #     return True, format_html("<script>windows.alert('Ifatabuguzi ryawe riratangiye,ubu Wemerewe kwiga no gukosora ibizamini ushaka kugeza localtime(self.expires_at).strftime('%d-%m-%Y %H:%M')✅');</script>")
+   
     def verify_and_start(self, otp):
         """Verify OTP and start subscription timer."""
         if not self.otp_code or self.otp_code != otp:
@@ -341,7 +314,7 @@ class Subscription(models.Model):
             delta = self.plan.get_delta()
 
         if delta:
-            self.expires_at = self.started_at + delta
+            self.expires_at = self.started_at + delta if not self.updated else self.updated_at + delta
         self.save()
 
         return True, "", self.expires_at
@@ -349,6 +322,7 @@ class Subscription(models.Model):
     def renew(self):
         """Renew subscription by generating a new OTP."""
         return self.generate_otp()
+           
 
    
 
