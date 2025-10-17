@@ -193,7 +193,6 @@ def auto_create_exams(number):
     exams_created = 0
     created_exam_ids = []
     
-    notify_admin(f"✅done creating {exams_created} exams")
     
     if timezone.localtime(timezone.now()).weekday() == 6:  # Sunday is represented by 6
         print("❌ No exams created on Sundays.")
@@ -224,6 +223,7 @@ def auto_create_exams(number):
 
         except Exception as e:
             print(f"Error: {e}")
+    notify_admin(f"✅done creating {exams_created} exams")
 
     return exams_created, created_exam_ids
 
