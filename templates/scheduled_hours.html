@@ -217,7 +217,8 @@
     }
   };
 
-  function updateExamUI(data, examDiv) {
+  async function updateExamUI(data, examDiv) {
+    
     const currentHour = new Date().getHours();
     const examHour = parseInt(data.exam_time.split(':')[0], 10);
     const completedMark = data.completed ? '<div class="completed-check">✓</div>' : '';
@@ -234,6 +235,7 @@
       if (currentHour === examHour) scrollToElementWithClass("live-badge");
     } else {
       if (currentHour === examHour) {
+
         const examId = examDiv.id.replace('exam-hour-', '');
         const remainingTime = data.remaining_time;
         const countdownSpan = examDiv.querySelector("#hour-span");
