@@ -184,7 +184,7 @@
         
         {% if unverified_subscription %}
 
-        <a href="{% url 'activate_subscription' %}" class="btn btn-primary btn-md fw-bold w-100 mb-3 rounded-3">
+        <a href="{% url 'activate_subscription' %}" class="btn btn-primary btn-md fw-bold w-100 mb-3 rounded-pill">
           <i class="bi bi-arrow-right-circle me-2"></i>
           Fungura ifatabuguzi wishyuye
         </a>    
@@ -195,13 +195,13 @@
           Hitamo 
         </h2> 
 
-        <a href="{% url 'payment' %}" class="btn btn-primary btn-lg fw-bold w-100 mb-3 rounded-3">
+        <a href="{% url 'payment' %}" class="btn btn-primary btn-lg fw-bold w-100 mb-3 rounded-pill">
           <i class="bi bi-arrow-right-circle me-2"></i>
           Kugura ifatabuguzi
         </a>          
         
         <button 
-          class="btn btn-primary fw-bold w-100 mb-3 rounded-3"
+          class="btn btn-primary fw-bold w-100 mb-3 rounded-pill"
           data-bs-toggle="modal"
           data-bs-target="#confirmPayModal"
           data-bs-dismiss="modal"
@@ -217,7 +217,7 @@
           Ikizamini cy'ubuntu (Free Trial)
         </a>
         {% endif %}
-        
+
         {% endif %}
 
       </div>

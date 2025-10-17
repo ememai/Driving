@@ -815,12 +815,7 @@ def subscription_status(request):
     page = 'subscription_status'
     plans = Plan.PLAN_CHOICES
     unverified_subscription = get_unverified_subscription(request)
-    context = {}
-    
-    if unverified_subscription:
-        context['verify_code'] = 'Fungura ifatabuguzi wishyuye'
-    else:
-        context['confirm_pay'] = 'Wasoje kwishyura'    
+     
     context = {'page': page,
         'plans': plans,
         'range_10': range(10),
