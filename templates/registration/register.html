@@ -338,7 +338,7 @@
         let isValid = true;
 
         if (name === 'name') {
-            const regex = /^[A-Za-zÀ-ÿ '-]+$/;
+            const regex = /^[A-Za-zÀ-ÿ0-9 '-]+$/;
             isValid = value.length >= 4 && regex.test(value) && !/^\d+$/.test(value);
         } else if (name === 'email') {
             const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

@@ -129,12 +129,12 @@ class RegisterForm(forms.ModelForm):
         name = self.cleaned_data.get("name")
         if not name:
             raise ValidationError("Uzuza izina rirakenewe!")
-        if name and UserProfile.objects.filter(name=name).exists():
-            raise ValidationError("Iri zina rirakoreshwa*")
+        # if name and UserProfile.objects.filter(name=name).exists():
+        #     name += f'_{self.cleaned_data.get("phone_number")}'
         if name.isdigit():
             raise ValidationError("Izina ntirikwiye kuba imibare gusa.")
-        if not re.match(r"^[A-Za-zÀ-ÿ '-]+$", name):
-            raise ValidationError("Izina ryemewe rigomba kuba ririmo inyuguti gusa.")
+        if not re.match(r"^[A-Za-zÀ-ÿ0-9 '-]+$", name):
+            raise ValidationError("Izina ryemewe rigomba kuba ririmo inyuguti gusa.") 
         if len(name) < 4:
             raise ValidationError("Andika byibuza inyuguti 4")
         return name

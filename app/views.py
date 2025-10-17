@@ -125,8 +125,8 @@ def check_unique_field(request):
         if len(value) >= 10:
             response["exists"] = User.objects.filter(phone_number__icontains=value).exists()
         # response["exists"] = User.objects.filter(phone_number__contains=value).exists()
-    elif field == "name" and value:
-        response["exists"] = User.objects.filter(name__iexact=value).exists()
+    # elif field == "name" and value:
+    #     response["exists"] = User.objects.filter(name__iexact=value).exists()
 
     return JsonResponse(response)
 

@@ -62,13 +62,8 @@ class UserProfileManager(BaseUserManager):
 
 class UserProfile(AbstractUser):
 
-    GENDER_CHOICES = [
-        ('male','Gabo'),
-        ('female', 'Gore')
-    ]
-
     username = None  # Remove default username field
-    name = models.CharField(max_length=25, unique=True)
+    name = models.CharField(max_length=25)
     email = models.EmailField(unique=True, blank=True, null=True)
     phone_number = models.CharField(max_length=15,default=None, unique=True, null=True, blank=True)
     # gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
@@ -86,19 +81,48 @@ class UserProfile(AbstractUser):
     objects = UserProfileManager()
 
     def save(self, *args, **kwargs):
-        """Normalize phone number before saving to ensure consistency."""
-        if self.phone_number:
-
-            # if self.phone_number == '':
-            #     self.phone_number = None
-            # else:
-            self.phone_number = self.normalize_phone_number(self.phone_number)
+        
+        if getattr(self, "_is_saving", False):
+            return
+        self._is_saving = True
+        
+        try:   
             
-        if self.email:
-            self.whatsapp_consent = True
-        super().save(*args, **kwargs)
+            """Normalize phone number before saving to ensure consistency."""
+            if self.phone_number:
+                self.phone_number = self.normalize_phone_number(self.phone_number)
+                
+            if self.email:
+                self.whatsapp_consent = True
+            
+            if not self.phone_number or len(self.phone_number) < 3:
+                raise ValueError("Phone number must have at least 3 digits.")
 
+            
+            if self._state.adding:
+                # 1. Strip any existing numeric suffix (_XYZ) from the name
+                base_name = self.name.split('_')[0]
+                                
+                if UserProfile.objects.filter(name=base_name).exists():
+                    # Try to generate a unique suffix
+                    for _ in range(100):  # max 100 attempts
+                        # Last 2 digits + random 0-9
+                        suffix = (int(self.phone_number[-2:]) + random.randint(0, 9)) % 100
+                        suffix_str = str(suffix).zfill(2)
+                        new_name = f"{base_name}_{suffix_str}"
+                    
+                        # Check if this name is already in the database
+                        if not UserProfile.objects.filter(name=new_name).exists():
+                            self.name = new_name
+                            break 
+                    else:
+                        # If after 100 tries no unique name is found
+                        raise ValueError("Gerageza irindi zina.")
+            
+            super().save(*args, **kwargs)
 
+        finally:
+            self._is_saving = False
     def clean(self):
         """Ensure phone number is in the correct format before saving."""
         if not self.email and not self.phone_number:
@@ -184,9 +208,9 @@ class UserProfile(AbstractUser):
 
 
     def __str__(self):
-        return self.email if self.email else f"{self.name} - {self.phone_number}"
-
-
+        return self.email if self.email else f"{self.name}"
+    
+ 
 class Plan(models.Model):
     PLAN_CHOICES = (
         ('Hourly', "Isaha"),
@@ -366,86 +390,7 @@ class PaymentConfirm(models.Model):
     plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True, blank=True)
     time = models.DateTimeField(auto_now_add=True)
 
-# class Subscription(models.Model):
-#     user = models.OneToOneField('UserProfile', on_delete=models.CASCADE) 
-#     # user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)  # ✅ Allows multiple
-#     super_subscription = models.BooleanField(default=False)
-#     plan = models.ForeignKey('Plan', on_delete=models.SET_NULL, null=True, blank=True)
-#     price = models.IntegerField(null=True, blank=True)
-#     phone_number = models.CharField(max_length=13, default="25078")
-#     transaction_id = models.CharField(max_length=50, unique=True, blank=True, null=True)
-#     started_at = models.DateTimeField(auto_now_add=True)
-#     updated = models.BooleanField(default=False)
-#     updated_at = models.DateTimeField(auto_now=True)
-#     expires_at = models.DateTimeField(null=True, blank=True)
-#     delta_hours = models.IntegerField(default=0)
-#     delta_days = models.IntegerField(default=0)
 
-
-#     def get_delta(self):
-#         if self.delta_hours:
-#             return timezone.timedelta(hours=self.delta_hours)
-#         elif self.delta_days:
-#             return timezone.timedelta(days=self.delta_days)
-#         return None
-
-#     def clean(self):
-#         if self.super_subscription:
-#             if not self.delta_hours and not self.delta_days:
-#                 raise ValidationError("Either 'delta_hours' or 'delta_days' must be set.")
-
-#             if self.delta_hours < 0 or self.delta_days < 0:
-#                 raise ValidationError("Delta values cannot be negative.")
-
-#             if not self.price or self.price <= 0:
-#                 raise ValidationError("'price' must be greater than zero.")
-            
-#         if self.super_subscription and self.plan:
-#             raise ValidationError("Super subscription should not be linked with a plan.")
-        
-#         if not self.super_subscription and not self.plan:
-#             raise ValidationError("Either super subscription must be enabled or a plan must be selected.")
-
-               
-#         if self.plan:
-#             if self.plan.delta_hours < 0 or self.plan.delta_days < 0  or self.plan.price <= 0:
-#                 raise ValidationError("Plan must have a valid price and duration.")
-
-#     def save(self, *args, **kwargs):
-#         is_new = self.pk is None
-#         super().save(*args, **kwargs)  # Save first to ensure `started_at` is populated
-
-#         now = timezone.now()
-#         reference_time = self.updated_at if not is_new and self.updated else self.started_at 
-
-#         if self.super_subscription:
-#             delta = self.get_delta()
-#             if delta and reference_time:
-#                 self.expires_at = reference_time + delta
-#                 super().save(update_fields=['expires_at'])
-
-#         elif self.plan:
-#             self.price = self.plan.price
-#             self.delta_hours = self.plan.delta_hours
-#             self.delta_days = self.plan.delta_days
-#             delta = self.plan.get_delta()
-#             if delta and reference_time:
-#                 self.expires_at = reference_time + delta
-#                 super().save(update_fields=['price', 'delta_hours', 'delta_days', 'expires_at'])
-
-
-#     @property
-#     def active_subscription(self):
-#         """Check if the subscription is currently active."""
-        
-#         if self.expires_at and self.expires_at >= timezone.now():
-#             return True
-#         return False
-    
-
-#     def __str__(self):
-#         return f"Subscription for {self.user}"
-  
 class Payment(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
