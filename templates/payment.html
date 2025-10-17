@@ -142,52 +142,7 @@
 </style>
 {% endblock %} {% block content %}
 <div class="container py-4">
-  {% comment %} <div class="text-center">
-    {% if user.is_subscribed %}
-    <p class="fw-bold text-theme">
-      Ifatabuguzi ryawe riracyariho kugeza tariki ya
-      <strong>
-        {{ user.subscription.expires_at|date:"j.m.Y" }} 
-        Saa {{ user.subscription.expires_at|date:"H:i" }} </strong
-      >.
-    </p>
-    {% elif user.has_ended_subscription %}
-    <p class="fw-bold text-danger">
-      Ifatabuguzi ryawe ryarangiye kuri
-      <strong>
-        {{ user.subscription.expires_at|date:"j.m.Y" }}
-         Saa {{ user.subscription.expires_at|date:"H:i" }}
-      </strong>
-    </p>
-     
-    {% else %}
-    <p class="fw-bold text-warning">Ntafatabuguzi ufite!!!</p>
-    
-    {% endif %} {% include "flash_message.html" %}
-
-
-    <div class="mb-3" id="payment-info">
-      <em class="text-muted">Wasoje kwishyura?</em>
-      <a
-        class="btn text-primary fs-5 text-decoration-underline"
-        data-bs-toggle="modal"
-        data-bs-target="#codeModal"
-      >
-      Kanda hano
-      </a>
-    </div>
-    <!-- Free Trial Section -->
-    {% if not user.is_subscribed %}
-    <div class="d-flex flex-column align-items-center mb-4">
-      <h4 class="fw-bold mb-0">Wifuza kugerageza mbere?</h4>
-      <a href="{% url 'exam_detail' first_exam_id %}" class="btn btn-gradient">
-        <i class="bi bi-lightning-charge me-2"></i>
-        Kora ikizamini cy'ubuntu (Free Trial)
-      </a>
-    </div>
-    {% endif %}
-
-  </div> {% endcomment %}
+  
 
   {% if page == 'subscription_status' %}  
   
@@ -226,19 +181,29 @@
       <!-- Modal Body -->
       <div class="modal-body text-center px-4 py-4">
         {% include "flash_message.html" %}
+        
+        {% if unverified_subscription %}
+
+        <a href="{% url 'activate_subscription' %}" class="btn btn-primary btn-md fw-bold w-100 mb-3 rounded-3">
+          <i class="bi bi-arrow-right-circle me-2"></i>
+          Fungura ifatabuguzi wishyuye
+        </a>    
+
+        {% else %}
+
         <h2 class="mb-4">
           Hitamo 
-        </h2>
+        </h2> 
 
         <a href="{% url 'payment' %}" class="btn btn-primary btn-lg fw-bold w-100 mb-3 rounded-3">
           <i class="bi bi-arrow-right-circle me-2"></i>
           Kugura ifatabuguzi
-        </a>
-
+        </a>          
+        
         <button 
-          class="btn btn-success fw-bold w-100 mb-3 rounded-3"
+          class="btn btn-primary fw-bold w-100 mb-3 rounded-3"
           data-bs-toggle="modal"
-          data-bs-target="#codeModal"
+          data-bs-target="#confirmPayModal"
           data-bs-dismiss="modal"
           
         >
@@ -247,11 +212,14 @@
         </button>
 
         {% if not user.is_subscribed %}
-        <a href="{% url 'exam_detail' first_exam_id %}" class="btn btn-outline-secondary fw-bold w-100 rounded-3">
+        <a href="{% url 'exam_detail' first_exam_id %}" class="btn btn-secondary fw-bold w-100 rounded-3">
           <i class="bi bi-lightning-charge me-2"></i>
           Ikizamini cy'ubuntu (Free Trial)
         </a>
         {% endif %}
+        
+        {% endif %}
+
       </div>
 
       <!-- Modal Footer -->
@@ -491,7 +459,7 @@
 
           <div class="modal-body">
             <p class="text-muted">
-              Uzuza n'imero ya WhatsApp izaho Code:
+              Uzuza nimero izaho Code:
             </p>
             <input type="text" id="whatsapp_number" name="whatsapp_number" class="form-control" placeholder="Nimero ya WhatsApp" required/>
           </div>

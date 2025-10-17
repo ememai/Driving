@@ -792,6 +792,9 @@ def contact(request):
 
     return render(request, 'contact.html')
 
+def get_unverified_subscription(request):
+    subscription = Subscription.objects.get(user=request.user, otp_verified=False) if hasattr(request.user, 'subscription') and not request.user.subscription.otp_verified else None
+    return subscription
 
 # ---------------------
 @login_required(login_url='login')
@@ -811,10 +814,18 @@ def payment(request):
 def subscription_status(request): 
     page = 'subscription_status'
     plans = Plan.PLAN_CHOICES
+    unverified_subscription = get_unverified_subscription(request)
+    context = {}
+    
+    if unverified_subscription:
+        context['verify_code'] = 'Fungura ifatabuguzi wishyuye'
+    else:
+        context['confirm_pay'] = 'Wasoje kwishyura'    
     context = {'page': page,
         'plans': plans,
         'range_10': range(10),
-        'first_exam_id': first_exam_id,}    
+        'first_exam_id': first_exam_id,
+        'unverified_subscription' : unverified_subscription}    
     return render(request, 'payment.html', context)
 # ---------------------
 # Subscription and Payment Views
@@ -862,7 +873,7 @@ def payment_confirm(request):
             
             notify_admin(f"New payment confirmation from {request.user.name}, payeer name: {payeer_name}, whatsapp: {whatsapp_number}")
             
-            messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Tegereza code kuri WHATSAPP:{whatsapp_number} mu munota umwe.")
+            messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Tegereza code kuri WHATSAPP cg SMS mu munota umwe.")
             return redirect('home')
             
         except Exception as e:
@@ -919,6 +930,13 @@ def subscription_view(request):
 @login_required
 def activate_subscription_view(request):
     context = {}
+    subscription = get_unverified_subscription(request)
+    if subscription:
+        user_otp = subscription.otp_code
+        context['user_otp'] = user_otp
+    else:
+        messages.error(request, 'Banza ugure ifatabuguzi cg wemeze ko wasoje kwishyura\nukeneye  ubufasha:0785287885')
+        return redirect('subscription')
 
     if request.method == "POST":
         otp = request.POST.get("otp")

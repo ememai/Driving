@@ -6,10 +6,8 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="otpInputModalLabel">Shyiramo Code wahawe kuri WhatsApp niba wemeje ubwishyu</h5>
-        {% comment %} <button type="button" class="btn-close btn-close-white"
-                onclick="window.location.href='{{ redirect_url|default:"/" }}'"
-                aria-label="Close"></button> {% endcomment %}
+        <h5 class="modal-title" id="otpInputModalLabel">Shyiramo iyi Code <strong>{{user_otp}}</strong></h5>
+        
       </div>
       <div class="modal-body">
         <form method="post">
