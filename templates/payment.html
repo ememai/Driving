@@ -190,14 +190,16 @@
 
         {% else %}
         {% include "flash_message.html" %}
-        <h2 class="mb-4">
-          Hitamo 
-        </h2> 
-
+        
         <a href="{% url 'payment' %}" class="btn btn-primary btn-lg fw-bold w-100 mb-3 rounded-pill">
           <i class="bi bi-arrow-right-circle me-2"></i>
-          Kugura ifatabuguzi
-        </a>          
+          Gura ifatabuguzi
+        </a> 
+          <div class="d-flex align-items-center text-muted">
+            <hr class="flex-grow-1">
+            <span class="px-3 fw-semibold">Cyangwa</span>
+            <hr class="flex-grow-1">
+          </div> 
         
         <button 
           class="btn btn-primary fw-bold w-100 mb-3 rounded-pill"
@@ -207,22 +209,27 @@
           
         >
           <i class="bi bi-check2-all me-2"></i>
-          Wasoje kwishyura
+          Nasoje kwishyura
         </button>
 
-        {% if not user.is_subscribed %}
-        <a href="{% url 'exam_detail' first_exam_id %}" class="btn btn-secondary fw-bold w-100 rounded-3">
-          <i class="bi bi-lightning-charge me-2"></i>
-          Ikizamini cy'ubuntu (Free Trial)
-        </a>
+        
         {% endif %}
-
-        {% endif %}
-
+        
       </div>
-
+      
       <!-- Modal Footer -->
-      <div class="modal-footer justify-content-center border-0 pb-4">
+      <div class="modal-footer justify-content-center gap-2 border-0 pb-4">
+        {% if not user.is_subscribed %}
+          <div class="container">
+            <div class="d-flex justify-content-center text-muted">
+              <span class="px-3 fw-semibold">Wifuza kugerageza mbere?</span>
+            </div>
+            <a href="{% url 'exam_detail' first_exam_id %}" class="btn btn-secondary fw-bold w-100 rounded-3">
+              <i class="bi bi-lightning-charge me-2"></i>
+              Kora ikizamini cy'ubuntu (Free Trial)
+            </a>
+          </div>
+        {% endif %}
         <button type="button" class="btn px-4 rounded-3 fw-semibold"
           onclick="window.history.back()">
           <i class="bi bi-arrow-left-circle me-2"></i>
