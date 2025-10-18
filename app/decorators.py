@@ -35,7 +35,7 @@ def subscription_required(view_func):
             if first_exam and exam_id and str(exam_id) == str(first_exam.id):
                 return view_func(request, *args, **kwargs)
             messages.error(request, mark_safe(
-            '''<h3>Gura ifatabuguzi kugirango ubashe gukomeza!</h3>'''
+            '''<h6>Gura ifatabuguzi kugirango ubashe gukomeza!</h6>'''
             # <em class="text-muted">
             #     Wasoje kwishyura? 
             # </em>

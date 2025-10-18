@@ -1,5 +1,5 @@
-{% extends "base.html" %} {% load custom_filters static %}
- {% block title %}Ifatabuguzi{% endblock %} {% block extra_css %}
+{% extends "base.html" %} 
+{% load custom_filters static %} {% block title %}Ifatabuguzi{% endblock %} {% block extra_css %}
 <style>
   .underline {
     text-decoration: underline;
@@ -43,7 +43,7 @@
     border-radius: 50%;
   }
 
-  
+
   #plan-carousel {
     scroll-behavior: smooth;
     overflow-x: auto;
@@ -111,7 +111,7 @@
     margin: 1rem 0;
     display: inline-block;
   }
-  
+
   /* Payment method cards */
   .payment-method-card {
     background: rgba(255, 255, 255, 0.8);
@@ -142,515 +142,604 @@
 </style>
 {% endblock %} {% block content %}
 <div class="container py-4">
-  
+  {% if page == 'subscription_status' %}
 
-  {% if page == 'subscription_status' %}  
-  
   <!-- Subscription Status Modal -->
-<div class="modal fade show" id="subscriptionModal" tabindex="-1" aria-labelledby="subscriptionModalLabel" aria-modal="true" role="dialog" >
-  <div class="modal-dialog modal-dialog-centered modal-md">
-    <div class="modal-content rounded-4 shadow-lg border-0 overflow-hidden">
+  <div
+    class="modal fade show"
+    id="subscriptionModal"
+    tabindex="-1"
+    aria-labelledby="subscriptionModalLabel"
+    aria-modal="true"
+    role="dialog"
+  >
+    <div class="modal-dialog modal-dialog-centered modal-md">
+      <div class="modal-content rounded-4 shadow-lg border-0 overflow-hidden">
+        <!-- Modal Header -->
+      <div class="modal-header bg-theme text-theme border-0 py-1 px-0 position-relative">
+        <!-- Top-left button -->
+        <button
+          type="button"
+          class="btn position-absolute top-0 start-0 m-0 bg-theme text-theme"
+          onclick="window.history.back()"
+        >
+          <i class="bi bi-arrow-left fs-6"></i>
+        </button>
 
-      <!-- Modal Header -->
-      <div class="modal-header bg-theme text-white text-center flex-column border-0 py-1">
-        {% if user.is_subscribed %}
+        <!-- Centered content -->
+        <div class="w-100 d-flex flex-column align-items-center justify-content-center text-center">
+          {% if user.is_subscribed %}
           <i class="bi bi-check-circle-fill text-success fs-2 mb-2"></i>
-          <h5 class="modal-title fw-bold mb-1 text-success">Ifatabuguzi ryawe riracyariho</h5>
+          <h5 class="modal-title fw-bold mb-1 text-success">
+            Ifatabuguzi ryawe riracyariho
+          </h5>
           <p class="mb-0 small opacity-75">
-            kugeza tariki ya <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong> 
-            Saa <strong>{{ user.subscription.expires_at|date:"H:i" }}</strong>
+            kugeza tariki ya
+            <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong> Saa
+            <strong>{{ user.subscription.expires_at|date:"H:i" }}</strong>
           </p>
 
-        {% elif user.has_ended_subscription %}
+          {% elif user.has_ended_subscription %}
           <i class="bi bi-exclamation-triangle-fill text-danger fs-2 mb-2"></i>
-          <h5 class="modal-title fw-bold mb-1 text-warning">Ifatabuguzi ryarangiye</h5>
+          <h5 class="modal-title fw-bold mb-1 text-warning">
+            Ifatabuguzi ryarangiye
+          </h5>
           <p class="mb-0 small opacity-75">
-            kuri <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong> 
-            Saa <strong>{{ user.subscription.expires_at|date:"H:i" }}</strong>
+            kuri
+            <strong>{{ user.subscription.expires_at|date:"j.m.Y" }}</strong> Saa
+            <strong>{{ user.subscription.expires_at|date:"H:i" }}</strong>
           </p>
 
-        {% else %}
+          {% else %}
           <i class="bi bi-info-circle-fill text-danger fs-2 mb-2"></i>
-          <h5 class="modal-title fw-bold mb-1 text-danger">Ntafatabuguzi ufite</h5>
-          {% comment %} <p class="mb-0 small opacity-75">Waba ushaka gutangira ifatabuguzi rishya?</p> {% endcomment %}
-        {% endif %}
-      </div>
-
-      <hr class="m-0 p-0">
-
-      <!-- Modal Body -->
-      <div class="modal-body text-center px-4 py-4">
-                
-        {% if unverified_subscription %}
-
-        <a href="{% url 'activate_subscription' %}" class="btn btn-primary btn-md fw-bold w-100 mb-3 rounded-pill">
-          <i class="bi bi-arrow-right-circle me-2"></i>
-          Fungura ifatabuguzi wishyuye
-        </a>    
-
-        {% else %}
-        {% include "flash_message.html" %}
-        
-        <a href="{% url 'payment' %}" class="btn btn-primary btn-lg fw-bold w-100 mb-3 rounded-pill">
-          <i class="bi bi-arrow-right-circle me-2"></i>
-          Gura ifatabuguzi
-        </a> 
-          <div class="d-flex align-items-center text-muted">
-            <hr class="flex-grow-1">
-            <span class="px-3 fw-semibold">Cyangwa</span>
-            <hr class="flex-grow-1">
-          </div> 
-        
-        <button 
-          class="btn btn-primary fw-bold w-100 mb-3 rounded-pill"
-          data-bs-toggle="modal"
-          data-bs-target="#confirmPayModal"
-          data-bs-dismiss="modal"
-          
-        >
-          <i class="bi bi-check2-all me-2"></i>
-          Nasoje kwishyura
-        </button>
-
-        
-        {% endif %}
-        
-      </div>
-      
-      <!-- Modal Footer -->
-      <div class="modal-footer justify-content-center gap-2 border-0 pb-4">
-        {% if not user.is_subscribed %}
-          <div class="container">
-            <div class="d-flex justify-content-center text-muted">
-              <span class="px-3 fw-semibold">Wifuza kugerageza mbere?</span>
-            </div>
-            <a href="{% url 'exam_detail' first_exam_id %}" class="btn btn-secondary fw-bold w-100 rounded-3">
-              <i class="bi bi-lightning-charge me-2"></i>
-              Kora ikizamini cy'ubuntu (Free Trial)
-            </a>
-          </div>
-        {% endif %}
-        <button type="button" class="btn px-4 rounded-3 fw-semibold"
-          onclick="window.history.back()">
-          <i class="bi bi-arrow-left-circle me-2"></i>
-          Subira inyuma
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Optional smooth appearance -->
-<style>
-  .modal.show .modal-dialog {
-    animation: zoomIn 0.35s ease-out;
-  }
-
-  @keyframes zoomIn {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-
-  {% comment %} .bg-theme {
-    background: linear-gradient(135deg, #1a73e8, #007bff);
-  } {% endcomment %}
-</style>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    var subscriptionModal = new bootstrap.Modal(document.getElementById('subscriptionModal'), {
-      backdrop: 'static',
-      keyboard: false
-    });
-    subscriptionModal.show();
-  });
-</script>
-
-
-
-{% else %}
-
-  <div class="alert text-center fs-5 p-0" role="alert">
-    <form method="post">
-      {% csrf_token %}
-      <div
-      id="plan-carousel"
-      class="d-flex flex-wrap align-items-center justify-content-center gap-1 px-5 py-3 plans shadow-md rounded-4  bg-theme"
-      >
-      <p class="fw-bold position-absolute top-0 start-50 translate-middle badge bg-black text-white">Hitampo Ifatabuguzi rikunogeye!</p>
-        {% for plan_value, plan_label in plans %}
-        <div
-          class="card flex-shrink-0 text-center plan-card rounded-5
-          {% if forloop.last %}pt-2 {% endif %}"
-          data-plan-price="{{ plan_value|get_plan_price }}"
-          data-plan-id="plan_{{ plan_value }}"
-          data-plan-value="{{ plan_value }}"
-          data-plan-label="{{ plan_label }}"
-          style="height: 100%"
-          {% if forloop.last %}id="default-plan"{% endif %}
-        >
-
-        
-        {% if forloop.last %}
-        <div class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary text-white mb-5">
-          <i class="bi bi-star-fill text-warning"></i>
-          IRIKUNZWE
+          <h5 class="modal-title fw-bold mb-1 text-danger">
+            Ntafatabuguzi ufite
+          </h5>
+          {% endif %}
         </div>
-        {% endif %}
-          <div
-            class="card-header d-flex align-items-center justify-content-center text-primary fw-bold gap-2 py-1 rounded-top"
-            >
-          
-          <div class="form-check m-0 p-0 d-flex align-items-center gap-2 ">
-              <label
-                class="form-check-label d-block mb-0 fs-6 text-decoration-line-through text-primary cursor-pointer"
-                for="plan_{{ plan_value }}"
+      </div>
+        <hr class="m-0 p-0" />
+        <!-- Modal Body -->
+        <div class="modal-body text-center px-4 py-4">
+          {% if unverified_subscription %}
+
+          <a
+            href="{% url 'activate_subscription' %}"
+            class="btn btn-primary btn-md fw-bold w-100 mb-3 rounded-pill"
+          >
+            <i class="bi bi-arrow-right-circle me-2"></i>
+            Fungura ifatabuguzi wishyuye
+          </a>
+
+          {% else %} {% include "flash_message.html" %}
+
+          <a
+            href="{% url 'payment' %}"
+            class="btn btn-primary btn-lg fw-bold mb-3 rounded-pill"
+          >
+            <i class="bi bi-arrow-right-circle me-2"></i>
+            Gura ifatabuguzi
+          </a>
+          <div class="d-flex align-items-center text-muted">
+            <hr class="flex-grow-1" />
+            <span class="px-3 fw-semibold">Wasoje kwishyura?</span>
+            <hr class="flex-grow-1" />
+          </div>
+
+          <button
+            class="btn btn-primary fw-bold mb-1 rounded-pill"
+            data-bs-toggle="modal"
+            data-bs-target="#confirmPayModal"
+            data-bs-dismiss="modal"
+          >
+            <i class="bi bi-check2-all me-2"></i>
+            Nasoje kwishyura
+          </button>
+
+          {% endif %}
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer justify-content-center gap-2 border-0 pb-4">
+          {% if not user.is_subscribed %}
+          <div class="container">
+            <div class="d-flex justify-content-center text-muted mb-1">
+              <span class="px-3 fw-semibold"
+                >Wifuza kugerageza mbere?(Free Trial)</span
               >
-                {{ plan_value|get_old_price }}
-              </label>
-              <label class="form-check-label fs-2 cursor-pointer" 
-              for="plan_{{ plan_value }}">
-                {{ plan_value|get_plan_price }} RWF
-              </label>
             </div>
+            <div class="d-flex align-items-center justify-content-center">
+              <a
+                href="{% url 'exam_detail' first_exam_id %}"
+                class="btn btn-secondary fw-bold rounded-pill"
+              >
+                <i class="bi bi-lightning-charge me-2"></i>
+                Kora ikizamini cy'ubuntu
+              </a>
+            </div>
+            </div>
+            {% endif %}
             
           </div>
-          <ul class="plan-description list-unstyled text-start px-1">
-            {% for icon, line in plan_value|get_plan_description %}
-            <li class="d-flex align-items-center gap-2 fs-5">
-              <i class="bi bi-circle-fill check-icon me-0 text-muted"></i>
-              {{ line }} {{ icon }}
-            </li>
-            {% endfor %}
-          </ul>
-          <div class="card-body border-0 mt-0 pt-0 text-center">
-            <button type="button" class="btn btn-outline-primary rounded-pill btnSelectPlan px-4 fw-bold ">
-              <i class="bi bi-check2-circle" aria-hidden="true"></i>
-             Hitampo
-            </button>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-
-       <!-- Payment Methods -->
-      <div class="method mt-5">
-        <h2 class="fw-bold">Uburyo bwo kwishyura:</h2>
-        
-        <div class="payment-method-card">
-          <h4 class="underline">Koresha code:</h4>
-          <div class="ussd-code">
-            *182*8*1*187756*<strong id="js-plan">0</strong>#
-          </div>
-          <button id="callButton" class="btn btn-outline-primary d-md-none mt-2">
-            <i class="bi bi-telephone me-2"></i>Emeza
-          </button>
-          <h4 class="underline">Niba ukoresha nimero:</h4>
-          <div class="fs-4 fw-bold">0785287885</div>
-          <p class="mt-2 mb-0">Hose amazina ni: <strong>"Mwami Modeste"</strong></p>
-          
-          <button type="button" class="btn btn-outline-success mt-3" data-bs-toggle="modal" data-bs-target="#codeModal">
-            <i class="bi bi-check2-all me-2"></i>Nasoje kwishyura
-          </button>
-        </div>
-        
-      </div>
-    </form>
-  </div>
-
-{% endif %}
-
-  {% comment %} Modals Section {% endcomment %}
-  
-  <!-- code modal-->
- <div class="modal fade" id="codeModal" tabindex="-1" aria-labelledby="codeModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow-lg rounded-3 border-0">
-      
-      <!-- Header -->
-      <div class="modal-header bg-theme text-theme">
-        <h5 class="modal-title fw-bold" id="codeModalLabel">
-          Wahawe code ifungura ifatabuguzi?
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      
-      <!-- Body -->
-      <div class="modal-body text-center py-4">
-
-        <!-- Toggle Buttons -->
-        <div class="btn-group mb-4 gap-1" role="group">
-          <button type="button" class="btn btn-outline-success mx-2 fs-5" id="btnCode">Yego</button>
-          <button type="button" class="btn btn-outline-primary fs-5" id="btnPay">Oya</button>
-        </div>
-        
-        <!-- Action Links (hidden by default) -->
-        <div id="codeOption" class="d-none ">
-          <a href="{% url 'activate_subscription' %}" class="btn btn-success px-4 fs-5">
-            <i class="bi bi-arrow-right-circle"></i> Fungura ifatabuguzi
-          </a>
-        </div>
-        
-        <div id="payOption" class="d-none">
-          <a class="btn btn-primary px-4 fs-5"
-             data-bs-toggle="modal"
-             data-bs-target="#confirmPayModal"
-             data-bs-dismiss="modal">
-            <i class="bi bi-arrow-right-circle"></i> Saba Code
-          </a>
         </div>
       </div>
-      
     </div>
-  </div>
-</div>
 
- <!-- WhatsApp Modal -->
-  <div
-    class="modal fade"
-    id="confirmPayModal"
-    tabindex="-1"
-    aria-labelledby="confirmPayModalLabel"
-    aria-hidden="true"
+    <!-- Optional smooth appearance -->
+    <style>
+      .modal.show .modal-dialog {
+        animation: zoomIn 0.35s ease-out;
+      }
+
+      @keyframes zoomIn {
+        from { transform: scale(0.95); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+
+      {% comment %} .bg-theme {
+        background: linear-gradient(135deg, #1a73e8, #007bff);
+      } {% endcomment %}
+    </style>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var subscriptionModal = new bootstrap.Modal(
+          document.getElementById("subscriptionModal"),
+          {
+            backdrop: "static",
+            keyboard: false,
+          }
+        );
+        subscriptionModal.show();
+      });
+    </script>
+
+    {% else %}
+
+    <div class="alert text-center fs-5 p-0" role="alert">
+      <form method="post">
+        {% csrf_token %}
+        <div
+          id="plan-carousel"
+          class="d-flex flex-wrap align-items-center justify-content-center gap-1 px-5 py-3 plans shadow-md rounded-4 bg-theme"
+        >
+          <p
+            class="fw-bold position-absolute top-0 start-50 translate-middle badge bg-black text-white"
+          >
+            Hitampo Ifatabuguzi rikunogeye!
+          </p>
+          {% for plan_value, plan_label in plans %}
+          <div
+            class="card flex-shrink-0 text-center plan-card rounded-5 {% if forloop.last %}pt-2 {% endif %}"
+            data-plan-price="{{ plan_value|get_plan_price }}"
+            data-plan-id="plan_{{ plan_value }}"
+            data-plan-value="{{ plan_value }}"
+            data-plan-label="{{ plan_label }}"
+            style="height: 100%"
+            {%
+            if
+            forloop.last
+            %}id="default-plan"
+            {%
+            endif
+            %}
+          >
+            {% if forloop.last %}
+            <div
+              class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary text-white mb-5"
+            >
+              <i class="bi bi-star-fill text-warning"></i>
+              IRIKUNZWE
+            </div>
+            {% endif %}
+            <div
+              class="card-header d-flex align-items-center justify-content-center text-primary fw-bold gap-2 py-1 rounded-top"
+            >
+              <div class="form-check m-0 p-0 d-flex align-items-center gap-2">
+                <label
+                  class="form-check-label d-block mb-0 fs-6 text-decoration-line-through text-primary cursor-pointer"
+                  for="plan_{{ plan_value }}"
+                >
+                  {{ plan_value|get_old_price }}
+                </label>
+                <label
+                  class="form-check-label fs-2 cursor-pointer"
+                  for="plan_{{ plan_value }}"
+                >
+                  {{ plan_value|get_plan_price }} RWF
+                </label>
+              </div>
+            </div>
+            <ul class="plan-description list-unstyled text-start px-1">
+              {% for icon, line in plan_value|get_plan_description %}
+              <li class="d-flex align-items-center gap-2 fs-5">
+                <i class="bi bi-circle-fill check-icon me-0 text-muted"></i>
+                {{ line }} {{ icon }}
+              </li>
+              {% endfor %}
+            </ul>
+            <div class="card-body border-0 mt-0 pt-0 text-center">
+              <button
+                type="button"
+                class="btn btn-outline-primary rounded-pill btnSelectPlan px-4 fw-bold"
+              >
+                <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                Hitampo
+              </button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="method mt-5">
+          <h2 class="fw-bold">
+            <i class="bi bi-credit-card"></i>
+              Uburyo bwo kwishyura:
+            </h2>
+
+          <div class="payment-method-card">
+            <h4 class="underline">Koresha code:</h4>
+            <div class="ussd-code">
+              *182*8*1*187756*<strong id="js-plan">0</strong>#
+            </div>
+            <button
+              id="callButton"
+              class="btn btn-outline-primary d-md-none mt-2"
+            >
+              <i class="bi bi-telephone me-2"></i>Emeza
+            </button>
+            <h4 class="underline">Niba ukoresha nimero:</h4>
+            <div class="fs-4 fw-bold">0785287885</div>
+            <p class="mt-2 mb-0">
+              Hose amazina ni: <strong>"Mwami Modeste"</strong>
+            </p>
+
+          </div>
+        </div>
+      </form>
+    </div>
+
+    {% endif %} {% comment %} Modals Section {% endcomment %}
+
+    <!-- code modal-->
+    <div
+      class="modal fade"
+      id="codeModal"
+      tabindex="-1"
+      aria-labelledby="codeModalLabel"
+      aria-hidden="true"
     >
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <form method="post" action="{% url 'payment_confirm' %}">
-          {% csrf_token %}
-          <div class="modal-header">
-            <h5 class="modal-title" id="confirmPayModalLabel">
-              Telefone n'amazina by'uwishyuye
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg rounded-3 border-0">
+          <!-- Header -->
+          <div class="modal-header bg-theme text-theme">
+            <h5 class="modal-title fw-bold" id="codeModalLabel">
+              Wahawe code ifungura ifatabuguzi?
             </h5>
             <button
               type="button"
-              class="btn-close"
+              class="btn-close btn-close-white"
               data-bs-dismiss="modal"
-              aria-label="Funga"
+              aria-label="Close"
             ></button>
           </div>
-          <div class="modal-body">
-            <input
-              type="text"
-              id="phone"
-              name = "payeer_phone"
-              class="form-control mb-3"
-              placeholder="Nimero yishyuye"
-              required
-            />
-            <input
-              type="text"
-              id="name"
-              name="payeer_name"
-              class="form-control"
-              placeholder="Amazina"
-              required
-            />
 
-            <select
-              class="form-select mt-3"
-              id="plan"
-              name="plan"
+          <!-- Body -->
+          <div class="modal-body text-center py-4">
+            <!-- Toggle Buttons -->
+            <div class="btn-group mb-4 gap-1" role="group">
+              <button
+                type="button"
+                class="btn btn-outline-success mx-2 fs-5"
+                id="btnCode"
+              >
+                Yego
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-primary fs-5"
+                id="btnPay"
+              >
+                Oya
+              </button>
+            </div>
 
-              aria-label="Plan selection"
-              required
-            >
-              <option value="" disabled selected>Hitampo ifatabuguzi wishyuye</option>
-              {% for plan_value, plan_label in plans %}
-              <option class="text-theme" value="{{ plan_value|get_plan_price }}">
-                {{ plan_label }} - {{ plan_value|get_plan_price }} RWF
-              </option>
-              {% endfor %}
-            </select>
+            <!-- Action Links (hidden by default) -->
+            <div id="codeOption" class="d-none">
+              <a
+                href="{% url 'activate_subscription' %}"
+                class="btn btn-success px-4 fs-5"
+              >
+                <i class="bi bi-arrow-right-circle"></i> Fungura ifatabuguzi
+              </a>
+            </div>
+
+            <div id="payOption" class="d-none">
+              <a
+                class="btn btn-primary px-4 fs-5"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmPayModal"
+                data-bs-dismiss="modal"
+              >
+                <i class="bi bi-arrow-right-circle"></i> Saba Code
+              </a>
+            </div>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <div class="modal-body">
-            <p class="text-muted">
-              Uzuza nimero izaho Code:
-            </p>
-            <input type="text" id="whatsapp_number" name="whatsapp_number" class="form-control" placeholder="Nimero ya WhatsApp" required/>
-          </div>
-
-
-          <div class="modal-footer">
-            <button
-              {% comment %} type="button" {% endcomment %}
-              class="btn btn-success"
-              type="submit"
-              {% comment %} onclick="sendToWhatsApp()" {% endcomment %}
-            >
-              Emeza ubwishyu
+    <!-- WhatsApp Modal -->
+    <div
+      class="modal fade"
+      id="confirmPayModal"
+      tabindex="-1"
+      aria-labelledby="confirmPayModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form method="post" action="{% url 'payment_confirm' %}">
+            {% csrf_token %}
+            <div class="modal-header position-relative">
+              <h5 class="modal-title" id="confirmPayModalLabel">
+                Telefone n'amazina by'uwishyuye
+              </h5>
+              <button
+                type="button" 
+                class="btn fs-4 position-absolute end-0 top-0"
+                onclick="window.location.reload()"
+              >
+            <i class="bi bi-x"></i>
             </button>
-          </div>
-        </form>
+            </div>
+            <div class="modal-body">
+              <input
+                type="text"
+                id="phone"
+                name="payeer_phone"
+                class="form-control mb-3"
+                placeholder="Nimero yishyuye"
+                required
+              />
+              <input
+                type="text"
+                id="name"
+                name="payeer_name"
+                class="form-control"
+                placeholder="Amazina"
+                required
+              />
+
+              <select
+                class="form-select mt-3"
+                id="plan"
+                name="plan"
+                aria-label="Plan selection"
+                required
+              >
+                <option value="" disabled selected>
+                  Hitampo ifatabuguzi wishyuye
+                </option>
+                {% for plan_value, plan_label in plans %}
+                <option
+                  class="text-theme"
+                  value="{{ plan_value|get_plan_price }}"
+                >
+                  {{ plan_label }} - {{ plan_value|get_plan_price }} RWF
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="modal-body">
+              <p class="text-muted">Uzuza nimero izaho Code:</p>
+              <input
+                type="text"
+                id="whatsapp_number"
+                name="whatsapp_number"
+                class="form-control"
+                placeholder="Nimero ya WhatsApp"
+                required
+              />
+            </div>
+
+            <div class="modal-footer">
+              <button
+                {%
+                comment
+                %}
+                type="button"
+                {%
+                endcomment
+                %}
+                class="btn btn-success"
+                type="submit"
+                {%
+                comment
+                %}
+                onclick="sendToWhatsApp()"
+                {%
+                endcomment
+                %}
+              >
+                Emeza ubwishyu
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Support Section -->
+    <div class="text-center mt-5">
+      <div class="card bg-theme text-theme border-0 p-4">
+        <p class="fw-bold mb-2">Ushaka ubufasha?</p>
+        <p class="mb-0">
+          <em> Duhampagare cg utwandikire </em>kuri: <strong>0785287885</strong>
+        </p>
       </div>
     </div>
   </div>
+  {% endblock %} {% block extra_js %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const planLabel = document.getElementById("js-plan");
+      const callButton = document.getElementById("callButton");
+      const planCards = document.querySelectorAll(".plan-card");
+      const defaultPlanCard = document.getElementById("default-plan");
+      const planInputs = document.querySelectorAll('input[name="plan"]');
+      const btnSelectPlan = document.querySelectorAll(".btnSelectPlan");
 
-
-   <!-- Support Section -->
-  <div class="text-center mt-5">
-    <div class="card bg-theme text-theme border-0 p-4">
-      <p class="fw-bold mb-2">Ushaka ubufasha?</p>
-      <p class="mb-0">
-        <em> Duhampagare cg utwandikire </em>kuri: <strong>0785287885</strong>
-      </p>
-    </div>
-  </div>
-
-
- 
-</div>
-{% endblock %} 
-{% block extra_js %}
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const planLabel = document.getElementById("js-plan");
-    const callButton = document.getElementById("callButton");
-    const planCards = document.querySelectorAll(".plan-card");
-    const defaultPlanCard = document.getElementById("default-plan");
-    const planInputs = document.querySelectorAll('input[name="plan"]');
-    const btnSelectPlan = document.querySelectorAll(".btnSelectPlan");
-    
-    // prevent closing modals by clicking outside or pressing ESC
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) e.stopPropagation();
+      // prevent closing modals by clicking outside or pressing ESC
+      const modals = document.querySelectorAll(".modal");
+      modals.forEach((modal) => {
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) e.stopPropagation();
+        });
       });
-    });   
 
-    btnSelectPlan.forEach(btn => {
-      btn.addEventListener("click", function() {
-        const method = document.querySelector('.method');
-        method.scrollIntoView({ behavior: 'smooth' });
+      btnSelectPlan.forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const method = document.querySelector(".method");
+          method.scrollIntoView({ behavior: "smooth" });
+        });
       });
-    });
 
-    const btnCode = document.getElementById("btnCode");
-    const btnPay = document.getElementById("btnPay");
-    const codeOption = document.getElementById("codeOption");
-    const payOption = document.getElementById("payOption");
+      const btnCode = document.getElementById("btnCode");
+      const btnPay = document.getElementById("btnPay");
+      const codeOption = document.getElementById("codeOption");
+      const payOption = document.getElementById("payOption");
 
-    btnCode.addEventListener("click", function() {
-      btnCode.classList.add("active");
-      btnPay.classList.remove("active");
-      codeOption.classList.remove("d-none");
-      payOption.classList.add("d-none");
-    });
+      btnCode.addEventListener("click", function () {
+        btnCode.classList.add("active");
+        btnPay.classList.remove("active");
+        codeOption.classList.remove("d-none");
+        payOption.classList.add("d-none");
+      });
 
-    btnPay.addEventListener("click", function() {
-      btnPay.classList.add("active");
-      btnCode.classList.remove("active");
-      payOption.classList.remove("d-none");
-      codeOption.classList.add("d-none");
-    });
+      btnPay.addEventListener("click", function () {
+        btnPay.classList.add("active");
+        btnCode.classList.remove("active");
+        payOption.classList.remove("d-none");
+        codeOption.classList.add("d-none");
+      });
 
-    // Update selected plan value in USSD code
-    function updatePlanLabelFromChecked() {
-      const activeCard = document.querySelector('.plan-card.active');
-      if (activeCard) {
-        const price = activeCard.dataset.planPrice || '0';
-        planLabel.textContent = price;
-      }
-    }
-
-
-    // Make plan card clickable
-    planCards.forEach((card) => {
-      card.addEventListener("click", function (e) {
-        if (e.target.tagName === "INPUT") return;
-        const input = card.querySelector('input[name="plan"]');
-        if (input) {
-          input.checked = true;
-          input.dispatchEvent(new Event("change", { bubbles: true }));
+      // Update selected plan value in USSD code
+      function updatePlanLabelFromChecked() {
+        const activeCard = document.querySelector(".plan-card.active");
+        if (activeCard) {
+          const price = activeCard.dataset.planPrice || "0";
+          planLabel.textContent = price;
         }
+      }
 
-        document.querySelectorAll(".plan-card .check-icon").forEach(function(icon) {
-          icon.classList.remove("text-theme", "bi-circle-fill");
-          icon.classList.add("text-theme", "bi-circle");
-        });
-
-        card.querySelectorAll(".check-icon").forEach(function(icon) {
-          icon.classList.remove("text-theme", "bi-circle");
-          icon.classList.add("text-theme", "bi-check-circle-fill");
-        });
-
-        planCards.forEach((c) => c.classList.remove("active"));
-        card.classList.add("active");
-        updatePlanLabelFromChecked();
-      });
-    });
-
-    if (defaultPlanCard) {
-      defaultPlanCard.click();
-    }
-
-    function updateActiveCard() {
+      // Make plan card clickable
       planCards.forEach((card) => {
-        const input = card.querySelector('input[name="plan"]');
-        card.classList.toggle("active", input && input.checked);
-      });
-    }
+        card.addEventListener("click", function (e) {
+          if (e.target.tagName === "INPUT") return;
+          const input = card.querySelector('input[name="plan"]');
+          if (input) {
+            input.checked = true;
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+          }
 
-    planInputs.forEach((plan) => {
-      plan.addEventListener("change", () => {
-        updatePlanLabelFromChecked();
-        updateActiveCard();
+          document
+            .querySelectorAll(".plan-card .check-icon")
+            .forEach(function (icon) {
+              icon.classList.remove("text-theme", "bi-circle-fill");
+              icon.classList.add("text-theme", "bi-circle");
+            });
+
+          card.querySelectorAll(".check-icon").forEach(function (icon) {
+            icon.classList.remove("text-theme", "bi-circle");
+            icon.classList.add("text-theme", "bi-check-circle-fill");
+          });
+
+          planCards.forEach((c) => c.classList.remove("active"));
+          card.classList.add("active");
+          updatePlanLabelFromChecked();
+        });
+      });
+
+      if (defaultPlanCard) {
+        defaultPlanCard.click();
+      }
+
+      function updateActiveCard() {
+        planCards.forEach((card) => {
+          const input = card.querySelector('input[name="plan"]');
+          card.classList.toggle("active", input && input.checked);
+        });
+      }
+
+      planInputs.forEach((plan) => {
+        plan.addEventListener("change", () => {
+          updatePlanLabelFromChecked();
+          updateActiveCard();
+        });
+      });
+
+      updatePlanLabelFromChecked();
+      updateActiveCard();
+
+      // USSD dial button
+      callButton.addEventListener("click", () => {
+        const selectedPlan = document.querySelector(".plan-card.active");
+        if (!selectedPlan) {
+          alert("Banza uhitempo ifatabuguzi wifuza kwishyura.");
+          return;
+        }
+        const planPrice = selectedPlan.dataset.planPrice || "0";
+        window.location.href =
+          "tel:" + encodeURIComponent(`*182*8*1*187756*${planPrice}#`);
       });
     });
 
-    updatePlanLabelFromChecked();
-    updateActiveCard();
+    // ✅ Send WhatsApp message and close modal before opening
+    function sendToWhatsApp() {
+      const phone = document.getElementById("phone").value.trim();
+      const name = document.getElementById("name").value.trim();
+      const planSelect = document.getElementById("plan");
 
-    // USSD dial button
-    callButton.addEventListener("click", () => {
-      const selectedPlan = document.querySelector('.plan-card.active');
-      if (!selectedPlan) {
-        alert("Banza uhitempo ifatabuguzi wifuza kwishyura.");
+      if (!phone || !name || !planSelect.value) {
+        alert(
+          "Shyiramo amazina, nimero, ndetse uhitempo ifatabuguzi wishyuye."
+        );
         return;
       }
-      const planPrice = selectedPlan.dataset.planPrice || '0';;
-      window.location.href = "tel:" + encodeURIComponent(`*182*8*1*187756*${planPrice}#`);
-    });
-  });
 
-  // ✅ Send WhatsApp message and close modal before opening
-  function sendToWhatsApp() {
-    const phone = document.getElementById("phone").value.trim();
-    const name = document.getElementById("name").value.trim();
-    const planSelect = document.getElementById("plan");
+      const planLabel = planSelect.options[planSelect.selectedIndex].text;
+      const userName = "{{ request.user.name|default:'' }}";
+      const userEmail = "{{ request.user.email|default:'' }}";
+      const domain = window.location.hostname.replace(/^www\./, "");
+      const url = `${domain}`;
 
-    if (!phone || !name || !planSelect.value) {
-      alert("Shyiramo amazina, nimero, ndetse uhitempo ifatabuguzi wishyuye.");
-      return;
+      // Build WhatsApp message safely
+      const message =
+        `Ndagira ngo nemeze ubwishyu bwanjye.%0A%0A` +
+        `📌 Izina: ${encodeURIComponent(name)}%0A` +
+        `📞 Numero: ${encodeURIComponent(phone)}%0A` +
+        `💳 Ifatabuguzi: ${encodeURIComponent(planLabel)}%0A%0A` +
+        `🔹Murakoze! ${encodeURIComponent(userName)} ${encodeURIComponent(
+          userEmail
+        )}%0A%0A` +
+        `${encodeURIComponent(url)}`;
+
+      const whatsappUrl = `https://api.whatsapp.com/send?phone=250735777412&text=${message}`;
+
+      // Close modal cleanly before redirect
+      const confirmModal = bootstrap.Modal.getInstance(
+        document.getElementById("confirmPayModal")
+      );
+      if (confirmModal) confirmModal.hide();
+
+      // Delay slightly to allow modal to close before WhatsApp opens
+      setTimeout(() => {
+        window.open(whatsappUrl, "_blank");
+      }, 300);
     }
-
-    const planLabel = planSelect.options[planSelect.selectedIndex].text;
-    const userName = "{{ request.user.name|default:'' }}";
-    const userEmail = "{{ request.user.email|default:'' }}";
-    const domain = window.location.hostname.replace(/^www\./, '');
-    const url = `${domain}`;
-
-    // Build WhatsApp message safely
-    const message = 
-      `Ndagira ngo nemeze ubwishyu bwanjye.%0A%0A` +
-      `📌 Izina: ${encodeURIComponent(name)}%0A` +
-      `📞 Numero: ${encodeURIComponent(phone)}%0A` +
-      `💳 Ifatabuguzi: ${encodeURIComponent(planLabel)}%0A%0A` +
-      `🔹Murakoze! ${encodeURIComponent(userName)} ${encodeURIComponent(userEmail)}%0A%0A` +
-      `${encodeURIComponent(url)}`;
-
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=250735777412&text=${message}`;
-
-    // Close modal cleanly before redirect
-    const confirmModal = bootstrap.Modal.getInstance(document.getElementById("confirmPayModal"));
-    if (confirmModal) confirmModal.hide();
-
-    // Delay slightly to allow modal to close before WhatsApp opens
-    setTimeout(() => {
-      window.open(whatsappUrl, "_blank");
-    }, 300);
-  }
-</script>
-{% endblock %}
-
+  </script>
+  {% endblock %}
+</div>
