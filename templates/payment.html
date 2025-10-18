@@ -496,15 +496,19 @@
             </div>
             <div class="modal-body">
               <input
-                type="text"
+                type="tel" 
+                pattern="\d{10}" title="Reba neza ko nimero ariyo!!!"
                 id="phone"
+                maxlength="12"
                 name="payeer_phone"
                 class="form-control mb-3"
-                placeholder="Nimero yishyuye"
+                placeholder="Nimero yishyuye"                
                 required
               />
               <input
-                type="text"
+                type="text" 
+                pattern="[A-Za-z\s]+" 
+                title="Enter letters and spaces only"
                 id="name"
                 name="payeer_name"
                 class="form-control"
@@ -537,6 +541,8 @@
               <p class="text-muted">Uzuza nimero izaho Code:</p>
               <input
                 type="text"
+                pattern="\d{10}" title="Reba neza ko nimero ariyo!!!"
+                maxlength="12"
                 id="whatsapp_number"
                 name="whatsapp_number"
                 class="form-control"
@@ -547,22 +553,8 @@
 
             <div class="modal-footer">
               <button
-                {%
-                comment
-                %}
-                type="button"
-                {%
-                endcomment
-                %}
-                class="btn btn-success"
                 type="submit"
-                {%
-                comment
-                %}
-                onclick="sendToWhatsApp()"
-                {%
-                endcomment
-                %}
+                class="btn btn-primary"
               >
                 Emeza ubwishyu
               </button>

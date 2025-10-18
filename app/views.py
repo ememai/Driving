@@ -873,7 +873,7 @@ def payment_confirm(request):
             
             notify_admin(f"New payment confirmation from {request.user.name}, payeer name: {payeer_name}, whatsapp: {whatsapp_number}")
             
-            messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Tegereza code kuri WHATSAPP cg SMS mu munota umwe.")
+            messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Urakira igisubizo mu munota umwe.")
             return redirect('home')
             
         except Exception as e:

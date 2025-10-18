@@ -259,8 +259,7 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
   }
   .exam-type-count {
     
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
+    padding: 0.25rem 1rem;
     font-size: 0.85rem;
     font-weight: 500;
   }
@@ -344,15 +343,14 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
   <!-- Exam Types Section -->
   <h2 class="mb-4 d-flex align-items-center gap-1">
     <i class="bi bi-journal-text text-secondary"></i>
-    <span>UBWOKO BW'IBIZAMINI</span>
-    <span class="badge bg-secondary rounded-pill ms-1 fs-6">{{ num }}</span>
+    <span>IBINDI BIZAMINI</span>
   </h2>
 
   <div class="row g-4 mb-5">
     {% for exam_type in exam_types %}
     <div class="col-md-4">
       <a href="{% url 'exams' exam_type.name  %}" class="text-decoration-none text-theme">
-        <div class="exam-type-card h-100 ">
+        <div class="exam-type-card d-flex flex-column justify-content-center align-items-center h-100 ">
           <div class="exam-type-icon d-flex justify-content-center mb-0">
             {% if exam_type.icon %}
             <i class="{{ exam_type.icon }} text-secondary"></i>
@@ -362,7 +360,10 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
           </div>
           <h3 class="exam-type-title text-center">{{ exam_type.name }}</h3>
 
-          <span class="exam-type-count text-theme d-flex justify-content-center align-items-center">
+          <span 
+          class="exam-type-count btn rounded-pill" 
+          style="background-color: rgba(var(--text-rgb), 1);
+          color: rgba(var(--background-rgb),1);">
             Ibizamini {{ exam_type.actual_exam_count }}
           </span>
 
