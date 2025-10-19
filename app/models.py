@@ -215,8 +215,8 @@ class Plan(models.Model):
     PLAN_CHOICES = (
         ('Hourly', "Isaha"),
         ('Half-Day', "Amasaha 12"),
-        ('Daily', "Umunsi"),
-        ('Weekly', "IBYUMWERU 2"),
+        ('Weekly', "Icyumweru"),
+        ('Half-Month', "Iminsi 15"),
         ('VIP', "VIP"),
         )
 
@@ -224,6 +224,7 @@ class Plan(models.Model):
     price = models.PositiveIntegerField(default=0)  
     delta_hours = models.PositiveIntegerField(default=0)
     delta_days = models.PositiveIntegerField(default=0)
+    is_rec = models.BooleanField(default=False)
 
     def get_delta(self):
         if self.delta_hours:
@@ -291,7 +292,6 @@ class Subscription(models.Model):
         self.save(update_fields=["otp_code", "otp_created_at", "otp_verified", "started_at", "expires_at"])
         return self.otp_code
 
-   
     def verify_and_start(self, otp):
         """Verify OTP and start subscription timer."""
         if not self.otp_code or self.otp_code != otp:
@@ -323,9 +323,6 @@ class Subscription(models.Model):
         """Renew subscription by generating a new OTP."""
         return self.generate_otp()
            
-
-   
-
     def clean(self):
         if self.super_subscription:
             if not self.delta_hours and not self.delta_days:

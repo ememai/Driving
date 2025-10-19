@@ -798,16 +798,15 @@ def get_unverified_subscription(user):
         user=user, 
         otp_code__isnull=False,
         otp_verified=False).first()
-    print(subscription)
     return subscription
 
 # ---------------------
 @login_required(login_url='login')
 def payment(request):
     page = 'payment'
-    plans = Plan.PLAN_CHOICES
+    all_plans=Plan.objects.all().order_by('price')
     context = {
-        'plans': plans,
+        'all_plans': all_plans,
         'range_10': range(10),
         'first_exam_id': first_exam_id,
         'page': page,
@@ -820,7 +819,6 @@ def subscription_status(request):
     page = 'subscription_status'
     plans = Plan.PLAN_CHOICES
     unverified_subscription = get_unverified_subscription(request.user)
-    # print('un_s', unverified_subscription)
     context = {'page': page,
         'plans': plans,
         'range_10': range(10),
@@ -871,7 +869,7 @@ def payment_confirm(request):
                 }            
             )            
             
-            notify_admin(f"New payment confirmation from {request.user.name}, payeer name: {payeer_name}, whatsapp: {whatsapp_number}")
+            notify_admin(f"New payment confirmation from {request.user.name}, payeer name: {payeer_name}, plan: {plan}, whatsapp: {whatsapp_number}")
             
             messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Urakira igisubizo mu munota umwe.")
             return redirect('home')
@@ -882,7 +880,6 @@ def payment_confirm(request):
 
 @login_required(login_url='/?login=true')
 def subscription_view(request):
-    plans = Plan.PLAN_CHOICES
     # sub = request.user.subscription and request.user.subscription.expires_at > timezone.now().date()
 
     subscription, created = Subscription.objects.get_or_create(user=request.user)
@@ -1099,7 +1096,6 @@ def csrf_failure(request, reason=""):
     return render(request, '403.html', ctx, status=403)
 
 
-
 @csrf_exempt
 @login_required
 def resend_otp(request, user_id):
@@ -1112,10 +1108,12 @@ def resend_otp(request, user_id):
 
 @login_required
 def check_unverified_subscription(request):
+    has_unverified = None
     if not request.user.is_authenticated:
         return JsonResponse({'unverified': False, 'error': 'unauthenticated'}, status=401)
     
     unverified_sub = get_unverified_subscription(request.user)
     if unverified_sub:
         has_unverified = True
-    return JsonResponse({'unverified': has_unverified}) 
+    print(has_unverified)
+    return JsonResponse({'unverified': has_unverified})

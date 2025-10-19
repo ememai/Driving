@@ -65,31 +65,31 @@ def get_plan_description(plan_value):
         'Hourly': [
             ('', 'Rimara Isaha imwe'),
             ('', 'Ukora ibizamini byose ushaka'),
-            ('', 'Wemerewe kureba amasomo yose'),
+            ('', 'Wemerewe amasomo yose'),
         ],
         'Half-Day': [
             ('', 'Rimara amasaha 12'),
             ('', 'Ukora ibizamini byose ushaka'),
-            ('', 'Wemerewe kureba amasomo yose'),
+            ('', 'Wemerewe amasomo yose'),
             ('', 'Tugufasha ibibazo bikugora'),
         ],
-        'Daily': [
-            ('', 'Rimara Umunsi wose (AMASAHA 24+1) '),
+        'Weekly': [
+            ('', 'Rimara Icyumweru cyose'),
             ('', 'Ukora ibizamini byose ushaka'),
-            ('', 'Wemerewe kureba amasomo yose'),
+            ('', 'Wemerewe amasomo yose'),
             ('', 'Tugufasha ibibazo bikugora'),
         ],
         
-        'Weekly': [
+        'Half-Month': [
             ('', 'Rimara IMINSI 15'),
             ('', 'Ukora ibizamini byose ushaka'),
-            ('', 'Wemerewe  amasomo yose no ku downloadinga'),
+            ('', 'Wemerewe amasomo yose'),
         ],
         'VIP': [
             ('💳', 'Wishyura inshuro imwe gusa'),
             ('', 'Rirangira wabonye provisior yawe'),
             ('', 'Ukora ibizamini byose ushaka'),
-            ('', 'Wemerewe amasomo yose no ku downloadinga'),
+            ('', 'Wemerewe amasomo yose'),
             ('🤝', "Turakwigisha by'umwihariko"),
         ],
         }.get(plan_value, [])
@@ -100,9 +100,9 @@ def get_old_price(value):
     return {
         'Hourly': '500 RWF',
         'Half-Day': '1000 RWF',
-        'Daily': '2000 RWF',
-        # 'Weekly': '4000 RWF',
-        # 'VIP': '5000 RWF',        
+        # 'Weekly': '3000 RWF',
+        'Half-Month': '4000 RWF',
+        'VIP': '7000 RWF',        
         }.get(value, '')
 
 @register.filter
@@ -110,9 +110,9 @@ def get_plan_price(value):
     return {
         'Hourly': '300',
         'Half-Day': '500',
-        'Daily': '1000',
-        'Weekly': '3000',
-        'VIP': '7000',
+        'Weekly': '2000',
+        'Half-Month': '3000',
+        'VIP': '5000',
         }.get(value, '')
 
 @register.filter
