@@ -40,7 +40,7 @@
             {% endif %}
           </div>
 
-          <div class="mb-3">
+          {% comment %} <div class="mb-3">
             <label for="password" class="form-label fw-medium">Ijambobanga(Password):</label>
             <div class="input-group">
               <input type="password" name="password" class="form-control text-theme {% if form.password.errors %}is-invalid{% endif %}" 
@@ -58,7 +58,7 @@
                 {{ form.password.errors.0 }}
               </div>
             {% endif %}
-          </div>
+          </div> {% endcomment %}
 
           <div class="d-grid mt-4">
             <button type="submit" class="btn btn-primary py-2 fw-medium">

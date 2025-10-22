@@ -102,7 +102,7 @@ class RegisterForm(forms.ModelForm):
         widget=forms.PasswordInput,
         max_length=255,
         min_length=4,
-        required=True,
+        required=False,
         label="Ijambobanga",
     )
 
@@ -110,7 +110,7 @@ class RegisterForm(forms.ModelForm):
         widget=forms.PasswordInput,
         max_length=255,
         min_length=4,
-        required=True,
+        required=False,
         label="Subiramo Ijambobanga",
     )
 
@@ -166,24 +166,24 @@ class RegisterForm(forms.ModelForm):
                 raise ValidationError(f"Iyi telefone '{phone}' isanzweho* yikoreshe winjira")
         return phone
 
-    def clean(self):
-        cleaned_data = super().clean()
-        password1 = cleaned_data.get("password1")
-        password2 = cleaned_data.get("password2")
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     password1 = cleaned_data.get("password1")
+    #     password2 = cleaned_data.get("password2")
 
-        if not password1:
-            self.add_error('password1', "Ijambobanga rirakenewe!")
-        if not password2:
-            self.add_error('password2', "Subiramo ijambobanga rirakenewe!")
+    #     if not password1:
+    #         self.add_error('password1', "Ijambobanga rirakenewe!")
+    #     if not password2:
+    #         self.add_error('password2', "Subiramo ijambobanga rirakenewe!")
 
-        if password1 and password2 and password1 != password2:
-            raise ValidationError("Ijambo banga rigomba gusa aho warishyize hose.")
+    #     if password1 and password2 and password1 != password2:
+    #         raise ValidationError("Ijambo banga rigomba gusa aho warishyize hose.")
 
-        return cleaned_data
+    #     return cleaned_data
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password1"])
+        # user.set_password(self.cleaned_data["password1"])
         if commit:
             user.save()
         return user
@@ -231,7 +231,7 @@ class LoginForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput, label="Enter your password",
     max_length=50,
     min_length=4,
-    required=True)
+    required=False)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -241,7 +241,6 @@ class LoginForm(forms.Form):
             raise forms.ValidationError("Imeyili cg telefone uzuza kimwe.")
 
         return cleaned_data
-
 
 class CustomSetPasswordForm(SetPasswordForm):
     new_password1 = forms.CharField(

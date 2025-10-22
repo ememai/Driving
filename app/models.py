@@ -32,7 +32,7 @@ class UserProfileManager(BaseUserManager):
             raise ValueError("Either an email or phone number is required.")
 
         email = self.normalize_email(email) if email else None
-        phone_number = phone_number if phone_number else None  # Ensure None, not ""
+        phone_number = phone_number if phone_number else None
 
         # Guarantee a non-empty, unique name
         name = extra_fields.get('name', '').strip()
@@ -49,6 +49,15 @@ class UserProfileManager(BaseUserManager):
                 unique_name = f"{base_name}{counter}"
                 counter += 1
             extra_fields['name'] = unique_name
+            
+        # For regular users, generate password if not provided
+        if not password and not (extra_fields.get('is_staff') or extra_fields.get('is_superuser')):
+            password = f'igazeti@{phone_number}' if phone_number else f'igazeti@{name[:3]}'
+        
+        # For admin users, password is required
+        if (extra_fields.get('is_staff') or extra_fields.get('is_superuser')) and not password:
+            raise ValueError("Password is required for admin users.")
+            
         user = self.model(email=email, phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -57,8 +66,12 @@ class UserProfileManager(BaseUserManager):
     def create_superuser(self, email=None, phone_number=None, password=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
+        
+        if not password:
+            raise ValueError("Password is required for superuser.")
+            
         return self.create_user(email, phone_number, password, **extra_fields)
-
+    
 
 class UserProfile(AbstractUser):
 
@@ -123,6 +136,7 @@ class UserProfile(AbstractUser):
 
         finally:
             self._is_saving = False
+    
     def clean(self):
         """Ensure phone number is in the correct format before saving."""
         if not self.email and not self.phone_number:
@@ -141,6 +155,7 @@ class UserProfile(AbstractUser):
 
         else:
             self.phone_number = None
+    
     def normalize_phone_number(self, phone_number):
         """Ensures phone numbers are always stored in the format: +2507XXXXXXXX."""
         try:
@@ -149,6 +164,16 @@ class UserProfile(AbstractUser):
         except phonenumbers.NumberParseException:
             return phone_number  # If invalid, return as-is
 
+    @property    
+    def is_admin_user(self):
+        """Check if user is admin/staff/superuser"""
+        return self.is_staff or self.is_superuser
+
+    @property
+    def requires_password(self):
+        """Determine if user requires password for authentication"""
+        return self.is_staff or self.is_superuser
+    
     @property
     def subscription_end_date(self):
         if hasattr(self, 'subscription'):
@@ -210,7 +235,29 @@ class UserProfile(AbstractUser):
     def __str__(self):
         return self.email if self.email else f"{self.name}"
     
- 
+
+class StaffLoginAttempt(models.Model):
+    username = models.CharField(max_length=255)
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=[
+        ('SUCCESS', 'Success'),
+        ('FAILED_PASSWORD', 'Failed Password'),
+        ('FAILED_NO_PRIVILEGES', 'No Staff Privileges'),
+        ('FAILED_INACTIVE', 'Account Inactive'),
+        ('FAILED_SUSPICIOUS', 'Suspicious Activity'),
+        ('FAILED_NOT_EXIST', 'Account Not Exist'),
+    ])
+    attempted_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'staff_login_attempts'
+        indexes = [
+            models.Index(fields=['username', 'attempted_at']),
+            models.Index(fields=['ip_address', 'attempted_at']),
+        ]
+        
+        
 class Plan(models.Model):
     PLAN_CHOICES = (
         ('Hourly', "Isaha"),

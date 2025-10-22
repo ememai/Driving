@@ -88,7 +88,7 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.set_password(form.cleaned_data["password1"])
+            # user.set_password(form.cleaned_data["password1"])
             user.save()
 
             # Store user ID in session for WhatsApp consent step
@@ -143,8 +143,8 @@ def whatsapp_consent(request):
         return redirect('register')
 
     try:
-        user = UserProfile.objects.get(id=user_id)
-    except UserProfile.DoesNotExist:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
         messages.error(request, 'User not found. Please register again.')
         return redirect('register')
 
@@ -218,26 +218,26 @@ def verify_otp(request, user_id):
             messages.error(request, 'Code ntago ariyo, ongera ugerageze.')
     return render(request, 'registration/verify_otp.html', {'user': user_profile})
 
-
 @redirect_authenticated_users
 def login_view(request):
-    page='login'
+    page = 'login'
     
-    # show_modal = request.GET.get('login') is not None
     if request.method == "POST":
         form = LoginForm(request.POST)
         
         if form.is_valid():
             username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
-
-            # Fetch user by email or phone number
-             # Normalize phone number if needed
+            password = form.cleaned_data.get("password", "")  # Password is optional
+            
+            # Normalize phone number if needed
             if "@" not in username:  
                 username = EmailOrPhoneBackend().normalize_phone_number(username)
 
             # Fetch user by email or phone number
-            user = UserProfile.objects.filter(Q(phone_number=username) | Q(email=username)).first()
+            user = User.objects.filter(
+                Q(phone_number=username) | Q(email=username)
+            ).first()
+            
             if user:
                 # Ensure phone_number is set to None if empty
                 if user.phone_number == "":
@@ -253,8 +253,8 @@ def login_view(request):
                     login(request, authenticated_user)
                     messages.success(request, "Kwinjira bikozwe neza cyane! Ikaze nanone.")
                     return redirect("home")
-                else:
-                    messages.error(request, "Ijambobanga ritariryo, ongera ugerageze.")
+                elif user.requires_password:
+                    messages.error(request, "Permission required")
             else:
                 register_link = mark_safe('<a href="/register" class="alert-link">Hanga konti</a>')
                 messages.error(request, f"Iyi konti ntago ibaho, Gusa wayihanga. {register_link}")
@@ -269,10 +269,9 @@ def login_view(request):
         
     context = {
         "form": form,
-        "page":page
+        "page": page
     }
-    return render(request, "base.html",context)
-
+    return render(request, "base.html", context)
 
 @require_POST
 @login_required(login_url='login')

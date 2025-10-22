@@ -1,6 +1,6 @@
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
-import phonenumbers  # Ensure you have `phonenumbers` installed: pip install phonenumbers
+import phonenumbers
 
 User = get_user_model()
 
@@ -8,6 +8,7 @@ class EmailOrPhoneBackend(ModelBackend):
     """
     Custom authentication backend to allow login with email or phone number.
     Supports normalized phone numbers.
+    Requires password only for admin users.
     """
     def authenticate(self, request, username=None, password=None, **kwargs):
         if not username:  # Prevent NoneType error
@@ -18,18 +19,29 @@ class EmailOrPhoneBackend(ModelBackend):
 
         # Normalize phone number if it's not an email
         if lookup_field == "phone_number":
-            username = self.normalize_phone_number(username)  
-
+            username = self.normalize_phone_number(username)
 
         try:
             user = User.objects.get(**{lookup_field: username})
         except User.DoesNotExist:
             return None
 
-        if user and user.check_password(password):
+        # Check if user requires password (admin users)
+        if self.user_requires_password(user):
+            if not password:
+                return None  # Admin users require password
+            
+            # Verify password for admin users
+            if user.check_password(password):
+                return user
+            return None
+        else:
+            # Regular users - passwordless authentication
             return user
 
-        return None
+    def user_requires_password(self, user):
+        """Check if user requires password for authentication"""
+        return getattr(user, 'is_staff', False) or getattr(user, 'is_superuser', False)
 
     def normalize_phone_number(self, phone_number):
         """

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Login - Igazeti</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .login-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="login-container min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Main Login Card -->
+        <div class="glass-card rounded-2xl shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-purple-700 px-8 py-6 text-center">
+                <div class="flex items-center justify-center space-x-3 text-white">
+                    <div class="bg-white/20 p-3 rounded-full">
+                        <i class="fas fa-users-cog text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">Staff Portal</h1>
+                        <p class="text-blue-100 text-sm">Administrative Access</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Alert -->
+            <div class="bg-amber-50 border-b border-amber-200 px-6 py-3">
+                <div class="flex items-center justify-center text-center">
+                    <i class="fas fa-shield-alt text-amber-500 mr-2 text-sm"></i>
+                    <span class="text-amber-700 text-xs font-medium">All access is monitored and logged</span>
+                </div>
+            </div>
+
+            <div class="px-8 py-6">
+                <!-- Messages -->
+                {% if messages %}
+                <div class="space-y-3 mb-6">
+                    {% for message in messages %}
+                    <div class="{% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-700{% else %}bg-green-50 border border-green-200 text-green-700{% endif %} rounded-lg p-3">
+                        <div class="flex items-center space-x-2">
+                            {% if message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle text-red-500"></i>
+                            {% else %}
+                                <i class="fas fa-check-circle text-green-500"></i>
+                            {% endif %}
+                            <span class="text-sm font-medium">{{ message }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Login Form -->
+                <form method="POST" novalidate class="space-y-5" id="staffLoginForm">
+                    {% csrf_token %}
+                    
+                    <!-- Username Field -->
+                    <div class="space-y-2">
+                        <label for="id_username" class="block text-sm font-semibold text-gray-700">
+                            Email or Phone Number
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-user text-gray-400"></i>
+                            </div>
+                            <input 
+                                type="text" 
+                                name="username" 
+                                id="id_username" 
+                                required
+                                autocomplete="username"
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                placeholder="staff@igazeti.com or +250..."
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="space-y-2">
+                        <label for="id_password" class="block text-sm font-semibold text-gray-700">
+                            Password
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            <input 
+                                type="password" 
+                                name="password" 
+                                id="id_password" 
+                                required
+                                autocomplete="current-password"
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                placeholder="Enter your password"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button 
+                        type="submit" 
+                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3.5 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center space-x-2 group"
+                        id="loginButton"
+                    >
+                        <i class="fas fa-sign-in-alt group-hover:scale-110 transition-transform"></i>
+                        <span>Sign In to Dashboard</span>
+                    </button>
+                </form>
+
+                <!-- Links -->
+                <div class="mt-6 pt-5 border-t border-gray-200 space-y-3">
+                    <div class="text-center">
+                        <a href="{% url 'login' %}" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Return to User Login
+                        </a>
+                    </div>
+                    {% comment %} <div class="text-center">
+                        <a href="mailto:support@igazeti.com" class="text-xs text-gray-500 hover:text-gray-700 transition-colors">
+                            <i class="fas fa-life-ring mr-1"></i>
+                            Need help? Contact Support
+                        </a>
+                    </div> {% endcomment %}
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                        <i class="fas fa-shield-check text-green-500"></i>
+                        <span>Secure Connection</span>
+                    </div>
+                    <div class="text-xs text-gray-500">
+                        <span>v2.1</span>
+                        <span class="mx-1">•</span>
+                        <span id="currentTime"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Security Info -->
+        <div class="mt-6 text-center">
+            <p class="text-xs text-white/80">
+                <i class="fas fa-info-circle mr-1"></i>
+                Authorized personnel only. Unauthorized access is prohibited.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update current time
+            function updateTime() {
+                const now = new Date();
+                document.getElementById('currentTime').textContent = 
+                    now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+
+            // Form submission handling
+            const form = document.getElementById('staffLoginForm');
+            const button = document.getElementById('loginButton');
+            
+            form.addEventListener('submit', function() {
+                button.innerHTML = `
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Authenticating...</span>
+                `;
+                button.disabled = true;
+            });
+
+            // Auto-hide messages after 5 seconds
+            setTimeout(() => {
+                document.querySelectorAll('[class*="bg-"]').forEach(alert => {
+                    if (alert.classList.contains('bg-red-50') || alert.classList.contains('bg-green-50')) {
+                        alert.style.opacity = '0';
+                        setTimeout(() => alert.remove(), 500);
+                    }
+                });
+            }, 5000);
+
+            // Add focus effects
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.classList.add('ring-2', 'ring-blue-200');
+                });
+                input.addEventListener('blur', function() {
+                    this.parentElement.classList.remove('ring-2', 'ring-blue-200');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

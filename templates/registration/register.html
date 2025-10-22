@@ -49,7 +49,9 @@
           <div class="text-center mb-4 medium">
                 Wariyandikishije? <a href="{% url "login" %}" class="link-primary medium" data-bs-toggle="modal" data-bs-target="#loginModal"><em><i class="bi bi-box-arrow-in-right me-1"></i>Kanda hano</em></a>
               </div>
-          <h3 class="mb-2 text-center text-primary-emphasis">Iyandikishe niba uri mushya</h3>
+          <div class="mb-2 fs-4 text-center text-primary-emphasis">
+            <i class="bi bi-info-circle-fill text-primary-emphasis me-1"></i> Iyandikishe niba uri mushya
+          </div>
 
           {% comment %} <div class="my-3 text-center">
             <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.GET.next|default:'/' }}">
@@ -59,14 +61,14 @@
               </button>
             </a>
           </div> {% endcomment %}
-          <div class="text-center mb-4">
+          {% comment %} <div class="text-center mb-4">
             <span class="text-secondary">Cyangwa</span>
             
-          </div>
-          <h4 class="text-center mb-4">
+          </div> {% endcomment %}
+          {% comment %} <h4 class="text-center mb-4">
             <i class="bi bi-info-circle-fill text-primary-emphasis me-1"></i> 
           Wuzuze ibikurikira
-          </h4>
+          </h4> {% endcomment %}
             <hr class="w-50 mx-auto">
             
           {% include "flash_message.html" %}
@@ -89,7 +91,7 @@
 
                 <!-- Name -->
                 <div class="mb-3">
-                    <label for="id_name" class="form-label">Izina</label>
+                    <label for="id_name" class="form-label">Izina ryawe</label>
                     <div class="input-group has-validation">
                       <input type="text" name="name" id="id_name"
                              class="form-control {% if form.name.errors %}is-invalid{% endif %}"
@@ -160,31 +162,34 @@
 
 
                 <!-- Password -->
-              <div class="mb-3 position-relative">
-                <label for="id_password1" class="form-label">Hitamo Ijambobanga(Password)</label>
-                <div class="input-group has-validation align-items-center position-relative">
-                    <input type="password" name="password1" id="id_password1"
-                          class="form-control" required>
+                <!-- 
+                  <div class="mb-3 position-relative">
+                    <label for="id_password1" class="form-label">Hitamo Ijambobanga(Password)</label>
+                    <div class="input-group has-validation align-items-center position-relative">
+                      <input type="password" name="password1" id="id_password1"
+                      class="form-control" required>
                     <button class="btn btn-outline-secondary position-relative" type="button" onclick="togglePassword('id_password1', this)">
-                        <i class="fa fa-eye"></i>
+                      <i class="fa fa-eye"></i>
                         {% comment %} <span class="position-absolute validate-icon end-0 top-50 translate-middle-y ms-2"></span> {% endcomment %}
                     </button>
                 </div>
               </div>
 
-              <!-- Confirm Password -->
+              <!-- Confirm Password 
+
               <div class="mb-3 position-relative">
                 <label for="id_password2" class="form-label">Subiramo Ijambobanga(Password)</label>
                 <div class="input-group has-validation align-items-center position-relative">
-                    <input type="password" name="password2" id="id_password2"
-                          class="form-control" required>
+                  <input type="password" name="password2" id="id_password2"
+                  class="form-control" required>
                     <button class="btn btn-outline-secondary position-relative" type="button" onclick="togglePassword('id_password2', this)">
                         <i class="fa fa-eye"></i>
                         {% comment %} <span class="position-absolute validate-icon end-0 top-50 translate-middle-y ms-2"></span> {% endcomment %}
-                    </button>
-                </div>
-              </div>
-
+                      </button>
+                    </div>
+                  </div>
+                  
+                -->
 
                 <!-- Submit -->
                 <div class="d-grid mt-4">

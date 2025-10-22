@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "django_browser_reload",
     'social_django',
     'ckeditor',
+    
 ]
 
 JAZZMIN_SETTINGS = {
@@ -251,6 +252,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -259,7 +263,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -364,3 +367,16 @@ INSTANCE_ID = config('INSTANCE_ID', default='7105229020')
 API_TOKEN = config('API_TOKEN', default='c554e7fe36214785890aded373a3c08625e3460ecce249d283')
 
 ADMIN_PHONE_NUMBER = config('ADMIN_PHONE_NUMBER', default='+250785287885')
+
+# Security settings
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+# Rate limiting
+RATELIMIT_ENABLE = True
+RATELIMIT_USE_CACHE = 'default'
+
+# Session security
+SESSION_COOKIE_HTTPONLY = True
+
