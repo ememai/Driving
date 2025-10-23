@@ -788,6 +788,7 @@ def contact(request):
             message=message_text
         )
         messages.success(request, "Ubutumwa bwawe bwoherejwe neza! Tuzagusubiza vuba.")
+        notify_admin(f"New contact message from {name} via {contact_method}.")
         return redirect('contact')
 
     return render(request, 'contact.html')
