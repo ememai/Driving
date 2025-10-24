@@ -336,8 +336,10 @@ class Subscription(models.Model):
         self.otp_verified = False
         self.started_at = None   # reset until verified
         self.expires_at = None
+        self.price = self.plan.price if self.plan else self.price
         self.save(update_fields=["otp_code", "otp_created_at", "otp_verified", "started_at", "expires_at"])
         return self.otp_code
+    
 
     def verify_and_start(self, otp):
         """Verify OTP and start subscription timer."""
