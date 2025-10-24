@@ -157,13 +157,16 @@ class SubscriptionAdmin(admin.ModelAdmin):
         return "-"
     renew_subscription.short_description = 'Renew'
     
-    def end_subscription(self, obj):
-        
+    def end_subscription(self, obj):        
         if obj.active_subscription:
             return format_html(
                     '<a class="button" href="{}">End</a>',
                     reverse('admin:subscription-end', args=[obj.pk])
                 )
+        elif obj.otp_code and not obj.otp_verified:
+            return format_html(
+                '<span style="color: orange; font-weight: bold;">⚠️ Pending OTP</span>'
+            )
         return format_html(
                 '<span style="color: red; font-weight: bold;">❌ Ended</span>'
             )
