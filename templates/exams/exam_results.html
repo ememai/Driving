@@ -79,8 +79,12 @@
   <h1 class="text-center text-decoration-underline mb-5 mt-0">Ibisubizo</h1>
 
   <h5 class="text-center">Amanota: <strong>{{ score }}/{{ total_questions }}</strong></h5>
-  <h5 class="text-center">Ijaninsha: <strong>{{ percentage|floatformat:2 }}%</strong></h5>
-  <h2 class="text-center fw-bolder  {% if user_exam.percent_score >= 60 %}text-success {% else %} text-danger {% endif %}">"{{ decision }}"</h2>
+  <h5 class="text-center">Ijanisha: <strong>{{ percentage|floatformat:2 }}%</strong></h5>
+
+  <div class="text-center m-3 w-25 mx-auto"> 
+    <h2 class="text-center rounded-pill fs-4 fw-bolder text-white {% if user_exam.percent_score >= 60 %} bg-success {% else %} bg-danger {% endif %}">{{ decision }}
+    </h2>
+  </div>
   <h5 class="text-center">Igihe wakoresheje: <strong>Iminota({{ time_taken }})</strong></h5>
   <!-- Desktop View (Table Layout) -->
   <div class="desktop-view justify-content-center align-items-center flex-column mb-4 ">
