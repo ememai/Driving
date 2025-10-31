@@ -50,7 +50,6 @@ User = get_user_model()
 first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze', for_scheduling=False).order_by('created_at').first().id
 
 
-@login_required(login_url='register')
 def home(request):
     exam_types = ExamType.objects.filter(
         exam__isnull=False, 
