@@ -121,9 +121,9 @@
             <i class="{{ exam.exam_type.icon|default:'fas fa-question-circle' }}" ></i>
           </div>
 
-          <h2>Icya {{ forloop.counter }}</h2>
+          <h2> {{ forloop.counter }}</h2>
           <p><strong>Cyateguwe:</strong> {{ exam.created_at|date:"d.m.Y" }}</p>
-          <p><strong>Kivugururwa:</strong> {{ exam.updated_at|date:"d.m.Y" }}</p>
+          {% comment %} <p><strong>Kivugururwa:</strong> {{ exam.updated_at|date:"d.m.Y" }}</p> {% endcomment %}
           <p><strong>Ibibazo:</strong> {{ exam.total_questions }}</p>
 
           {% if exam.difficulty == 'easy' %}

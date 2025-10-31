@@ -199,7 +199,7 @@ def check_exam_availability(hour):
 #     print(f"✅{exams_created} Exams Created successfully!")
 #     return exams_created
 
-def auto_create_exams(number):
+def auto_create_exams(number, for_scheduling=True, ):
     exams_created = 0
     created_exam_ids = []
     
@@ -224,7 +224,7 @@ def auto_create_exams(number):
                 exam_type=exam_type,
                 schedule_hour=exam_schedule_hour,
                 duration=20,
-                for_scheduling=True,
+                for_scheduling=for_scheduling,
                 is_active=False,
             )
             exam.questions.set(questions)

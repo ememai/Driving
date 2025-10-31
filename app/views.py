@@ -53,14 +53,23 @@ first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze', for_s
 @login_required(login_url='register')
 def home(request):
     exam_types = ExamType.objects.filter(
-        exam__isnull=False, exam__for_scheduling=False
+        exam__isnull=False, 
     ).distinct().order_by('order')
 
     # Annotate each exam type with the count of non-scheduled exams
     exam_types = exam_types.annotate(
-        actual_exam_count=Count('exam', filter=Q(exam__for_scheduling=False))
+        actual_exam_count=Count('exam',)
     )
+    
+    unpublished_count = ScheduledExam.objects.filter(
+        scheduled_datetime__gt=timezone.now(), exam__for_scheduling=True
+    ).count()
+    
+    for exam_type in exam_types:
+        exam_type.actual_exam_count -= unpublished_count
+    
 
+     # Prefetch related exams for each type
     courses = Course.objects.all()
     query = request.GET.get('q')
     category = request.GET.get('category')
@@ -77,8 +86,7 @@ def home(request):
         'courses': courses,
         'query': query or '',
         'selected_category': category or '',
-        'categories': Course._meta.get_field('category').choices,
-        
+        'categories': Course._meta.get_field('category').choices,        
         }
     return render(request, 'home.html', context)
 
@@ -515,8 +523,9 @@ def exam_timer(request, exam_id):
 @login_required(login_url='login')
 def exams_by_type(request, exam_type):
     returned_exams = Exam.objects.filter(
-        for_scheduling=False,
         exam_type__name=exam_type
+    ).exclude(
+        Q(for_scheduling=True) & Q(scheduledexam__scheduled_datetime__gt=timezone.now())
     ).order_by('-updated_at')
 
     # Dictionary of completed exams: {exam_id: completed_at}
@@ -1046,7 +1055,7 @@ def create_exam_page(request):
             if number <= 0:
                 raise ValueError("Number must be greater than 0")
             
-            exams_created, created_exam_ids = auto_create_exams(number)
+            exams_created, created_exam_ids = auto_create_exams(number, for_scheduling=False)
             request.session['undo_exam_ids'] = created_exam_ids
             request.session['show_undo'] = True  # Add flag
 
