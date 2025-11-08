@@ -615,6 +615,15 @@ def exam(request, exam_id, question_number):
         if user_answer:
             request.session['answers'][str(current_question.id)] = user_answer
             request.session.modified = True
+        
+            
+        if question_number >= 2 or request.session['answers'].__len__() >= 2  and not request.user.is_subscribed and not request.user.is_staff:
+                UserExam.objects.filter(id=user_exam.id).delete()
+                request.session.pop('answers', None)            
+                messages.error(request, mark_safe(
+                   "<h5>Gura ifatabuguzi kugirango ukomeze ikizamini!</h5>"
+                ))
+                return redirect('subscription')
 
         if 'next' in request.POST and question_number < total_questions:
             return redirect('exam', exam_id=exam_id, question_number=question_number + 1)
@@ -679,13 +688,14 @@ def exam(request, exam_id, question_number):
     return render(request, 'exams/exam.html', context)
 
 @login_required(login_url='login')
+@subscription_required
 def exam_results(request, user_exam_id):
     
     user_exam = get_object_or_404(UserExam, id=user_exam_id, user=request.user)
     
     if not request.user.is_subscribed and not user_exam.exam.id == first_exam_id:
         messages.error(request, mark_safe(
-            f"<span>Iki kizamini ufite amanota</span> {user_exam.score}<br><h3>Gura ifatabuguzi kugirango ubashe kureba byose!</h3>"
+            f"<span>Iki kizamini ufite amanota</span> {user_exam.score}<br><h5>Gura ifatabuguzi kugirango ubashe kureba byose!</h5>"
         ))
         return redirect('subscription')
     answers = UserExamAnswer.objects.filter(user_exam=user_exam).select_related('question')
@@ -706,7 +716,7 @@ def exam_results(request, user_exam_id):
 def retake_exam(request, exam_id):
     if not request.user.is_subscribed and not request.user.is_staff: 
         messages.error(request, mark_safe(
-            "<h2>Gura ifatabuguzi kugirango ubashe gusubirampo ikizamini!</h2>"
+            "<h5>Gura ifatabuguzi kugirango ubashe gusubirampo ikizamini!</h5>"
         ))
         return redirect('subscription')
     
