@@ -319,6 +319,7 @@ class Subscription(models.Model):
     # OTP fields
     otp_code = models.CharField(max_length=6, blank=True, null=True)
     otp_created_at = models.DateTimeField(null=True, blank=True)
+    otp_expires_at = models.DateTimeField(null=True, blank=True)
     otp_verified = models.BooleanField(default=False)
     
     
@@ -333,6 +334,7 @@ class Subscription(models.Model):
         """Generate OTP for subscription activation or renewal."""
         self.otp_code = str(random.randint(1000, 9999))
         self.otp_created_at = timezone.now()
+        self.otp_expires_at = self.otp_created_at + timezone.timedelta(hours=24)
         self.otp_verified = False
         self.started_at = None   # reset until verified
         self.expires_at = None
@@ -340,14 +342,32 @@ class Subscription(models.Model):
         self.save(update_fields=["otp_code", "otp_created_at", "otp_verified", "started_at", "expires_at"])
         return self.otp_code
     
+    @property
+    def otp_recreate(self):
+        # """Regenerate OTP for expired OTPs."""
+        # if not hasattr(self, 'subscription'):
+        #     return None
+        
+        if not self.otp_code:
+            return
+
+        if self.otp_verified:
+            return self.otp_code
+
+        if self.otp_expires_at and timezone.now() > self.otp_expires_at:
+            return self.generate_otp()
+
+        return self.otp_code
+
 
     def verify_and_start(self, otp):
         """Verify OTP and start subscription timer."""
         if not self.otp_code or self.otp_code != otp:
             return False, "Code siyo.", None
 
-        if self.otp_created_at and timezone.now() > self.otp_created_at + timezone.timedelta(hours=1):
-            False, "OTP yararangiye. Ongera usabe indi code.format_html(<a href='/subscription/'>Subira kuri subscription</a>)", None
+        if self.otp_created_at and timezone.now() > self.otp_expires_at:            
+            sub_link = format_html("<a href='/recreate-otp/'>Ongera usabe indi code</a>")
+            return False, f"OTP yararangiye. {sub_link}", None
 
         # Mark OTP as verified
         self.otp_verified = True

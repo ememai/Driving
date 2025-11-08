@@ -545,6 +545,7 @@ def exams_by_type(request, exam_type):
     }    
     return render(request, "exams/same_exams.html", context)
 
+
 @login_required(login_url='login')
 @subscription_required
 def ajax_question(request, exam_id, question_number):
@@ -617,7 +618,7 @@ def exam(request, exam_id, question_number):
             request.session.modified = True
         
             
-        if request.session['answers'].__len__() >= 2 and not request.user.is_subscribed and not request.user.is_staff:
+        if question_number >= 2 and not request.user.is_subscribed or request.session['answers'].__len__() >= 1 and not request.user.is_subscribed and not request.user.is_staff:
                 UserExam.objects.filter(id=user_exam.id).delete()
                 request.session.pop('answers', None)            
                 messages.error(request, mark_safe(
@@ -831,6 +832,17 @@ def payment(request):
     }
     return render(request, 'payment.html', context)
 
+
+@login_required(login_url='login')
+def recreate_otp(request):
+    unverified_subscription = get_unverified_subscription(request.user)
+    if unverified_subscription:
+        unverified_subscription.generate_otp()
+        messages.success(request, "Code nshya yoherejwe neza!.")
+        return redirect('activate_subscription')
+    else:
+        messages.error(request, "Nta ifatabuguzi ritaremezwa ribonetse.")
+        return redirect('subscription')
 
 @login_required(login_url='login')
 def subscription_status(request): 
