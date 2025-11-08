@@ -617,7 +617,7 @@ def exam(request, exam_id, question_number):
             request.session.modified = True
         
             
-        if question_number >= 2 or request.session['answers'].__len__() >= 2  and not request.user.is_subscribed and not request.user.is_staff:
+        if request.session['answers'].__len__() >= 2 and not request.user.is_subscribed and not request.user.is_staff:
                 UserExam.objects.filter(id=user_exam.id).delete()
                 request.session.pop('answers', None)            
                 messages.error(request, mark_safe(
