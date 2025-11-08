@@ -124,21 +124,32 @@
             <div class="container-fluid text-center">
                 <!-- Social Links -->
                 <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 mb-3">
-                <a href="https://wa.me/250785287885" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity">
+                <a href="https://www.tiktok.com/@mwamiliveclass?_r=1&_t=ZN-91Dl1c694vW" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity fs-6">
+                    <i class="bi bi-tiktok"></i>
+                    <span>TikTok</span>
+                </a>
+                {% comment %} <a href="https://wa.me/250785287885" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity">
                     <i class="bi bi-whatsapp fs-5 text-success"></i>
                     <span>0785287885</span>
-                </a>
+                </a> {% endcomment %}
 
-                <a href="https://youtube.com/@drivewithmwami?si=Kuv1TcG83IidXEhE" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity">
+                <a href="https://youtube.com/@250drivingcollege?si=-uAEcoRDZDkyB3Go" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity">
                     <i class="bi bi-youtube fs-5 text-danger"></i>
                     <span>Youtube Channel</span>
                 </a>
 
+            </div>
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 mb-3">
                 <a href="https://chat.whatsapp.com/JWaVSWktgBCKHNKr1TVAzg" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity">
                     <i class="fa-solid fa-users fs-5 text-success"></i>
-                    <span>Injira muri WhatsApp Group</span>
+                    <span>WhatsApp Group</span>
                 </a>
-                </div>
+                <a href="https://https://whatsapp.com/channel/0029VawmHyN2UPBKKM3OJc20" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity fs-6">
+                    <i class="bi bi-broadcast-pin text-success"></i>
+                    <span>WhatsApp Channel</span>
+                </a>
+               
+            </div>
 
                 <!-- Divider -->
                 <hr class="border-secondary w-75 mx-auto opacity-25">
@@ -323,54 +334,54 @@
         </div>
 
        <!-- Unverified Subscription Modal -->
-<div class="modal fade" id="unverifiedModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg">
-      <div class="modal-header bg-theme text-theme">
-        <h6 class="modal-title fw-bold">Ubwishyu bwawe bwemejwe</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body text-center">
-        <a href="{% url 'activate_subscription' %}" class="btn rounded-pill shadow-lg" 
-        style="background-color: rgba(var(--text-rgb), 1); 
-            color: rgba(var(--background-rgb), 1);">Fungura ifatabuzi</a>
-      </div>
-    </div>
-  </div>
-</div>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
+        <div class="modal fade" id="unverifiedModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-theme text-theme">
+                <h6 class="modal-title fw-bold">Ubwishyu bwawe bwemejwe</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <a href="{% url 'activate_subscription' %}" class="btn rounded-pill shadow-lg" 
+                style="background-color: rgba(var(--text-rgb), 1); 
+                    color: rgba(var(--background-rgb), 1);">Fungura ifatabuzi</a>
+            </div>
+            </div>
+        </div>
+        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
 
-    const currentPath = window.location.pathname;
-    const activateUrls = [
-    "{% url 'activate_subscription' %}",
-    "{% url 'payment' %}",
-    "{% url 'subscription' %}",
-    ];
+                const currentPath = window.location.pathname;
+                const activateUrls = [
+                "{% url 'activate_subscription' %}",
+                "{% url 'payment' %}",
+                "{% url 'subscription' %}",
+                ];
 
-    if (activateUrls.includes(currentPath)) return;
+                if (activateUrls.includes(currentPath)) return;
 
-    fetch("{% url 'check_unverified' %}", {
-        headers: {
-            "X-Requested-With": "XMLHttpRequest"
-        }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        return response.json();
-    })
-    .then(data => {
-        if (data.unverified) {
-            const modal = new bootstrap.Modal(document.getElementById("unverifiedModal"), {
-                backdrop: true,   // allow closing by clicking outside
-                keyboard: true    // allow closing with ESC
+                fetch("{% url 'check_unverified' %}", {
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("HTTP " + response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.unverified) {
+                        const modal = new bootstrap.Modal(document.getElementById("unverifiedModal"), {
+                            backdrop: true,   // allow closing by clicking outside
+                            keyboard: true    // allow closing with ESC
+                        });
+                        modal.show();
+                    }
+                })
+                .catch(err => console.error("Error checking subscription:", err));
             });
-            modal.show();
-        }
-    })
-    .catch(err => console.error("Error checking subscription:", err));
-});
-</script>
+        </script>
 
         <script>
             const scrollTopBtn = document.getElementById('scrollTopBtn');
