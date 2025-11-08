@@ -64,8 +64,11 @@ def home(request):
         scheduled_datetime__gt=timezone.now(), exam__for_scheduling=True
     ).count()
     
+    
     for exam_type in exam_types:
         exam_type.actual_exam_count -= unpublished_count
+        if exam_type.actual_exam_count > 1000:
+            exam_type.actual_exam_count = "1000+"
     
 
      # Prefetch related exams for each type
