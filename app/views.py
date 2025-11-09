@@ -901,8 +901,12 @@ def payment_confirm(request):
                     'time': timezone.now()
                 }            
             )            
-            
-            notify_admin(f"New payment confirmation from {request.user.name}, payeer name: {payeer_name}, plan: {plan}, whatsapp: {whatsapp_number}")
+            if hasattr(request.user, 'subscription'):
+                msg = "Renewal"
+            else:
+                msg = "New"
+                
+            notify_admin(f"{msg} payment confirmation from {request.user.name},\nPayeer name: {payeer_name}, plan: {plan}, whatsapp: {whatsapp_number}")
             
             messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Urakira igisubizo mu munota umwe.")
             return redirect('home')
