@@ -63,7 +63,7 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user', 'plan', 'price', 'otp_code', 'otp_created_at', 'otp_verified','colored_is_active', 'started','expires','renew_subscription','end_subscription')
+    list_display = ('user', 'plan', 'price', 'otp_code', 'otp_created_at','otp_exp', 'otp_verified','colored_is_active', 'started','expires','renew_subscription','end_subscription')
     readonly_fields = ('started_at', 'expires_at', 'otp_code', 'otp_created_at', 'otp_verified') 
     
     list_filter = ('super_subscription', 'plan')
@@ -104,6 +104,11 @@ class SubscriptionAdmin(admin.ModelAdmin):
         if obj.otp_verified:
             return "✅ Verified"
         return obj.otp_code or "—"
+    
+    @admin.display(description='OTP Exp')
+    def otp_exp(self, obj):
+        if obj.otp_expires_at:
+            return localtime(obj.otp_expires_at).strftime("%d-%m-%y %H:%M")
     
     @admin.display(description='Plan')
     def plan(self, obj):

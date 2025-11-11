@@ -339,7 +339,7 @@ class Subscription(models.Model):
         self.started_at = None   # reset until verified
         self.expires_at = None
         self.price = self.plan.price if self.plan else self.price
-        self.save(update_fields=["otp_code", "otp_created_at", "otp_verified", "started_at", "expires_at"])
+        self.save(update_fields=["otp_code", "otp_created_at","otp_expires_at", "otp_verified", "started_at", "expires_at"])
         return self.otp_code
     
     @property
