@@ -62,13 +62,14 @@ def home(request):
     
     unpublished_count = ScheduledExam.objects.filter(
         scheduled_datetime__gt=timezone.now(), exam__for_scheduling=True
-    ).count()
-    
+    ).count()    
     
     for exam_type in exam_types:
         exam_type.actual_exam_count -= unpublished_count
         if exam_type.actual_exam_count > 1000:
             exam_type.actual_exam_count = "1000+"
+        else:
+            exam_type.actual_exam_count = str(exam_type.actual_exam_count)
     
 
      # Prefetch related exams for each type
