@@ -66,7 +66,7 @@ def home(request):
     
     
     for exam_type in exam_types:
-        exam_type.actual_exam_count -= unpublished_count
+        exam_type.actual_exam_count -= unpublished_count if exam_type.name.lower() == 'ibivanze' else 0
     
 
      # Prefetch related exams for each type
