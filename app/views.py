@@ -284,7 +284,7 @@ def login_view(request):
     return render(request, "base.html", context)
 
 @require_POST
-@login_required(login_url='login')
+@login_required(login_url='register')
 def user_logout(request):
     logout(request)
     messages.info(request, "Gusohoka byakunze.")
@@ -387,7 +387,7 @@ def secure_stream(request, course_id):
         raise Http404("Access denied.")
 
 
-@login_required(login_url='login')
+# @login_required(login_url='register')
 @subscription_required
 def course_detail(request, slug):
     course = get_object_or_404(Course, slug=slug)
@@ -438,7 +438,7 @@ class SubscriptionRequiredView(View):
             return redirect('subscription')
         return super().dispatch(request, *args, **kwargs)
 
-@login_required(login_url='login')
+# @login_required(login_url='register')
 @subscription_required
 def exam_detail(request, pk):
     exam_obj = get_object_or_404(Exam, pk=pk)
@@ -522,7 +522,7 @@ def exam_timer(request, exam_id):
     except ScheduledExam.DoesNotExist:
         return JsonResponse({'error': 'Exam not found'}, status=404)
 
-@login_required(login_url='login')
+@login_required(login_url='register')
 def exams_by_type(request, exam_type):
     returned_exams = Exam.objects.filter(
         exam_type__name=exam_type
@@ -549,7 +549,7 @@ def exams_by_type(request, exam_type):
     return render(request, "exams/same_exams.html", context)
 
 
-@login_required(login_url='login')
+@login_required(login_url='register')
 @subscription_required
 def ajax_question(request, exam_id, question_number):
     exam = get_object_or_404(Exam, id=exam_id)
@@ -580,7 +580,7 @@ def ajax_question(request, exam_id, question_number):
     return JsonResponse({'html': html})
 
 
-@login_required(login_url='login')
+@login_required(login_url='register')
 @subscription_required
 def exam(request, exam_id, question_number):
     exam = get_object_or_404(Exam, id=exam_id)
@@ -691,7 +691,7 @@ def exam(request, exam_id, question_number):
 
     return render(request, 'exams/exam.html', context)
 
-@login_required(login_url='login')
+@login_required(login_url='register')
 @subscription_required
 def exam_results(request, user_exam_id):
     
@@ -715,7 +715,7 @@ def exam_results(request, user_exam_id):
     }
     return render(request, 'exams/exam_results.html', context)
 
-@login_required(login_url='login')
+@login_required(login_url='register')
 @subscription_required
 def retake_exam(request, exam_id):
     if not request.user.is_subscribed and not request.user.is_staff: 
@@ -760,7 +760,7 @@ def get_weekly_scheduled_exams():
         scheduled_datetime__lte=now
     ).select_related('exam', 'exam__exam_type').order_by('-scheduled_datetime')
 
-@login_required(login_url='login')
+@login_required(login_url='register')
 def weekly_exams(request):
     exams = get_weekly_scheduled_exams()
 
@@ -823,7 +823,7 @@ def get_unverified_subscription(user):
     return subscription
 
 # ---------------------
-@login_required(login_url='login')
+@login_required(login_url='register')
 def payment(request):
     page = 'payment'
     all_plans=Plan.objects.all().order_by('price')
@@ -836,7 +836,7 @@ def payment(request):
     return render(request, 'payment.html', context)
 
 
-@login_required(login_url='login')
+@login_required(login_url='register')
 def recreate_otp(request):
     unverified_subscription = get_unverified_subscription(request.user)
     if unverified_subscription:
@@ -847,7 +847,7 @@ def recreate_otp(request):
         messages.error(request, "Nta ifatabuguzi ritaremezwa ribonetse.")
         return redirect('subscription')
 
-@login_required(login_url='login')
+@login_required(login_url='register')
 def subscription_status(request): 
     page = 'subscription_status'
     plans = Plan.PLAN_CHOICES
@@ -863,7 +863,7 @@ def subscription_status(request):
 # ---------------------
 
 
-@login_required(login_url='login')
+@login_required(login_url='register')
 @transaction.atomic
 def payment_confirm(request):
    
@@ -1074,7 +1074,7 @@ def undo_last_exam_action(request):
     return redirect('create_exam')
 
 
-@login_required(login_url='login')
+@login_required(login_url='register')
 @staff_member_required
 def create_exam_page(request):
     if request.method == 'POST':
