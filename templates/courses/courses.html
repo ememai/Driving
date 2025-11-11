@@ -7,10 +7,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
+<body class="bg-gray-100 min-h-screen p-8 text-lg sm:text-xl">
   <div class="max-w-6xl mx-auto">
-    <a href="{% url 'home' %}" class="text-blue-600 hover:underline mb-4 inline-block">
-      <i class="bi bi-arrow-left"></i> Subira Ahabanza
+    <a href="{% url 'home' %}" class="text-blue-600 hover:underline mb-4 inline-block text-lg sm:text-xl font-medium">
+      <i class="bi bi-arrow-left text-lg sm:text-xl"></i> Subira Ahabanza
     </a>
   </div>
 
@@ -41,11 +41,11 @@
             {% endif %}
             <div class="p-4">
               <h2 class="text-lg font-semibold text-gray-800">{{ course.title }}</h2>
-              <p class="text-sm text-gray-600 mt-1 italic">{{ course.category }}</p>
+              <p class="text-lg text-gray-600 mt-1 italic">{{ course.category }}</p>
               {% if course.description %}
-                <p class="text-gray-700 text-sm mt-2 line-clamp-3">{{ course.description|safe|truncatewords:25 }}</p>
+                <p class="text-gray-700 text-lg mt-2 line-clamp-3">{{ course.description|safe|truncatewords:25 }}</p>
               {% endif %}
-              <a href="{% url 'course_detail' course.slug %}" class="mt-4 inline-block text-blue-600 hover:underline font-medium text-sm">
+              <a href="{% url 'course_detail' course.slug %}" class="mt-4 inline-block text-blue-600 hover:underline font-medium text-lg">
                 Fungura →
               </a>
               </a>

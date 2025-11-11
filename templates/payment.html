@@ -87,13 +87,13 @@
     margin-bottom: 0.4rem;
   }
   .method {
-    background-image: url("{% static "img/mtn.jpg" %}");
-    background-color: rgba(248, 247, 187, 0.9);
+    background-image: url("{% static "img/online-payment-3.png" %}");
     background-blend-mode: overlay;
     background-position: center;
-    color: #000;
     padding: 2rem;
     border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background-size: cover;
   }
   .method h2 {
     font-style: italic;
@@ -115,7 +115,7 @@
 
   /* Payment method cards */
   .payment-method-card {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 1);
     border-radius: 10px;
     padding: 1.5rem;
     margin: 1rem auto;
@@ -298,8 +298,12 @@
     {% else %}
 
     <div class="alert text-center fs-5 p-0" role="alert">
-      <form method="post">
+      <form method="post" id="planSelectionForm">
         {% csrf_token %}
+        <!-- Hidden inputs for plan selection -->
+        {% for plan in all_plans %}
+        <input type="radio" name="plan" value="{{ plan.price }}" id="plan_{{ plan.price }}" style="display: none;" />
+        {% endfor %}
         <div
           id="plan-carousel"
           class="d-flex flex-wrap align-items-center justify-content-center gap-1 px-5 py-3 plans shadow-md rounded-4 bg-theme"
@@ -358,10 +362,10 @@
             <div class="card-body border-0 mt-0 pt-0 text-center">
               <button
                 type="button"
-                class="btn btn-outline-primary rounded-pill btnSelectPlan px-4 fw-bold"
+                class="btn btn-outline-primary rounded-pill btnSelectPlan fs-5 px-4 fw-bold"
               >
                 <i class="bi bi-check2-circle" aria-hidden="true"></i>
-                Hitampo
+                Ishyura {{ plan.price }} RWF
               </button>
             </div>
           </div>
@@ -369,25 +373,60 @@
         </div>
 
         <!-- Payment Methods -->
-        <div class="method mt-5">
-          <h2 class="fw-bold">
-            <i class="bi bi-credit-card"></i>
-              Uburyo bwo kwishyura:
-            </h2>
-
-          <div class="payment-method-card">
-            <h4 class="underline">Koresha code:</h4>
-            <div class="ussd-code">
-              *182*8*1*187756*<strong id="js-plan">0</strong>#
-            </div>
+        <div class="mt-5 ">
+          
+          <div class="payment-method-card method text-dark">
+            <h2 class="fw-bold text-primary ">
+              <i class="bi bi-credit-card"></i>
+                Uburyo bwo kwishyura:
+              </h2>
             <button
-              id="callButton"
-              class="btn btn-outline-primary d-md-none mt-2"
+              type="button"
+              class="btn btn-warning"
+              id="mobileMoneyBtn"
             >
+              <i class="bi bi-phone-fill me-2"></i>
+              MoMo Pay
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-danger ms-2"
+              id="AirtelPayBtn"
+              
+            >
+              <i class="bi bi-phone-fill me-2"></i>
+              Airtel Money
+            </button>
+            <hr class="my-4" />
+          <div class="" id="mobileMoneyMethod">
+          
+         <h4 class="underline">1. Koresha code:</h4>
+            <div class="ussd-code">
+              *182*8*1*187756*<strong id="js-plan-momo">0</strong>#
+            </div>
+
+            <button
+              id="callButton-momo"
+              class="btn btn-primary d-md-none mb-4 mt-0"
+              >
               <i class="bi bi-telephone me-2"></i>Emeza
             </button>
-            <h4 class="underline">Niba ukoresha nimero:</h4>
+            <h4 class="underline">2. Koresha nimero:</h4>
             <div class="fs-4 fw-bold">0785287885</div>
+
+        </div>
+        <div class="mt-4" id="AirtelPayMethod" style="display: none;">
+          <h4 class="">Airtel pay</h4>
+            <div class="ussd-code">
+              *182*1*1*0735777412*<strong id="js-plan-airtel">0</strong>#
+            </div>
+            <button
+              id="callButton-airtel"
+               class="btn btn-primary d-md-none mb-4 mt-0"
+              >
+              <i class="bi bi-telephone me-2"></i>Emeza
+            </button>
+          </div>
             <p class="mt-2 mb-0">
               Hose amazina ni: <strong>"Mwami Modeste"</strong>
             </p>
@@ -487,8 +526,8 @@
                 class="btn fs-4 position-absolute end-0 top-0"
                 onclick="window.location.reload()"
               >
-            <i class="bi bi-x"></i>
-            </button>
+                <i class="bi bi-x"></i>
+              </button>
             </div>
             <div class="modal-body">
               <input
@@ -572,8 +611,10 @@
   {% endblock %} {% block extra_js %}
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      const planLabel = document.getElementById("js-plan");
-      const callButton = document.getElementById("callButton");
+      const planLabelMomo = document.getElementById("js-plan-momo");
+      const planLabelAirtel = document.getElementById("js-plan-airtel");
+      const callButtonMomo = document.getElementById("callButton-momo");
+      const callButtonAirtel = document.getElementById("callButton-airtel");
       const planCards = document.querySelectorAll(".plan-card");
       const defaultPlanCard = document.getElementById("default-plan");
       const planInputs = document.querySelectorAll('input[name="plan"]');
@@ -599,26 +640,31 @@
       const codeOption = document.getElementById("codeOption");
       const payOption = document.getElementById("payOption");
 
-      btnCode.addEventListener("click", function () {
-        btnCode.classList.add("active");
-        btnPay.classList.remove("active");
-        codeOption.classList.remove("d-none");
-        payOption.classList.add("d-none");
-      });
+      if (btnCode) {
+        btnCode.addEventListener("click", function () {
+          btnCode.classList.add("active");
+          btnPay.classList.remove("active");
+          codeOption.classList.remove("d-none");
+          payOption.classList.add("d-none");
+        });
+      }
 
-      btnPay.addEventListener("click", function () {
-        btnPay.classList.add("active");
-        btnCode.classList.remove("active");
-        payOption.classList.remove("d-none");
-        codeOption.classList.add("d-none");
-      });
+      if (btnPay) {
+        btnPay.addEventListener("click", function () {
+          btnPay.classList.add("active");
+          btnCode.classList.remove("active");
+          payOption.classList.remove("d-none");
+          codeOption.classList.add("d-none");
+        });
+      }
 
       // Update selected plan value in USSD code
-      function updatePlanLabelFromChecked() {
+      function updatePlanLabelsFromChecked() {
         const activeCard = document.querySelector(".plan-card.active");
         if (activeCard) {
           const price = activeCard.dataset.planPrice || "0";
-          planLabel.textContent = price;
+          if (planLabelMomo) planLabelMomo.textContent = price;
+          if (planLabelAirtel) planLabelAirtel.textContent = price;
         }
       }
 
@@ -646,7 +692,7 @@
 
           planCards.forEach((c) => c.classList.remove("active"));
           card.classList.add("active");
-          updatePlanLabelFromChecked();
+          updatePlanLabelsFromChecked();
         });
       });
 
@@ -663,70 +709,57 @@
 
       planInputs.forEach((plan) => {
         plan.addEventListener("change", () => {
-          updatePlanLabelFromChecked();
+          updatePlanLabelsFromChecked();
           updateActiveCard();
         });
       });
 
-      updatePlanLabelFromChecked();
+      updatePlanLabelsFromChecked();
       updateActiveCard();
 
-      // USSD dial button
-      callButton.addEventListener("click", () => {
-        const selectedPlan = document.querySelector(".plan-card.active");
-        if (!selectedPlan) {
-          alert("Banza uhitempo ifatabuguzi wifuza kwishyura.");
-          return;
-        }
-        const planPrice = selectedPlan.dataset.planPrice || "0";
-        window.location.href =
-          "tel:" + encodeURIComponent(`*182*8*1*187756*${planPrice}#`);
-      });
-    });
-
-    // ✅ Send WhatsApp message and close modal before opening
-    function sendToWhatsApp() {
-      const phone = document.getElementById("phone").value.trim();
-      const name = document.getElementById("name").value.trim();
-      const planSelect = document.getElementById("plan");
-
-      if (!phone || !name || !planSelect.value) {
-        alert(
-          "Shyiramo amazina, nimero, ndetse uhitempo ifatabuguzi wishyuye."
-        );
-        return;
+      // Mobile Money Button Handler
+      const mobileMoneyBtn = document.getElementById("mobileMoneyBtn");
+      if (mobileMoneyBtn) {
+        mobileMoneyBtn.addEventListener("click", function () {
+          document.getElementById('mobileMoneyMethod').style.display = 'block';
+          AirtelPayBtn.classList.remove('btn-danger');
+          AirtelPayBtn.classList.add('btn-outline-danger');
+          document.getElementById('AirtelPayMethod').style.display = 'none';
+        });
       }
 
-      const planLabel = planSelect.options[planSelect.selectedIndex].text;
-      const userName = "{{ request.user.name|default:'' }}";
-      const userEmail = "{{ request.user.email|default:'' }}";
-      const domain = window.location.hostname.replace(/^www\./, "");
-      const url = `${domain}`;
+      const AirtelPayBtn = document.getElementById("AirtelPayBtn");
+      if (AirtelPayBtn) {
+        AirtelPayBtn.addEventListener("click", function () {
+          document.getElementById('AirtelPayMethod').style.display = 'block';
+          mobileMoneyBtn.classList.remove('btn-warning');
+          mobileMoneyBtn.classList.add('btn-outline-warning');
+          document.getElementById('mobileMoneyMethod').style.display = 'none';
+        });
+      }
 
-      // Build WhatsApp message safely
-      const message =
-        `Ndagira ngo nemeze ubwishyu bwanjye.%0A%0A` +
-        `📌 Izina: ${encodeURIComponent(name)}%0A` +
-        `📞 Numero: ${encodeURIComponent(phone)}%0A` +
-        `💳 Ifatabuguzi: ${encodeURIComponent(planLabel)}%0A%0A` +
-        `🔹Murakoze! ${encodeURIComponent(userName)} ${encodeURIComponent(
-          userEmail
-        )}%0A%0A` +
-        `${encodeURIComponent(url)}`;
+      // USSD dial button for MoMo
+      if (callButtonMomo) {
+        callButtonMomo.addEventListener("click", () => {
+          const selectedPlan = document.querySelector(".plan-card.active");
+          const planPrice = selectedPlan ? (selectedPlan.dataset.planPrice || "0") : defaultPlanCard.dataset.planPrice || "0";
+          window.location.href =
+            "tel:" + encodeURIComponent(`*182*8*1*187756*${planPrice}#`);
+        });
+      }
 
-      const whatsappUrl = `https://api.whatsapp.com/send?phone=250735777412&text=${message}`;
+      // USSD dial button for Airtel
+      if (callButtonAirtel) {
+        callButtonAirtel.addEventListener("click", () => {
+          const selectedPlan = document.querySelector(".plan-card.active");
+          const planPrice = selectedPlan ? (selectedPlan.dataset.planPrice || "0") : defaultPlanCard.dataset.planPrice || "0";
+          window.location.href =
+            "tel:" + encodeURIComponent(`*182*1*1*0735777412*${planPrice}#`);
+        });
+      }
+    });
 
-      // Close modal cleanly before redirect
-      const confirmModal = bootstrap.Modal.getInstance(
-        document.getElementById("confirmPayModal")
-      );
-      if (confirmModal) confirmModal.hide();
-
-      // Delay slightly to allow modal to close before WhatsApp opens
-      setTimeout(() => {
-        window.open(whatsappUrl, "_blank");
-      }, 300);
-    }
   </script>
+  
   {% endblock %}
 </div>
