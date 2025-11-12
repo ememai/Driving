@@ -906,7 +906,7 @@ def payment_confirm(request):
             else:
                 msg = "New"
                 
-            notify_admin(f"{msg} payment confirmation from {request.user.name},\nPayeer name: {payeer_name}, plan: {plan}, whatsapp: {whatsapp_number}")
+            notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, plan: {plan},\n\nWhatsapp: {whatsapp_number}''')
             
             messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Urakira igisubizo mu munota umwe.")
             return redirect('home')
