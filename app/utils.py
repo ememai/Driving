@@ -34,7 +34,8 @@ def validate_whats_api_credentials():
         )
         if response.status_code == 200:
             return True
-        logger.error(f"whats_api credentials validation failed: {response.text}")
+        
+        logger.error(f"{response.status_code} whats_api credentials validation failed: {response.text}")
         return False
     except Exception as e:
         logger.error(f"whats_api connection test failed: {str(e)}")
