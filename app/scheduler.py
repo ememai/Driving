@@ -102,8 +102,10 @@ def job_notify_new_published_exams():
         # today_date = now.strftime('%d-%m-') + str(now.year)[-3:]
         today_date = now.strftime('%d-%m-%Y')
 
-        users = UserProfile.objects.filter(Q(is_superuser=True) |
-            Q(email__isnull=False), whatsapp_consent=True) # Notify admins and users with email   
+        # users = UserProfile.objects.filter(Q(is_superuser=True) |
+        #     Q(email__isnull=False), whatsapp_consent=True) # Notify admins and users with email   
+        
+        users = UserProfile.objects.filter(is_superuser=True)
         message = textwrap.dedent(f'''\
 
             ⏰ Ikizamini cya Saa {scheduled_time} cyageze ku rubuga.

@@ -470,7 +470,7 @@ def scheduled_hours(request):
     end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
 
     exams_scheduled = ScheduledExam.objects.filter(
-        scheduled_datetime__range=(start_of_day, end_of_day)
+        scheduled_datetime__range=(start_of_day, end_of_day),        
     )
 
     current_hour = now.hour
@@ -1080,10 +1080,14 @@ def create_exam_page(request):
     if request.method == 'POST':
         try:
             number = int(request.POST.get("number", 0))
+            for_scheduling = request.POST.get("for_scheduling", False)
+            
+            for_scheduling = True if for_scheduling == 'on' else False
+            
             if number <= 0:
                 raise ValueError("Number must be greater than 0")
             
-            exams_created, created_exam_ids = auto_create_exams(number, for_scheduling=False)
+            exams_created, created_exam_ids = auto_create_exams(number, for_scheduling)
             request.session['undo_exam_ids'] = created_exam_ids
             request.session['show_undo'] = True  # Add flag
 
