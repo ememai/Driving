@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "django_browser_reload",
     'social_django',
     'ckeditor',
-    
+
 ]
 
 JAZZMIN_SETTINGS = {
@@ -65,12 +65,12 @@ JAZZMIN_SETTINGS = {
     "site_icon": "img/favicon.ico",
     "welcome_sign": f"Welcome to Kigali Driving School Admin | {datetime.now().year}",
     "copyright": f"Kigali Driving School",
-    
+
     # Search
     "search_model": [
         "app.UserProfile",
-        "app.Subscription", 
-        "app.Exam", 
+        "app.Subscription",
+        "app.Exam",
         "app.Question"
     ],
 
@@ -80,21 +80,21 @@ JAZZMIN_SETTINGS = {
     "order_with_respect_to": ["app.UserProfile", "app.Subscription", ],
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
-    
+
     "theme": "darkly",  # Always use dark theme
     "dark_mode_theme": "darkly",  # Ensure dark mode uses same theme
     "theme_toggle": False,  # Disable switching to light theme
 
-    
+
     # Customization
     "show_ui_builder": True,
     "changeform_format": "horizontal_tabs",
     "related_modal_active": True,
-    
+
     # Top Menu
     "topmenu_links": [
         {"name": "Home", "url": "/", "permissions": ["auth.view_user"]},
-        
+
     ],
 }
 
