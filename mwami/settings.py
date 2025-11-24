@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "django_browser_reload",
     'social_django',
     'ckeditor',
-    
+
 ]
 
 JAZZMIN_SETTINGS = {
@@ -65,12 +65,12 @@ JAZZMIN_SETTINGS = {
     "site_icon": "img/favicon.ico",
     "welcome_sign": f"Welcome to Kigali Driving School Admin | {datetime.now().year}",
     "copyright": f"Kigali Driving School",
-    
+
     # Search
     "search_model": [
         "app.UserProfile",
-        "app.Subscription", 
-        "app.Exam", 
+        "app.Subscription",
+        "app.Exam",
         "app.Question"
     ],
 
@@ -80,21 +80,21 @@ JAZZMIN_SETTINGS = {
     "order_with_respect_to": ["app.UserProfile", "app.Subscription", ],
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
-    
+
     "theme": "darkly",  # Always use dark theme
     "dark_mode_theme": "darkly",  # Ensure dark mode uses same theme
     "theme_toggle": False,  # Disable switching to light theme
 
-    
+
     # Customization
     "show_ui_builder": True,
     "changeform_format": "horizontal_tabs",
     "related_modal_active": True,
-    
+
     # Top Menu
     "topmenu_links": [
         {"name": "Home", "url": "/", "permissions": ["auth.view_user"]},
-        
+
     ],
 }
 
@@ -331,11 +331,11 @@ CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
 CSRF_FAILURE_VIEW = 'app.views.csrf_failure'
 
 
-WHATSAPP_API_URL = config('WHATSAPP_API_URL', default='https://7105.api.greenapi.com')
-INSTANCE_ID = config('INSTANCE_ID', default='7105381583')
-API_TOKEN = config('API_TOKEN', default='0a47bfbd31414322a01667fb1416097b78bd08319c4a49ccb6')
+WHATSAPP_API_URL = config('WHATSAPP_API_URL',)
+INSTANCE_ID = config('INSTANCE_ID',)
+WHATSAPP_API_TOKEN = config('WHATSAPP_API_TOKEN',)
 
-ADMIN_PHONE_NUMBER = config('ADMIN_PHONE_NUMBER', default='+250785287885')
+ADMIN_PHONE_NUMBER = config('ADMIN_PHONE_NUMBER',)
 
 # Security settings
 SECURE_BROWSER_XSS_FILTER = True
