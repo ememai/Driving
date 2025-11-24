@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "django_browser_reload",
     'social_django',
     'ckeditor',
-
+    
 ]
 
 JAZZMIN_SETTINGS = {
@@ -65,12 +65,12 @@ JAZZMIN_SETTINGS = {
     "site_icon": "img/favicon.ico",
     "welcome_sign": f"Welcome to Kigali Driving School Admin | {datetime.now().year}",
     "copyright": f"Kigali Driving School",
-
+    
     # Search
     "search_model": [
         "app.UserProfile",
-        "app.Subscription",
-        "app.Exam",
+        "app.Subscription", 
+        "app.Exam", 
         "app.Question"
     ],
 
@@ -80,55 +80,25 @@ JAZZMIN_SETTINGS = {
     "order_with_respect_to": ["app.UserProfile", "app.Subscription", ],
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
-
+    
     "theme": "darkly",  # Always use dark theme
     "dark_mode_theme": "darkly",  # Ensure dark mode uses same theme
     "theme_toggle": False,  # Disable switching to light theme
 
-
+    
     # Customization
     "show_ui_builder": True,
     "changeform_format": "horizontal_tabs",
     "related_modal_active": True,
-
+    
     # Top Menu
     "topmenu_links": [
         {"name": "Home", "url": "/", "permissions": ["auth.view_user"]},
-
+        
     ],
 }
 
-# JAZZMIN_UI_TWEAKS = {
-#     "navbar_small_text": False,
-#     "footer_small_text": False,
-#     "body_small_text": False,
-#     "brand_small_text": False,
-#     "brand_colour": False,
-#     "accent": "accent-primary",
-#     "navbar": "navbar-navy navbar-dark",
-#     "no_navbar_border": False,
-#     "navbar_fixed": False,
-#     "layout_boxed": False,
-#     "footer_fixed": False,
-#     "sidebar_fixed": False,
-#     "sidebar": "sidebar-dark-primary",
-#     "sidebar_nav_small_text": False,
-#     "sidebar_disable_expand": False,
-#     "sidebar_nav_child_indent": False,
-#     "sidebar_nav_compact_style": False,
-#     "sidebar_nav_legacy_style": False,
-#     "sidebar_nav_flat_style": False,
-#     "theme": "default",
-#     "dark_mode_theme": "darkly",
-#     "button_classes": {
-#         "primary": "btn-outline-primary",
-#         "secondary": "btn-outline-secondary",
-#         "info": "btn-info",
-#         "warning": "btn-warning",
-#         "danger": "btn-danger",
-#         "success": "btn-success"
-#     }
-# }
+
 
 JAZZMIN_UI_TWEAKS = {
     "navbar_small_text": False,
@@ -378,4 +348,3 @@ RATELIMIT_USE_CACHE = 'default'
 
 # Session security
 SESSION_COOKIE_HTTPONLY = True
-
