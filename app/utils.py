@@ -29,13 +29,25 @@ def validate_whats_api_credentials():
     """Validate whats_api credentials before use"""
     try:
         response = session.get(
-            f"{settings.WHATSAPP_API_URL}/waInstance{settings.INSTANCE_ID}/getStateInstance/{settings.API_TOKEN}",
+            f"{settings.WHATSAPP_API_URL}/waInstance{settings.INSTANCE_ID}/getStateInstance/{settings.WHATSAPP_API_TOKEN}",
             timeout=15
         )
         if response.status_code == 200:
             return True
-        
+
         logger.error(f"{response.status_code} whats_api credentials validation failed: {response.text}")
+        api_token = getattr(settings, 'WHATSAPP_API_TOKEN', None)
+        masked_token = f"{api_token[:4]}...{api_token[-4:]}" if api_token else 'None'
+        instance_id = getattr(settings, 'INSTANCE_ID', 'N/A')
+        whatsapp_url = getattr(settings, 'WHATSAPP_API_URL', 'N/A')
+
+        # Print/mask credentials info for debugging (do NOT expose tokens in production logs)
+        print(f"WhatsApp API URL: {whatsapp_url}")
+        print(f"Instance ID: {instance_id}")
+        print(f"API Token (masked): {masked_token}")
+
+        # Log full response at debug level only
+        logger.debug("WhatsApp validation response body: %s", response.text)
         return False
     except Exception as e:
         logger.error(f"whats_api connection test failed: {str(e)}")
@@ -63,7 +75,7 @@ def clean_phone_number(number):
         # National format like 250781234567
         return '+' + number
     elif number.startswith('250') and len(number) < 12:
-        # Possibly missing digits 
+        # Possibly missing digits
         raise ValueError("Incomplete phone number.")
     elif number.startswith('+250') and len(number) == 13:
         # Already in E.164 format
@@ -71,25 +83,25 @@ def clean_phone_number(number):
     else:
         raise ValueError("Invalid phone number format.")
 
-   
+
 def notify_admin(message):
     """Send admin notifications via whats_api with improved error handling"""
-    admin_number = re.sub(r'\D', '', settings.ADMIN_PHONE_NUMBER ) 
-     
+    admin_number = re.sub(r'\D', '', settings.ADMIN_PHONE_NUMBER )
+
     if not validate_whats_api_credentials():
         logger.error("Cannot send admin notification - whats_api credentials invalid")
         return
 
     try:
         response = session.post(
-            f"{settings.WHATSAPP_API_URL}/waInstance{settings.INSTANCE_ID}/sendMessage/{settings.API_TOKEN}",
+            f"{settings.WHATSAPP_API_URL}/waInstance{settings.INSTANCE_ID}/sendMessage/{settings.WHATSAPP_API_TOKEN}",
             json={
                 "chatId": f"{admin_number}@c.us",
                 "message": message
             },
             timeout=30  # Increased timeout
         )
-        
+
         if response.status_code == 200:
             logger.info("✅ Admin notification sent")
         else:
@@ -142,7 +154,7 @@ def check_exam_availability(hour):
     """
     # Get the current date.
     today = timezone.now().date()
-    
+
     # Query for scheduled exams on today's date where the scheduled hour matches.
     exam_exists = ScheduledExam.objects.filter(
         scheduled_datetime__date=today,
@@ -161,7 +173,7 @@ def check_exam_availability(hour):
 #             if questions.count() < 20:
 #                 print("‼️Not enough questions to create the exam.")
 #                 # return redirect('create_exam')
-            
+
 #             # Determine next available hour for exam scheduling
 #             last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
 
@@ -180,7 +192,7 @@ def check_exam_availability(hour):
 #             from datetime import time
 #             exam_schedule_hour = time(next_hour, 0)
 
-                
+
 #             exam = Exam.objects.create(
 #                 exam_type=exam_type,
 #                 schedule_hour=exam_schedule_hour,
@@ -194,7 +206,7 @@ def check_exam_availability(hour):
 #             exams_created += 1
 
 #             print(f"🏁 Exam '{exam.schedule_hour}' created successfully!")
-            
+
 #         except Exception as e:
 #             print(f"Error: {str(e)}")
 #     print(f"✅{exams_created} Exams Created successfully!")
@@ -203,8 +215,8 @@ def check_exam_availability(hour):
 def auto_create_exams(number, for_scheduling=True, ):
     exams_created = 0
     created_exam_ids = []
-    
-    
+
+
     if timezone.localtime(timezone.now()).weekday() == 6:  # Sunday is represented by 6
         print("❌ No exams created on Sundays.")
         return exams_created, created_exam_ids
@@ -243,7 +255,7 @@ def auto_schedule_recent_exams():
     recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:8]
     today = timezone.localtime(timezone.now()).date()
     message = ''
-    
+
     if today.weekday() == 6:  # Sunday is represented by 6
         message = "❌ No exams to schedule on Sundays."
         print(message)
@@ -260,7 +272,7 @@ def auto_schedule_recent_exams():
         )
         scheduled_exams_count += 1
         message += f"🏁 Exam '{exam.schedule_hour}' scheduled successfully!\n"
-        
+
     return scheduled_exams_count, message
 
 import re
@@ -268,19 +280,19 @@ import re
 def validate_phone_number(phone_number):
     """
     Validate a phone number to ensure it is in the correct format.
-    
+
     Args:
         phone_number (str): The phone number to validate.
-        
+
     Returns:
         bool: True if the phone number is valid, False otherwise.
     """
     # Remove any non-digit characters
     cleaned_number = re.sub(r'\D', '', phone_number)
-    
-    # if cleaned_number.startswith('+250') or cleaned_number.startswith('07'):   
+
+    # if cleaned_number.startswith('+250') or cleaned_number.startswith('07'):
     return len(cleaned_number) == 10 and cleaned_number.startswith('07') or len(cleaned_number) == 12 and cleaned_number.startswith('+250')
-    
+
     # else:
     #     # For other countries, allow only valid E.164 format: starts with '+' and 10-15 digits
     #     return bool(re.fullmatch(r'\+[1-9]\d{9,14}', phone_number))
