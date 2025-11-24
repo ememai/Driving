@@ -348,4 +348,3 @@ RATELIMIT_USE_CACHE = 'default'
 
 # Session security
 SESSION_COOKIE_HTTPONLY = True
-
