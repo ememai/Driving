@@ -121,19 +121,19 @@ def job_notify_new_published_exams():
             if user.whatsapp_number:
                 send_whatsapp_message(user.whatsapp_number, message)
 
-            # Email fallback
-            if user.email:
-                try:
-                    send_mail(
-                        subject=f"📢 {scheduled_time} Exam Published",
-                        message=message,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[user.email],
-                        fail_silently=False,
-                    )
-                    logger.info(f"📧 Email sent to {user.email}")
-                except Exception as e:
-                    logger.error(f"❌ Email failed for {user.email}: {str(e)}", exc_info=True)
+            # # Email fallback
+            # if user.email:
+            #     try:
+            #         send_mail(
+            #             subject=f"📢 {scheduled_time} Exam Published",
+            #             message=message,
+            #             from_email=settings.DEFAULT_FROM_EMAIL,
+            #             recipient_list=[user.email],
+            #             fail_silently=False,
+            #         )
+            #         logger.info(f"📧 Email sent to {user.email}")
+            #     except Exception as e:
+            #         logger.error(f"❌ Email failed for {user.email}: {str(e)}", exc_info=True)
 
 def start():
     try:
