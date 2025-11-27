@@ -4,6 +4,14 @@
 
 {% block content %}
 <style>
+
+  /* Small screens */
+  @media (max-width: 768px) {
+    #decision-box {
+      width: 50vw !important;
+    }
+  }
+
   #text-choice {
     font-size: 1.5em;
   }
@@ -81,7 +89,7 @@
   <h5 class="text-center">Amanota: <strong>{{ score }}/{{ total_questions }}</strong></h5>
   <h5 class="text-center">Ijanisha: <strong>{{ percentage|floatformat:2 }}%</strong></h5>
 
-  <div class="text-center m-3 w-25 mx-auto"> 
+  <div class="text-center m-3 w-25 mx-auto" id="decision-box"> 
     <h2 class="text-center rounded-pill fs-4 fw-bolder text-white {% if user_exam.percent_score >= 60 %} bg-success {% else %} bg-danger {% endif %}">{{ decision }}
     </h2>
   </div>
