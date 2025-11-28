@@ -233,7 +233,7 @@ class UserProfile(AbstractUser):
 
 
     def __str__(self):
-        return self.email if self.email else f"{self.name}"
+        return self.email if self.email else f"{self.name}**{self.phone_number[-3:]}"
     
 
 class StaffLoginAttempt(models.Model):
