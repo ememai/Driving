@@ -155,7 +155,7 @@ class StaffLoginView(View):
             return redirect(next_url)
         
         messages.success(request, "Staff login successful! Welcome back.")
-        return redirect("admin_dashboard")
+        return redirect("home")
     
     def handle_failed_login(self, request, username, user):
         """Handle failed login attempts with security measures"""
