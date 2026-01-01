@@ -107,7 +107,7 @@ def register_view(request):
             if form.cleaned_data.get("phone_number"):
                 user.otp_verified = True  
                 user.save()
-                messages.success(request, 'Kwiyandikisha muri Kigali Driving School byagenze neza')
+                messages.success(request, 'Kwiyandikisha ku igazeti.rw byagenze neza')
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 return redirect('whatsapp_consent')
                 # return render(request, 'registration/register.html', {'registration_success': True})
