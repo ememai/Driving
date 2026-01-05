@@ -904,9 +904,8 @@ def payment_confirm(request):
                 msg = "Renewal"
             else:
                 msg = "New"
-            
-            link = reverse('admin:app_subscription_changelist')  
-            print(link)  
+            link = request.build_absolute_uri(reverse('admin:app_subscription_changelist'))
+
             notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, plan: {plan},\n\nWhatsapp: {whatsapp_number}
                          {link}''')
             
