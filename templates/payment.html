@@ -759,7 +759,29 @@
       }
     });
 
+    {% if show_modal %}
+      document.addEventListener('DOMContentLoaded', function () {
+        const modalEl = document.getElementById('confirmPayModal');
+
+        const modal = new bootstrap.Modal(modalEl, {
+          backdrop: 'static',
+          keyboard: false
+        });
+
+        modal.show();
+      });
+    {% endif %}
+
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!sessionStorage.getItem('paymentModalShown')) {
+        new bootstrap.Modal(
+          document.getElementById('confirmPayModal')
+        ).show();
+        sessionStorage.setItem('paymentModalShown', 'true');
+      }
+    });
+
   </script>
-  
+
   {% endblock %}
 </div>
