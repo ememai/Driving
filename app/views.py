@@ -41,7 +41,6 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 # from django.contrib.auth.forms import CustomSetPasswordForm
-from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -905,8 +904,10 @@ def payment_confirm(request):
                 msg = "Renewal"
             else:
                 msg = "New"
-                
-            notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, plan: {plan},\n\nWhatsapp: {whatsapp_number}''')
+            
+            link = reverse('admin:app_subscription_changelist')    
+            notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, plan: {plan},\n\nWhatsapp: {whatsapp_number}
+                         {link}''')
             
             messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Urakira igisubizo mu munota umwe.")
             return redirect('home')
