@@ -772,14 +772,14 @@
       });
     {% endif %}
 
-    document.addEventListener('DOMContentLoaded', function () {
+    {% comment %} document.addEventListener('DOMContentLoaded', function () {
       if (!sessionStorage.getItem('paymentModalShown')) {
         new bootstrap.Modal(
           document.getElementById('confirmPayModal')
         ).show();
         sessionStorage.setItem('paymentModalShown', 'true');
       }
-    });
+    }); {% endcomment %}
 
   </script>
 

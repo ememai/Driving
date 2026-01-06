@@ -848,6 +848,7 @@ def recreate_otp(request):
 
 @login_required(login_url='register')
 def subscription_status(request): 
+    show_modal = request.GET.get('confirm') == '1'
     page = 'subscription_status'
     plans = Plan.PLAN_CHOICES
     unverified_subscription = get_unverified_subscription(request.user)
@@ -855,7 +856,9 @@ def subscription_status(request):
         'plans': plans,
         'range_10': range(10),
         'first_exam_id': first_exam_id,
-        'unverified_subscription' : unverified_subscription}    
+        'unverified_subscription' : unverified_subscription,
+        'show_modal':show_modal
+        }    
     return render(request, 'payment.html', context)
 # ---------------------
 # Subscription and Payment Views
@@ -865,7 +868,7 @@ def subscription_status(request):
 @login_required(login_url='register')
 @transaction.atomic
 def payment_confirm(request):
-   
+    
     if request.method == 'POST':
         try:
             payeer_name = request.POST.get('payeer_name', '').strip()
@@ -915,7 +918,7 @@ def payment_confirm(request):
         except Exception as e:
             messages.error(request, "An error occurred while processing your payment confirmation. Please try again.")
     
-    return render(request, 'payment.html', {"show_modal":True})
+    return redirect(f"{reverse('subscription')}?confirm=1")
    
 
 @login_required(login_url='/?login=true')
