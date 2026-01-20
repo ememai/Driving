@@ -46,6 +46,7 @@ urlpatterns = [
     
     path('payment/confirm/', views.payment_confirm, name='payment_confirm'),
     path('recreate-otp/', views.recreate_otp, name='recreate_otp'),
+    path('payment/<int:user_id>/<int:plan_id>/', views.approve_payment, name='approve_payment'),
     # path("pay/", momo_payment, name="momo_payment"),
     # path("pay/status/<str:transaction_id>/", momo_payment_status, name="momo_payment_status"),
     

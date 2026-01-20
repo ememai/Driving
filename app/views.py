@@ -905,12 +905,16 @@ def payment_confirm(request):
             )            
             if hasattr(request.user, 'subscription'):
                 msg = "Renewal"
+                
+                if request.user.subscription.plan.plan == plan.plan:
+                    link = request.build_absolute_uri(reverse('admin:subscription-renew', args=[request.user.subscription.id]))
+                else:
+                    link = request.build_absolute_uri(reverse('admin:app_subscription_change', args=[request.user.subscription.id]))
             else:
                 msg = "New"
-            link = request.build_absolute_uri(reverse('admin:app_subscription_changelist'))
+                link = request.build_absolute_uri(reverse('approve_payment', args=[request.user.id, plan.id]))
 
-            notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, plan: {plan},\n\nWhatsapp: {whatsapp_number}
-                         {link}''')
+            notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, plan: {plan},\n\n{link}\n\nWhatsapp: {whatsapp_number}''')
             
             messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Urakira igisubizo mu munota umwe.")
             return redirect('home')
@@ -919,7 +923,52 @@ def payment_confirm(request):
             messages.error(request, "An error occurred while processing your payment confirmation. Please try again.")
     
     return redirect(f"{reverse('subscription')}?confirm=1")
-   
+
+
+#approve payment and create subscription
+@transaction.atomic
+@staff_member_required
+@csrf_exempt
+def approve_payment(request, user_id, plan_id):
+    """Approve payment and create/update subscription with OTP verification."""
+    try:
+        user = User.objects.get(id=user_id)
+        requested_plan = Plan.objects.get(id=plan_id)
+        all_plans = Plan.objects.all().order_by('price')
+    except (User.DoesNotExist, Plan.DoesNotExist):
+        messages.error(request, "User or Plan does not exist.")
+        return redirect('admin:app_paymentconfirm_changelist')
+
+    if request.method == 'POST':
+        return _handle_payment_approval(request, user, requested_plan)
+
+    return render(request, 'admin/approve_payment.html', {
+        'user': user,
+        'plan': requested_plan,
+        'plans': all_plans
+    })
+
+
+def _handle_payment_approval(request, user, requested_plan):
+    """Handle POST request for payment approval."""
+    subscription, _ = Subscription.objects.get_or_create(user=user)
+    
+    # Get plan from POST data or use requested plan
+    plan_id = request.POST.get('plan_instance')
+    if plan_id:
+        try:
+            subscription.plan = Plan.objects.get(id=plan_id)
+        except Plan.DoesNotExist:
+            messages.error(request, "Selected plan does not exist.")
+            return redirect('subscription')
+    else:
+        subscription.plan = requested_plan
+    
+    subscription.generate_otp()
+    subscription.save()
+    
+    messages.success(request, f"Payment approved and subscription created for {user.name}.")
+    return redirect('admin:app_subscription_changelist')
 
 @login_required(login_url='/?login=true')
 def subscription_view(request):

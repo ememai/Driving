@@ -163,19 +163,15 @@ class SubscriptionAdmin(admin.ModelAdmin):
     renew_subscription.short_description = 'Renew'
     
     def end_subscription(self, obj):        
-        if obj.active_subscription:
+        if obj.user.has_ended_subscription:
             return format_html(
-                    '<a class="button" href="{}">End</a>',
-                    reverse('admin:subscription-end', args=[obj.pk])
-                )
-        elif obj.otp_code and not obj.otp_verified:
-            return format_html(
-                '<span style="color: orange; font-weight: bold;">⚠️ Pending OTP</span>'
-            )
-        return format_html(
                 '<span style="color: red; font-weight: bold;">❌ Ended</span>'
             )
-       
+        
+        return format_html(
+            '<a class="button" style="background-color: red; color: white;" href="{}">End</a>',
+            f"/admin/app/subscription/{obj.pk}/end/"
+        )
 
     renew_subscription.allow_tags = True
 
@@ -217,9 +213,10 @@ class SubscriptionAdmin(admin.ModelAdmin):
         subscription = self.get_object(request, subscription_id)
         if subscription:
             subscription.updated = False
-            subscription.plan = None
+            # subscription.plan = None
             subscription.super_subscription = False
-            subscription.price = 0
+            # subscription.price = 0
+            subscription.otp_verified = True
             subscription.delta_hours = 0
             subscription.delta_days = 0
             subscription.expires_at = timezone.now() + timedelta(days=0)  # Resetting the expiration date 

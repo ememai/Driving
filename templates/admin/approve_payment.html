@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Approve Payment{% endblock %}
+
+{% block content %}
+<h2>Approve Payment for {{ user.name }}</h2>
+<form method="post">
+    {% csrf_token %}
+
+    <label for="plan_instance">Plan:</label>
+    <select name="plan_instance" class="form-control " style="width: 300px; margin-bottom: 15px;">
+        <option disabled>Select a Plan</option>
+        {% for plan in plans %}
+            <option  value="{{ plan.id }}" {% if plan.id == requested_plan.id %}selected{% endif %}>{{ plan.plan }} - {{ plan.price }}</option>
+        {% endfor %}
+    </select>
+    <br>
+
+    <button type="submit" class="btn btn-success">Approve</button>
+    <a href="{% url 'admin:app_subscription_changelist' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
