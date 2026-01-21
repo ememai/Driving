@@ -156,7 +156,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
     def renew_subscription(self, obj):
         if not obj.super_subscription and obj.plan:
             return format_html(
-                '<a class="button text-success" href="{}">Renew</a>',
+                '<a class="btn btn-success d-flex align-items-center" href="{}"><i class="fas fa-sync-alt mx-1"></i><span> Renew</span></a>',
                 f"/admin/app/subscription/{obj.pk}/renew/"
             )
         return "-"
@@ -165,11 +165,11 @@ class SubscriptionAdmin(admin.ModelAdmin):
     def end_subscription(self, obj):        
         if obj.user.has_ended_subscription:
             return format_html(
-                '<span style="color: red; font-weight: bold;">❌ Ended</span>'
+                '<span class="text-red">❌ Ended</span>'
             )
         
         return format_html(
-            '<a class="button" style="color: red;" href="{}">End</a>',
+            '<a class="btn btn-danger d-flex align-items-center" href="{}"><i class="fa-solid fa-stop mx-1"></i><span> End</span></a>',
             f"/admin/app/subscription/{obj.pk}/end/"
         )
 
