@@ -28,8 +28,7 @@ def subscription_required(view_func):
         first_exam = Exam.objects.filter(exam_type__name__icontains='ibivanze', for_scheduling=False).order_by('created_at').first()
         exam_id = kwargs.get('exam_id') or kwargs.get('pk')
         
-        print(f"First Exam ID: {first_exam.id if first_exam else 'None'}")
-        print(f"Requested Exam ID: {exam_id}")
+       
         
         if not request.user.is_subscribed and not request.user.is_staff:
             if first_exam and exam_id and str(exam_id) == str(first_exam.id):
