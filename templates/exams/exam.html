@@ -391,6 +391,15 @@
           // Re-attach event listeners to new buttons
           attachQuestionEventListeners();
         }
+        // Add redirect handling for non-subscribed users
+        if (data.redirect) {
+          // Clear the question content to prevent further interaction
+          document.querySelector('.question-container').innerHTML = '';
+          // Use both assign and replace for maximum compatibility
+          window.location.assign(data.redirect);
+          setTimeout(function() { window.location.replace(data.redirect); }, 100);
+          return;
+        }
       })
       .catch(error => console.error('Error:', error))
       .finally(() => { isNavigating = false; });

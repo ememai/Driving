@@ -560,6 +560,16 @@ def ajax_question(request, exam_id, question_number):
     
     question = questions[question_number - 1]
     
+    if not request.user.is_subscribed and not request.user.is_staff: 
+        if question_number >= 2 or request.session.get('answers') and len(request.session['answers']) >= 1:
+            UserExam.objects.filter(user=request.user, exam=exam).delete()
+            request.session.pop('answers', None)     
+            messages.error(request, mark_safe(
+               "<h5>Gura ifatabuguzi kugirango ukomeze ikizamini!</h5>"
+            ))       
+            return JsonResponse({'redirect': reverse('subscription')})
+    
+    
     # Handle answer saving if POST request
     if request.method == 'POST':
         user_answer = request.POST.get('answer')
@@ -625,6 +635,14 @@ def exam(request, exam_id, question_number):
     # Initialize answer session if not present
     if 'answers' not in request.session:
         request.session['answers'] = {}
+        
+    if question_number >= 2 and not request.user.is_subscribed or request.session['answers'].__len__() >= 1 and not request.user.is_subscribed and not request.user.is_staff:
+                UserExam.objects.filter(id=user_exam.id).delete()
+                request.session.pop('answers', None)            
+                messages.error(request, mark_safe(
+                   "<h5>Gura ifatabuguzi kugirango ukomeze ikizamini!</h5>"
+                ))
+                return redirect('subscription')
 
     # Handle answer submission and navigation
     if request.method == 'POST':
@@ -633,14 +651,6 @@ def exam(request, exam_id, question_number):
             request.session['answers'][str(current_question.id)] = user_answer
             request.session.modified = True
         
-            
-        if question_number >= 2 and not request.user.is_subscribed or request.session['answers'].__len__() >= 1 and not request.user.is_subscribed and not request.user.is_staff:
-                UserExam.objects.filter(id=user_exam.id).delete()
-                request.session.pop('answers', None)            
-                messages.error(request, mark_safe(
-                   "<h5>Gura ifatabuguzi kugirango ukomeze ikizamini!</h5>"
-                ))
-                return redirect('subscription')
 
         if 'next' in request.POST and question_number < total_questions:
             return redirect('exam', exam_id=exam_id, question_number=question_number + 1)
@@ -649,6 +659,14 @@ def exam(request, exam_id, question_number):
         
         elif 'submit' in request.POST:
             score = 0
+            if not request.user.is_subscribed and not request.user.is_staff:
+                UserExam.objects.filter(id=user_exam.id).delete()
+                request.session.pop('answers', None)            
+                # messages.error(request, mark_safe(
+                #    "<h5>Ntago wemerewe!</h5>"
+                # ))
+                return redirect('subscription')
+            
             for question in questions:
                 correct_choice = question.correct_choice
                 user_choice = request.session['answers'].get(str(question.id))
@@ -984,51 +1002,51 @@ def _handle_payment_approval(request, user, requested_plan):
     messages.success(request, f"Payment approved and subscription created for {user.name}.")
     return redirect('admin:app_subscription_changelist')
 
-@login_required(login_url='/?login=true')
-def subscription_view(request):
-    # sub = request.user.subscription and request.user.subscription.expires_at > timezone.now().date()
+# @login_required(login_url='/?login=true')
+# def subscription_view(request):
+#     # sub = request.user.subscription and request.user.subscription.expires_at > timezone.now().date()
 
-    subscription, created = Subscription.objects.get_or_create(user=request.user)
-    if request.method == 'POST':
-        plan_choice = request.POST.get('plan')
-        phone_number = request.POST.get('phone_number')
+#     subscription, created = Subscription.objects.get_or_create(user=request.user)
+#     if request.method == 'POST':
+#         plan_choice = request.POST.get('plan')
+#         phone_number = request.POST.get('phone_number')
 
-        if plan_choice not in dict(plans):
-            messages.error(request, "Ikiciro kitaricyo.")
-            return redirect('subscription')
+#         if plan_choice not in dict(plans):
+#             messages.error(request, "Ikiciro kitaricyo.")
+#             return redirect('subscription')
 
-        try:
-            selected_plan = Plan.objects.get(plan=plan_choice)
-        except Plan.DoesNotExist:
-            messages.error(request, "Ikiciro wahisempo ntikibaho.")
-            return redirect('subscription')
+#         try:
+#             selected_plan = Plan.objects.get(plan=plan_choice)
+#         except Plan.DoesNotExist:
+#             messages.error(request, "Ikiciro wahisempo ntikibaho.")
+#             return redirect('subscription')
 
-        # This function should return (price, duration_days) for the selected plan.
-        price, duration_days = set_price_and_duration(plan_choice)  # Ensure this helper exists.
+#         # This function should return (price, duration_days) for the selected plan.
+#         price, duration_days = set_price_and_duration(plan_choice)  # Ensure this helper exists.
 
-        payment_response, transaction_id = request_momo_payment(phone_number, price)
-        if "error" in payment_response:
-            messages.error(request, payment_response["error"])
-            return redirect('subscription')
+#         payment_response, transaction_id = request_momo_payment(phone_number, price)
+#         if "error" in payment_response:
+#             messages.error(request, payment_response["error"])
+#             return redirect('subscription')
 
-        # Save transaction details
-        subscription.plan = selected_plan  # ✅ Assign the Plan instance
-        subscription.price = price
-        subscription.duration_days = duration_days
-        subscription.phone_number = phone_number
-        subscription.transaction_id = transaction_id
-        subscription.save()
+#         # Save transaction details
+#         subscription.plan = selected_plan  # ✅ Assign the Plan instance
+#         subscription.price = price
+#         subscription.duration_days = duration_days
+#         subscription.phone_number = phone_number
+#         subscription.transaction_id = transaction_id
+#         subscription.save()
 
 
-        messages.info(request, "Kwemeza ubwishyu byoherejwe. reba kuri telefone wemeze.")
-        return redirect('momo_payment_status', transaction_id=transaction_id)
+#         messages.info(request, "Kwemeza ubwishyu byoherejwe. reba kuri telefone wemeze.")
+#         return redirect('momo_payment_status', transaction_id=transaction_id)
 
-    context = {
-        'subscription': subscription,
-        'plans': plans,
-        # 'sub': sub
-    }
-    return render(request, 'subscription.html', context)
+#     context = {
+#         'subscription': subscription,
+#         'plans': plans,
+#         # 'sub': sub
+#     }
+#     return render(request, 'subscription.html', context)
 
 @login_required
 def activate_subscription_view(request):

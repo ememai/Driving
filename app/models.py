@@ -417,6 +417,10 @@ class Subscription(models.Model):
     @property
     def active_subscription(self):
         return self.expires_at and self.expires_at >= timezone.now()
+    
+    @property
+    def has_unverified_otp(self):
+        return self.otp_code and not self.otp_verified
 
     def __str__(self):
         return f"Subscription for {self.user}"

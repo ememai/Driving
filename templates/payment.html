@@ -180,6 +180,11 @@
             <strong>{{ user.subscription.expires_at|date:"H:i" }}</strong>
           </p>
 
+          {% elif unverified_subscription %}          
+            <i class="bi bi-check-circle text-info fs-4 mb-0" aria-hidden="true"></i>
+            <h5 class="modal-title fw-bold mb-1 text-info">
+              ubwishyu byawe bwemejwe
+            </h5>
           {% elif user.has_ended_subscription %}
           <i class="bi bi-exclamation-triangle-fill text-danger fs-2 mb-2"></i>
           <h5 class="modal-title fw-bold mb-1 text-warning">
