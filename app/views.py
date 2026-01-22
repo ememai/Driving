@@ -554,7 +554,21 @@ def ajax_question(request, exam_id, question_number):
     exam = get_object_or_404(Exam, id=exam_id)
     questions = list(exam.questions.all())
     total_questions = len(questions)
+    
+    if question_number < 1 or question_number > total_questions:
+        return JsonResponse({'error': 'Invalid question number'}, status=400)
+    
     question = questions[question_number - 1]
+    
+    # Handle answer saving if POST request
+    if request.method == 'POST':
+        user_answer = request.POST.get('answer')
+        question_id = request.POST.get('question_id')
+        if 'answers' not in request.session:
+            request.session['answers'] = {}
+        if user_answer and question_id:
+            request.session['answers'][question_id] = user_answer
+            request.session.modified = True
     
     # Get choices
     choices = []

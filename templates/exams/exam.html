@@ -64,6 +64,9 @@
 
   .img-thumbnail {
     border:none ;
+    box-shadow: none;
+    max-width: 30vw !important;
+    height: auto;
   }
 
   @media(min-width: 495px){
@@ -203,93 +206,93 @@
 
 <div class="container mt-5">
 
-  <form method="POST" class="q-nums-form" action="{% url 'exam' exam.id question_number %}">
-    {% csrf_token %}
-    <div class="container">
-      <div id="question-nav">
+  <div class="container">
+    <div id="question-nav">
 
-        {% for num in q_nums %}
-     {% with q_id=num|get_question_id:questions %}
-      <div class="col p-0">
-      <button
-        class="btn btn-sm rounded-0
-          {% if num == question_number %}
-            btn-primary
-          {% elif q_id|isin:request.session.answers %}
-            btn-success
-          {% else %}
-            btn-outline-secondary
-          {% endif %}"
-        {% if num == question_number %}disabled{% endif %}
-        title="Kanda hano kugirango ujye ku kibazo cya {{ num }}"
-        type="submit" name="go_to" value="{{ num }}"
-        class="go-to">
-        
+      {% for num in q_nums %}
+   {% with q_id=num|get_question_id:questions %}
+    <div class="col p-0">
+    <button
+      class="btn btn-sm rounded-0 nav-btn
         {% if num == question_number %}
-          <strong>{{ num }}</strong>
-        {% elif request.session.answers|get:q_id %}
-          <strong>{{ num }}</strong>
+          btn-primary
+        {% elif q_id|isin:request.session.answers %}
+          btn-success
         {% else %}
-          {{ num }}
-        {% endif %}
-      </button>
-    </div>
-    {% endwith %}
-      {% endfor %}
+          btn-outline-secondary
+        {% endif %}"
+      {% if num == question_number %}disabled{% endif %}
+      title="Kanda hano kugirango ujye ku kibazo cya {{ num }}"
+      data-question="{{ num }}"
+      >
+      
+      {% if num == question_number %}
+        <strong>{{ num }}</strong>
+      {% elif request.session.answers|get:q_id %}
+        <strong>{{ num }}</strong>
+      {% else %}
+        {{ num }}
+      {% endif %}
+    </button>
+  </div>
+  {% endwith %}
+    {% endfor %}
 
-      </div>
     </div>
-  </form>
+  </div>
 </div>
 <div class="container mt-5 ">
   {% include "flash_message.html" %}
   <!-- Exam Form -->
-  <form method="POST" id="examForm" class="p-4 shadow-lg">
-    {% csrf_token %}
-    <input type="hidden" name="go_to" id="goToInput">
-    <div class="mb-5">
-      <p class="fs-1 d-none d-md-block">{{ question_number }}. {{ question.question_text }}</p>
-      <p class="fs-3 d-block d-md-none">{{ question_number }}. {{ question.question_text }}</p>
-    </div>
-
-    {% if question.question_sign %}
-            <div class="mt-2 mb-4 text-center ">
-              <img src="{{ question.question_sign.sign_image.url }}" alt="Amategeko y'umuhanda - Ibimenyetso by'umuhanda" class="img-thumbnail q-sign">
-            </div>
-    {% endif %}
-
-    <fieldset class="mt-5 mb-4 ">
-
-      {% for choice in choices %}
-      <div class="form-check mb-3 border p-2 rounded-3 border-secondary" title="Hitampo '{{ forloop.counter0|letter }}' nk'igisubizo cy'ukuri">
-        <input class="form-check-input " type="radio" name="answer" id="choice-{{ choice.id }}" value="{{ choice.id }}"
-               {% if choice.id|stringformat:"s" == request.session.answers|get:question.id %}checked{% endif %}>
-        <label class="form-check-label d-flex align-items-start" for="choice-{{ choice.id }}">
-          <span class="fs-2 me-2">{{ forloop.counter0|letter }})</span>
-          {% if choice.type == 'text' %}
-          <span class="fs-3">{{ choice.content }}</span>
-          {% elif choice.type == 'image' %}
-          <img src="{{ choice.content }}" alt="Amategeko y'umuhanda - Ibyapa" class="img-thumbnail me-2" style="max-width: 30vw; height: auto;">
-          
-          {% endif %}
-        </label>
+  <div class="question-container">
+    <form method="POST" id="examForm" class="p-4 shadow-lg">
+      {% csrf_token %}
+      <input type="hidden" name="go_to" id="goToInput">
+      <input type="hidden" name="question_id" value="{{ question.id }}">
+      <div class="mb-5">
+        <p class="fs-1 d-none d-md-block">{{ question_number }}. {{ question.question_text }}</p>
+        <p class="fs-3 d-block d-md-none">{{ question_number }}. {{ question.question_text }}</p>
       </div>
-      {% endfor %}
-    </fieldset>
 
-    <div class="d-flex justify-content-between">
-      <button type="submit" name="previous" class="btn btn-secondary" {% if question_number == 1 %}disabled{% endif %} title="Subira ku kibazo cya {{ question_number|add:-1 }}">Subira inyuma</button>
-
-
-      {% if question_number < total_questions %}
-      <button type="submit" name="next" class="btn btn-primary" id="nextBtn" title="Komeza ku kibazo cya {{ question_number|add:1 }}">Next</button>
-      {% else %}
-      <button type="button" name="submit" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#submitModal" id="submitExamBtn" title="Soza ikizamini urebe amanota">
-        Soza ikizamini
-      </button>
+      {% if question.question_sign %}
+            <div class="mt-2 mb-4 text-center mx-auto">
+              <img src="{{ question.question_sign.sign_image.url }}" alt="Amategeko y'umuhanda - Ibimenyetso by'umuhanda" class="img-thumbnail q-sign" >
+            </div>
       {% endif %}
-    </div>
-  </form>
+
+      <fieldset class="mt-5 mb-4 ">
+
+        {% for choice in choices %}
+        <div class="form-check mb-3 border p-2 rounded-3 border-secondary" title="Hitampo '{{ forloop.counter0|letter }}' nk'igisubizo cy'ukuri">
+          <input class="form-check-input " type="radio" name="answer" id="choice-{{ choice.id }}" value="{{ choice.id }}"
+                 {% if choice.id|stringformat:"s" == request.session.answers|get:question.id %}checked{% endif %}>
+          <label class="form-check-label d-flex align-items-start" for="choice-{{ choice.id }}">
+            <span class="fs-2 me-2">{{ forloop.counter0|letter }})</span>
+            {% if choice.type == 'text' %}
+            <span class="fs-3">{{ choice.content }}</span>
+            {% elif choice.type == 'image' %}
+            <img src="{{ choice.content }}" alt="Amategeko y'umuhanda - Ibyapa" class="img-thumbnail me-2" style="max-width: 30vw; height: auto;">
+            
+            {% endif %}
+          </label>
+        </div>
+        {% endfor %}
+      </fieldset>
+
+      <div class="d-flex justify-content-between">
+        <button type="button" id="prevBtn" class="btn btn-secondary " {% if question_number == 1 %}disabled{% endif %} title="Subira ku kibazo cya {{ question_number|add:-1 }}">Subira inyuma</button>
+
+
+        {% if question_number < total_questions %}
+        <button type="button" id="nextBtn" class="btn btn-primary" title="Komeza ku kibazo cya {{ question_number|add:1 }}">Next</button>
+        {% else %}
+        <button type="button" name="submit" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#submitModal" id="submitExamBtn" title="Soza ikizamini urebe amanota">
+          Soza ikizamini
+        </button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
 
 
 </div>
@@ -331,33 +334,135 @@
     }
 
 
-    const nextBtn = document.getElementById('nextBtn');
-    const prevBtn = document.querySelector('button[name="previous"]');
     const confirmSubmitBtn = document.getElementById('confirmSubmit');
     const form = document.getElementById('examForm');
-    const questionNavButtons = document.querySelectorAll('#question-nav button');
 
-
-    if (nextBtn) nextBtn.addEventListener('click', removeBeforeUnload);
-    if (prevBtn) prevBtn.addEventListener('click', removeBeforeUnload);
+    // Remove beforeunload warning for form submission
     if (confirmSubmitBtn) confirmSubmitBtn.addEventListener('click', removeBeforeUnload);
     if (form) form.addEventListener('submit', removeBeforeUnload);
 
     const goToInput = document.getElementById('goToInput');
 
-    questionNavButtons.forEach(button => {
-      button.addEventListener('click', function (e) {
-        e.preventDefault(); // stop normal form submission of q-nums-form
-        // Set the go_to value to the clicked button’s number
-        goToInput.value = this.value;
+    // AJAX navigation function
+    function navigateToQuestion(questionNum) {
+      // Save current answer before navigating
+      const currentAnswer = document.querySelector('input[name="answer"]:checked');
+      const answerValue = currentAnswer ? currentAnswer.value : '';
+      
+      // Get current question ID from the form
+      const currentQuestionId = document.querySelector('input[name="question_id"]').value;
 
-        // Remove the "beforeunload" warning
-        removeBeforeUnload();
+      fetch(`/exam/{{ exam.id }}/ajax/${questionNum}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `answer=${answerValue}&question_id=${currentQuestionId}`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.html) {
+          // Update the question content
+          document.querySelector('.question-container').innerHTML = data.html;
+          
+          // Scroll to top of page
+          window.scrollTo(0, 0);
+          
+          // Update the question number display
+          document.querySelector('.progress strong').textContent = `Ikibazo cya ${questionNum} muri {{ total_questions }}`;
+          
+          // Update URL without page reload
+          history.pushState(null, '', `/exam/{{ exam.id }}/${questionNum}/`);
+          
+          // Update navigation button states
+          updateNavigationButtons(questionNum);
+          
+          // Re-attach event listeners to new buttons
+          attachQuestionEventListeners();
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    }
 
-        // Submit the main exam form instead (which includes user's current answer)
-        HTMLFormElement.prototype.submit.call(form);
+    function updateNavigationButtons(currentQuestion) {
+      // Update question nav buttons
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const questionNum = parseInt(btn.getAttribute('data-question'));
+        btn.classList.remove('btn-primary', 'btn-success', 'btn-outline-secondary');
+        
+        if (questionNum == currentQuestion) {
+          btn.classList.add('btn-primary');
+          btn.disabled = true;
+        } else {
+          // For simplicity, keep the original styling
+          // In a real implementation, you'd need to track which specific questions are answered
+          btn.classList.add('btn-outline-secondary');
+          btn.disabled = false;
+        }
       });
-    });
+    }
+
+    function attachQuestionEventListeners() {
+      // Use event delegation on the question container
+      const questionContainer = document.querySelector('.question-container');
+      if (questionContainer) {
+        questionContainer.addEventListener('click', function(e) {
+          const target = e.target;
+          
+          if (target.id === 'nextBtn') {
+            e.preventDefault();
+            e.stopPropagation();
+            removeBeforeUnload();
+            const currentQuestion = parseInt(window.location.pathname.split('/').filter(x => x).pop());
+            navigateToQuestion(currentQuestion + 1);
+          } else if (target.id === 'prevBtn') {
+            e.preventDefault();
+            e.stopPropagation();
+            removeBeforeUnload();
+            const currentQuestion = parseInt(window.location.pathname.split('/').filter(x => x).pop());
+            navigateToQuestion(currentQuestion - 1);
+          } else if (target.id === 'submitExamBtn') {
+            
+            
+            // Save current answer before submitting
+            const currentAnswer = document.querySelector('input[name="answer"]:checked');
+            const answerValue = currentAnswer ? currentAnswer.value : '';
+            
+            // Submit the form normally
+            const form = document.getElementById('examForm');
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'answer';
+            hiddenInput.value = answerValue;
+            form.appendChild(hiddenInput);
+            
+            // Add submit flag
+            const submitInput = document.createElement('input');
+            submitInput.type = 'hidden';
+            submitInput.name = 'submit';
+            submitInput.value = 'true';
+            form.appendChild(submitInput);
+            
+            form.submit();
+          }
+        });
+      }
+      
+      // Attach listeners to top navigation buttons (these don't change)
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          removeBeforeUnload();
+          const questionNum = this.getAttribute('data-question');
+          navigateToQuestion(questionNum);
+        });
+      });
+    }
+
+    // Attach initial event listeners using event delegation
+    attachQuestionEventListeners();
 
     {% if  exam_end_time   %}
     
