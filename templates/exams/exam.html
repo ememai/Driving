@@ -224,6 +224,7 @@
       {% if num == question_number %}disabled{% endif %}
       title="Kanda hano kugirango ujye ku kibazo cya {{ num }}"
       data-question="{{ num }}"
+      data-question-id="{{ q_id }}"
       >
       
       {% if num == question_number %}
@@ -343,6 +344,12 @@
 
     const goToInput = document.getElementById('goToInput');
 
+    // Initialize saved answers from session
+    let savedAnswers = {};
+    {% for key, value in request.session.answers.items %}
+    savedAnswers['{{ key|escapejs }}'] = '{{ value|escapejs }}';
+    {% endfor %}
+
     // AJAX navigation function
     function navigateToQuestion(questionNum) {
       // Save current answer before navigating
@@ -365,6 +372,11 @@
         if (data.html) {
           // Update the question content
           document.querySelector('.question-container').innerHTML = data.html;
+          
+          // Update saved answers locally
+          if (answerValue) {
+            savedAnswers[currentQuestionId] = answerValue;
+          }
           
           // Scroll to top of page
           window.scrollTo(0, 0);
@@ -389,15 +401,19 @@
       // Update question nav buttons
       document.querySelectorAll('.nav-btn').forEach(btn => {
         const questionNum = parseInt(btn.getAttribute('data-question'));
+        const questionId = btn.getAttribute('data-question-id');
         btn.classList.remove('btn-primary', 'btn-success', 'btn-outline-secondary');
         
         if (questionNum == currentQuestion) {
           btn.classList.add('btn-primary');
           btn.disabled = true;
         } else {
-          // For simplicity, keep the original styling
-          // In a real implementation, you'd need to track which specific questions are answered
-          btn.classList.add('btn-outline-secondary');
+          // Check if this question has been answered
+          if (savedAnswers[questionId]) {
+            btn.classList.add('btn-success');
+          } else {
+            btn.classList.add('btn-outline-secondary');
+          }
           btn.disabled = false;
         }
       });
