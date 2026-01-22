@@ -344,21 +344,25 @@
 
     const goToInput = document.getElementById('goToInput');
 
+
     // Initialize saved answers from session
     let savedAnswers = {};
     {% for key, value in request.session.answers.items %}
     savedAnswers['{{ key|escapejs }}'] = '{{ value|escapejs }}';
     {% endfor %}
 
+    // Debounce flag for navigation
+    let isNavigating = false;
+
     // AJAX navigation function
     function navigateToQuestion(questionNum) {
+      if (isNavigating) return;
+      isNavigating = true;
       // Save current answer before navigating
       const currentAnswer = document.querySelector('input[name="answer"]:checked');
       const answerValue = currentAnswer ? currentAnswer.value : '';
-      
       // Get current question ID from the form
       const currentQuestionId = document.querySelector('input[name="question_id"]').value;
-
       fetch(`/exam/{{ exam.id }}/ajax/${questionNum}/`, {
         method: 'POST',
         headers: {
@@ -372,29 +376,24 @@
         if (data.html) {
           // Update the question content
           document.querySelector('.question-container').innerHTML = data.html;
-          
           // Update saved answers locally
           if (answerValue) {
             savedAnswers[currentQuestionId] = answerValue;
           }
-          
           // Scroll to top of page
           window.scrollTo(0, 0);
-          
           // Update the question number display
           document.querySelector('.progress strong').textContent = `Ikibazo cya ${questionNum} muri {{ total_questions }}`;
-          
           // Update URL without page reload
           history.pushState(null, '', `/exam/{{ exam.id }}/${questionNum}/`);
-          
           // Update navigation button states
           updateNavigationButtons(questionNum);
-          
           // Re-attach event listeners to new buttons
           attachQuestionEventListeners();
         }
       })
-      .catch(error => console.error('Error:', error));
+      .catch(error => console.error('Error:', error))
+      .finally(() => { isNavigating = false; });
     }
 
     function updateNavigationButtons(currentQuestion) {
