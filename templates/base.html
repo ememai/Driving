@@ -123,7 +123,7 @@
     {% endif %}
 
         <!-- Footer -->
-        <footer class="bg-theme text-theme py-4 mt-0 mx-0 border-top border-secondary">
+        {% comment %} <footer class="bg-theme text-theme py-4 mt-0 mx-0 border-top border-secondary">
             <div class="container-fluid text-center">
                 <!-- Social Links -->
                 <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 mb-3">
@@ -131,11 +131,6 @@
                     <i class="bi bi-tiktok"></i>
                     <span>TikTok</span>
                 </a>
-                {% comment %} <a href="https://wa.me/250785287885" target="_blank" class="text-decoration-none text-theme d-flex align-items-center gap-2 hover-opacity">
-                    <i class="bi bi-whatsapp fs-5 text-success"></i>
-                    <span>0785287885</span>
-                </a> {% endcomment %}
-
                 <a href="https://youtube.com/@250drivingcollege?si=-uAEcoRDZDkyB3Go" target="_blank" class="text-decoration-none text-theme d-flex align-items-center gap-2 hover-opacity">
                     <i class="bi bi-youtube fs-5 text-danger"></i>
                     <span>Youtube Channel</span>
@@ -178,8 +173,9 @@
             footer a:hover i {
                 transform: scale(1.2);
             }
-        </style>
+        </style> {% endcomment %}
 
+        <!-- Logout Confirmation Modal -->
         {% include "logout_confirm.html" %}
         <!-- Core Scripts -->
 
