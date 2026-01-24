@@ -86,10 +86,39 @@
     <body class="d-flex flex-column min-vh-100 bg-theme text-theme gap-0">
         {% include "registration/login.html" %}
         <!-- Global Loader -->
-        <div class="global-loader" id="global-loader" aria-hidden="true">
-            <div class="spinner" role="status"></div>
-            <div class="loader-text px-2">Loading...</div>
-        </div>
+
+            <div class="global-loader" id="global-loader" aria-hidden="true">
+                <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;"></div>
+                <div class="loader-text fs-5 px-2 mt-2 fw-bold">Tegereza gato...</div>
+            </div>
+
+            <style>
+                .global-loader {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100vw;
+                    height: 100vh;
+                    background: rgba(0,0,0,0.5);
+                    z-index: 2000;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.3s ease;
+                }
+                .global-loader.active {
+                    opacity: 1;
+                    pointer-events: auto;
+                }
+                .global-loader .loader-text {
+                    color: #fff;
+                    font-size: 1.2rem;
+                    text-align: center;
+                }
+            </style>
 
         <!-- Status Icons -->
         <div class="status-icon checkmark-icon" id="success-indicator">
@@ -193,7 +222,6 @@
                 errorIndicator: document.getElementById('error-indicator'),
                 flashMessages: document.getElementById('flash-messages'),
 
-
                 show: () => {
                     globalLoader.element.classList.add('active');
                     document.body.style.overflow = 'hidden';
@@ -211,8 +239,17 @@
                         globalLoader.successIndicator.classList.remove('show');
                     }, 2000); // Show checkmark for 2 seconds
                 },
+                showError: () => {
+                    globalLoader.hide();
+                    globalLoader.errorIndicator.classList.add('show');
+                    setTimeout(() => {
+                        globalLoader.errorIndicator.classList.remove('show');
+                    }, 2000);
+                }
             };
 
+            // Show loader immediately on script load (before DOMContentLoaded)
+            globalLoader.show();
 
             let xklName = `<div class="d-flex align-items-center">
                 <i class="bi bi-car-front-fill text-warning fs-1"></i>
@@ -220,7 +257,10 @@
             <i class="bi bi-mortarboard text-success fs-1"> </i>
             </div>`;
             // Set the content of the element with id "kds"
-            document.getElementById("kds").innerHTML = xklName;
+            document.addEventListener('DOMContentLoaded', function() {
+                const kdsElem = document.getElementById("kds");
+                if (kdsElem) kdsElem.innerHTML = xklName;
+            });
 
             // Auto-handle form submissions
             document.addEventListener('submit', function (e) {
@@ -266,7 +306,7 @@
                 }
             });
 
-            // Handle successful page loads
+            // Hide loader after DOM is ready
             document.addEventListener('DOMContentLoaded', () => {
                 globalLoader.hide();
 

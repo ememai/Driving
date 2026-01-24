@@ -19,27 +19,7 @@
     #20603d 100%);
   }
 
-  /* 🌍 Global spinner styles */
-  .spinner-overlay {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.65);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    transition: opacity 0.3s ease;
-  }
-  .spinner-overlay.fade-in {
-    opacity: 1;
-    visibility: visible;
-  }
-  .spinner-overlay.d-none {
-    opacity: 0;
-    visibility: hidden;
-  }
+ 
   
 </style>
 
@@ -256,15 +236,7 @@
     </div>
   </div>
 </div>
-<!-- 🌍 Global Spinner Overlay -->
-<div id="globalSpinner" class="spinner-overlay d-none">
-  <div class="text-center">
-    <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-    <p class="text-light mt-3 fs-5">Tegereza gato...</p>
-  </div>
-</div>
+
 
 
 {% endblock %}
@@ -295,7 +267,6 @@
     const form = document.getElementById('registrationForm');
     const submitBtn = form.querySelector('button[type="submit"]');
     const fields = form.querySelectorAll('input');
-    const globalSpinner = document.getElementById('globalSpinner');
 
 
     // Error messages
@@ -430,9 +401,6 @@
         e.preventDefault();
           submitBtn.disabled = true;
 
-          // Show global overlay spinner
-          globalSpinner.classList.remove('d-none');
-          globalSpinner.classList.add('fade-in');
 
           // Optional delay before submit (to ensure UI updates)
           setTimeout(() => {
