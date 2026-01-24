@@ -4,7 +4,9 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: var(--bs-primary); /* You can choose a color or use a random color generator */
+    background: var(
+      --bs-primary
+    ); /* You can choose a color or use a random color generator */
     color: white;
     font-size: 14px;
     font-weight: bold;
@@ -12,200 +14,205 @@
     align-items: center;
     justify-content: center;
     margin-right: 10px;
-}
+  }
 
-@media (max-width: 768px) {
+  @media (max-width: 768px) {
     .avatar-circle {
-        width: 40px;
-        height: 40px;
-        font-size: 14px;
+      width: 40px;
+      height: 40px;
+      font-size: 14px;
     }
+  }
+
+  .nav-text {
+    font-size: 0.75rem;
+  }
+
+  .navbar {
+  {% comment %} position: fixed; {% endcomment %}
+  top: 0;
+  width: 100%;
+  z-index: 10000;
 }
 
-.nav-text {
-    font-size: 0.75rem;
+.navbar .dropdown-menu {
+  z-index: 10001;
 }
+
 </style>
 <nav class="navbar navbar-expand-lg shadow-sm" id="navbar">
-
-  <div class="d-flex justify-content-center flex-grow-1">
+  <div
+    class="d-flex justify-content-center flex-grow-1 position-relative align-items-center"
+    >
     <a
-        class="navbar-brand d-flex align-items-center gap-2 text-theme"
-        href="{% url 'home' %}">
+      class="navbar-brand d-flex align-items-center gap-2 text-theme"
+      href="{% url 'home' %}"
+    >
+      <img
+        src="{% static 'img/logo.png' %}"
+        alt="Logo"
+        class="logo"
+        style="width: 30px; height: 30px; border-radius: 50%"
+      />
+      <strong>IGAZETI.RW</strong>
+    </a>
+
+    <a
+      class="nav-link dropdown-toggle d-flex align-items-center d-lg-none"
+      href="#"
+      id="userDropdown"
+      role="button"
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+      style="
+        position: absolute;
+        right: 1rem;
+      "
+    >
+      <!-- Avatar with First Name Initial -->
+      <div class="avatar-circle me-2">
+        {{ request.user.name|slice:":2"|upper }}
+      </div>
+    </a>
+    <ul
+      class="align-items-center gap-2 text-theme "
+      style="list-style: none; display: flex; margin: 10px; padding: 0; position: absolute; right: 1rem; top: 70%; transform: translateY(-50%); z-index: 1000 !important;"
+    >
+      {% if user.is_authenticated %}
+
+      <li class="nav-item dropdown d-flex align-items-center flex-column justify-content-between">
         
-        <img
-          src="{% static 'img/logo.png' %}"
-          alt="Logo"
-          class="logo"
-          style="width: 40px; height: 40px; border-radius: 50%"
-        />
-        <strong>IGAZETI.RW</strong>
-      </a>
-  </div>
-  <div  class="container-fluid px-2 d-flex justify-content-between align-items-center gap-2">
-    
 
-    <!-- Nav Items -->
-    <div class="collapse navbar-collapse" id="navbarMain">
-      <ul class="navbar-nav ms-auto align-items-center gap-2 text-theme">
-       
-
-        
-        {% if user.is_authenticated %}
-          <li class="nav-item">
-            <a
-              class="nav-link {% if request.path == '/' %}active{% endif %} d-flex flex-column align-items-center"
-              href="{% url 'home' %}"
-            >
-              <i class="bi bi-house-door-fill"></i>
-              <em class="nav-text">Ahabanza</em>
+        <ul
+          class="dropdown-menu dropdown-menu-end"
+          style="background-color: rgba(var(--card-bg-rgb), 0.98); backdrop-filter: blur(10px); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border-radius: 0.5rem; "
+        >
+          <li>
+            <a class="dropdown-item text-theme" href="{% url 'profile' %}"
+              ><i class="bi bi-person-fill"></i>
+              {{ request.user.name|first_name }}
             </a>
           </li>
+          <li>
+            {% if not request.user.is_subscribed %}
 
-          <li class="nav-item">
-            <a
-              class="nav-link {% if request.path == '/amasomo/' %}active{% endif %} d-flex flex-column align-items-center"
-              href="{% url 'courses' %}"
+            <a class="dropdown-item text-danger" href="{% url 'subscription' %}"
+              ><i class="bi bi-wallet-fill"></i> Gura ifatabuguzi</a
             >
-              <i class="bi bi-book-fill"></i>
-              <em class="nav-text">Amasomo</em>
+            {% else %}
+            <a
+              class="dropdown-item text-success"
+              href="{% url 'subscription' %}"
+            >
+              <i class="bi bi-wallet-fill"></i>Ifatabuguzi | {{
+              request.user.subscription.plan.get_plan_display}}
             </a>
+            {% endif %}
           </li>
+          <li><hr class="dropdown-divider" /></li>
 
-          <li class="nav-item">
-            <a
-              class="nav-link {% if request.path == '/contact/' %}active{% endif %} d-flex flex-column align-items-center"
-              href="{% url 'contact' %}"
-            >
-              <i class="bi bi-envelope-fill"></i> 
-              <span class="nav-text">Twandikire</span>
-            </a>
-          </li>
-          
-          <li class="nav-item">
-            <a
-              class="nav-link {% if request.path == '/ibizamini-byicyumweru/' %}active{% endif %} d-flex flex-column align-items-center"
-              href="{% url 'weekly_exams' %}"
-            >
-              <i class="bi bi-calendar-week"></i>
-              <span class="nav-text">Icyumweru</span>
-            </a>
-          </li>
-          
-        {% if user.is_staff %}
-
-          <div class="d-flex flex-wrap gap-2">
-            <li class="nav-item">
+          {% if user.is_staff %}
+          <li>
+            <div class="d-flex flex-row gap-2 px-3 mb-2">
               <a
-                class="nav-link {% if request.path == '/admin/' %}active{% endif %}"
-
+                class="nav-link p-0 {% if request.path == '/admin/' %}active{% endif %}"
                 href="/admin"
                 aria-label="Admin Dashboard"
+                style="color: inherit"
               >
                 <i class="bi bi-speedometer2"></i>
-                
               </a>
-            </li>
-            <li class="nav-item">
               <a
-                class="nav-link {% if request.path == '/create-exam/' %}active{% endif %}"
-
+                class="nav-link p-0 {% if request.path == '/create-exam/' %}active{% endif %}"
                 href="{% url 'create_exam' %}"
                 aria-label="Create Exam"
+                style="color: inherit"
               >
                 <i class="fa-solid fa-plus"></i>
               </a>
-            </li>
-            <li class="nav-item">
               <a
-                class="nav-link {% if request.path == '/schedule-exams/' %}active{% endif %}"
-
+                class="nav-link p-0 {% if request.path == '/schedule-exams/' %}active{% endif %}"
                 href="{% url 'auto_schedule_exams' %}"
                 aria-label="Schedule Exams"
+                style="color: inherit"
               >
                 <i class="fa-solid fa-clock"></i>
-                
               </a>
-            </li>
-          </div>
+            </div>
+          </li>
           {% endif %}
-          <li class="nav-item dropdown">
-            <a
-                  class="nav-link dropdown-toggle d-flex align-items-center"
-                  href="#"
-                  id="userDropdown"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-              >
-                  <!-- Avatar with First Name Initial -->
-                  <div class="avatar-circle me-2">
-                      {{ request.user.name|slice:":2"|upper }}
-                  </div>
-                
-              </a>
 
-            <ul
-              class="dropdown-menu dropdown-menu-end"
-              style="background-color: rgba(var(--card-bg-rgb), 0.98)"
+          <li>
+            <button
+              class="dropdown-item text-theme fw-bold d-flex align-items-center gap-2"
+              type="button"
+              data-bs-toggle="modal"
+              data-bs-target="#logoutModal"
             >
-              <li>
-                  <a class="dropdown-item text-theme " href="{% url 'profile' %}"
-                  ><i class="bi bi-person-fill"></i>
-                  {{ request.user.name|first_name }}
-                  {% comment %} <span class="text-decoration-underline">
-                  </span> {% endcomment %}
-                  </a>
-              </li>
-              <li>
-                {% if not request.user.is_subscribed %}
-                
-                <a
-                  class="dropdown-item text-danger"
-                  href="{% url 'subscription' %}"
-                  ><i class="bi bi-wallet-fill"></i> Gura ifatabuguzi</a
-                >
-                {% else %}
-                <a class="dropdown-item text-success"
-                href="{% url 'subscription' %}">
-                  <i class="bi bi-wallet-fill"></i>Ifatabuguzi |
-                  {{ request.user.subscription.plan.get_plan_display}}
-                </a>
-                {% endif %}
-              </li>
-              <li><hr class="dropdown-divider" /></li>
-              <li>
-                <button
-                    class="dropdown-item text-theme fw-bold d-flex align-items-center gap-2"
-                    type="button"
-                    data-bs-toggle="modal"
-                    data-bs-target="#logoutModal"
-                  >
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span>Sohoka</span>
-                  </button>
-              </li>
-            </ul>
+              <i class="bi bi-box-arrow-right"></i>
+              <span>Sohoka</span>
+            </button>
           </li>
-        {% else %}
-          <li class="nav-item">
-            <a
-              class="nav-link {% if request.path == '/login/' %}active{% endif %}"
-              href="{% url 'login' %}"
-            >
-              <i class="bi bi-box-arrow-in-right"></i> Injira
-            </a>
-          </li>
-          <li class="nav-item">
-            <a
-              class="nav-link {% if request.path == '/register/' %}active{% endif %}"
-              href="{% url 'register' %}"
-            >
-              <i class="bi bi-person-plus-fill"></i> Iyandikishe
-            </a>
-          </li>
-        {% endif %}
-      </ul>
-    </div>
+        </ul>
+      </li>
+      {% else %}
+      <li class="nav-item">
+        <a
+          class="nav-link {% if request.path == '/login/' %}active{% endif %}"
+          href="{% url 'login' %}"
+        >
+          <i class="bi bi-box-arrow-in-right"></i> Injira
+        </a>
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link {% if request.path == '/register/' %}active{% endif %}"
+          href="{% url 'register' %}"
+        >
+          <i class="bi bi-person-plus-fill"></i> Iyandikishe
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+  <div
+    class="container-fluid px-2 d-flex justify-content-between align-items-center gap-2"
+  >
+    <!-- Nav Items -->
+    <div class="collapse navbar-collapse" id="navbarMain"></div>
   </div>
 </nav>
+{% if user.is_authenticated %}
+<div class="d-lg-none fixed-bottom bg-theme text-theme border-top py-2">
+  <div class="d-flex justify-content-around">
+    <a
+      class="nav-link {% if request.path == '/' %}active{% endif %} d-flex flex-column align-items-center"
+      href="{% url 'home' %}"
+    >
+      <i class="bi bi-house-door-fill"></i>
+      <em class="nav-text">Ahabanza</em>
+    </a>
+    <a
+      class="nav-link {% if request.path == '/amasomo/' %}active{% endif %} d-flex flex-column align-items-center"
+      href="{% url 'courses' %}"
+    >
+      <i class="bi bi-book-fill"></i>
+      <em class="nav-text">Amasomo</em>
+    </a>
+    <a
+      class="nav-link {% if request.path == '/contact/' %}active{% endif %} d-flex flex-column align-items-center"
+      href="{% url 'contact' %}"
+    >
+      <i class="bi bi-envelope-fill"></i>
+      <span class="nav-text">Twandikire</span>
+    </a>
+    <a
+      class="nav-link {% if request.path == '/ibizamini-byicyumweru/' %}active{% endif %} d-flex flex-column align-items-center"
+      href="{% url 'weekly_exams' %}"
+    >
+      <i class="bi bi-calendar-week"></i>
+      <span class="nav-text">Icyumweru</span>
+    </a>
+  </div>
+</div>
+{% endif %}
