@@ -8,6 +8,8 @@ from django.contrib import messages
 from .models import *
 from django.shortcuts import get_object_or_404
 from .forms import *
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 import uuid
 from .momo_utils import *
 from .utils import *
@@ -998,6 +1000,16 @@ def _handle_payment_approval(request, user, requested_plan):
     
     subscription.generate_otp()
     subscription.save()
+    
+    # Send WebSocket notification for unverified subscription to the specific user
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f'dashboard_notifications_{user.id}',
+        {
+            'type': 'send_unverified_notification',
+            'unverified': True
+        }
+    )
     
     messages.success(request, f"Payment approved and subscription created for {user.name}.")
     return redirect('admin:app_subscription_changelist')

@@ -27,6 +27,8 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: top 0.4s ease;
+    {% comment %} margin-top: 2.5rem; {% endcomment %}
   }
   .navbar.hidden {
     transform: translateY(-100%);
@@ -331,6 +333,12 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
       font-size: 2rem;
     }
   }
+
+  @media (min-width: 768px) {
+    {% comment %} #scheduled-hours-wrapper {
+      margin-top: 1rem ;
+    } {% endcomment %}
+  }
 </style>
 <!-- Fixed hours panel -->
 <div id="scheduled-hours-wrapper">{% include 'scheduled_hours.html' %}</div>
@@ -339,7 +347,7 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
   {% include 'flash_message.html' %}
 </div>
 
-<div class="container my-5">
+<div class="container my-5" data-aos="fade-up" data-aos-delay="100">
   <!-- Exam Types Section -->
   <h2 class="mb-4 d-flex align-items-center gap-1">
     <i class="bi bi-journal-text text-secondary"></i>
@@ -452,9 +460,17 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
       scheduledWrapper.style.top = "0";
       scheduledWrapper.style.transition = "top 0.4s ease";
       scheduledWrapper.style.zIndex = "1040";
+      //scheduledWrapper.style.marginTop = "0";
     } else {
       navbar.classList.remove("hidden");
       scheduledWrapper.style.top = "56px";
+      // scheduled wrapper margin-top on mobile scroll down
+      //scheduledWrapper.style.marginTop = "2.5rem";
+      // scheduledWrapper margin-top on desktop scroll down
+      //if (window.innerWidth >= 768) {
+        //scheduledWrapper.style.marginTop = "1rem";
+      //}
+
     }
     lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
   });

@@ -96,3 +96,35 @@ class StaffLoginForm(forms.Form):
         else:
             ip = self.request.META.get('REMOTE_ADDR')
         return ip
+   
+
+class SubscriptionForm(forms.ModelForm):
+    user = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_active=True),
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    plan = forms.ModelChoiceField(
+        queryset=Plan.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    class Meta:
+        model = Subscription
+        fields = ['user', 'plan',]
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        user = cleaned_data.get('user')
+        plan = cleaned_data.get('plan')
+        
+        if user and plan:
+            # Check for existing active subscription
+            existing_subscription = Subscription.objects.filter(
+                user=user,
+                plan=plan,
+                is_active=True
+            ).first()
+            if existing_subscription:
+                raise forms.ValidationError(f"The user {user} already has an active subscription to the {plan} plan.")
+        
+        return cleaned_data

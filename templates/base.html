@@ -332,32 +332,70 @@
                 style="width: 30px; height: 30px; font-size: 14px;">
                 <i class="fa-solid fa-arrow-down"></i>
             </button>
+
         </div>
 
+        {% comment %} right Theme toggler {% endcomment %}
+        <div class="position-fixed bottom-0 end-0 m-1" id="theme-toggler-container" style="z-index: 1050;">
+            <button
+                class="btn btn-outline-secondary p-0 rounded-circle shadow-sm themeToggle scroll-btn"
+                type="button"
+                data-bs-toggle="tooltip"
+                data-bs-placement="left"
+                title="Toggle Dark/Light Mode"
+                style="width: 40px; height: 40px; font-size: 18px;"
+            >
+                <i class="themeIcon bi bi-moon fs-4"></i>
+                <span class="visually-hidden">Toggle dark mode</span>
+            </button>
+        </div>
        <!-- Unverified Subscription Modal -->
-        <div class="modal fade" id="unverifiedModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-theme text-theme">
-                <h6 class="modal-title fw-bold">Ubwishyu bwawe bwemejwe</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <a href="{% url 'activate_subscription' %}" class="btn rounded-pill shadow-lg" 
-                style="background-color: rgba(var(--text-rgb), 1); 
-                    color: rgba(var(--background-rgb), 1);">Fungura ifatabuzi</a>
-            </div>
+        <div class="modal fade" id="unverifiedModal" tabindex="-1"          aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-theme text-theme">
+                    <h6 class="modal-title fw-bold">Ubwishyu bwawe bwemejwe</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <a href="{% url 'activate_subscription' %}" class="btn rounded-pill shadow-lg" 
+                    style="background-color: rgba(var(--text-rgb), 1); 
+                        color: rgba(var(--background-rgb), 1);">Fungura ifatabuzi</a>
+                </div>
+                </div>
             </div>
         </div>
-        </div>
+        
         <script>
-            document.addEventListener("DOMContentLoaded", function() {
+            let modalShown = false; // Track if modal has been shown
 
+            // WebSocket connection for real-time notifications
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const ws = new WebSocket(wsProtocol + '//' + window.location.host + '/ws/dashboard/');
+
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'unverified' && data.unverified && !modalShown) {
+                    const currentPath = window.location.pathname;
+                    const activateUrls = [
+                        "{% url 'activate_subscription' %}",
+                        "{% url 'payment' %}",
+                        "{% url 'subscription' %}",
+                    ];
+                    if (!activateUrls.includes(currentPath)) {
+                        const modal = new bootstrap.Modal(document.getElementById("unverifiedModal"));
+                        modal.show();
+                        modalShown = true;
+                    }
+                }
+            };
+
+            function checkUnverified() {
                 const currentPath = window.location.pathname;
                 const activateUrls = [
-                "{% url 'activate_subscription' %}",
-                "{% url 'payment' %}",
-                "{% url 'subscription' %}",
+                    "{% url 'activate_subscription' %}",
+                    "{% url 'payment' %}",
+                    "{% url 'subscription' %}",
                 ];
 
                 if (activateUrls.includes(currentPath)) return;
@@ -372,15 +410,22 @@
                     return response.json();
                 })
                 .then(data => {
-                    if (data.unverified) {
+                    if (data.unverified && !modalShown) {
                         const modal = new bootstrap.Modal(document.getElementById("unverifiedModal"), {
                             backdrop: true,   // allow closing by clicking outside
                             keyboard: true    // allow closing with ESC
                         });
                         modal.show();
+                        modalShown = true;
                     }
                 })
                 .catch(err => console.error("Error checking subscription:", err));
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                checkUnverified();
+                // Poll every 1 minute
+                setInterval(checkUnverified, 60000);
             });
         </script>
 
@@ -388,6 +433,7 @@
             const scrollTopBtn = document.getElementById('scrollTopBtn');
             const scrollBottomBtn = document.getElementById('scrollBottomBtn');
             const scrollButtons = document.getElementById('scroll-buttons');
+            const themeTogglerContainer = document.getElementById('theme-toggler-container');
 
             // Scroll behavior
             scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
@@ -408,11 +454,15 @@
             function showButtonsTemporarily() {
                 scrollButtons.classList.add('fade-in');
                 scrollButtons.classList.remove('fade-out');
+                themeTogglerContainer.classList.add('fade-in');
+                themeTogglerContainer.classList.remove('fade-out');
 
                 clearTimeout(hideTimer);
                 hideTimer = setTimeout(() => {
                     scrollButtons.classList.add('fade-out');
                     scrollButtons.classList.remove('fade-in');
+                    themeTogglerContainer.classList.add('fade-out');
+                    themeTogglerContainer.classList.remove('fade-in');
                 }, 3000); // Hide after 1 seconds
             }
 
@@ -423,6 +473,7 @@
 
             // Initial state
             scrollButtons.classList.add('fade-in');
+            themeTogglerContainer.classList.add('fade-in');
         </script>
 
         <script>

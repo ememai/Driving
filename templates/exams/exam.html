@@ -62,10 +62,10 @@
     margin-right: 5px;
   }
 
-  .img-thumbnail {
+  .q-sign {
     border:none ;
     box-shadow: none;
-    max-width: 30vw !important;
+    max-width: 100vw !important;
     height: auto;
   }
 
@@ -76,7 +76,7 @@
     }
 
     .q-sign {
-      max-width: 70vw;
+      max-width: 70vw !important;
       height: auto;
     }
   }
@@ -256,7 +256,7 @@
       </div>
 
       {% if question.question_sign %}
-            <div class="mt-2 mb-4 text-center mx-auto">
+            <div class="mt-2 mb-4 text-center mx-auto" style="max-width: 80vw;">
               <img src="{{ question.question_sign.sign_image.url }}" alt="Amategeko y'umuhanda - Ibimenyetso by'umuhanda" class="img-thumbnail q-sign" >
             </div>
       {% endif %}

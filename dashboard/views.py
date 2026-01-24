@@ -150,10 +150,12 @@ class StaffLoginView(View):
         cache.set(f"last_login_ip_{user.id}", self.get_client_ip(request), 86400)
         
         # Redirect to appropriate admin page
-        next_url = request.GET.get('next')
-        if next_url:
-            return redirect(next_url)
-        
+        # next_url = request.GET.get('next')
+        # if next_url:
+        #     return redirect(next_url)
+
+        return redirect("admin:index")
+
         messages.success(request, "Staff login successful! Welcome back.")
         return redirect("home")
     
@@ -345,3 +347,44 @@ def scheduled_exam_delete(request, pk):
         return redirect('admin_dashboard')
     context = {'scheduled_exam': scheduled_exam}
     return render(request, 'dashboard/schedule_exam_delete.html', context)
+
+
+# @login_required
+# @user_passes_test(staff_required)
+class CreateSubscriptionView(View):
+    """
+    View to create a new subscription.
+    """
+    def get(self, request):
+        form = SubscriptionForm()
+        return render(request, 'dashboard/create_subscription.html', {'form': form})
+
+    def post(self, request):
+        form = SubscriptionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Subscription created successfully.")
+            return redirect('admin_dashboard')
+        else:
+            messages.error(request, "Please correct the errors below.")
+            return render(request, 'dashboard/dashboard.html', {'form': form})
+        
+# update subscription
+@login_required
+@user_passes_test(staff_required)
+def subscription_update(request, pk):
+    """
+    View to update an existing subscription.
+    """
+    subscription = get_object_or_404(Subscription, pk=pk)
+    if request.method == 'POST':
+        form = SubscriptionForm(request.POST, instance=subscription)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Subscription updated successfully.")
+            return redirect('admin_dashboard')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = SubscriptionForm(instance=subscription)
+    return render(request, 'dashboard/subscription_update.html', {'form': form, 'subscription': subscription})

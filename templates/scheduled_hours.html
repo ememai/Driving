@@ -3,6 +3,7 @@
 <style>
   .mobile-exam-times {
     padding: 0;
+    {% comment %} margin-top: 2rem; {% endcomment %}
   }
 
   .note {
@@ -35,6 +36,13 @@
   @media (max-width: 768px) {
     .scrollable-times {
       justify-content: flex-start;
+    }
+  }
+
+  @media (min-width: 769px) {
+    .mobile-exam-times {
+      justify-content: center;
+      margin-top: 1rem;
     }
   }
 
@@ -190,15 +198,11 @@
           display: none;
         }
       </style>
-        <div class="week d-flex justify-content-center align-items-center flex-column">
-          
-          
-         {% comment %} <strong> Nta kizamini cyakozwe uyu munsi <i class="bi bi-exclamation-triangle"></i> 
-        </strong> <br> {% endcomment %}
-            <a href="{% url 'weekly_exams' %}" class="mx-2 fs-5" style="text-decoration: underline; text-underline-offset: 4px; ">
+        <div class="week d-flex justify-content-center align-items-center p-2 me-2" style="background-color: rgba(var(--surface-rgb), 0.8); border-radius: 0.5rem; font-weight: 600;">
+          <i class="fa-solid fa-calendar-days text-muted"></i>
+          <a href="{% url 'weekly_exams' %}" class="mx-2 fs-5" style="text-decoration: underline; text-underline-offset: 4px; ">
             <em>Reba ibizamini by'icyumweru</em>
-            <i class="fa-solid fa-calendar-days text-muted"></i>
-            </a>
+          </a>
         </div>
       {% endfor %}
     </div>

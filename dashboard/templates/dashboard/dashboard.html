@@ -1,108 +1,172 @@
 <!-- dashboard/templates/dashboard/dashboard.html -->
-{% extends "dashboard/base.html" %}
+{% extends "dashboard/base.html" %} {% block content %} {% comment %}
+<h2 class="mb-3">Payments</h2>
+<table class="table table-striped datatable">
+  <thead>
+    <tr>
+      <th>User</th>
+      <th>Amount</th>
+      <th>Transaction ID</th>
+      <th>Status</th>
+      <th>Created At</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for payment in payments %}
+    <tr>
+      <td>{{ payment.user }}</td>
+      <td>{% if payment.amount %}{{ payment.amount }}{% else %}0{% endif %}</td>
+      <td>{{ payment.transaction_id }}</td>
+      <td>{{ payment.status }}</td>
+      <td>{{ payment.created_at }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endcomment %}
 
-{% block content %}
-  <h2 class="mb-3">Payments</h2>
-  <table class="table table-striped datatable">
-    <thead>
-      <tr>
-        <th>User</th>
-        <th>Amount</th>
-        <th>Transaction ID</th>
-        <th>Status</th>
-        <th>Created At</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for payment in payments %}
-      <tr>
-        <td>{{ payment.user }}</td>
-        <td>{% if payment.amount %}{{ payment.amount }}{% else %}0{% endif %}</td>
-        <td>{{ payment.transaction_id }}</td>
-        <td>{{ payment.status }}</td>
-        <td>{{ payment.created_at }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<h2 class="mb-3">Subscriptions</h2>
+<table class="table table-striped datatable">
+  <thead>
+    <tr>
+      <th>User</th>
+      <th>Plan</th>
+      <th>Price</th>
+      <th>Duration (days)</th>
+      <th>Transaction ID</th>
+      <th>Active</th>
+      <th>Started At</th>
+      <th>Expires At</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for subscription in subscriptions %}
+    <tr>
+      <td>{{ subscription.user }}</td>
+      <td>{{ subscription.plan }}</td>
+      <td>{{ subscription.price }}</td>
+      <td>{{ subscription.duration_days }}</td>
+      <td>{{ subscription.transaction_id }}</td>
+      <td>{{ subscription.active }}</td>
+      <td>{{ subscription.started_at }}</td>
+      <td>{{ subscription.expires_at }}</td>
+      <td>
+        <a
+          href="{% url 'subscription_update' subscription.id %}"
+          class="btn btn-sm btn-primary"
+          >Edit</a
+        >
+        {% comment %}
+        <a
+          href="{% url 'subscription_delete' subscription.id %}"
+          class="btn btn-sm btn-danger"
+          >Delete</a
+        >
+        {% endcomment %}
+      </td>
+    </tr>
+    {% endfor %}
+        
+  </tbody>
+  <button type="button" class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#createSubscriptionModal">
+    Create New Subscription
+  </button>
+</table>
 
-  <h2 class="mb-3">Subscriptions</h2>
-  <table class="table table-striped datatable">
-    <thead>
-      <tr>
-        <th>User</th>
-        <th>Plan</th>
-        <th>Price</th>
-        <th>Duration (days)</th>
-        <th>Transaction ID</th>
-        <th>Active</th>
-        <th>Started At</th>
-        <th>Expires At</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for subscription in subscriptions %}
-      <tr>
-        <td>{{ subscription.user }}</td>
-        <td>{{ subscription.plan }}</td>
-        <td>{{ subscription.price }}</td>
-        <td>{{ subscription.duration_days }}</td>
-        <td>{{ subscription.transaction_id }}</td>
-        <td>{{ subscription.active }}</td>
-        <td>{{ subscription.started_at }}</td>
-        <td>{{ subscription.expires_at }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<h2 class="mb-3">Users</h2>
+<table class="table table-striped datatable">
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>Phone Number</th>
+      <th>Active</th>
+      <th>Subscribed?</th>
+      <th>Subscription End Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in users %}
+    <tr>
+      <td>{{ user.email }}</td>
+      <td>{{ user.phone_number }}</td>
+      <td>{{ user.active }}</td>
+      <td>{{ user.is_subscribed }}</td>
+      <td>{{ user.subscription_end_date }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-  <h2 class="mb-3">Users</h2>
-  <table class="table table-striped datatable">
-    <thead>
-      <tr>
-        <th>Email</th>
-        <th>Phone Number</th>
-        <th>Active</th>
-        <th>Subscribed?</th>
-        <th>Subscription End Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for user in users %}
-      <tr>
-        <td>{{ user.email }}</td>
-        <td>{{ user.phone_number }}</td>
-        <td>{{ user.active }}</td>
-        <td>{{ user.is_subscribed }}</td>
-        <td>{{ user.subscription_end_date }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<h2 class="mb-3">Scheduled Exams</h2>
+<table class="table table-striped datatable" id="datatable">
+  <thead>
+    <tr>
+      <th>Exam Title</th>
+      <th>Scheduled Date &amp; Time</th>
+      <th>Published</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for scheduled_exam in scheduled_exams %}
+    <tr>
+      <td>{{ scheduled_exam.exam.title }}</td>
+      <td>{{ scheduled_exam.scheduled_datetime }}</td>
+      <td>{{ scheduled_exam.is_published }}</td>
+      <td>
+        <a
+          href="{% url 'scheduled_exam_update' scheduled_exam.id %}"
+          class="btn btn-sm btn-primary"
+          >Edit</a
+        >
+        <a
+          href="{% url 'scheduled_exam_delete' scheduled_exam.id %}"
+          class="btn btn-sm btn-danger"
+          >Delete</a
+        >
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-  <h2 class="mb-3">Scheduled Exams</h2>
-  <table class="table table-striped datatable" id="datatable">
-    <thead>
-      <tr>
-        <th>Exam Title</th>
-        <th>Scheduled Date &amp; Time</th>
-        <th>Published</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for scheduled_exam in scheduled_exams %}
-      <tr>
-        <td>{{ scheduled_exam.exam.title }}</td>
-        <td>{{ scheduled_exam.scheduled_datetime }}</td>
-        <td>{{ scheduled_exam.is_published }}</td>
-        <td>
-          <a href="{% url 'scheduled_exam_update' scheduled_exam.id %}" class="btn btn-sm btn-primary">Edit</a>
-          <a href="{% url 'scheduled_exam_delete' scheduled_exam.id %}" class="btn btn-sm btn-danger">Delete</a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  
+
+<div class="modal fade" id="createSubscriptionModal" tabindex="-1" aria-labelledby="createSubscriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createSubscriptionModalLabel">Create Subscription</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form method="post" action="{% url 'create_subscription' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="user" class="form-label">User</label>
+              <select class="form-select" id="user" name="user" required>
+                {% for user in users %}
+                <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="plan" class="form-label">Plan</label>
+              <input type="text" class="form-control" id="plan" name="plan" required>
+            </div>
+            <div class="mb-3">
+              <label for="price" class="form-label">Price</label>
+              <input type="number" class="form-control" id="price" name="price" required>
+            </div>
+            <div class="mb-3">
+              <label for="duration_days" class="form-label">Duration (days)</label>
+              <input type="number" class="form-control" id="duration_days" name="duration_days" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Subscription</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
 {% endblock %}
