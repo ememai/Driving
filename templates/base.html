@@ -112,40 +112,42 @@
             </div>
         </main>
 
+    {% if not request.user.is_authenticated %}
         <div class="d-flex justify-content-between py-0">
-        <i class="fa-solid fa-truck-monster"></i>
-        <i class="fa-solid fa-car "></i>
-        <i class="fa-solid fa-bicycle "></i>
-        <i class="fa-solid fa-bus "></i>
-
+            <i class="fa-solid fa-truck-monster"></i>
+            <i class="fa-solid fa-car "></i>
+            <i class="fa-solid fa-bicycle "></i>
+            <i class="fa-solid fa-bus "></i>
+            
         </div>
+    {% endif %}
 
         <!-- Footer -->
-        <footer class="bg-dark text-light py-4 mt-0 mx-0 border-top border-secondary">
+        <footer class="bg-theme text-theme py-4 mt-0 mx-0 border-top border-secondary">
             <div class="container-fluid text-center">
                 <!-- Social Links -->
                 <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 mb-3">
-                <a href="https://www.tiktok.com/@250college?is_from_webapp=1&sender_device=pc" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity fs-6">
+                <a href="https://www.tiktok.com/@250college?is_from_webapp=1&sender_device=pc" target="_blank" class="text-decoration-none text-theme d-flex align-items-center gap-2 hover-opacity fs-6">
                     <i class="bi bi-tiktok"></i>
                     <span>TikTok</span>
                 </a>
-                {% comment %} <a href="https://wa.me/250785287885" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity">
+                {% comment %} <a href="https://wa.me/250785287885" target="_blank" class="text-decoration-none text-theme d-flex align-items-center gap-2 hover-opacity">
                     <i class="bi bi-whatsapp fs-5 text-success"></i>
                     <span>0785287885</span>
                 </a> {% endcomment %}
 
-                <a href="https://youtube.com/@250drivingcollege?si=-uAEcoRDZDkyB3Go" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity">
+                <a href="https://youtube.com/@250drivingcollege?si=-uAEcoRDZDkyB3Go" target="_blank" class="text-decoration-none text-theme d-flex align-items-center gap-2 hover-opacity">
                     <i class="bi bi-youtube fs-5 text-danger"></i>
                     <span>Youtube Channel</span>
                 </a>
 
             </div>
             <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 mb-3">
-                <a href="https://chat.whatsapp.com/JWaVSWktgBCKHNKr1TVAzg" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity">
+                <a href="https://chat.whatsapp.com/JWaVSWktgBCKHNKr1TVAzg" target="_blank" class="text-decoration-none text-theme d-flex align-items-center gap-2 hover-opacity">
                     <i class="fa-solid fa-users fs-5 text-success"></i>
                     <span>WhatsApp Group</span>
                 </a>
-                <a href="https://https://whatsapp.com/channel/0029VawmHyN2UPBKKM3OJc20" target="_blank" class="text-decoration-none text-light d-flex align-items-center gap-2 hover-opacity fs-6">
+                <a href="https://https://whatsapp.com/channel/0029VawmHyN2UPBKKM3OJc20" target="_blank" class="text-decoration-none text-theme d-flex align-items-center gap-2 hover-opacity fs-6">
                     <i class="bi bi-broadcast-pin text-success"></i>
                     <span>WhatsApp Channel</span>
                 </a>
@@ -333,22 +335,57 @@
                 <i class="fa-solid fa-arrow-down"></i>
             </button>
 
+           <button
+               class="btn btn-outline-secondary my-4 p-0 rounded-circle shadow-sm themeToggle scroll-btn"
+               type="button"
+               data-bs-toggle="tooltip"
+               data-bs-placement="left"
+               title="Toggle Dark/Light Mode"
+               style="width: 40px; height: 40px; font-size: 18px;"
+           >
+               <i class="themeIcon bi bi-moon fs-4"></i>
+               <span class="visually-hidden">Toggle dark mode</span>
+           </button>
+
         </div>
 
         {% comment %} right Theme toggler {% endcomment %}
-        <div class="position-fixed bottom-0 end-0 m-1" id="theme-toggler-container" style="z-index: 1050;">
-            <button
-                class="btn btn-outline-secondary p-0 rounded-circle shadow-sm themeToggle scroll-btn"
-                type="button"
-                data-bs-toggle="tooltip"
-                data-bs-placement="left"
-                title="Toggle Dark/Light Mode"
-                style="width: 40px; height: 40px; font-size: 18px;"
-            >
-                <i class="themeIcon bi bi-moon fs-4"></i>
-                <span class="visually-hidden">Toggle dark mode</span>
-            </button>
-        </div>
+
+        
+        {% if user.is_authenticated %}
+            <div class="d-flex flex-column gap-4 d-lg-none fixed-bottom bg-dark text-light border-top py-2">
+            <div class="d-flex justify-content-around">
+                <a
+                class="nav-link d-flex flex-column align-items-center "
+                href="{% url 'home' %}"
+                >
+                <i class="bi bi-house-door-fill {% if request.path == '/' %}bg-secondary rounded px-2{% endif %}"></i>
+                <em class="nav-text">Ahabanza</em>
+                </a>
+                <a
+                class="nav-link d-flex flex-column align-items-center"
+                href="{% url 'courses' %}"
+                >
+                <i class="bi bi-book-fill {% if request.path == '/amasomo/' %}bg-secondary rounded px-2{% endif %}"></i>
+                <em class="nav-text">Amasomo</em>
+                </a>
+                <a
+                class="nav-link d-flex flex-column align-items-center"
+                href="{% url 'contact' %}"
+                >
+                <i class="bi bi-envelope-fill {% if request.path == '/contact/' %}bg-secondary rounded px-2{% endif %}"></i>
+                <span class="nav-text">Twandikire</span>
+                </a>
+                <a
+                class="nav-link d-flex flex-column align-items-center"
+                href="{% url 'weekly_exams' %}"
+                >
+                <i class="bi bi-calendar-week {% if request.path == '/ibizamini-byicyumweru/' %}bg-secondary rounded px-2{% endif %}"></i>
+                <span class="nav-text">Icyumweru</span>
+                </a>
+            </div>
+            </div>
+            {% endif %}
        <!-- Unverified Subscription Modal -->
         <div class="modal fade" id="unverifiedModal" tabindex="-1"          aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -433,7 +470,7 @@
             const scrollTopBtn = document.getElementById('scrollTopBtn');
             const scrollBottomBtn = document.getElementById('scrollBottomBtn');
             const scrollButtons = document.getElementById('scroll-buttons');
-            const themeTogglerContainer = document.getElementById('theme-toggler-container');
+            
 
             // Scroll behavior
             scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
@@ -454,15 +491,11 @@
             function showButtonsTemporarily() {
                 scrollButtons.classList.add('fade-in');
                 scrollButtons.classList.remove('fade-out');
-                themeTogglerContainer.classList.add('fade-in');
-                themeTogglerContainer.classList.remove('fade-out');
 
                 clearTimeout(hideTimer);
                 hideTimer = setTimeout(() => {
                     scrollButtons.classList.add('fade-out');
                     scrollButtons.classList.remove('fade-in');
-                    themeTogglerContainer.classList.add('fade-out');
-                    themeTogglerContainer.classList.remove('fade-in');
                 }, 3000); // Hide after 1 seconds
             }
 
@@ -473,7 +506,6 @@
 
             // Initial state
             scrollButtons.classList.add('fade-in');
-            themeTogglerContainer.classList.add('fade-in');
         </script>
 
         <script>

@@ -57,123 +57,113 @@
       <strong>IGAZETI.RW</strong>
     </a>
 
-    <a
-      class="nav-link dropdown-toggle d-flex align-items-center d-lg-none"
-      href="#"
-      id="userDropdown"
-      role="button"
-      data-bs-toggle="dropdown"
-      aria-expanded="false"
-      style="
-        position: absolute;
-        right: 1rem;
-      "
-    >
-      <!-- Avatar with First Name Initial -->
-      <div class="avatar-circle me-2">
-        {{ request.user.name|slice:":2"|upper }}
-      </div>
-    </a>
-    <ul
-      class="align-items-center gap-2 text-theme "
-      style="list-style: none; display: flex; margin: 10px; padding: 0; position: absolute; right: 1rem; top: 70%; transform: translateY(-50%); z-index: 1000 !important;"
-    >
-      {% if user.is_authenticated %}
-
-      <li class="nav-item dropdown d-flex align-items-center flex-column justify-content-between">
-        
-
-        <ul
-          class="dropdown-menu dropdown-menu-end"
-          style="background-color: rgba(var(--card-bg-rgb), 0.98); backdrop-filter: blur(10px); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border-radius: 0.5rem; "
+    {% if user.is_authenticated %}
+      <a
+        class="nav-link dropdown-toggle d-flex align-items-center d-lg-none"
+        href="#"
+        id="userDropdown"
+        role="button"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+        style="
+          position: absolute;
+          right: 1rem;
+        "
         >
-          <li>
-            <a class="dropdown-item text-theme" href="{% url 'profile' %}"
-              ><i class="bi bi-person-fill"></i>
-              {{ request.user.name|first_name }}
-            </a>
-          </li>
-          <li>
-            {% if not request.user.is_subscribed %}
+        <!-- Avatar with First Name Initial -->
+        <div class="avatar-circle me-2">
+          {{ request.user.name|slice:":2"|upper }}
+        </div>
+      </a>
+      <ul
+        class="align-items-center gap-2 text-theme "
+        style="list-style: none; display: flex; margin: 10px; padding: 0; position: absolute; right: 1rem; top: 70%; transform: translateY(-50%); z-index: 1000 !important;"
+        >
 
-            <a class="dropdown-item text-danger" href="{% url 'subscription' %}"
-              ><i class="bi bi-wallet-fill"></i> Gura ifatabuguzi</a
-            >
-            {% else %}
-            <a
-              class="dropdown-item text-success"
-              href="{% url 'subscription' %}"
-            >
-              <i class="bi bi-wallet-fill"></i>Ifatabuguzi | {{
-              request.user.subscription.plan.get_plan_display}}
-            </a>
+        <li class="nav-item dropdown d-flex align-items-center flex-column justify-content-between">
+          
+
+          <ul
+            class="dropdown-menu dropdown-menu-end"
+            style="background-color: rgba(var(--card-bg-rgb), 0.98); backdrop-filter: blur(10px); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border-radius: 0.5rem; "
+          >
+            <li>
+              <a class="dropdown-item text-theme" href="{% url 'profile' %}"
+                ><i class="bi bi-person-fill"></i>
+                {{ request.user.name|first_name }}
+              </a>
+            </li>
+            <li>
+              {% if not request.user.is_subscribed %}
+
+              <a class="dropdown-item text-danger" href="{% url 'subscription' %}"
+                ><i class="bi bi-wallet-fill"></i> Gura ifatabuguzi</a
+              >
+              {% else %}
+              <a
+                class="dropdown-item text-success"
+                href="{% url 'subscription' %}"
+              >
+                <i class="bi bi-wallet-fill"></i> Ifatabuguzi | {{request.user.subscription.plan.get_plan_display}}
+              </a>
+              {% endif %}
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+
+            {% if user.is_staff %}
+            <li>
+              <div class="d-flex flex-row gap-2 px-3 mb-2">
+                <a
+                  class="nav-link p-0 {% if request.path == '/admin/' %}active{% endif %}"
+                  href="/admin"
+                  aria-label="Admin Dashboard"
+                  style="color: inherit"
+                >
+                  <i class="bi bi-speedometer2"></i>
+                </a>
+                <a
+                  class="nav-link p-0 {% if request.path == '/create-exam/' %}active{% endif %}"
+                  href="{% url 'create_exam' %}"
+                  aria-label="Create Exam"
+                  style="color: inherit"
+                >
+                  <i class="fa-solid fa-plus"></i>
+                </a>
+                <a
+                  class="nav-link p-0 {% if request.path == '/schedule-exams/' %}active{% endif %}"
+                  href="{% url 'auto_schedule_exams' %}"
+                  aria-label="Schedule Exams"
+                  style="color: inherit"
+                >
+                  <i class="fa-solid fa-clock"></i>
+                </a>
+              </div>
+            </li>
             {% endif %}
-          </li>
-          <li><hr class="dropdown-divider" /></li>
 
-          {% if user.is_staff %}
-          <li>
-            <div class="d-flex flex-row gap-2 px-3 mb-2">
-              <a
-                class="nav-link p-0 {% if request.path == '/admin/' %}active{% endif %}"
-                href="/admin"
-                aria-label="Admin Dashboard"
-                style="color: inherit"
+            <li>
+              <button
+                class="dropdown-item text-theme fw-bold d-flex align-items-center gap-2"
+                type="button"
+                data-bs-toggle="modal"
+                data-bs-target="#logoutModal"
               >
-                <i class="bi bi-speedometer2"></i>
-              </a>
-              <a
-                class="nav-link p-0 {% if request.path == '/create-exam/' %}active{% endif %}"
-                href="{% url 'create_exam' %}"
-                aria-label="Create Exam"
-                style="color: inherit"
-              >
-                <i class="fa-solid fa-plus"></i>
-              </a>
-              <a
-                class="nav-link p-0 {% if request.path == '/schedule-exams/' %}active{% endif %}"
-                href="{% url 'auto_schedule_exams' %}"
-                aria-label="Schedule Exams"
-                style="color: inherit"
-              >
-                <i class="fa-solid fa-clock"></i>
-              </a>
-            </div>
-          </li>
-          {% endif %}
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Sohoka</span>
+              </button>
+            </li>
+          </ul>
+        </li>
+        
+      </ul>
 
-          <li>
-            <button
-              class="dropdown-item text-theme fw-bold d-flex align-items-center gap-2"
-              type="button"
-              data-bs-toggle="modal"
-              data-bs-target="#logoutModal"
-            >
-              <i class="bi bi-box-arrow-right"></i>
-              <span>Sohoka</span>
-            </button>
-          </li>
-        </ul>
-      </li>
       {% else %}
-      <li class="nav-item">
-        <a
-          class="nav-link {% if request.path == '/login/' %}active{% endif %}"
-          href="{% url 'login' %}"
-        >
+        <a class="nav-link d-lg-none {% if request.path == '/login/' %}active{% endif %}"
+          href="{% url 'login' %}" style="position: absolute; right: 1rem;">
           <i class="bi bi-box-arrow-in-right"></i> Injira
         </a>
-      </li>
-      <li class="nav-item">
-        <a
-          class="nav-link {% if request.path == '/register/' %}active{% endif %}"
-          href="{% url 'register' %}"
-        >
-          <i class="bi bi-person-plus-fill"></i> Iyandikishe
-        </a>
-      </li>
-      {% endif %}
-    </ul>
+
+    {% endif %}
   </div>
   <div
     class="container-fluid px-2 d-flex justify-content-between align-items-center gap-2"
@@ -182,37 +172,4 @@
     <div class="collapse navbar-collapse" id="navbarMain"></div>
   </div>
 </nav>
-{% if user.is_authenticated %}
-<div class="d-lg-none fixed-bottom bg-theme text-theme border-top py-2">
-  <div class="d-flex justify-content-around">
-    <a
-      class="nav-link {% if request.path == '/' %}active{% endif %} d-flex flex-column align-items-center"
-      href="{% url 'home' %}"
-    >
-      <i class="bi bi-house-door-fill"></i>
-      <em class="nav-text">Ahabanza</em>
-    </a>
-    <a
-      class="nav-link {% if request.path == '/amasomo/' %}active{% endif %} d-flex flex-column align-items-center"
-      href="{% url 'courses' %}"
-    >
-      <i class="bi bi-book-fill"></i>
-      <em class="nav-text">Amasomo</em>
-    </a>
-    <a
-      class="nav-link {% if request.path == '/contact/' %}active{% endif %} d-flex flex-column align-items-center"
-      href="{% url 'contact' %}"
-    >
-      <i class="bi bi-envelope-fill"></i>
-      <span class="nav-text">Twandikire</span>
-    </a>
-    <a
-      class="nav-link {% if request.path == '/ibizamini-byicyumweru/' %}active{% endif %} d-flex flex-column align-items-center"
-      href="{% url 'weekly_exams' %}"
-    >
-      <i class="bi bi-calendar-week"></i>
-      <span class="nav-text">Icyumweru</span>
-    </a>
-  </div>
-</div>
-{% endif %}
+

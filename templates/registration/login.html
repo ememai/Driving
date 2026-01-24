@@ -4,6 +4,13 @@
     border: 1px solid rgb(126, 186, 247) !important;
   
   }
+
+  modal-content {
+    background-color: rgba(var(--card-bg-rgb), 0.98); 
+    backdrop-filter: blur(10px); 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+    border-radius: 0.5rem;
+  }
  </style>
 <div class="modal fade {% if request.resolver_match.url_name == 'login' %}show d-block{%  endif %}" 
      id="loginModal" tabindex="-1" 
@@ -12,7 +19,7 @@
      {% if request.resolver_match.url_name == 'login' %}data-bs-backdrop="static" data-bs-keyboard="false"{% endif %}>
      
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 rounded-4 shadow" style="max-width: 450px;">
+    <div class="modal-content modal-dialog-centered border-0 rounded-4 shadow" style="max-width: 450px;">
 
       <div class="modal-body p-4 p-md-5">
         <div class="text-center ">
