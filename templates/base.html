@@ -102,10 +102,10 @@
         <!-- Global Loader -->
 
             <div class="global-loader" id="global-loader" aria-hidden="true">
-                <div class="spinner-border text-warning loader-spinner" role="status" style="width: 3rem; height: 3rem;"></div>
-                <div class="loader-text fs-5 px-2 mt-2 fw-bold">Tegereza gato...</div>
+                <div class="spinner-border text-warning loader-spinner loading" role="status" style="width: 3rem; height: 3rem;"></div>
+                <div class="loader-text fs-5 px-2 mt-2 fw-bold loading">Tegereza gato...</div>
                 <!-- The spinner and loader-text will be hidden when try-again-btn is shown -->
-                <button id="try-again-btn" class="btn btn-theme mt-3 d-none" onclick="window.location.reload()">Try Again</button>
+                <button id="try-again-btn" class="btn btn-theme mt-3 d-none" onclick="window.location.reload()" style="transition: top 0.3s;">Try Again</button>
             </div>
 
             <style>
@@ -149,7 +149,22 @@
                     transition: margin-left 0.3s ease;
                 }
             </style>
-
+            {% if user.is_staff %}
+                    <button id="test-loader-btn" class="btn btn-warning position-fixed" style="top: 80px; right: 20px; z-index: 20001;">Test Loader & Try Again</button>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var btn = document.getElementById('test-loader-btn');
+                        if (btn) {
+                            btn.addEventListener('click', function() {
+                                globalLoader.show();
+                                setTimeout(function() {
+                                    globalLoader.showTryAgain();
+                                }, 3000); // Show Try Again after 11s
+                            });
+                        }
+                    });
+                    </script>
+            {% endif %} 
         <!-- Status Icons -->
         <div class="status-icon checkmark-icon" id="success-indicator">
             <i class="bi bi-check-circle-fill"></i> <!-- Bootstrap checkmark icon -->
@@ -252,6 +267,8 @@
                 errorIndicator: document.getElementById('error-indicator'),
                 flashMessages: document.getElementById('flash-messages'),
                 tryAgainBtn: document.getElementById('try-again-btn'),
+                loaderSpinner: document.querySelector('.loader-spinner'),
+                loaderText: document.querySelector('.loader-text'),
 
                 show: () => {
                     globalLoader.element.classList.add('active');
@@ -311,7 +328,6 @@
             // Timeout for loader (15 seconds)
             let loaderTimeout = setTimeout(() => {
                 globalLoader.showTryAgain();
-                globalLoader.hide();
             }, 10000);
 
             let xklName = `<div class="d-flex align-items-center">
@@ -408,7 +424,6 @@
                 clearTimeout(loaderTimeout);
                 loaderTimeout = setTimeout(() => {
                     globalLoader.showTryAgain();
-                    globalLoader.hide();
                 }, 10000);
             });
             window.addEventListener('unload', () => globalLoader.hide());
