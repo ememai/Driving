@@ -55,6 +55,18 @@
 
             {% block extra_css %}
             <style>
+                /* Loader spinner and text fade animation */
+                .loader-spinner, .loader-text {
+                    transition: opacity 0.5s cubic-bezier(0.4,0,0.2,1), visibility 0.5s;
+                }
+                .fade-out-loader {
+                    opacity: 0 !important;
+                    visibility: hidden !important;
+                }
+                .fade-in-loader {
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                }
                 #main-content {
                     margin-top: 25px;
                     margin-bottom: 5rem;
@@ -90,8 +102,9 @@
         <!-- Global Loader -->
 
             <div class="global-loader" id="global-loader" aria-hidden="true">
-                <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;"></div>
+                <div class="spinner-border text-warning loader-spinner" role="status" style="width: 3rem; height: 3rem;"></div>
                 <div class="loader-text fs-5 px-2 mt-2 fw-bold">Tegereza gato...</div>
+                <!-- The spinner and loader-text will be hidden when try-again-btn is shown -->
                 <button id="try-again-btn" class="btn btn-theme mt-3 d-none" onclick="window.location.reload()">Try Again</button>
             </div>
 
@@ -253,12 +266,27 @@
                 showTryAgain: () => {
                     if (globalLoader.tryAgainBtn) {
                         globalLoader.tryAgainBtn.classList.remove('d-none');
-                        
+                        // Animate fade out
+                        document.querySelectorAll('.loader-spinner, .loader-text').forEach(el => {
+                            el.classList.remove('fade-in-loader');
+                            el.classList.add('fade-out-loader');
+                            setTimeout(() => {
+                                el.classList.add('d-none');
+                            }, 500);
+                        });
                     }
                 },
                 hideTryAgain: () => {
                     if (globalLoader.tryAgainBtn) {
                         globalLoader.tryAgainBtn.classList.add('d-none');
+                        // Animate fade in
+                        document.querySelectorAll('.loader-spinner, .loader-text').forEach(el => {
+                            el.classList.remove('d-none');
+                            el.classList.remove('fade-out-loader');
+                            // Force reflow for transition
+                            void el.offsetWidth;
+                            el.classList.add('fade-in-loader');
+                        });
                     }
                 }
             };
