@@ -253,6 +253,7 @@
                 showTryAgain: () => {
                     if (globalLoader.tryAgainBtn) {
                         globalLoader.tryAgainBtn.classList.remove('d-none');
+                        
                     }
                 },
                 hideTryAgain: () => {
@@ -291,6 +292,7 @@
                     clearTimeout(loaderTimeout);
                     loaderTimeout = setTimeout(() => {
                         globalLoader.showTryAgain();
+                        globalLoader.hide();
                     }, 10000);
 
                     // Handle AJAX form submissions
@@ -364,6 +366,7 @@
                 clearTimeout(loaderTimeout);
                 loaderTimeout = setTimeout(() => {
                     globalLoader.showTryAgain();
+                    globalLoader.hide();
                 }, 10000);
             });
             window.addEventListener('unload', () => globalLoader.hide());
