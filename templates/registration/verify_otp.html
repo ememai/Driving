@@ -1,5 +1,5 @@
 {% extends 'base.html' %} {% block title %}Verify OTP{% endblock %} 
-{% block content %} {% include "flash_message.html" %}
+{% block content %} {# flash_message.html include removed to prevent duplication #}
 
 <div class="container mt-0">
   <!-- Modal -->
@@ -22,7 +22,7 @@
             Emeza ko email <strong>{{ user.email }}</strong> ari iyawe wuzuza
             kode y'isuzuma yoherejwe kuri email.
           </p>
-          {% include "flash_message.html" %}
+          {# flash_message.html include removed to prevent duplication #}
           <form method="post">
             {% csrf_token %}
             <div class="mb-3">

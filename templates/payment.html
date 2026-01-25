@@ -218,7 +218,7 @@
             Fungura ifatabuguzi wishyuye
           </a>
 
-          {% else %} {% include "flash_message.html" %}
+          {% else %} {# flash_message.html include removed to prevent duplication #}
 
           <a
             href="{% url 'payment' %}"
