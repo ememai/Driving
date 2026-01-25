@@ -1,63 +1,83 @@
 {% load static custom_filters %}
 <style>
-  .avatar-circle {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: var(
-      --bs-primary
-    ); /* You can choose a color or use a random color generator */
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-  }
-
-  @media (max-width: 768px) {
     .avatar-circle {
-      width: 40px;
-      height: 40px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(
+        --bs-primary
+      ); /* You can choose a color or use a random color generator */
+      color: white;
       font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
     }
+
+    @media (max-width: 768px) {
+      .avatar-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+      }
+
+      .mobile-start {
+        left: 50% !important;
+      }
+      
+    }
+
+    .nav-text {
+      font-size: 0.75rem;
+    }
+
+    .navbar {
+    {% comment %} position: fixed; {% endcomment %}
+    top: 0;
+    width: 100%;
+    z-index: 10000;
   }
 
-  .nav-text {
-    font-size: 0.75rem;
+  .navbar .dropdown-menu {
+    z-index: 10001;
   }
-
-  .navbar {
-  {% comment %} position: fixed; {% endcomment %}
-  top: 0;
-  width: 100%;
-  z-index: 10000;
-}
-
-.navbar .dropdown-menu {
-  z-index: 10001;
-}
-
 </style>
-<nav class="navbar navbar-expand-lg shadow-sm" id="navbar">
-  <div
-    class="d-flex justify-content-center flex-grow-1 position-relative align-items-center"
-    >
-    <a
-      class="navbar-brand d-flex align-items-center gap-2 text-theme"
-      href="{% url 'home' %}"
-    >
-      <img
-        src="{% static 'img/logo.png' %}"
-        alt="Logo"
-        class="logo"
-        style="width: 30px; height: 30px; border-radius: 50%"
-      />
-      <strong>IGAZETI.RW</strong>
-    </a>
 
-    {% if user.is_authenticated %}
+<nav class="navbar navbar-expand-lg shadow-sm position-relative" id="navbar">
+  <div
+    class="container-fluid px-2 d-flex justify-content-between align-items-center gap-2 position-relative"
+    style="min-height: 56px"
+  >
+    <!-- Left side (empty for spacing) -->
+    <div class="d-lg-block" style="width: 60px"></div>
+
+    <!-- Brand always centered -->
+    <div
+      class="position-absolute top-50 start-100 mobile-start translate-middle d-flex align-items-center justify-content-center"
+      style="z-index: 2"
+    >
+      <a
+        class="navbar-brand d-flex align-items-center gap-2 text-theme m-0"
+        href="{% url 'home' %}"
+      >
+        <img
+          src="{% static 'img/logo.png' %}"
+          alt="Logo"
+          class="logo"
+          style="width: 30px; height: 30px; border-radius: 50%"
+        />
+        <strong>IGAZETI.RW</strong>
+      </a>
+    </div>
+
+    <!-- Right side: user menu or login -->
+    <div
+      class="d-flex align-items-center ms-auto position-relative"
+      style="z-index: 3"
+    >
+      {% if user.is_authenticated %}
       <a
         class="nav-link dropdown-toggle d-flex align-items-center d-lg-none"
         href="#"
@@ -65,51 +85,60 @@
         role="button"
         data-bs-toggle="dropdown"
         aria-expanded="false"
-        style="
-          position: absolute;
-          right: 1rem;
-        "
-        >
-        <!-- Avatar with First Name Initial -->
+      >
         <div class="avatar-circle me-2">
           {{ request.user.name|slice:":2"|upper }}
         </div>
       </a>
       <ul
-        class="align-items-center gap-2 text-theme "
-        style="list-style: none; display: flex; margin: 10px; padding: 0; position: absolute; right: 1rem; top: 70%; transform: translateY(-50%); z-index: 1000 !important;"
+        class="align-items-center gap-2 text-theme"
+        style="
+          list-style: none;
+          display: flex;
+          margin: 10px;
+          padding: 0;
+          position: absolute;
+          right: 0;
+          top: 70%;
+          transform: translateY(-50%);
+          z-index: 1000 !important;
+        "
+      >
+        <li
+          class="nav-item dropdown d-flex align-items-center flex-column justify-content-between"
         >
-
-        <li class="nav-item dropdown d-flex align-items-center flex-column justify-content-between">
-          
-
           <ul
             class="dropdown-menu dropdown-menu-end"
-            style="background-color: rgba(var(--card-bg-rgb), 0.98); backdrop-filter: blur(10px); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border-radius: 0.5rem; "
+            style="
+              background-color: rgba(var(--card-bg-rgb), 0.98);
+              backdrop-filter: blur(10px);
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              border-radius: 0.5rem;
+            "
           >
             <li>
               <a class="dropdown-item text-theme" href="{% url 'profile' %}"
-                ><i class="bi bi-person-fill"></i>
-                {{ request.user.name|first_name }}
-              </a>
+                ><i class="bi bi-person-fill"></i> 
+                {{ request.user.name|first_name }}</a
+              >
             </li>
             <li>
               {% if not request.user.is_subscribed %}
-
-              <a class="dropdown-item text-danger" href="{% url 'subscription' %}"
+              <a
+                class="dropdown-item text-danger"
+                href="{% url 'subscription' %}"
                 ><i class="bi bi-wallet-fill"></i> Gura ifatabuguzi</a
               >
               {% else %}
               <a
                 class="dropdown-item text-success"
                 href="{% url 'subscription' %}"
+                ><i class="bi bi-wallet-fill"></i> Ifatabuguzi |
+                {{request.user.subscription.plan.get_plan_display}}</a
               >
-                <i class="bi bi-wallet-fill"></i> Ifatabuguzi | {{request.user.subscription.plan.get_plan_display}}
-              </a>
               {% endif %}
             </li>
             <li><hr class="dropdown-divider" /></li>
-
             {% if user.is_staff %}
             <li>
               <div class="d-flex flex-row gap-2 px-3 mb-2">
@@ -118,29 +147,25 @@
                   href="/admin"
                   aria-label="Admin Dashboard"
                   style="color: inherit"
-                >
-                  <i class="bi bi-speedometer2"></i>
-                </a>
+                  ><i class="bi bi-speedometer2"></i
+                ></a>
                 <a
                   class="nav-link p-0 {% if request.path == '/create-exam/' %}active{% endif %}"
                   href="{% url 'create_exam' %}"
                   aria-label="Create Exam"
                   style="color: inherit"
-                >
-                  <i class="fa-solid fa-plus"></i>
-                </a>
+                  ><i class="fa-solid fa-plus"></i
+                ></a>
                 <a
                   class="nav-link p-0 {% if request.path == '/schedule-exams/' %}active{% endif %}"
                   href="{% url 'auto_schedule_exams' %}"
                   aria-label="Schedule Exams"
                   style="color: inherit"
-                >
-                  <i class="fa-solid fa-clock"></i>
-                </a>
+                  ><i class="fa-solid fa-clock"></i
+                ></a>
               </div>
             </li>
             {% endif %}
-
             <li>
               <button
                 class="dropdown-item text-theme fw-bold d-flex align-items-center gap-2"
@@ -154,16 +179,17 @@
             </li>
           </ul>
         </li>
-        
       </ul>
-
       {% else %}
-        <a class="nav-link d-lg-none {% if request.path == '/login/' %}active{% endif %}"
-          href="{% url 'login' %}" style="position: absolute; right: 1rem;">
-          <i class="bi bi-box-arrow-in-right"></i> Injira
-        </a>
-
-    {% endif %}
+      <a
+        class="nav-link d-lg-none {% if request.path == '/login/' %}active{% endif %}"
+        href="{% url 'login' %}"
+        style="position: absolute; right: 0"
+      >
+        <i class="bi bi-box-arrow-in-right"></i> Injira
+      </a>
+      {% endif %}
+    </div>
   </div>
   <div
     class="container-fluid px-2 d-flex justify-content-between align-items-center gap-2"
@@ -172,4 +198,3 @@
     <div class="collapse navbar-collapse" id="navbarMain"></div>
   </div>
 </nav>
-

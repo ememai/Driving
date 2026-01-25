@@ -139,12 +139,14 @@
                     #sidebar {
                         margin-left: 60px;
                     }
-                    .navbar {
-                        margin-left: 60px;
-                    }
+                    
                     #main-content-wrapper {
                         margin-left: 60px;
                     }
+                }
+
+                main {
+                    transition: margin-left 0.3s ease;
                 }
             </style>
 
@@ -565,19 +567,17 @@
             sidebar.style.width = '60px';
             sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = 'none');
             sidebarToggle.innerHTML = '<i class="fa fa-angle-double-right"></i>';
-
             sidebarToggle.addEventListener('click', function() {
                 collapsed = !collapsed;
                 if (collapsed) {
                     sidebar.style.width = '60px';
                     if (otherContent) otherContent.style.marginLeft = '60px';
-                    if (navbar) navbar.style.marginLeft = '60px';
+                    
                     sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = 'none');
                     sidebarToggle.innerHTML = '<i class="fa fa-angle-double-right"></i>';
                 } else {
                     sidebar.style.width = '250px';
                     if (otherContent) otherContent.style.marginLeft = '250px';
-                    if (navbar) navbar.style.marginLeft = '250px';
                     sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = '');
                     sidebarToggle.innerHTML = '<i class="fa fa-angle-double-left"></i>';
                 }
