@@ -9,8 +9,7 @@
     aria-hidden="true"
     data-bs-backdrop="static"
     data-bs-keyboard="false"
-    
-    >
+  >
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -19,10 +18,9 @@
           </h5>
         </div>
         <div class="modal-body">
-         {# flash_message.html include removed to prevent duplication #}
+          {# flash_message.html include removed to prevent duplication #}
 
-          <form method="POST"
-            id="consentForm" >
+          <form method="POST" id="consentForm">
             {% csrf_token %}
             <div class="mb-4">
               <p class="mb-1">
@@ -49,7 +47,7 @@
                   name="consent"
                   id="consent_yes"
                   value="yes"
-                  autocomplete="off"                
+                  autocomplete="off"
                 />
                 <label
                   class="btn fw-bolder fs-5 btn-outline-success flex-grow-1 py-2"
@@ -79,11 +77,7 @@
               {% endif %}
             </div>
 
-  
-            <div
-              id="whatsappNumberField"
-              class="form-floating mb-3 d-none" >
-
+            <div id="whatsappNumberField" class="form-floating mb-3 d-none">
               <input
                 type="phone"
                 class="form-control"
@@ -92,26 +86,32 @@
                 placeholder="Urugero: +250788123456"
                 pattern="^\+?[0-9]{1,15}$"
                 title="Injiza nimero ya WhatsApp yawe, urugero: +2507..."
-                
                 maxlength="16"
-                oninvalid="this.setCustomValidity('Niba wahisemo yego, andika numero ya WhatsApp neza')"
+                oninvalid="
+                  this.setCustomValidity(
+                    'Niba wahisemo yego, andika numero ya WhatsApp neza',
+                  )
+                "
                 oninput="this.setCustomValidity('')"
-                {% if form.whatsapp_number.value %}
+                {%
+                if
+                form.whatsapp_number.value
+                %}
                 value="{{ form.whatsapp_number.value }}"
-                {% endif %}
+                {%
+                endif
+                %}
                 required
               />
               <label for="whatsappNumber" class="form-label text-secondary">
                 <i class="bi bi-whatsapp text-green"></i>
-                Andika Nimero ukoresha kuri WhatsApp: </label
-              >
-              <div class="form-text">
-                Urugero: <code>+2507...</code>
-              </div>
+                Andika Nimero ukoresha kuri WhatsApp:
+              </label>
+              <div class="form-text">Urugero: <code>+2507...</code></div>
               {% if form.whatsapp_number.errors %}
-                <div class="text-danger mt-1">
-                  {{ form.whatsapp_number.errors.0 }}
-                </div>
+              <div class="text-danger mt-1">
+                {{ form.whatsapp_number.errors.0 }}
+              </div>
               {% endif %}
             </div>
 
@@ -119,8 +119,7 @@
               type="submit"
               id="submitBtn"
               class="btn btn-primary w-100 py-2 mt-3 d-none"
-             >            
-            </button>
+            ></button>
           </form>
         </div>
       </div>
@@ -132,7 +131,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     // Automatically show the modal when the page loads
     const consentModal = new bootstrap.Modal(
-      document.getElementById("consentModal")
+      document.getElementById("consentModal"),
     );
     consentModal.show();
 
@@ -158,17 +157,17 @@
 
     document.querySelectorAll('input[name="consent"]').forEach((radio) => {
       radio.addEventListener("change", function () {
-      toggleWhatsappField();
-      submitBtn.classList.remove("d-none");      
-    });
+        toggleWhatsappField();
+        submitBtn.classList.remove("d-none");
+      });
     });
 
     toggleWhatsappField();
 
-    
-     form.addEventListener('submit', (e) => {
+    form.addEventListener("submit", (e) => {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      submitBtn.innerHTML =
+        '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
     });
   });
 </script>
