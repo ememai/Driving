@@ -1090,18 +1090,15 @@ def activate_subscription_view(request):
             # Get human-readable plan name
             plan_display = dict(Plan.PLAN_CHOICES).get(subscription.plan.plan, subscription.plan.plan)
             today = timezone.now().date()
-            expires_date = localtime(expires_at).strftime('%d-%m-%Y')
+            expires_date = "Taliki " + localtime(expires_at).strftime('%d-%m-%Y') if expires_at.date() != today else ''
             expires_hour = localtime(expires_at).strftime('%H:%M')
-            if expires_date == today:
-                expires_date = ''
-            else:
-                expires_date = "Taliki " + expires_date 
+            
                 
             context.update({
                 "show_modal": True,
                 "modal_title": f"Ifatabuguzi <strong>'{plan_display}'</strong> riratangiye🎉",
                 "modal_message": f'''{message} Ubu wemerewe kwiga no gukosora ibizamini ushaka kugeza <br> 
-                <strong>{expires_date} Saa {expires_hour}</strong>''',
+                <strong>{expires_date} Saa {expires_hour} </strong>''',
                 "redirect_url": reverse("home"),
             })
         else:
