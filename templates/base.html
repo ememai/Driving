@@ -269,7 +269,7 @@
             let loaderTimeout = setTimeout(() => {
                 globalLoader.showTryAgain();
                 globalLoader.hide();
-            }, 15000);
+            }, 10000);
 
             let xklName = `<div class="d-flex align-items-center">
                 <i class="bi bi-car-front-fill text-warning fs-1"></i>
@@ -291,7 +291,7 @@
                     clearTimeout(loaderTimeout);
                     loaderTimeout = setTimeout(() => {
                         globalLoader.showTryAgain();
-                    }, 15000);
+                    }, 10000);
 
                     // Handle AJAX form submissions
                     if (form.dataset.ajax === 'true') {
@@ -364,7 +364,7 @@
                 clearTimeout(loaderTimeout);
                 loaderTimeout = setTimeout(() => {
                     globalLoader.showTryAgain();
-                }, 15000);
+                }, 10000);
             });
             window.addEventListener('unload', () => globalLoader.hide());
         </script>
