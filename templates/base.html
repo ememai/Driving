@@ -1,4 +1,4 @@
-{% load static %}
+{% load static custom_filters %}
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -134,6 +134,18 @@
                     font-size: 1.2rem;
                     text-align: center;
                 }
+
+                @media (min-width: 768px) {
+                    #sidebar {
+                        margin-left: 60px;
+                    }
+                    .navbar {
+                        margin-left: 60px;
+                    }
+                    #main-content-wrapper {
+                        margin-left: 60px;
+                    }
+                }
             </style>
 
         <!-- Status Icons -->
@@ -150,22 +162,22 @@
         {% endblock %}
 
         <!-- Main Content -->
-        <main class="flex-grow-1">
+        <main class="flex-grow-1" id="main-content-wrapper">
             <div class="container" id="main-content">
 
                 {% block content %}{% endblock %}
             </div>
         </main>
 
-    {% if not request.user.is_authenticated %}
-        <div class="d-flex justify-content-between py-0">
-            <i class="fa-solid fa-truck-monster"></i>
-            <i class="fa-solid fa-car "></i>
-            <i class="fa-solid fa-bicycle "></i>
-            <i class="fa-solid fa-bus "></i>
-            
-        </div>
-    {% endif %}
+        {% if not request.user.is_authenticated %}
+            <div class="d-flex justify-content-between py-0">
+                <i class="fa-solid fa-truck-monster"></i>
+                <i class="fa-solid fa-car "></i>
+                <i class="fa-solid fa-bicycle "></i>
+                <i class="fa-solid fa-bus "></i>
+                
+            </div>
+        {% endif %}
 
         <!-- Footer -->
         {% comment %} <footer class="bg-theme text-theme py-4 mt-0 mx-0 border-top border-secondary">
@@ -455,38 +467,144 @@
         
         {% if user.is_authenticated %}
             <div class="d-flex flex-column gap-4 d-lg-none fixed-bottom bg-theme text-theme shadow-md  border-top py-2" style="border-radius: 0 0 0.5rem 0.5rem; width: 100%; z-index: 1050;">
-            <div class="d-flex justify-content-around">
-                <a
-                class="nav-link d-flex flex-column align-items-center "
-                href="{% url 'home' %}"
-                >
-                <i class="bi bi-house-door-fill {% if request.path == '/' %}bg-secondary rounded px-2{% endif %}"></i>
-                <em class="nav-text">Ahabanza</em>
-                </a>
-                <a
-                class="nav-link d-flex flex-column align-items-center"
-                href="{% url 'courses' %}"
-                >
-                <i class="bi bi-book-fill {% if request.path == '/amasomo/' %}bg-secondary rounded px-2{% endif %}"></i>
-                <em class="nav-text">Amasomo</em>
-                </a>
-                <a
-                class="nav-link d-flex flex-column align-items-center"
-                href="{% url 'contact' %}"
-                >
-                <i class="bi bi-envelope-fill {% if request.path == '/contact/' %}bg-secondary rounded px-2{% endif %}"></i>
-                <span class="nav-text">Twandikire</span>
-                </a>
-                <a
-                class="nav-link d-flex flex-column align-items-center"
-                href="{% url 'weekly_exams' %}"
-                >
-                <i class="bi bi-calendar-week {% if request.path == '/ibizamini-byicyumweru/' %}bg-secondary rounded px-2{% endif %}"></i>
-                <span class="nav-text">Icyumweru</span>
-                </a>
+                <div class="d-flex justify-content-around">
+                    <a
+                    class="nav-link d-flex flex-column align-items-center "
+                    href="{% url 'home' %}"
+                    >
+                    <i class="bi bi-house-door-fill {% if request.path == '/' %}bg-secondary rounded px-2{% endif %}"></i>
+                    <em class="nav-text">Ahabanza</em>
+                    </a>
+                    <a
+                    class="nav-link d-flex flex-column align-items-center"
+                    href="{% url 'courses' %}"
+                    >
+                    <i class="bi bi-book-fill {% if request.path == '/amasomo/' %}bg-secondary rounded px-2{% endif %}"></i>
+                    <em class="nav-text">Amasomo</em>
+                    </a>
+                    <a
+                    class="nav-link d-flex flex-column align-items-center"
+                    href="{% url 'contact' %}"
+                    >
+                    <i class="bi bi-envelope-fill {% if request.path == '/contact/' %}bg-secondary rounded px-2{% endif %}"></i>
+                    <span class="nav-text">Twandikire</span>
+                    </a>
+                    <a
+                    class="nav-link d-flex flex-column align-items-center"
+                    href="{% url 'weekly_exams' %}"
+                    >
+                    <i class="bi bi-calendar-week {% if request.path == '/ibizamini-byicyumweru/' %}bg-secondary rounded px-2{% endif %}"></i>
+                    <span class="nav-text">Icyumweru</span>
+                    </a>
+                </div>
             </div>
+
+            {% comment %} desktop sidebar {% endcomment %}
+
+            <div id="desktop-sidebar" class="d-none d-lg-block fixed-top bg-theme text-theme shadow-md border-end py-4" style="width: 250px; height: 100vh; z-index: 1050; transition: width 0.3s; overflow: hidden; top: 0; left: 0;">
+                <div class="d-flex flex-column justify-content-start align-items-center gap-4 h-100 ">
+                    <!-- Collapse/Expand Button -->
+                    <button id="sidebarToggle" class="btn btn-outline-secondary mb-2 align-self-end me-3" style="z-index:1100;" data-bs-toggle="tooltip" data-bs-placement="right" title="Toggle Sidebar">
+                        <i class="fa fa-angle-double-left"></i>
+                    </button>
+                    <a href="{% url 'profile' %}" class="nav-link d-flex flex-column align-items-center mb-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Profile">
+                        <div class="avatar-circle mx-2" style="width: 50px; height: 50px; font-size: 24px; line-height: 50px; background-color: #312e13; color: #fff; text-align: center; border-radius: 50%;">
+                          {{ request.user.name|slice:":2"|upper }}
+                        </div>
+                    </a>
+                    <div class="border-top border-secondary w-75"></div>
+                    <div class="overflow-auto align-items-center gap-3 d-flex flex-column flex-grow-1 w-100" style="max-height: 100vh;">
+                        <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'home' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Ahabanza">
+                            <i class="bi bi-house-door-fill fs-4"></i>
+                            <em class="nav-text">Ahabanza</em>
+                        </a>
+                        <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'courses' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Amasomo">
+                            <i class="bi bi-book-fill fs-4"></i>
+                            <em class="nav-text">Amasomo</em>
+                        </a>
+                        <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'contact' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Twandikire">
+                            <i class="bi bi-envelope-fill fs-4"></i>
+                            <span class="nav-text">Twandikire</span>
+                        </a>
+                        <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'weekly_exams' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Icyumweru">
+                            <i class="bi bi-calendar-week fs-4"></i>
+                            <span class="nav-text">Icyumweru</span>
+                        </a>
+                        {% if user.is_staff %}
+                        <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'admin:index' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Admin">
+                            <i class="bi bi-speedometer2"></i>
+                            <span class="nav-text">Admin</span>
+                        </a>
+                        <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'create_exam' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Create Exam">
+                            <i class="bi bi-plus-circle-fill fs-4"></i>
+                            <span class="nav-text">Create Exam</span>
+                        </a>
+                        <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'auto_schedule_exams' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Auto Schedule">
+                            <i class="bi bi-calendar-check-fill fs-4"></i>
+                            <span class="nav-text">Auto Schedule</span>
+                        </a>
+                        {% endif %}
+                        <div class="border-top border-secondary w-75"></div>
+                        <button class="nav-link d-flex gap-2 align-items-center" type="button" data-bs-toggle="modal" data-bs-target="#logoutModal" data-bs-toggle="tooltip" data-bs-placement="right" title="Sohoka">
+                            <i class="bi bi-box-arrow-right fs-3"></i>
+                            {% comment %} <span>Sohoka</span> {% endcomment %}
+                        </button>
+                    </div>
+                </div>
             </div>
-            {% endif %}
+        <script>
+        // Sidebar collapse/expand
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('desktop-sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const otherContent = document.querySelector('main');
+            const navbar = document.querySelector('nav');
+            let collapsed = true; // Collapsed by default
+
+            // Collapse sidebar by default on load
+            sidebar.style.width = '60px';
+            sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = 'none');
+            sidebarToggle.innerHTML = '<i class="fa fa-angle-double-right"></i>';
+
+            sidebarToggle.addEventListener('click', function() {
+                collapsed = !collapsed;
+                if (collapsed) {
+                    sidebar.style.width = '60px';
+                    if (otherContent) otherContent.style.marginLeft = '60px';
+                    if (navbar) navbar.style.marginLeft = '60px';
+                    sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = 'none');
+                    sidebarToggle.innerHTML = '<i class="fa fa-angle-double-right"></i>';
+                } else {
+                    sidebar.style.width = '250px';
+                    if (otherContent) otherContent.style.marginLeft = '250px';
+                    if (navbar) navbar.style.marginLeft = '250px';
+                    sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = '');
+                    sidebarToggle.innerHTML = '<i class="fa fa-angle-double-left"></i>';
+                }
+            });
+
+            // Enable Bootstrap tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Active link highlighting based on current path
+            const links = sidebar.querySelectorAll('.sidebar-link');
+            links.forEach(link => {
+                if (link.getAttribute('href') === window.location.pathname) {
+                    link.classList.add('active');
+                    link.querySelector('i').classList.add('bg-secondary', 'rounded', 'px-2');
+                } else {
+                    link.classList.remove('active');
+                    link.querySelector('i').classList.remove('bg-secondary', 'rounded', 'px-2');
+                }
+            });
+        });
+        </script>
+
+        {% endif %}
+
        <!-- Unverified Subscription Modal -->
         <div class="modal fade" id="unverifiedModal" tabindex="-1"          aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">

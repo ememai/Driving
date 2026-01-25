@@ -123,6 +123,7 @@ def register_view(request):
     return render(request, 'registration/register.html', {'form': form})
 
 
+
 def check_unique_field(request):
     field = request.GET.get("field")
     value = request.GET.get("value")
