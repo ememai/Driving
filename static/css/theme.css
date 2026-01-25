@@ -89,6 +89,25 @@ body.bg-theme {
   border-color: rgba(var(--success-rgb), 1);
 }
 
+.btn-theme {
+  background-color: rgba(var(--btn-bg-rgb), 1);
+  border-color: rgba(var(--btn-bg-rgb), 1);
+  color: rgba(var(--text-rgb), 1);
+  border: 2px solid;
+}
+
+[data-bs-theme="light"] .btn-theme {
+  background-color: rgb(0, 0, 0);
+  border-color: rgb(0, 0, 0);
+  color: rgb(255, 255, 255);
+}
+
+[data-bs-theme="dark"] .btn-theme {
+  background-color: rgb(255, 255, 255);
+  border-color: rgb(255, 255, 255);
+  color: rgb(0, 0, 0);
+}
+
 /* Form styles */
 .form-control {
   background-color: rgba(var(--surface-rgb), 1);

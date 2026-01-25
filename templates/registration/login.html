@@ -12,7 +12,7 @@
     border-radius: 0.5rem;
   }
  </style>
-<div class="modal fade {% if request.resolver_match.url_name == 'login' %}show d-block{%  endif %}" 
+<div class="modal fade mt-3 {% if request.resolver_match.url_name == 'login' %}show d-block{%  endif %}" 
      id="loginModal" tabindex="-1" 
      aria-labelledby="loginModalLabel" 
      aria-hidden="{% if request.resolver_match.url_name != 'login' %}true{% else %}false{% endif %}"

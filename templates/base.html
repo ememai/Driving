@@ -92,6 +92,7 @@
             <div class="global-loader" id="global-loader" aria-hidden="true">
                 <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;"></div>
                 <div class="loader-text fs-5 px-2 mt-2 fw-bold">Tegereza gato...</div>
+                <button id="try-again-btn" class="btn btn-theme mt-3 d-none" onclick="window.location.reload()">Try Again</button>
             </div>
 
             <style>
@@ -223,6 +224,7 @@
                 successIndicator: document.getElementById('success-indicator'),
                 errorIndicator: document.getElementById('error-indicator'),
                 flashMessages: document.getElementById('flash-messages'),
+                tryAgainBtn: document.getElementById('try-again-btn'),
 
                 show: () => {
                     globalLoader.element.classList.add('active');
@@ -247,11 +249,26 @@
                     setTimeout(() => {
                         globalLoader.errorIndicator.classList.remove('show');
                     }, 2000);
+                },
+                showTryAgain: () => {
+                    if (globalLoader.tryAgainBtn) {
+                        globalLoader.tryAgainBtn.classList.remove('d-none');
+                    }
+                },
+                hideTryAgain: () => {
+                    if (globalLoader.tryAgainBtn) {
+                        globalLoader.tryAgainBtn.classList.add('d-none');
+                    }
                 }
             };
 
             // Show loader immediately on script load (before DOMContentLoaded)
             globalLoader.show();
+
+            // Timeout for loader (15 seconds)
+            let loaderTimeout = setTimeout(() => {
+                globalLoader.showTryAgain();
+            }, 15000);
 
             let xklName = `<div class="d-flex align-items-center">
                 <i class="bi bi-car-front-fill text-warning fs-1"></i>
@@ -269,6 +286,11 @@
                 if (e.target.tagName.toLowerCase() === 'form') {
                     const form = e.target;
                     globalLoader.show();
+                    globalLoader.hideTryAgain();
+                    clearTimeout(loaderTimeout);
+                    loaderTimeout = setTimeout(() => {
+                        globalLoader.showTryAgain();
+                    }, 15000);
 
                     // Handle AJAX form submissions
                     if (form.dataset.ajax === 'true') {
@@ -311,6 +333,8 @@
             // Hide loader after DOM is ready
             document.addEventListener('DOMContentLoaded', () => {
                 globalLoader.hide();
+                globalLoader.hideTryAgain();
+                clearTimeout(loaderTimeout);
 
                 // Check for success messages in flash messages
                 const successMessage = document.querySelector('.alert-success');
@@ -333,7 +357,14 @@
             });
 
             // Handle navigation events
-            window.addEventListener('beforeunload', () => globalLoader.show());
+            window.addEventListener('beforeunload', () => {
+                globalLoader.show();
+                globalLoader.hideTryAgain();
+                clearTimeout(loaderTimeout);
+                loaderTimeout = setTimeout(() => {
+                    globalLoader.showTryAgain();
+                }, 15000);
+            });
             window.addEventListener('unload', () => globalLoader.hide());
         </script>
         <script type="application/ld+json">
@@ -444,27 +475,6 @@
         <script>
             let modalShown = false; // Track if modal has been shown
 
-            // WebSocket connection for real-time notifications
-            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const ws = new WebSocket(wsProtocol + '//' + window.location.host + '/ws/dashboard/');
-
-            ws.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                if (data.type === 'unverified' && data.unverified && !modalShown) {
-                    const currentPath = window.location.pathname;
-                    const activateUrls = [
-                        "{% url 'activate_subscription' %}",
-                        "{% url 'payment' %}",
-                        "{% url 'subscription' %}",
-                    ];
-                    if (!activateUrls.includes(currentPath)) {
-                        const modal = new bootstrap.Modal(document.getElementById("unverifiedModal"));
-                        modal.show();
-                        modalShown = true;
-                    }
-                }
-            };
-
             function checkUnverified() {
                 const currentPath = window.location.pathname;
                 const activateUrls = [
@@ -499,8 +509,8 @@
 
             document.addEventListener("DOMContentLoaded", function() {
                 checkUnverified();
-                // Poll every 1 minute
-                setInterval(checkUnverified, 60000);
+                // Poll every 10 seconds for more real-time feel
+                setInterval(checkUnverified, 10000);
             });
         </script>
 
