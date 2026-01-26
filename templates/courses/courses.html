@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <div class="max-w-6xl mx-auto px-4 py-6">
+    <div class="max-w-6xl mx-auto px-4 py-6 sm:py-8">
       <!-- Search Form - Mobile Optimized -->
       <div class="mb-6">
         <form method="get" class="relative">
@@ -115,13 +115,13 @@
             </div>
             {% endif %}
 
-            <div class="p-4 sm:p-5">
+            <div class="p-4 sm:p-3">
               <h2
                 class="text-lg sm:text-xl font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight"
               >
                 {{ course.title }}
               </h2>
-              <div class="mb-2">
+              <div class="mb-2 flex items-center space-x-2">
                 <span
                   class="inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"
                 >
@@ -138,13 +138,13 @@
               </p>
               {% endif %}
 
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-end group hover:underline mt-2">
                 <span
                   class="text-sm font-medium text-blue-600 group-hover:text-blue-700 transition-colors"
                 >
-                  Fungura →
+                  Fungura
+                  <i class="bi bi-chevron-right text-gray-400 text-sm"></i>
                 </span>
-                <i class="bi bi-chevron-right text-gray-400 text-sm"></i>
               </div>
             </div>
           </a>
