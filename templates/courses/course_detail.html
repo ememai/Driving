@@ -7,9 +7,9 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
   />
   <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
-    />
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+  />
   <title>{{ course.title }} - Course Details | IGAZETI.RW</title>
 
   <meta
@@ -35,10 +35,9 @@
   />
   <meta
     property="og:image"
-    {% if course.thumbnail %}
-      content="{{ course.thumbnail.url }}"
-   {% endif %}
-   
+    {% if course.thumbnail %} 
+    content="{{ course.thumbnail.url }}"
+    {% endif %}
   />
   <meta property="og:url" content="{{ request.build_absolute_uri }}" />
   <meta property="og:type" content="website" />
@@ -66,7 +65,7 @@
       display: flex !important;
     }
   </style>
- 
+
   <!-- Add this CSS in the head section -->
   <style>
     .loading-spinner {
@@ -74,16 +73,18 @@
       width: 2rem;
       height: 2rem;
       border: 0.25em solid rgba(0, 0, 0, 0.1);
-      border-left-color: #1E40AF;
+      border-left-color: #1e40af;
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin: 1rem auto;
     }
-    
+
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
-    
+
     .loading-container {
       display: flex;
       justify-content: center;
@@ -95,7 +96,7 @@
     }
 
     .retry-btn {
-      background-color: #1E40AF;
+      background-color: #1e40af;
       color: white;
       padding: 0.5rem 1rem;
       border-radius: 0.25rem;
@@ -104,186 +105,203 @@
     }
 
     .retry-btn:hover {
-      background-color: #1E3A8A;
+      background-color: #1e3a8a;
+    }
+
+    #pdf-canvas {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 0.5rem;
+      transition: transform 5s ease-in-out;
     }
   </style>
-
 </head>
-<h1 class="text-3xl font-bold mb-5 fixed top-0 left-0 right-0 bg-white z-10 p-4 text-center">{{ course.title }}</h1>
+<h1
+  class="text-3xl font-bold mb-5 fixed top-0 left-0 right-0 bg-white z-10 p-4 text-center"
+>
+  {{ course.title }}
+</h1>
 <div class="max-w-3xl mx-auto p-4 pt-20">
   {% if course %}
   <span class="text-sm text-black bg-blue-100 px-2 py-1 rounded"
     >{{ course.category }}</span
   >
 
-  <div class="prose max-w-none">
-    {{ description_html|safe }}
-  </div>
-  {% endif %}
-
+  <div class="prose max-w-none">{{ description_html|safe }}</div>
+  {% endif %} 
+  
   {% if course.course_file %}
   <div class="mt-6">
     {% if course.course_file.url|lower|endswith:".mp4" or course.course_file.url|lower|endswith:".avi" or course.course_file.url|lower|endswith:".mkv" %}
-    <video controls controlsList="nodownload" width="100%" height="auto">
-      <source src="{% url 'secure_stream' course.id %}" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
+      <video controls controlsList="nodownload" width="100%" height="auto">
+        <source src="{% url 'secure_stream' course.id %}" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
 
-    {% if not request.user|plan_allowed %}
-  <!-- Overlay -->
-    <div class="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center text-white rounded-lg">
-      <h2 class="text-2xl font-semibold mb-4">ifatabuzi ufite ntago wareba iyi video</h2>
-      <a href="{% url 'subscription' %}" class="bg-yellow-500 hover:bg-yellow-600 text-black px-5 py-2 rounded-lg font-bold transition">
-       Ongera ifatabuzi
-      </a>
-    </div>
-    {% endif %}
-
-    {% elif course.course_file.url|lower|endswith:".mp3" or course.course_file.url|lower|endswith:".wav" %}
-
-    {% elif course.course_file.url|lower|endswith:".pdf" %}
-    <div class="aspect-w-16 aspect-h-9">
-      <div class="mb-3 flex gap-2 items-center">
-        <button
-          id="show-search-btn"
-          class="bg-gray-600 text-white px-4 py-1 rounded"
-        >
-          <i class="fas fa-search"></i> Search
-        </button>
-        <input
-          id="search-input"
-          type="text"
-          placeholder="Search text..."
-          class="border rounded px-3 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-400 hidden"
-        />
-      </div>
-    </div>
-
-    <div id="match-nav" class="flex gap-2 items-center mt-1 hidden">
-      <button id="prev-match" class="bg-gray-200 px-2 py-1 rounded text-sm">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-      <span class="text-sm"
-        >Match <span id="match-index">0</span> of
-        <span id="match-count">0</span></span
-      >
-      <button id="next-match" class="bg-gray-200 px-2 py-1 rounded text-sm">
-        <i class="fas fa-arrow-right"></i>
-      </button>
-    </div>
-
-    <div class="mt-6">
-      
-      <div id="pdf-controls" class="flex justify-between items-center mb-2">
-        <button id="prev" class="bg-gray-200 px-2 py-1 rounded">
-          <i class="fas fa-chevron-left"></i> Previous
-        </button>
-        <span
-          >Page: <span id="page_num">1</span> /
-          <span id="page_count">--</span></span
-        >
-        <button id="next" class="bg-gray-200 px-2 py-1 rounded">
-          Next <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
-      
-      {% comment %} <div id="pdf-container"
-        class="border rounded shadow overflow-hidden relative"
-        >
-
-        <div id="pdf-loading-spinner" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
-          <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
-        </div>
-
-        <!-- Navigation Arrows for Fullscreen Mode -->
+      {% if not request.user|plan_allowed %}
+        <!-- Overlay -->
         <div
-          id="fullscreen-arrows"
-          class="absolute top-1/2 left-0 right-0 flex justify-between items-center px-1 z-50 hidden pointer-events-none"
+          class="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center text-white rounded-lg"
+        >
+          <h2 class="text-2xl font-semibold mb-4">
+            ifatabuzi ufite ntago wareba iyi video
+          </h2>
+          <a
+            href="{% url 'subscription' %}"
+            class="bg-yellow-500 hover:bg-yellow-600 text-black px-5 py-2 rounded-lg font-bold transition"
           >
+            Ongera ifatabuzi
+          </a>
+        </div>
+      {% endif %} 
+
+      {% elif course.course_file.url|lower|endswith:".pdf" %}
+      <div class="aspect-w-16 aspect-h-9">
+        <div class="mb-3 flex gap-2 items-center">
           <button
-            id="fs-prev"
-            class="bg-black bg-opacity-10 text-white rounded-full p-3 pointer-events-auto"
+            id="show-search-btn"
+            class="bg-gray-600 text-white px-4 py-1 rounded"
           >
-            <i class="fas fa-chevron-left text-2xl"></i>
+            <i class="fas fa-search"></i> Search
           </button>
-          <button
-            id="fs-next"
-            class="bg-black bg-opacity-10 text-white rounded-full p-3 pointer-events-auto"
+          <input
+            id="search-input"
+            type="text"
+            placeholder="Search text..."
+            class="border rounded px-3 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-400 hidden"
+          />
+        </div>
+      </div>
+  
+      <div id="match-nav" class="flex gap-2 items-center mt-1 hidden">
+        <button id="prev-match" class="bg-gray-200 px-2 py-1 rounded text-sm">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="text-sm"
+          >Match <span id="match-index">0</span> of
+          <span id="match-count">0</span></span
+        >
+        <button id="next-match" class="bg-gray-200 px-2 py-1 rounded text-sm">
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+  
+      <div class="mt-6">
+        <div id="pdf-controls" class="flex justify-between items-center mb-2">
+          <button id="prev" class="bg-gray-200 px-2 py-1 rounded">
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <span
+            >Page: <span id="page_num">1</span> /
+            <span id="page_count">--</span></span
           >
-            <i class="fas fa-chevron-right text-2xl"></i>
+          <button id="next" class="bg-gray-200 px-2 py-1 rounded">
+            Next <i class="fas fa-chevron-right"></i>
           </button>
         </div>
-
-        <canvas
-          id="pdf-canvas"
-          class="mx-auto transition-transform duration-300 ease-in-out w-full border rounded shadow"
-        ></canvas>
-      </div> {% endcomment %}
-      <div
-            id="pdf-container"
-            class="border rounded shadow overflow-hidden relative"
-          >
-            <!-- Loading spinner container -->
-            <div id="loading-spinner" class="loading-container">
-              <div class="loading-spinner"></div>
-            </div>
-            
-            <!-- Navigation Arrows for Fullscreen Mode -->
-            <div
-              id="fullscreen-arrows"
-              class="absolute top-1/2 left-0 right-0 flex justify-between items-center px-1 z-50 hidden pointer-events-none"
-            >
-              <button
-                id="fs-prev"
-                class="bg-black bg-opacity-10 text-white rounded-full p-3 pointer-events-auto"
-              >
-                <i class="fas fa-chevron-left text-2xl"></i>
-              </button>
-              <button
-                id="fs-next"
-                class="bg-black bg-opacity-10 text-white rounded-full p-3 pointer-events-auto"
-              >
-                <i class="fas fa-chevron-right text-2xl"></i>
-              </button>
-            </div>
-
-            <canvas
-              id="pdf-canvas"
-              class="mx-auto transition-transform duration-300 ease-in-out w-full border rounded shadow hidden"
-            ></canvas>
-      </div>
-
-      <div class="mt-2 flex items-center justify-between">
+  
         {% comment %}
-        <button
-          id="fullscreen"
-          class="ml-3 bg-gray-200 px-2 py-1 rounded text-base"
+        <div
+          id="pdf-container"
+          class="border rounded shadow overflow-hidden relative"
         >
-          <i class="fas fa-expand"></i> FULLSCREEN
-        </button>
+          <div
+            id="pdf-loading-spinner"
+            class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50"
+          >
+            <div
+              class="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"
+            ></div>
+          </div>
+  
+          <!-- Navigation Arrows for Fullscreen Mode -->
+          <div
+            id="fullscreen-arrows"
+            class="absolute top-1/2 left-0 right-0 flex justify-between items-center px-1 z-50 hidden pointer-events-none"
+          >
+            <button
+              id="fs-prev"
+              class="bg-black bg-opacity-10 text-white rounded-full p-3 pointer-events-auto"
+            >
+              <i class="fas fa-chevron-left text-2xl"></i>
+            </button>
+            <button
+              id="fs-next"
+              class="bg-black bg-opacity-10 text-white rounded-full p-3 pointer-events-auto"
+            >
+              <i class="fas fa-chevron-right text-2xl"></i>
+            </button>
+          </div>
+  
+          <canvas
+            id="pdf-canvas"
+            class="mx-auto transition-transform duration-300 ease-in-out w-full border rounded shadow"
+          ></canvas>
+        </div>
         {% endcomment %}
-        <button
-          id="fullscreen"
-          class="ml-3 bg-gray-200 px-3 py-2 rounded text-base text-sm md:text-base"
+        <div
+          id="pdf-container"
+          class="border rounded shadow overflow-hidden relative"
         >
-          <i class="fas fa-expand"></i>
-          <span class="hidden sm:inline">Fullscreen</span>
-        </button>
-
-        {% if user.is_subscribed and user.subscription.plan|lower == 'vip' or user.subscription.plan|lower == 'weekly' %}
-        <a
-          href="{% url 'secure_download' course.id %}"
-          class="text-green-900 underline"
-          title="Download {{ course.title }}"
-          id="download-link"
-        >
-          <i class="fas fa-download"> download</i>
-        </a>
-
-
-        {% endif %}
+          <!-- Loading spinner container -->
+          <div id="loading-spinner" class="loading-container">
+            <div class="loading-spinner"></div>
+          </div>
+  
+          <!-- Navigation Arrows for Fullscreen Mode -->
+          <div
+            id="fullscreen-arrows"
+            class="absolute top-1/2 left-0 right-0 flex justify-between items-center px-1 z-50 hidden pointer-events-none"
+          >
+            <button
+              id="fs-prev"
+              class="bg-black bg-opacity-10 text-white rounded-full p-3 pointer-events-auto"
+            >
+              <i class="fas fa-chevron-left text-2xl"></i>
+            </button>
+            <button
+              id="fs-next"
+              class="bg-black bg-opacity-10 text-white rounded-full p-3 pointer-events-auto"
+            >
+              <i class="fas fa-chevron-right text-2xl"></i>
+            </button>
+          </div>
+  
+          <canvas
+            id="pdf-canvas"
+            class="mx-auto transition-transform duration-300 ease-in-out w-full border rounded shadow hidden"
+          ></canvas>
+        </div>
+  
+        <div class="mt-2 flex items-center justify-between">
+          {% comment %}
+          <button
+            id="fullscreen"
+            class="ml-3 bg-gray-200 px-2 py-1 rounded text-base"
+          >
+            <i class="fas fa-expand"></i> FULLSCREEN
+          </button>
+          {% endcomment %}
+          <button
+            id="fullscreen"
+            class="ml-3 bg-gray-200 px-3 py-2 rounded text-base text-sm md:text-base"
+          >
+            <i class="fas fa-expand"></i>
+            <span class="hidden sm:inline">Fullscreen</span>
+          </button>
+  
+          {% if user.is_subscribed and user.subscription.plan|lower == 'vip' or user.subscription.plan|lower == 'weekly' %}
+          <a
+            href="{% url 'secure_download' course.id %}"
+            class="text-green-900 underline"
+            title="Download {{ course.title }}"
+            id="download-link"
+          >
+            <i class="fas fa-download"> download</i>
+          </a>
+  
+          {% endif %}
+        </div>
       </div>
-    </div>
   </div>
 
   {% else %}
@@ -305,58 +323,55 @@
     </div>
 
     <div class="my-2">
-      <a
-        href="{% url 'exams' course.exams_type %}"
-        class="text-gray-600"
-      >
+      <a href="{% url 'exams' course.exams_type %}" class="text-gray-600">
         <h4 class="text-xl font-semibold">
           <i class="fas fa-certificate"></i>
-          Kora Ibizamini byiri somo <span class="text-blue-600 underline">{{ course.title }}</span>
+          Kora Ibizamini byiri somo
+          <span class="text-blue-600 underline">{{ course.title }}</span>
         </h4>
       </a>
     </div>
     <div class="my-2 hidden sm:block">
       <a href="{% url 'home' %}" class="text-gray-600 hover:text-blue-600">
-      <i class="fas fa-home"></i> Subira ahabanza
+        <i class="fas fa-home"></i> Subira ahabanza
       </a>
     </div>
   </div>
   {% endif %}
 </div>
 <!-- Mobile Bottom Navigation -->
-    <div
-      class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 sm:hidden"
-      >
-      <div class="flex justify-around items-center">
-        <a
-          href="{% url 'home' %}"
-          class="flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors"
-        >
-          <i class="bi bi-house text-lg"></i>
-          <span class="text-xs mt-1">Ahabanza</span>
-        </a>
-        <a
-          href="{% url 'courses' %}"
-          class="flex flex-col items-center text-blue-600"
-        >
-          <i class="bi bi-book text-lg"></i>
-          <span class="text-xs mt-1">Amasomo</span>
-        </a>
-        <a
-          href="{% url 'exams' course.exams_type %}"
-          class="flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors"
-        >
-          <i class="bi bi-journal-text text-lg"></i>
-          <span class="text-xs mt-1">Ibizamini</span>
-        </a>
-      </div>
-    </div>
+<div
+  class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 sm:hidden"
+>
+  <div class="flex justify-around items-center">
+    <a
+      href="{% url 'home' %}"
+      class="flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors"
+    >
+      <i class="bi bi-house text-lg"></i>
+      <span class="text-xs mt-1">Ahabanza</span>
+    </a>
+    <a
+      href="{% url 'courses' %}"
+      class="flex flex-col items-center text-blue-600"
+    >
+      <i class="bi bi-book text-lg"></i>
+      <span class="text-xs mt-1">Amasomo</span>
+    </a>
+    <a
+      href="{% url 'exams' course.exams_type %}"
+      class="flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors"
+    >
+      <i class="bi bi-journal-text text-lg"></i>
+      <span class="text-xs mt-1">Ibizamini</span>
+    </a>
+  </div>
+</div>
 
-    <!-- Add bottom padding for mobile nav -->
-    <div class="h-16 sm:hidden"></div>
+<!-- Add bottom padding for mobile nav -->
+<div class="h-16 sm:hidden"></div>
 
 <script>
- 
   const url = "{{ course.course_file.url }}";
   let retryCount = 0;
   const maxRetries = 3;
@@ -375,45 +390,52 @@
   function renderPage(num) {
     pageRendering = true;
     // Show loading spinner and hide canvas
-    document.getElementById('loading-spinner').style.display = 'flex';
-    document.getElementById('pdf-canvas').classList.add('hidden');
-    
-    pdfDoc.getPage(num).then(function (page) {
-      const viewport = page.getViewport({ scale });
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
+    document.getElementById("loading-spinner").style.display = "flex";
+    document.getElementById("pdf-canvas").classList.add("hidden");
 
-      const renderContext = {
-        canvasContext: ctx,
-        viewport: viewport,
-      };
-      const renderTask = page.render(renderContext);
+    pdfDoc
+      .getPage(num)
+      .then(function (page) {
+        const viewport = page.getViewport({ scale, rotation: 0});
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
 
-      renderTask.promise.then(function () {
-        pageRendering = false;
-        // Hide loading spinner and show canvas when rendering is complete
-        document.getElementById('loading-spinner').style.display = 'none';
-        document.getElementById('pdf-canvas').classList.remove('hidden');
-        
-        if (pageNumPending !== null) {
-          renderPage(pageNumPending);
-          pageNumPending = null;
-        }
-      });
-    }).catch(function(error) {
-      console.error("Error rendering page:", error);
-      document.getElementById('loading-spinner').innerHTML = `
+        const renderContext = {
+          canvasContext: ctx,
+          viewport: viewport,
+        };
+        const renderTask = page.render(renderContext);
+
+        renderTask.promise.then(function () {
+          pageRendering = false;
+          // Hide loading spinner and show canvas when rendering is complete
+          document.getElementById("loading-spinner").style.display = "none";
+          //const canvas = document.getElementById("pdf-canvas");
+          canvas.classList.remove("hidden");
+          canvas.style.transition = "all 3s ease-in-out";
+
+
+
+          if (pageNumPending !== null) {
+            renderPage(pageNumPending);
+            pageNumPending = null;
+          }
+        });
+      })
+      .catch(function (error) {
+        console.error("Error rendering page:", error);
+        document.getElementById("loading-spinner").innerHTML = `
         <p class="text-red-500">Error loading page. Please try again.</p>
         <button class="retry-btn" onclick="retryRenderPage(${num})">Retry Now</button>
       `;
-    });
+      });
 
     document.getElementById("page_num").textContent = num;
   }
 
   function retryRenderPage(num) {
     clearTimeout(retryTimeout);
-    document.getElementById('loading-spinner').innerHTML = `
+    document.getElementById("loading-spinner").innerHTML = `
       <div class="loading-spinner"></div>
       <p>Attempting to load...</p>
     `;
@@ -422,40 +444,43 @@
 
   function loadPDF() {
     // Show loading state
-    document.getElementById('loading-spinner').innerHTML = `
+    document.getElementById("loading-spinner").innerHTML = `
       <div class="loading-spinner"></div>
       <p>Loading document...</p>
     `;
-    document.getElementById('loading-spinner').style.display = 'flex';
-    
-    pdfjsLib.getDocument(url).promise.then(function (pdfDoc_) {
-      clearTimeout(retryTimeout);
-      retryCount = 0;
-      pdfDoc = pdfDoc_;
-      document.getElementById("page_count").textContent = pdfDoc.numPages;
-      renderPage(pageNum);
-      setupSwipeNavigation();
-    }).catch(function(error) {
-      retryCount++;
-      if (retryCount <= maxRetries) {
-        const spinnerContainer = document.getElementById('loading-spinner');
-        const retryTime = retryCount * 30000; // 30 seconds for each retry
-        
-        spinnerContainer.innerHTML = `
+    document.getElementById("loading-spinner").style.display = "flex";
+
+    pdfjsLib
+      .getDocument(url)
+      .promise.then(function (pdfDoc_) {
+        clearTimeout(retryTimeout);
+        retryCount = 0;
+        pdfDoc = pdfDoc_;
+        document.getElementById("page_count").textContent = pdfDoc.numPages;
+        renderPage(pageNum);
+        setupSwipeNavigation();
+      })
+      .catch(function (error) {
+        retryCount++;
+        if (retryCount <= maxRetries) {
+          const spinnerContainer = document.getElementById("loading-spinner");
+          const retryTime = retryCount * 30000; // 30 seconds for each retry
+
+          spinnerContainer.innerHTML = `
           <p class="text-red-500">Error loading PDF (Attempt ${retryCount}/${maxRetries})</p>
           <p>Retrying in 30 seconds...</p>
           <button class="retry-btn" onclick="loadPDF()">Retry Now</button>
         `;
-        
-        retryTimeout = setTimeout(loadPDF, retryTime);
-      } else {
-        const spinnerContainer = document.getElementById('loading-spinner');
-        spinnerContainer.innerHTML = `
+
+          retryTimeout = setTimeout(loadPDF, retryTime);
+        } else {
+          const spinnerContainer = document.getElementById("loading-spinner");
+          spinnerContainer.innerHTML = `
           <p class="text-red-500">Failed to load PDF after ${maxRetries} attempts.</p>
           <button class="retry-btn" onclick="loadPDF()">Try Again</button>
         `;
-      }
-    });
+        }
+      });
   }
 
   // Initialize PDF loading
@@ -480,11 +505,6 @@
     pageNum++;
     queueRenderPage(pageNum);
   }
-
-
-
-
-
 
   function queueRenderPage(num) {
     if (pageRendering) {
@@ -563,7 +583,8 @@
       let diffX = startX - endX;
 
       if (Math.abs(diffX) > 50) {
-        if (diffX > 0) onNextPage(); // swipe left
+        if (diffX > 0)
+          onNextPage(); // swipe left
         else onPrevPage(); // swipe right
       }
 
@@ -577,7 +598,6 @@
     renderPage(pageNum);
     setupSwipeNavigation(); // Enable touch/swipe
   });
-
 
   const downloadLink = document.getElementById("download-link");
   const downloadBan = document.getElementById("download-ban");
@@ -617,7 +637,7 @@
   }
 
   ["mousemove", "touchstart", "keydown", "click"].forEach((event) =>
-    document.addEventListener(event, showFullscreenArrows)
+    document.addEventListener(event, showFullscreenArrows),
   );
 
   fsPrev.addEventListener("click", () => {
@@ -628,8 +648,6 @@
     onNextPage();
     showFullscreenArrows();
   });
-
-
 
   // When entering fullscreen manually, show arrows immediately
   container.addEventListener("fullscreenchange", showFullscreenArrows);
@@ -695,13 +713,13 @@
 
           const transform = pdfjsLib.Util.transform(
             viewport.transform,
-            item.transform
+            item.transform,
           );
           const x = transform[4] + matchXOffset;
           const y =
             transform[5] -
             Math.sqrt(
-              transform[2] * transform[2] + transform[3] * transform[3]
+              transform[2] * transform[2] + transform[3] * transform[3],
             );
           const height = Math.abs(transform[3]);
 
@@ -732,7 +750,7 @@
     matchIndexLabel.textContent = currentMatchIndex + 1;
 
     const page = await pdfDoc.getPage(pageNum);
-    const viewport = page.getViewport({ scale });
+    const viewport = page.getViewport({ scale, rotation: 0 });
 
     canvas.height = viewport.height;
     canvas.width = viewport.width;
