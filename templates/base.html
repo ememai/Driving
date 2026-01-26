@@ -68,7 +68,7 @@
                     visibility: visible !important;
                 }
                 #main-content {
-                    margin-top: 25px;
+                    margin-top: 15px;
                     margin-bottom: 5rem;
                 }
                 .scroll-btn {
@@ -323,7 +323,7 @@
             // Show loader immediately on script load (before DOMContentLoaded)
             globalLoader.show();
 
-            // Timeout for loader (15 seconds)
+            // Timeout for loader (10 seconds)
             let loaderTimeout = setTimeout(() => {
                 globalLoader.showTryAgain();
             }, 10000);
@@ -468,7 +468,6 @@
                type="button"
                data-bs-toggle="tooltip"
                data-bs-placement="left"
-               title="Toggle Dark/Light Mode"
                style="width: 40px; height: 40px; font-size: 18px;"
            >
                <i class="themeIcon bi bi-moon fs-4"></i>

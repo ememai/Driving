@@ -5,7 +5,7 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
 
 <style>
   main {
-    padding-top: 150px;
+    margin-top: 80px;
   }
   #navbar,
   #scheduled-hours-wrapper {
@@ -451,6 +451,7 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
 <script>
   const navbar = document.getElementById("navbar");
   const scheduledWrapper = document.getElementById("scheduled-hours-wrapper");
+  const note = document.querySelector(".note");
   let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
   window.addEventListener("scroll", () => {
@@ -458,12 +459,15 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
     if (scrollTop > lastScrollTop) {
       navbar.classList.add("hidden");
       scheduledWrapper.style.top = "0";
+      note.style.marginTop = "0.5rem";
       scheduledWrapper.style.transition = "top 0.4s ease";
       scheduledWrapper.style.zIndex = "1040";
       //scheduledWrapper.style.marginTop = "0";
     } else {
       navbar.classList.remove("hidden");
       scheduledWrapper.style.top = "56px";
+      note.style.marginTop = "1.5rem";
+      scheduledWrapper.style.transition = "top 0.4s ease";
       // scheduled wrapper margin-top on mobile scroll down
       //scheduledWrapper.style.marginTop = "2.5rem";
       // scheduledWrapper margin-top on desktop scroll down

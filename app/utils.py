@@ -271,7 +271,7 @@ def auto_schedule_recent_exams():
             defaults={'scheduled_datetime': scheduled_time}
         )
         scheduled_exams_count += 1
-        message += f"🏁 Exam '{exam.schedule_hour}' scheduled successfully!\n"
+        message += f"\n\n🏁 Exam '{exam.schedule_hour}' scheduled successfully!\n"
 
     return scheduled_exams_count, message
 

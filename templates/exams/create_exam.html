@@ -1,115 +1,78 @@
 {% extends "base.html" %} {% block content %}
 <div class="container py-5">
   <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <h2 class="mb-4 text-center">
-        <i class="bi bi-journal-text me-2"></i> Create Ibivanze Exam
-      </h2>
-
-      {# flash_message.html include removed to prevent duplication #} {% if
-      show_undo and has_undo_ids %}
-      <div
-        class="alert alert-warning alert-dismissible fade show d-flex justify-content-between align-items-center"
-        role="alert"
-      >
-        <div>
-          <i class="bi bi-arrow-counterclockwise me-1"></i>
-          Exams were just created. Want to undo?
-        </div>
-        <div class="d-flex gap-2 align-items-center">
-          <form
-            action="{% url 'undo_last_exam_action' %}"
-            method="post"
-            class="d-inline"
-          >
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-outline-danger">
-              <i class="bi bi-trash3"></i> Undo
-            </button>
-          </form>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close"
-          ></button>
-        </div>
-      </div>
-      {% endif %}
-
-      <form method="POST" class="d-flex gap-3 align-items-center mb-4">
-        {% csrf_token %}
-        <div
-          class="d-flex flex-column align-items-center justify-content-center"
-        >
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <input
-              type="number"
-              name="number"
-              title="Number of exams"
-              min="1"
-              value="1"
-              max="20"
-              class="form-control w-auto text-center"
-              required
-            />
-            <label class="form-label">Nbr of exams</label>
-          </div>
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              value=""
-              id="for_scheduling"
-              name="for_scheduling"
-              checked
-            />
-            <label class="form-label">For scheduling</label>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary">
-          <i class="bi bi-plus-circle me-1"></i> Create Exam
+    <div class="col-lg-10">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+          <i class="bi bi-journal-text me-2"></i> Create Ibivanze Exam
+        </h2>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createExamModal">
+          <i class="bi bi-plus-circle me-1"></i> Create New Exam
         </button>
-      </form>
-
-      <h4 class="mt-4">
-        <i class="bi bi-clock-history me-1"></i> Recent Ibivanze Exams
-      </h4>
+      </div>
 
       {% if recent_exams %}
-      <ul class="list-group">
-        {% for exam in recent_exams %}
-        <li class="list-group-item">
-          <div
-            class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2"
-          >
-            <div>
-              <i class="bi bi-alarm me-1"></i>
-              <strong>{{ exam.schedule_hour }}</strong> ({{ exam.total_questions
-              }} questions)
-            </div>
-
-            <div>
-              <strong
-                ><i class="bi bi-question-circle me-1"></i>Questions:</strong
-              >
-              <ul class="list-unstyled d-flex flex-wrap gap-2 mb-0">
-                {% for question in exam.questions.all|dictsort:"order" %}
-                <li>
-                  <span class="badge bg-secondary">Q{{ question.order }}</span>
-                </li>
-                {% endfor %}
-              </ul>
-            </div>
-
-            <div class="text-muted small">
-              <i class="bi bi-calendar-check me-1"></i>{{
-              exam.created_at|date:"d M Y, H:i" }}
-            </div>
-          </div>
-        </li>
-        {% endfor %}
-      </ul>
+      <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle shadow-sm">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">
+                <i class="bi bi-alarm me-1"></i> Schedule Hour
+              </th>
+              <th scope="col">
+                <i class="bi bi-question-circle me-1"></i> Questions
+              </th>
+              <th scope="col">Total Questions</th>
+              <th scope="col">
+                <i class="bi bi-calendar-check me-1"></i> Created At
+              </th>
+              <th scope="col" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for exam in recent_exams %}
+            <tr>
+              <th scope="row">{{ forloop.counter }}</th>
+              <td>{{ exam.schedule_hour }}</td>
+              <td>
+                <div class="d-flex flex-wrap gap-1">
+                  {% for question in exam.questions.all|dictsort:"order" %}
+                  <span class="badge bg-primary">Q{{ question.order }}</span>
+                  {% endfor %}
+                </div>
+              </td>
+              <td><span class="badge bg-info">{{ exam.total_questions }}</span></td>
+              <td>{{ exam.created_at|date:"d M Y, H:i" }}</td>
+              <td class="text-end">
+                <a
+                  href="{% url 'edit_exam' exam.id %}"
+                  class="btn btn-sm btn-outline-primary me-1"
+                  title="Edit Exam"
+                >
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form
+                  action="{% url 'delete_exam' exam.id %}"
+                  method="post"
+                  class="d-inline"
+                >
+                  {% csrf_token %}
+                  <button
+                    type="submit"
+                    class="btn btn-sm btn-outline-danger"
+                    title="Delete Exam"
+                    onclick="return confirm('Are you sure you want to delete this exam?');"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
       {% else %}
       <div class="alert alert-info mt-3">
         <i class="bi bi-info-circle me-1"></i> No recent Ibivanze exams found.
@@ -117,5 +80,75 @@
       {% endif %}
     </div>
   </div>
+
+  <!-- Create/Edit Exam Modal -->
+  <div class="modal fade top-50 start-50 translate-middle" style="transition:all 0.3; z-index: 12000;" id="createExamModal" tabindex="-1" aria-labelledby="createExamModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createExamModalLabel">
+            <i class="bi bi-{% if exam %}pencil{% else %}plus-circle{% endif %} me-2"></i>{% if exam %}Edit{% else %}Create New{% endif %} Exam
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="POST">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="schedule_hour" class="form-label">Schedule Hour</label>
+              <input
+                type="time"
+                class="form-control"
+                id="schedule_hour"
+                name="schedule_hour"
+                value="{{ exam.schedule_hour|default:'' }}"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="duration" class="form-label">Duration (minutes)</label>
+              <input
+                type="number"
+                class="form-control"
+                id="duration"
+                name="duration"
+                value="{{ exam.duration|default:20 }}"
+                min="1"
+                required
+              />
+            </div>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="for_scheduling"
+                name="for_scheduling"
+                {% if exam.for_scheduling %}checked{% endif %}
+              />
+              <label class="form-check-label" for="for_scheduling">
+                For scheduling
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-{% if exam %}save{% else %}plus-circle{% endif %} me-1"></i> {% if exam %}Save Changes{% else %}Create Exam{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
+
+{% if exam %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var modal = new bootstrap.Modal(document.getElementById('createExamModal'));
+    modal.show();
+  });
+</script>
+{% endif %}
+
 {% endblock %}

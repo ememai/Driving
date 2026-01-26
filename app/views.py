@@ -123,7 +123,6 @@ def register_view(request):
     return render(request, 'registration/register.html', {'form': form})
 
 
-
 def check_unique_field(request):
     field = request.GET.get("field")
     value = request.GET.get("value")
@@ -947,7 +946,7 @@ def payment_confirm(request):
                 msg = "New"
                 link = request.build_absolute_uri(reverse('approve_payment', args=[request.user.id, plan.id]))
 
-            notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, plan: {plan},\n\n{link}\n\nWhatsapp: {whatsapp_number}''')
+            notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, \nplan: {plan},\n\n{link}\n\nWhatsapp: {whatsapp_number}''')
             
             messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Urakira igisubizo mu munota umwe.")
             return redirect('home')
@@ -1162,25 +1161,44 @@ def undo_last_exam_action(request):
 
 @login_required(login_url='register')
 @staff_member_required
-def create_exam_page(request):
+def create_exam_page(request, exam_id=None):
+    exam = None
+    if exam_id:
+        exam = get_object_or_404(Exam, id=exam_id)
+    
     if request.method == 'POST':
         try:
-            number = int(request.POST.get("number", 0))
-            for_scheduling = request.POST.get("for_scheduling", False)
+            schedule_hour = request.POST.get('schedule_hour')
+            duration = int(request.POST.get('duration', 20))
+            for_scheduling = 'for_scheduling' in request.POST
             
-            for_scheduling = True if for_scheduling == 'on' else False
+            if exam:
+                # Update existing exam
+                exam.schedule_hour = schedule_hour
+                exam.duration = duration
+                exam.for_scheduling = for_scheduling
+                exam.save()
+                messages.success(request, "Exam updated successfully!")
+            else:
+                # Create new exam
+                exam_type = ExamType.objects.get_or_create(name='Ibivanze')[0]
+                questions = Question.objects.order_by('?')[:20]
+                if questions.count() < 20:
+                    messages.error(request, "Not enough questions available.")
+                    return redirect('create_exam')
+                
+                exam = Exam.objects.create(
+                    exam_type=exam_type,
+                    schedule_hour=schedule_hour,
+                    duration=duration,
+                    for_scheduling=for_scheduling,
+                )
+                exam.questions.set(questions)
+                messages.success(request, "Exam created successfully!")
             
-            if number <= 0:
-                raise ValueError("Number must be greater than 0")
-            
-            exams_created, created_exam_ids = auto_create_exams(number, for_scheduling)
-            request.session['undo_exam_ids'] = created_exam_ids
-            request.session['show_undo'] = True  # Add flag
-
-            messages.success(request, f"{exams_created} exam(s) created successfully!")
             return redirect('create_exam')
-        except (ValueError, TypeError):
-            messages.error(request, "Invalid number of exams.")
+        except (ValueError, TypeError) as e:
+            messages.error(request, f"Invalid input: {e}")
 
     # Show last 10 Ibivanze exams
     ibivanze_type = ExamType.objects.filter(name='Ibivanze').first()
@@ -1188,11 +1206,20 @@ def create_exam_page(request):
     
     context = {
         'recent_exams': recent_exams,
-        'show_undo': request.session.pop('show_undo', False),
-        'has_undo_ids': bool(request.session.get('undo_exam_ids')),
+        'exam': exam,
     }
     return render(request, 'exams/create_exam.html', context)
 
+# --- Exam Edit and Delete Views ---
+
+@login_required(login_url='register')
+@staff_member_required
+@require_POST
+def delete_exam(request, exam_id):
+    exam = get_object_or_404(Exam, id=exam_id)
+    exam.delete()
+    messages.success(request, "Exam deleted successfully.")
+    return redirect('create_exam')
 
 @staff_member_required
 def schedule_recent_exams(request):
@@ -1200,7 +1227,7 @@ def schedule_recent_exams(request):
     if request.method == 'POST':
         
         _ , message =  auto_schedule_recent_exams()
-
+    
         messages.success(request, message)
         return redirect('auto_schedule_exams')  # Or redirect to a success page
 
