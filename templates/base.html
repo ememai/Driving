@@ -105,7 +105,8 @@
                 <div class="spinner-border text-warning loader-spinner loading" role="status" style="width: 3rem; height: 3rem;"></div>
                 <div class="loader-text fs-5 px-2 mt-2 fw-bold loading">Tegereza gato...</div>
                 <!-- The spinner and loader-text will be hidden when try-again-btn is shown -->
-                <button id="try-again-btn" class="btn rounded rounded-pill btn-theme mt-3 d-none" onclick="window.location.reload()" style="transition: all 0.3s ease;">Try Again</button>
+                <button id="try-again-btn" class="btn rounded rounded-pill btn-theme mt-3 d-none" 
+                onclick="window.location.reload()" style="transition: all 0.3s ease;">Refresh</button>
             </div>
 
             <style>
@@ -297,6 +298,7 @@
                 showTryAgain: () => {
                     if (globalLoader.tryAgainBtn) {
                         globalLoader.tryAgainBtn.classList.remove('d-none');
+                        
                         // Instantly hide spinner and text
                         document.querySelectorAll('.loader-spinner, .loader-text').forEach(el => {
                             el.classList.add('d-none');
@@ -326,7 +328,7 @@
             // Timeout for loader (10 seconds)
             let loaderTimeout = setTimeout(() => {
                 globalLoader.showTryAgain();
-            }, 10000);
+            }, 30000);
 
             let xklName = `<div class="d-flex align-items-center">
                 <i class="bi bi-car-front-fill text-warning fs-1"></i>

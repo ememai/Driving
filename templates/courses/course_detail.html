@@ -6,7 +6,10 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
   />
-
+  <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    />
   <title>{{ course.title }} - Course Details | IGAZETI.RW</title>
 
   <meta
@@ -65,45 +68,45 @@
   </style>
  
   <!-- Add this CSS in the head section -->
-<style>
-  .loading-spinner {
-    display: inline-block;
-    width: 2rem;
-    height: 2rem;
-    border: 0.25em solid rgba(0, 0, 0, 0.1);
-    border-left-color: #1E40AF;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 1rem auto;
-  }
-  
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  
-  .loading-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 200px;
-    width: 100%;
-    flex-direction: column;
-    gap: 1rem;
-  }
+  <style>
+    .loading-spinner {
+      display: inline-block;
+      width: 2rem;
+      height: 2rem;
+      border: 0.25em solid rgba(0, 0, 0, 0.1);
+      border-left-color: #1E40AF;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 1rem auto;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+      width: 100%;
+      flex-direction: column;
+      gap: 1rem;
+    }
 
-  .retry-btn {
-    background-color: #1E40AF;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.25rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
+    .retry-btn {
+      background-color: #1E40AF;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
 
-  .retry-btn:hover {
-    background-color: #1E3A8A;
-  }
-</style>
+    .retry-btn:hover {
+      background-color: #1E3A8A;
+    }
+  </style>
 
 </head>
 <div class="max-w-3xl mx-auto p-4">
@@ -310,14 +313,45 @@
         </h4>
       </a>
     </div>
-    <div class="my-2">
+    {% comment %} <div class="my-2">
       <a href="{% url 'home' %}" class="text-gray-600 hover:text-blue-600">
         <i class="fas fa-home"></i> Subira ahabanza
       </a>
-    </div>
+    </div> {% endcomment %}
   </div>
   {% endif %}
 </div>
+<!-- Mobile Bottom Navigation -->
+    <div
+      class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 sm:hidden"
+      >
+      <div class="flex justify-around items-center">
+        <a
+          href="{% url 'home' %}"
+          class="flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors"
+        >
+          <i class="bi bi-house text-lg"></i>
+          <span class="text-xs mt-1">Ahabanza</span>
+        </a>
+        <a
+          href="{% url 'courses' %}"
+          class="flex flex-col items-center text-blue-600"
+        >
+          <i class="bi bi-book text-lg"></i>
+          <span class="text-xs mt-1">Amasomo</span>
+        </a>
+        <a
+          href="{% url 'exams' course.exams_type %}"
+          class="flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors"
+        >
+          <i class="bi bi-journal-text text-lg"></i>
+          <span class="text-xs mt-1">Ibizamini</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Add bottom padding for mobile nav -->
+    <div class="h-16 sm:hidden"></div>
 
 <script>
  
