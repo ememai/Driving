@@ -403,6 +403,7 @@ def course_detail(request, slug):
     })
 
 @login_required
+@subscription_required
 def courses(request):
     courses = Course.objects.all()
     query = request.GET.get('q')
