@@ -23,6 +23,7 @@ from django.db import transaction
 from .authentication import EmailOrPhoneBackend  # Import the custom backend
 from django.utils.timezone import now, localtime, make_aware
 from django.utils.dateparse import parse_datetime
+from django.utils import timezone
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.views import View
 from django.views.decorators.http import require_POST, require_GET
@@ -1243,9 +1244,17 @@ def manage_scheduled_exams(request, scheduled_exam_id=None):
     if request.method == 'POST':
         try:
             exam_id = request.POST.get('exam')
-            scheduled_datetime = request.POST.get('scheduled_datetime')
+            scheduled_datetime_str = request.POST.get('scheduled_datetime')
             
             exam = get_object_or_404(Exam, id=exam_id)
+            scheduled_datetime = parse_datetime(scheduled_datetime_str)
+            
+            if scheduled_datetime is None:
+                raise ValueError("Invalid date/time format")
+            
+            # Make the datetime timezone-aware if it's naive
+            if timezone.is_naive(scheduled_datetime):
+                scheduled_datetime = make_aware(scheduled_datetime)
             
             if scheduled_exam:
                 # Update existing scheduled exam
@@ -1289,6 +1298,33 @@ def delete_scheduled_exam(request, scheduled_exam_id):
     scheduled_exam = get_object_or_404(ScheduledExam, id=scheduled_exam_id)
     scheduled_exam.delete()
     messages.success(request, "Scheduled exam deleted successfully.")
+    return redirect('manage_scheduled_exams')
+
+@login_required(login_url='register')
+@staff_member_required
+@require_POST
+def bulk_delete_scheduled_exams(request):
+    selected_exams = request.POST.getlist('selected_exams')
+    
+    if not selected_exams:
+        messages.error(request, "No exams selected for deletion.")
+        return redirect('manage_scheduled_exams')
+    
+    try:
+        # Convert to integers and validate
+        exam_ids = [int(exam_id) for exam_id in selected_exams]
+        
+        # Get the scheduled exams
+        scheduled_exams = ScheduledExam.objects.filter(id__in=exam_ids)
+        deleted_count = scheduled_exams.count()
+        
+        # Delete them
+        scheduled_exams.delete()
+        
+        messages.success(request, f"Successfully deleted {deleted_count} scheduled exam{'s' if deleted_count != 1 else ''}.")
+    except (ValueError, TypeError):
+        messages.error(request, "Invalid exam selection.")
+    
     return redirect('manage_scheduled_exams')
 
 # ---------------------

@@ -29,6 +29,7 @@ urlpatterns = [
     path('manage-scheduled-exams/', views.manage_scheduled_exams, name='manage_scheduled_exams'),
     path('scheduled-exam/<int:scheduled_exam_id>/edit/', views.manage_scheduled_exams, name='edit_scheduled_exam'),
     path('scheduled-exam/<int:scheduled_exam_id>/delete/', views.delete_scheduled_exam, name='delete_scheduled_exam'),
+    path('bulk-delete-scheduled-exams/', views.bulk_delete_scheduled_exams, name='bulk_delete_scheduled_exams'),
     path('exam/<int:exam_id>/<int:question_number>/', subscription_required(views.exam), name='exam'),
     path('exam/<int:exam_id>/ajax/<int:question_number>/', views.ajax_question, name='ajax_question'),
 
