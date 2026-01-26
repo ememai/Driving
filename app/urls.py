@@ -26,6 +26,9 @@ urlpatterns = [
     path('exam/<int:exam_id>/delete/', views.delete_exam, name='delete_exam'),
     path('undo-last-exam/', undo_last_exam_action, name='undo_last_exam_action'),
     path('schedule-exams/', schedule_recent_exams, name='auto_schedule_exams'),
+    path('manage-scheduled-exams/', views.manage_scheduled_exams, name='manage_scheduled_exams'),
+    path('scheduled-exam/<int:scheduled_exam_id>/edit/', views.manage_scheduled_exams, name='edit_scheduled_exam'),
+    path('scheduled-exam/<int:scheduled_exam_id>/delete/', views.delete_scheduled_exam, name='delete_scheduled_exam'),
     path('exam/<int:exam_id>/<int:question_number>/', subscription_required(views.exam), name='exam'),
     path('exam/<int:exam_id>/ajax/<int:question_number>/', views.ajax_question, name='ajax_question'),
 

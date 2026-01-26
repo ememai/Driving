@@ -2,17 +2,45 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h2>Auto Schedule Exams</h2>
-  {% if messages %}
-    <div class="alert alert-info" role="alert">
-      {% for message in messages %}
-        {{ message }}
-      {% endfor %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h2 class="mb-4 text-center">
+        <i class="bi bi-calendar-event me-2"></i> Exam Scheduling
+      </h2>
+
+      {% include "flash_message.html" %}
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card shadow-sm">
+            <div class="card-body text-center">
+              <i class="bi bi-magic text-primary" style="font-size: 2rem;"></i>
+              <h5 class="card-title mt-2">Auto Schedule</h5>
+              <p class="card-text">Automatically schedule recent exams for future dates.</p>
+              <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-magic me-1"></i> Auto Schedule Exams
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card shadow-sm">
+            <div class="card-body text-center">
+              <i class="bi bi-gear text-success" style="font-size: 2rem;"></i>
+              <h5 class="card-title mt-2">Manual Management</h5>
+              <p class="card-text">Manually schedule, edit, and delete scheduled exams.</p>
+              <a href="{% url 'manage_scheduled_exams' %}" class="btn btn-success">
+                <i class="bi bi-gear me-1"></i> Manage Scheduled Exams
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  {% endif %}
- 
-  <form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-primary">📅 Auto Schedule Recent Exams</button>
-  </form>
+  </div>
+</div>
 {% endblock %}

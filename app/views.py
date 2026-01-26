@@ -1233,6 +1233,64 @@ def schedule_recent_exams(request):
 
     return render(request, 'exams/schedule_recent_exams.html')
 
+@login_required(login_url='register')
+@staff_member_required
+def manage_scheduled_exams(request, scheduled_exam_id=None):
+    scheduled_exam = None
+    if scheduled_exam_id:
+        scheduled_exam = get_object_or_404(ScheduledExam, id=scheduled_exam_id)
+    
+    if request.method == 'POST':
+        try:
+            exam_id = request.POST.get('exam')
+            scheduled_datetime = request.POST.get('scheduled_datetime')
+            
+            exam = get_object_or_404(Exam, id=exam_id)
+            
+            if scheduled_exam:
+                # Update existing scheduled exam
+                scheduled_exam.exam = exam
+                scheduled_exam.scheduled_datetime = scheduled_datetime
+                scheduled_exam.save()
+                messages.success(request, "Scheduled exam updated successfully!")
+            else:
+                # Create new scheduled exam
+                ScheduledExam.objects.create(
+                    exam=exam,
+                    scheduled_datetime=scheduled_datetime,
+                )
+                messages.success(request, "Exam scheduled successfully!")
+            
+            return redirect('manage_scheduled_exams')
+        except (ValueError, TypeError) as e:
+            messages.error(request, f"Invalid input: {e}")
+
+    # Get all scheduled exams
+    scheduled_exams = ScheduledExam.objects.select_related('exam').order_by('-scheduled_datetime')
+    
+    # Get available exams that can be scheduled (for_scheduling=True and not already scheduled)
+    available_exams = Exam.objects.filter(
+        for_scheduling=True
+    ).exclude(
+        id__in=ScheduledExam.objects.values_list('exam_id', flat=True)
+    )
+    
+    context = {
+        'scheduled_exams': scheduled_exams,
+        'available_exams': available_exams,
+        'scheduled_exam': scheduled_exam,
+    }
+    return render(request, 'exams/manage_scheduled_exams.html', context)
+
+@login_required(login_url='register')
+@staff_member_required
+@require_POST
+def delete_scheduled_exam(request, scheduled_exam_id):
+    scheduled_exam = get_object_or_404(ScheduledExam, id=scheduled_exam_id)
+    scheduled_exam.delete()
+    messages.success(request, "Scheduled exam deleted successfully.")
+    return redirect('manage_scheduled_exams')
+
 # ---------------------
 #404 Error Page
 def custom_page_not_found(request, exception):
