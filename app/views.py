@@ -184,6 +184,10 @@ def whatsapp_consent(request):
                 messages.info(request, "Urakoze kwiyandikisha, amahirwe masa mu masomo yawe!")
 
             user.save()
+            # Clear the session variable
+            del request.session['new_user_id']
+            if request.GET.get('next'):
+                return redirect(request.GET.get('next'))
             return redirect('home')
 
     else:
@@ -262,7 +266,11 @@ def login_view(request):
                 if authenticated_user:
                     login(request, authenticated_user)
                     messages.success(request, "Kwinjira bikozwe neza cyane! Ikaze nanone.")
-                    return redirect("home")
+
+                    if request.GET.get('next'):
+                        return redirect(request.GET.get('next'))
+                    return redirect('home')
+
                 elif user.requires_password:
                     messages.error(request, "Permission required")
             else:
@@ -825,6 +833,12 @@ def contact(request):
         email = request.POST.get('email', '').strip()
         whatsapp = request.POST.get('whatsapp', '').strip()
         message_text = request.POST.get('message')
+        
+        validated_number = validate_phone_number(whatsapp) if whatsapp else None
+        
+        if whatsapp and not validated_number:
+            messages.error(request, "Andika nimero ya WhatsApp neza.")
+            return redirect('contact')
 
         if contact_method == 'email' and not email:
             messages.error(request, "Andika imeyili yawe nkuko wabihisempo.")
@@ -839,11 +853,11 @@ def contact(request):
         ContactMessage.objects.create(
             name=name,
             email=email if contact_method == 'email' else None,
-            whatsapp_number=whatsapp if contact_method == 'whatsapp' else None,
+            whatsapp_number=validated_number if contact_method == 'whatsapp' else None,
             message=message_text
         )
-        messages.success(request, "Ubutumwa bwawe bwoherejwe neza! Tuzagusubiza vuba.")
-        notify_admin(f"New contact message from {name} via {contact_method}.")
+        messages.success(request, "Ubutumwa bwawe bwoherejwe neza! Turagusubiza vuba.")
+        notify_admin(f"New contact message from {name} via {contact_method}\n\n msg: *{message_text}* \n\ncontact: {email or whatsapp}")
         return redirect('contact')
 
     return render(request, 'contact.html')
@@ -947,11 +961,16 @@ def payment_confirm(request):
             else:
                 msg = "New"
                 link = request.build_absolute_uri(reverse('approve_payment', args=[request.user.id, plan.id]))
-
-            notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, \nplan: {plan},\n\n{link}\n\nWhatsapp: {whatsapp_number}''')
             
-            messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Urakira igisubizo mu munota umwe.")
-            return redirect('home')
+            if request.user.subscription.otp_verified == False and request.user.subscription.otp_code:
+                messages.info(request, f"Ubwishyu bwawe bwemejwe.")
+                return redirect('activate_subscription')
+            else:
+                # notify_admin(f"{msg} payment confirmation from {request.user.name} for plan {plan.plan}. Approve at: {link}")
+                notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, \nplan: {plan},\n\nApprove at: {link}\n\nWhatsapp: {whatsapp_number}''')
+                
+                messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Urakira igisubizo mu munota umwe.")
+                return redirect('home')
             
         except Exception as e:
             messages.error(request, "An error occurred while processing your payment confirmation. Please try again.")
