@@ -156,8 +156,9 @@ class SubscriptionAdmin(admin.ModelAdmin):
     def renew_subscription(self, obj):
         if not obj.super_subscription and obj.plan:
             return format_html(
-                '<a class="btn btn-success d-flex align-items-center" href="{}"><i class="fas fa-sync-alt mx-1"></i><span> Renew</span></a>',
-                f"/admin/app/subscription/{obj.pk}/renew/"
+                '<a class="btn btn-success d-flex align-items-center" href="{}" onclick="return confirm(\'Are you sure you want to renew subscription for {}?\')"><i class="fas fa-sync-alt mx-1"></i><span> Renew</span></a>',
+                f"/admin/app/subscription/{obj.pk}/renew/",
+                obj.user.name
             )
         return "-"
     renew_subscription.short_description = 'Renew'
@@ -169,8 +170,9 @@ class SubscriptionAdmin(admin.ModelAdmin):
             )
         
         return format_html(
-            '<a class="btn btn-danger d-flex align-items-center" href="{}"><i class="fa-solid fa-stop mx-1"></i><span> End</span></a>',
-            f"/admin/app/subscription/{obj.pk}/end/"
+            '<a class="btn btn-danger d-flex align-items-center" href="{}" onclick="return confirm(\'Are you sure you want to end subscription for {}? This action cannot be undone.\')"><i class="fa-solid fa-stop mx-1"></i><span> End</span></a>',
+            f"/admin/app/subscription/{obj.pk}/end/",
+            obj.user.name
         )
 
     renew_subscription.allow_tags = True
@@ -193,6 +195,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
     def process_renew(self, request, subscription_id):
         subscription = self.get_object(request, subscription_id)
+        
         if subscription and subscription.plan:
             subscription.generate_otp()
             now = timezone.now()

@@ -77,6 +77,17 @@
         {% if user.email %}<i class="bi bi-envelope-fill"></i> {{ user.email }}{% endif %}
         {% if user.phone_number %}<br><i class="bi bi-phone-fill"></i> {{ user.phone_number }}{% endif %}
       </p>
+      {% if request.user.is_subscribed %}
+      <span class="badge text-muted mt-1 d-flex align-items-center gap-1">
+        <i class="fa fa-gem text-primary fs-5"></i> 
+        <em> ifatabuguzi | {{ request.user.subscription.plan }}</em></span>
+      {% elif request.user.has_ended_subscription %}
+      <span class="badge text-muted mt-1 d-flex align-items-center gap-1">
+        <i class="fa fa-bell fs-5"></i>
+        <em> ifatabuguzi ryarangiye {{ request.user.subscription_end_date|date:"d M Y" }}</em></span>
+      {% else %}
+      <a href="{% url 'payment' %}" class="btn btn-sm btn-theme rounded-pill mt-2">gura ifatabuguzi</a>
+      {% endif %}
     </div>
     </div>
     <div class="profile-badges">
