@@ -233,7 +233,8 @@ class UserProfile(AbstractUser):
 
 
     def __str__(self):
-        return self.email if self.email else f"{self.name}**{self.phone_number[-3:]}"
+        sub_icon = "⚡" if hasattr(self, 'subscription') else "" 
+        return f"{sub_icon} {self.email if self.email else f'{self.name}**{self.phone_number[-3:]}'}"
     
 
 class StaffLoginAttempt(models.Model):
