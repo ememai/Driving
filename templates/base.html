@@ -325,10 +325,10 @@
             // Show loader immediately on script load (before DOMContentLoaded)
             globalLoader.show();
 
-            // Timeout for loader (10 seconds)
+            // Timeout for loader (60 seconds)
             let loaderTimeout = setTimeout(() => {
                 globalLoader.showTryAgain();
-            }, 30000);
+            }, 60000); // Show Try Again after 60 seconds
 
             let xklName = `<div class="d-flex align-items-center">
                 <i class="bi bi-car-front-fill text-warning fs-1"></i>
