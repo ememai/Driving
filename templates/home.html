@@ -296,6 +296,20 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
     transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   }
+
+  .exam-type-card:hover small {
+    animation: bounce 1s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
   .course-thumb {
     position: relative;
     height: 100px;
@@ -339,6 +353,18 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
       margin-top: 1rem ;
     } {% endcomment %}
   }
+
+  .hover:hover {
+    border-color: rgba(var(--primary-rgb), 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+
+  .hover:hover i {
+    transform: translateX(3px);
+    transition: all 0.3s ease;
+  }
 </style>
 <!-- Fixed hours panel -->
 <div id="scheduled-hours-wrapper">{% include 'scheduled_hours.html' %}</div>
@@ -366,14 +392,20 @@ title %} Amategeko y'Umuhanda & Ikizamini cya Provisior | IGAZETI.RW {% endblock
             <i class="bi bi-journal-text text-secondary"></i>
             {% endif %}
           </div>
-          <h3 class="exam-type-title text-center">{{ exam_type.name }}</h3>
-
-          <span 
-          class="exam-type-count btn rounded-pill" 
-          style="background-color: rgba(var(--text-rgb), 1);
-          color: rgba(var(--background-rgb),1);">
-            Ibizamini {{ exam_type.actual_exam_count }}
-          </span>
+          
+          <div class="d-flex flex-column align-items-center justify-content-center gap-0 mt-2">
+            <h3 class="exam-type-title text-center">{{ exam_type.name }}</h3>
+            <span 
+              class="exam-type-count " 
+              style="margin-top: -1rem;">
+              Ibizamini {{ exam_type.actual_exam_count }}
+            </span>
+            <small class="rounded-pill btn-theme px-2 mt-4 d-flex align-items-center gap-1 hover">
+                
+              <i class="fa fa-play text-secondary"></i>
+              Bikore
+            </small>
+        </div>
 
         </div>
       </a>
