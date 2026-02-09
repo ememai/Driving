@@ -149,6 +149,8 @@
                 main {
                     transition: margin-left 0.3s ease;
                 }
+
+                
             </style>
             {% comment %} {% if user.is_staff %}
                     <button id="test-loader-btn" class="btn btn-warning position-fixed" style="top: 80px; right: 20px; z-index: 20001;">Test Loader & Try Again</button>
@@ -517,12 +519,8 @@
 
             {% comment %} desktop sidebar {% endcomment %}
 
-            <div id="desktop-sidebar" class="d-none d-lg-block fixed-top bg-theme text-theme shadow-md border-end py-4" style="width: 250px; height: 100vh; z-index: 1050; transition: width 0.3s; overflow: hidden; top: 0; left: 0;">
+            <div id="desktop-sidebar" class="d-none d-lg-block fixed-top bg-theme text-theme shadow-md border-end py-4" style="width: 60px; height: 100vh; z-index: 1050; transition: width 0.3s; overflow: hidden; top: 0; left: 0;">
                 <div class="d-flex flex-column justify-content-start align-items-center gap-4 h-100 ">
-                    <!-- Collapse/Expand Button -->
-                    <button id="sidebarToggle" class="btn btn-outline-secondary mb-2 align-self-end me-3" style="z-index:1100;" data-bs-toggle="tooltip" data-bs-placement="right" title="Toggle Sidebar">
-                        <i class="fa fa-angle-double-left"></i>
-                    </button>
                     <a href="{% url 'profile' %}" class="nav-link d-flex flex-column align-items-center mb-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Profile">
                         <div class="avatar-circle mx-2" style="width: 50px; height: 50px; font-size: 24px; line-height: 50px; background-color: #312e13; color: #fff; text-align: center; border-radius: 50%;">
                           {{ request.user.name|slice:":2"|upper }}
@@ -569,32 +567,25 @@
                 </div>
             </div>
         <script>
-        // Sidebar collapse/expand
+        // Sidebar expand/collapse on hover
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('desktop-sidebar');
-            const sidebarToggle = document.getElementById('sidebarToggle');
             const otherContent = document.querySelector('main');
             const navbar = document.querySelector('nav');
-            let collapsed = true; // Collapsed by default
-
-            // Collapse sidebar by default on load
-            sidebar.style.width = '60px';
             sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = 'none');
-            sidebarToggle.innerHTML = '<i class="fa fa-angle-double-right"></i>';
-            sidebarToggle.addEventListener('click', function() {
-                collapsed = !collapsed;
-                if (collapsed) {
-                    sidebar.style.width = '60px';
-                    if (otherContent) otherContent.style.marginLeft = '60px';
-                    
-                    sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = 'none');
-                    sidebarToggle.innerHTML = '<i class="fa fa-angle-double-right"></i>';
-                } else {
-                    sidebar.style.width = '250px';
-                    if (otherContent) otherContent.style.marginLeft = '250px';
-                    sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = '');
-                    sidebarToggle.innerHTML = '<i class="fa fa-angle-double-left"></i>';
-                }
+            
+            // Expand sidebar on hover
+            sidebar.addEventListener('mouseenter', function() {
+                sidebar.style.width = '250px';
+                if (otherContent) otherContent.style.marginLeft = '250px';
+                sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = '');
+            });
+
+            // Collapse sidebar when mouse leaves
+            sidebar.addEventListener('mouseleave', function() {
+                sidebar.style.width = '60px';
+                sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = 'none');
+                if (otherContent) otherContent.style.marginLeft = '60px';
             });
 
             // Enable Bootstrap tooltips
