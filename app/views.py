@@ -548,12 +548,14 @@ def exams_by_type(request, exam_type):
     completed_exam_map = {
         item['exam_id']: item['completed_at'] for item in completed_exams
     }
-
+    
+    mixed_exam_types = 'ibivanze'
     context = {
         'exam_type': exam_type,
         'returned_exams': returned_exams,
         'completed_exam_map': completed_exam_map,
         'counted_exams': returned_exams.count(),
+        'mixed_exam_types': mixed_exam_types,
     }    
     return render(request, "exams/same_exams.html", context)
 

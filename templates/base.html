@@ -573,7 +573,7 @@
             const otherContent = document.querySelector('main');
             const navbar = document.querySelector('nav');
             sidebar.querySelectorAll('.nav-text').forEach(e => e.style.display = 'none');
-            
+
             // Expand sidebar on hover
             sidebar.addEventListener('mouseenter', function() {
                 sidebar.style.width = '250px';
@@ -664,8 +664,8 @@
 
             document.addEventListener("DOMContentLoaded", function() {
                 checkUnverified();
-                // Poll every 10 seconds for more real-time feel
-                setInterval(checkUnverified, 10000);
+                // Poll every 30 seconds for more real-time feel
+                setInterval(checkUnverified, 30000);
             });
         </script>
 

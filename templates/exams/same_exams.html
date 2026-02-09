@@ -85,9 +85,8 @@
 
   .no-exams {
     text-align: center;
-    margin-top: 3rem;
+    margin-top: 0;
     font-size: 1.2rem;
-    color: rgba(var(--warning-rgb), 1);
   }
 
   .exam-card.completed {
@@ -102,53 +101,58 @@
     <p class="lead">Umubare w'ibibonetse: {{ counted_exams }}</p>
   </div>
 
-  <div class="row g-4">
-    {% if returned_exams %}
-      {% for exam in returned_exams %}
-      <div class="col-md-6 col-lg-4">
-        
-        
-        <div class="exam-card {% if exam.id in completed_exam_ids %}border-success{% endif %}">
-          {% if exam.id in completed_exam_map %}
-            <div class="progress mt-0">
-              <div class="progress-bar bg-success" style="width: 100%;">
-                Waragikoze kuri: {{ completed_exam_map|dictkey:exam.id|date:"d - m - Y  H:i" }}
-              </div>
-            </div>
-          {% endif %}
-
-          <div class="exam-icon">
-            <i class="{{ exam.exam_type.icon|default:'fas fa-question-circle' }}" ></i>
-          </div>
-
-          <h2> {{ forloop.counter }}</h2>
-          <p><strong>Cyateguwe:</strong> {{ exam.created_at|date:"d.m.Y" }}</p>
-          {% comment %} <p><strong>Kivugururwa:</strong> {{ exam.updated_at|date:"d.m.Y" }}</p> {% endcomment %}
-          <p><strong>Ibibazo:</strong> {{ exam.total_questions }}</p>
-
-          {% if exam.difficulty == 'easy' %}
-            <span class="exam-badge badge-easy">Byoroshye</span>
-          {% elif exam.difficulty == 'medium' %}
-            <span class="exam-badge badge-medium">Hagati</span>
-          {% elif exam.difficulty == 'hard' %}
-            <span class="exam-badge badge-hard">Bikomeye</span>
-          {% endif %}
-
-          <a href="{% url 'exam_detail' exam.id %}" class="btn btn-outline-primary">
+  {% if returned_exams %}
+    <div class="row g-4">
+        {% for exam in returned_exams %}
+        <div class="col-md-6 col-lg-4">
+          
+          
+          <div class="exam-card {% if exam.id in completed_exam_ids %}border-success{% endif %}">
             {% if exam.id in completed_exam_map %}
-            Gisubiremo
-            {% else %}
-            Gikore
+              <div class="progress mt-0">
+                <div class="progress-bar bg-success" style="width: 100%;">
+                  Waragikoze kuri: {{ completed_exam_map|dictkey:exam.id|date:"d - m - Y  H:i" }}
+                </div>
+              </div>
             {% endif %}
-          </a>
 
+            <div class="exam-icon">
+              <i class="{{ exam.exam_type.icon|default:'fas fa-question-circle' }}" ></i>
+            </div>
+
+            <h2> {{ forloop.counter }}</h2>
+            <p><strong>Cyateguwe:</strong> {{ exam.created_at|date:"d.m.Y" }}</p>
+            {% comment %} <p><strong>Kivugururwa:</strong> {{ exam.updated_at|date:"d.m.Y" }}</p> {% endcomment %}
+            <p><strong>Ibibazo:</strong> {{ exam.total_questions }}</p>
+
+            {% if exam.difficulty == 'easy' %}
+              <span class="exam-badge badge-easy">Byoroshye</span>
+            {% elif exam.difficulty == 'medium' %}
+              <span class="exam-badge badge-medium">Hagati</span>
+            {% elif exam.difficulty == 'hard' %}
+              <span class="exam-badge badge-hard">Bikomeye</span>
+            {% endif %}
+
+            <a href="{% url 'exam_detail' exam.id %}" class="btn btn-outline-primary">
+              {% if exam.id in completed_exam_map %}
+              Gisubiremo
+              {% else %}
+              Gikore
+              {% endif %}
+            </a>
+
+          </div>
         </div>
-      </div>
-      {% endfor %}
+        {% endfor %}
+    </div>
     {% else %}
-      <p class="no-exams">Nta bizamini bibonetse muri ubu bwoko.</p>
+      <p class="no-exams text-muted">
+        Nta bizamini bibonetse muri ubu bwoko.
+        <a href="{% url 'exams' mixed_exam_types %}" class="fs-6">
+          Reba ibivanze
+        </a>
+      </p>
     {% endif %}
-  </div>
 </div>
 
 {% endblock %}
