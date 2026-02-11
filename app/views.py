@@ -954,6 +954,11 @@ def payment_confirm(request):
                 }            
             )            
             if hasattr(request.user, 'subscription'):
+                
+                if request.user.subscription.otp_verified == False and request.user.subscription.otp_code:
+                    messages.info(request, f"Ubwishyu bwawe bwemejwe.")
+                    return redirect('activate_subscription')
+                
                 msg = "Renewal"
                 
                 if request.user.subscription.plan.plan == plan.plan:
@@ -964,18 +969,13 @@ def payment_confirm(request):
                 msg = "New"
                 link = request.build_absolute_uri(reverse('approve_payment', args=[request.user.id, plan.id]))
             
-            if request.user.subscription.otp_verified == False and request.user.subscription.otp_code:
-                messages.info(request, f"Ubwishyu bwawe bwemejwe.")
-                return redirect('activate_subscription')
-            else:
-                # notify_admin(f"{msg} payment confirmation from {request.user.name} for plan {plan.plan}. Approve at: {link}")
-                notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, \nplan: {plan},\n\nApprove at: {link}\n\nWhatsapp: {whatsapp_number}''')
-                
-                messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Urakira igisubizo mu munota umwe.")
-                return redirect('home')
+            notify_admin(f'''{msg} payment confirmation from {request.user.name},\n\n -Payeer name: {payeer_name}\n -Payed 4ne: {payeer_phone}, \nplan: {plan},\n\nApprove at: {link}\n\nWhatsapp: {whatsapp_number}''')
+            
+            messages.success(request, f"Kwemeza ubwishyu byoherejwe neza! Urakira igisubizo mu munota umwe.")
+            return redirect('home')
             
         except Exception as e:
-            messages.error(request, "An error occurred while processing your payment confirmation. Please try again.")
+            messages.error(request, "Server error, kindly contact us on 0785287885 for support.")
     
     return redirect(f"{reverse('subscription')}?confirm=1")
 
