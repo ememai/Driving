@@ -86,7 +86,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         if change:
-            obj.generate_otp()
+            obj.renew
         super().save_model(request, obj, form, change)
         if not change and not obj.otp_code:
             obj.generate_otp()
@@ -186,7 +186,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
     def process_renew(self, request, subscription_id):
         subscription = self.get_object(request, subscription_id)
         if subscription and subscription.plan:
-            subscription.generate_otp()
+            subscription.renew
             subscription.price = subscription.plan.price
             delta = subscription.plan.get_delta()
             if delta:

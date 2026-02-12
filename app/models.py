@@ -312,7 +312,7 @@ class Subscription(models.Model):
     # Subscription timing
     started_at = models.DateTimeField(null=True, blank=True)
     updated = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(null=True, blank=True) 
     expires_at = models.DateTimeField(null=True, blank=True)
     delta_hours = models.IntegerField(default=0)
     delta_days = models.IntegerField(default=0)
@@ -338,6 +338,7 @@ class Subscription(models.Model):
         self.otp_expires_at = self.otp_created_at + timezone.timedelta(hours=24)
         self.otp_verified = False
         self.started_at = None  if not self.updated else self.started_at
+        self.updated = False
         self.expires_at = None
         self.price = self.plan.price if self.plan else self.price
         self.save(update_fields=["otp_code", "otp_created_at","otp_expires_at", "otp_verified", "started_at", "expires_at"])
@@ -373,7 +374,7 @@ class Subscription(models.Model):
         # Mark OTP as verified
         self.otp_verified = True
         self.started_at = timezone.now() if not self.started_at else self.started_at
-
+        self.updated_at = timezone.now() if self.updated else self.updated_at
         delta = None
         if self.super_subscription:
             delta = self.get_delta()
@@ -389,6 +390,7 @@ class Subscription(models.Model):
 
         return True, "", self.expires_at
 
+    @property
     def renew(self):
         """Renew subscription by generating a new OTP."""
         return self.generate_otp()
