@@ -312,7 +312,7 @@ class Subscription(models.Model):
     # Subscription timing
     started_at = models.DateTimeField(null=True, blank=True)
     updated = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     delta_hours = models.IntegerField(default=0)
     delta_days = models.IntegerField(default=0)
@@ -337,7 +337,7 @@ class Subscription(models.Model):
         self.otp_created_at = timezone.now()
         self.otp_expires_at = self.otp_created_at + timezone.timedelta(hours=24)
         self.otp_verified = False
-        self.started_at = None   # reset until verified
+        self.started_at = None  if not self.updated else self.started_at
         self.expires_at = None
         self.price = self.plan.price if self.plan else self.price
         self.save(update_fields=["otp_code", "otp_created_at","otp_expires_at", "otp_verified", "started_at", "expires_at"])
@@ -346,8 +346,8 @@ class Subscription(models.Model):
     @property
     def otp_recreate(self):
         # """Regenerate OTP for expired OTPs."""
-        # if not hasattr(self, 'subscription'):
-        #     return None
+        if not hasattr(self, 'subscription'):
+            return None
         
         if not self.otp_code:
             return
@@ -372,7 +372,7 @@ class Subscription(models.Model):
 
         # Mark OTP as verified
         self.otp_verified = True
-        self.started_at = timezone.now()
+        self.started_at = timezone.now() if not self.started_at else self.started_at
 
         delta = None
         if self.super_subscription:
@@ -384,7 +384,7 @@ class Subscription(models.Model):
             delta = self.plan.get_delta()
 
         if delta:
-            self.expires_at = self.started_at + delta
+            self.expires_at = timezone.now() + delta
         self.save()
 
         return True, "", self.expires_at

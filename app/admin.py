@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 
 from django.urls import reverse, path
 from django.utils.html import format_html
+from django.utils import timezone
 from django.contrib.admin import AdminSite
 
 from django.db.models import Count
@@ -63,95 +64,95 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user', 'plan', 'price', 'otp_code', 'otp_created_at','otp_exp', 'otp_verified','colored_is_active', 'started','expires','renew_subscription','end_subscription')
+    list_display = ('user', 'plan_price', 'otp_summary', 'subscription_timing', 'is_active', 'renew_subscription', 'end_subscription')
     readonly_fields = ('started_at', 'expires_at', 'otp_code', 'otp_created_at', 'otp_verified') 
     
     list_filter = ('super_subscription', 'plan')
     search_fields = ('user__name', 'user__email', 'user__phone_number')
-    ordering = ('-updated_at','-started_at','-price',)
+    ordering = ('-updated_at', '-started_at', '-price',)
+    
+    class Media: 
+        css = {'all': ('admin/css/admin_custom_styles.css',)}
     
     fieldsets = (
         (None, {
-            "fields": (
-                'user',
-                'plan',
-                'updated',              
-            ),
+            "fields": ('user', 'plan', 'updated'),
         }),
         ('Super Subscription', {
-            'fields': (
-                'super_subscription',
-                'price',
-                'delta_hours',
-                'delta_days',
-                ),
+            'fields': ('super_subscription', 'price', 'delta_hours', 'delta_days'),
             'classes': ('collapse',),
         }),
     )
-    custom_style = "display:inline-block; min-width:10rem; max-width:24rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center;"
     
     def save_model(self, request, obj, form, change):
-        #Generate OTP on renewal or new subscription
         if change:
             obj.generate_otp()
-                
-        super().save_model(request, obj, form, change)  # 🔹 Save first (assign PK)
+        super().save_model(request, obj, form, change)
         if not change and not obj.otp_code:
             obj.generate_otp()
-        
-    @admin.display(description="OTP")
-    def otp_display(self, obj):
-        if obj.otp_verified:
-            return "✅ Verified"
-        return obj.otp_code or "—"
-    
-    @admin.display(description='OTP Exp')
-    def otp_exp(self, obj):
-        if obj.otp_expires_at:
-            return localtime(obj.otp_expires_at).strftime("%d-%m-%y %H:%M")
-    
-    @admin.display(description='Plan')
-    def plan(self, obj):
-        if obj.super_subscription:
-           return "Super" 
-        elif obj.plan is not None:
-            return obj.plan.plan
-        return "None"
-   
-    @admin.display(description='S.At')
-    def started(self, obj):
-        if obj.started_at: 
-            return localtime(obj.started_at).strftime("%d-%m-%y %H:%M")
-        else: "-"
-    
-    @admin.display(description='U.A')
-    def upd_at(self, obj):
-        return obj.updated_at.strftime("%d-%m-%y") if obj.updated_at else "-"
 
-    @admin.display(description='Updated')
-    def updated(self, obj):
-        return obj.started_at
-    
-    @admin.display(description="Subscription Expires at") 
-    def expires(self, obj):
-        style = "display:inline-block; min-width:10rem; max-width:24rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center;"
-        if obj.expires_at:
-            return format_html('<span style="{}">{}</span>', style, localtime(obj.expires_at).strftime("%d,%m  %Y Saa %H:%M"))
-        # elif obj.otp_code and not obj.otp_verified:
-        #     return format_html('<span style="{} color: orange; font-weight: bold;">⚠️ Pending OTP</span>', style)
-        return format_html('<span style="{}">-</span>', style)
-   
-    def colored_is_active(self, obj):
-        if obj.active_subscription:
-            return format_html('<span style="color: green; font-weight: bold;">✅ Active</span>')
-        elif obj.expires_at and obj.expires_at < timezone.now():
-            return format_html('<span style="color: red; font-weight: bold;">❌ Expired</span>')
-        elif obj.otp_code and not obj.otp_verified:
-            return format_html('<span style="color: orange; font-weight: bold;">⚠️ Pending OTP</span>')
-        else:
-            return format_html('<span style="color: gray; font-weight: bold;">❌ Inactive</span>')
+    @admin.display(description='Plan')
+    def plan_price(self, obj):
+        if obj.super_subscription:
+            return format_html('<div style="white-space:normal !important; min-width:8rem;">Super</div>')
+        if obj.plan is None:
+            return "None"
+        price_str = f"{obj.plan.price:,} RWF" if obj.plan.price is not None else "-"
+        return format_html(
+            '<div style="white-space:normal !important; min-width:5rem;">{}<br><span style="color:gray; font-size:90%">{}</span></div>',
+            obj.plan.plan,
+            price_str,
+        )
+
+    @admin.display(description='OTP Info')
+    def otp_summary(self, obj):
+        if not obj.otp_code:
+            return format_html('<div style="white-space:normal !important; min-width:8rem;">—</div>')
         
-    colored_is_active.short_description = 'Status'
+        created = localtime(obj.otp_created_at).strftime("%d-%m %H:%M") if obj.otp_created_at else "—"
+        expires = localtime(obj.otp_expires_at).strftime("%d-%m %H:%M") if obj.otp_expires_at else "—"
+        status = format_html('<i class="fas fa-circle" style="color:green;"></i>') if obj.otp_verified else format_html('<i class="fas fa-circle" style="color:orange;"></i>')
+        
+        return format_html(
+            '<div style="white-space:normal !important; min-width:8rem; font-size:90%; line-height:1.4;">'
+            '<strong>{} </strong>{}<br>'
+            '<span style="color:gray;">Created: {}</span><br>'
+            '<span style="color:gray;">Expires: {}</span></div>',
+            status,
+            obj.otp_code,
+            created,
+            expires,
+        )
+
+    @admin.display(description='Subscription Timing')
+    def subscription_timing(self, obj):
+        started = localtime(obj.started_at).strftime("%d-%m %H:%M") if obj.started_at else "—"
+        updated_at = localtime(obj.updated_at).strftime("%d-%m %H:%M") if obj.updated else "Not updated"
+        expires = localtime(obj.expires_at).strftime("%d-%m %H:%M") if obj.expires_at else "—"
+        updated_indicator = format_html('<i class="fa-solid fa-thumbs-up"></i>') if obj.updated else format_html('<i class="fa-solid fa-thumbs-down"></i>')
+        
+        return format_html(
+            '<div style="white-space:normal !important; min-width:10rem; font-size:90%; line-height:1.5;">'
+            '<span>Started: </span><span style="color:gray;">{}</span><br>'
+            'Updated: <span style="color:#007bff;">{}</span><br>'
+            'Updated_at: <span style="color:gray;">{}</span><br>'
+            'Expires: <span style="color:gray;">{}</span></div>',
+            started,
+            updated_indicator,
+            updated_at,
+            expires,
+        )
+
+    @admin.display(description='Status')
+    def is_active(self, obj):
+        if obj.active_subscription:
+            return format_html('<div style="text-align: center; width: 100%;">Active</div>')
+        elif obj.expires_at and obj.expires_at < timezone.now():
+            return format_html('<div style="text-align: center; width: 100%; color: red;">Expired</div>')
+        elif obj.otp_code and not obj.otp_verified:
+            return format_html('<div style="text-align: center; width: 100%; color: orange;"><i class="fas fa-circle" style="color:orange;"></i></div>')
+        else:
+            return format_html('<div style="text-align: center; width: 100%; color: gray;">Inactive</div>')
 
     def renew_subscription(self, obj):
         if not obj.super_subscription and obj.plan:
@@ -162,48 +163,35 @@ class SubscriptionAdmin(admin.ModelAdmin):
             )
         return "-"
     renew_subscription.short_description = 'Renew'
-    
+
     def end_subscription(self, obj):        
         if obj.user.has_ended_subscription:
-            return format_html(
-                '<span class="text-red">❌ Ended</span>'
-            )
+            return format_html('<span class="text-red">❌ Ended</span>')
         
         return format_html(
             '<a class="btn btn-danger d-flex align-items-center" href="{}" onclick="return confirm(\'Are you sure you want to end subscription for {}? This action cannot be undone.\')"><i class="fa-solid fa-stop mx-1"></i><span> End</span></a>',
             f"/admin/app/subscription/{obj.pk}/end/",
             obj.user.name
         )
-
-    renew_subscription.allow_tags = True
+    end_subscription.short_description = 'End'
 
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path(
-                '<int:subscription_id>/renew/',
-                self.admin_site.admin_view(self.process_renew),
-                name='subscription-renew',
-            ),
-            path(
-                '<int:subscription_id>/end/',
-                self.admin_site.admin_view(self.process_end),
-                name='subscription-end',
-            ),
+            path('<int:subscription_id>/renew/', self.admin_site.admin_view(self.process_renew), name='subscription-renew'),
+            path('<int:subscription_id>/end/', self.admin_site.admin_view(self.process_end), name='subscription-end'),
         ]
         return custom_urls + urls
 
     def process_renew(self, request, subscription_id):
         subscription = self.get_object(request, subscription_id)
-        
         if subscription and subscription.plan:
             subscription.generate_otp()
-            now = timezone.now()
             subscription.price = subscription.plan.price
             delta = subscription.plan.get_delta()
             if delta:
                 subscription.updated = True
-                subscription.updated_at = now
+                subscription.updated_at = timezone.now()
                 subscription.save()
                 self.message_user(request, f"Subscription for {subscription.user} successfully renewed!", messages.SUCCESS)
             else:
@@ -211,18 +199,16 @@ class SubscriptionAdmin(admin.ModelAdmin):
         else:
             self.message_user(request, "Cannot renew: missing plan.", messages.ERROR)
         return redirect(request.META.get('HTTP_REFERER', '/admin/'))
-    
+
     def process_end(self, request, subscription_id):
         subscription = self.get_object(request, subscription_id)
         if subscription:
             subscription.updated = False
-            # subscription.plan = None
             subscription.super_subscription = False
-            # subscription.price = 0
             subscription.otp_verified = True
             subscription.delta_hours = 0
             subscription.delta_days = 0
-            subscription.expires_at = timezone.now() + timedelta(days=0)  # Resetting the expiration date 
+            subscription.expires_at = timezone.now()
             subscription.save()
             self.message_user(request, f"Subscription for {subscription.user} successfully ended!", messages.SUCCESS)
         else:
