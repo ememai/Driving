@@ -69,7 +69,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
     
     list_filter = ('super_subscription', 'plan')
     search_fields = ('user__name', 'user__email', 'user__phone_number')
-    ordering = ('otp_created_at','-updated_at', '-started_at', '-price',)
+    ordering = ('-otp_created_at', '-updated_at', '-started_at', '-price',)
     
     class Media: 
         css = {'all': ('admin/css/admin_custom_styles.css',)}
