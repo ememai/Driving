@@ -78,9 +78,13 @@
         {% if user.phone_number %}<br><i class="bi bi-phone-fill"></i> {{ user.phone_number }}{% endif %}
       </p>
       {% if request.user.is_subscribed %}
-      <span class="badge text-muted mt-1 d-flex align-items-center gap-1">
-        <i class="fa fa-gem text-primary fs-5"></i> 
-        <em> ifatabuguzi | {{ request.user.subscription.plan }}</em></span>
+      <div class="badge text-muted mt-1 d-flex align-items-center gap-1">
+        <i class="fa fa-gem text-primary fs-5"></i>
+        <div class="d-flex flex-column gap-1 align-items-start">
+           <span class="small text-theme">ifatabuguzi | {{ request.user.subscription.plan }}</span>
+           <span class="small text-muted">rizarangira: {{ request.user.subscription.expires_at|date:"d-m-Y H:i" }}</span>
+        </div>
+      </div>
       {% elif request.user.has_ended_subscription %}
       <span class="badge text-muted mt-1 d-flex align-items-center gap-1">
         <i class="fa fa-bell fs-5"></i>
