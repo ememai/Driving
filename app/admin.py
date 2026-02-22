@@ -64,9 +64,10 @@ class PlanAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('user', 'plan_price', 'otp_summary', 'subscription_timing', 'is_active', 'renew_subscription', 'end_subscription')
+    list_display = ('user', 'plan', 'plan_price', 'otp_summary', 'subscription_timing', 'is_active', 'renew_subscription', 'end_subscription')
     readonly_fields = ('started_at', 'expires_at', 'otp_code', 'otp_created_at', 'otp_verified') 
-    
+    list_per_page = 10
+    list_editable = ('plan',)
     list_filter = ('super_subscription', 'plan')
     search_fields = ('user__name', 'user__email', 'user__phone_number')
     ordering = ('-otp_created_at', '-updated_at', '-started_at', '-price',)
@@ -90,17 +91,18 @@ class SubscriptionAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
         if not change and not obj.otp_code:
             obj.generate_otp()
-
-    @admin.display(description='Plan')
+            
+  
+    @admin.display(description='Price')
     def plan_price(self, obj):
+        # show the cost; the plan name is now rendered by the editable "plan" column
         if obj.super_subscription:
             return format_html('<div style="white-space:normal !important; min-width:8rem;">Super</div>')
         if obj.plan is None:
             return "None"
         price_str = f"{obj.plan.price:,} RWF" if obj.plan.price is not None else "-"
         return format_html(
-            '<div style="white-space:normal !important; min-width:5rem;">{}<br><span style="color:gray; font-size:90%">{}</span></div>',
-            obj.plan.plan,
+            '<div style="white-space:normal !important; min-width:5rem; color: #9b9999;">{}</div>',
             price_str,
         )
 
@@ -216,26 +218,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
         return redirect(request.META.get('HTTP_REFERER', '/admin/'))
 
 
-    # def save_model(self, request, obj, form, change):
-    #     existing = Subscription.objects.filter(user=obj.user).first()
-
-    #     if existing and not change:
-    #         # If trying to add a new subscription but one exists, update it instead
-    #         existing.plan = obj.plan
-    #         existing.super_subscription = obj.super_subscription
-    #         existing.price = obj.price
-    #         existing.phone_number = obj.phone_number
-    #         existing.transaction_id = obj.transaction_id
-    #         existing.delta_days = obj.delta_days
-    #         existing.delta_hours = obj.delta_hours
-    #         existing.updated = True
-    #         existing.updated_at = timezone.now()
-
-    #         # Force-save to apply new expiration logic
-    #         existing.save()
-    #     else:
-    #         # New or updated normally
-    #         super().save_model(request, obj, form, change)
 
 @admin.register(PaymentConfirm)
 class PaymentConfirmAdmin(admin.ModelAdmin):
