@@ -226,6 +226,55 @@ class PaymentConfirmAdmin(admin.ModelAdmin):
     list_filter = ('plan', 'time')
     ordering = ('-time',)
 
+
+@admin.register(PaymentAutoConfirmSetting)
+class PaymentAutoConfirmSettingAdmin(admin.ModelAdmin):
+    list_display = ('status_indicator', 'period_display', 'required_confirms', 'is_active_indicator', 'updated_at')
+    list_editable = ('required_confirms',)
+    readonly_fields = ('created_at', 'updated_at', 'is_active')
+    fieldsets = (
+        ('Setting Status', {
+            'fields': ('is_enabled', 'is_active'),
+        }),
+        ('Time Period', {
+            'fields': ('period_start', 'period_end'),
+            'description': 'Set the date and time range when auto-confirmation should be active'
+        }),
+        ('Requirements', {
+            'fields': ('required_confirms',),
+            'description': 'Number of payment confirmations needed to auto-confirm (default: 2)'
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+    
+    @admin.display(description='Status', ordering='is_enabled')
+    def status_indicator(self, obj):
+        status = '🟢 Active' if obj.is_active else '🔴 Inactive'
+        return format_html(f'<strong>{status}</strong>')
+    
+    @admin.display(description='Period', ordering='period_start')
+    def period_display(self, obj):
+        start = localtime(obj.period_start).strftime('%d.%m.%Y %H:%M')
+        end = localtime(obj.period_end).strftime('%d.%m.%Y %H:%M')
+        return format_html(f'<small>{start}<br>→ {end}</small>')
+    
+    @admin.display(description='Currently Active', boolean=True, ordering='is_enabled')
+    def is_active_indicator(self, obj):
+        return obj.is_active
+
+    def has_delete_permission(self, request, obj=None):
+        """Allow deleting only if there are other settings.
+        Django passes `obj` when checking change/delete permissions in the
+        change view; include it in the signature to avoid TypeError on add.
+        """
+        if PaymentAutoConfirmSetting.objects.count() <= 1:
+            return False
+        return super().has_delete_permission(request, obj)
+
+
 @admin.register(SignType)
 class SignTypeAdmin(admin.ModelAdmin):
     list_display = ['name']

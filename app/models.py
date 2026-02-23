@@ -878,3 +878,81 @@ class Notification(models.Model):
         verbose_name = "User Notification"
         verbose_name_plural = "User Notifications"
 
+
+class PaymentAutoConfirmSetting(models.Model):
+    """
+    Settings to enable/disable automatic payment confirmation.
+    When enabled during a specific period, if a user submits 2 payment confirms,
+    the payment will be automatically approved and admin will be notified.
+    """
+    is_enabled = models.BooleanField(
+        default=False,
+        help_text="Enable automatic payment confirmation"
+    )
+    period_start = models.DateTimeField(
+        help_text="Start of the period when auto-confirmation is active"
+    )
+    period_end = models.DateTimeField(
+        help_text="End of the period when auto-confirmation is active"
+    )
+    required_confirms = models.PositiveIntegerField(
+        default=2,
+        help_text="Number of payment confirms required to auto-confirm (default: 2)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Payment Auto-Confirm Setting"
+        verbose_name_plural = "Payment Auto-Confirm Settings"
+
+    def __str__(self):
+        # Avoid emojis here because django_admin_log.object_repr may not support
+        # 4-byte UTF-8 characters depending on the database charset. Emoji in
+        # __str__ have been causing OperationalError on inserts.
+        status = "Active" if self.is_active else "Inactive"
+        return f"{status} - {self.period_start.strftime('%d.%m.%Y %H:%M')} to {self.period_end.strftime('%d.%m.%Y %H:%M')}"
+
+    @property
+    def is_active(self):
+        """Check if the setting is currently active in the local time period."""
+        now = timezone.localtime(timezone.now())
+        return self.is_enabled and self.period_start <= now <= self.period_end
+
+    def clean(self):
+        """Validate that period_end is after period_start."""
+        if self.period_end <= self.period_start:
+            raise ValidationError("Period end must be after period start.")
+    
+    def save(self, *args, **kwargs):
+        """Ensure that only one active setting exists at a time."""
+        if self.is_active:
+            overlapping_settings = PaymentAutoConfirmSetting.objects.filter(
+                is_enabled=True,
+                period_start__lt=self.period_end,
+                period_end__gt=self.period_start
+            ).exclude(pk=self.pk)
+
+            if overlapping_settings.exists():
+                raise ValidationError("Another active auto-confirm setting overlaps with this period.")
+        
+        super().save(*args, **kwargs)
+
+
+class PaymentConfirmLog(models.Model):
+    """
+    Logs each payment confirmation attempt to track multiple submissions
+    for auto-confirmation feature.
+    """
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    payment_confirm = models.ForeignKey(PaymentConfirm, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Payment Confirm Log"
+        verbose_name_plural = "Payment Confirm Logs"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.name} - {self.created_at.strftime('%d.%m.%Y %H:%M')}"
+

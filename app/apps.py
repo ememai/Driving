@@ -6,7 +6,8 @@ class AppConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'app'
     
-    if settings.DEBUG:
-        def ready(self):
+    def ready(self):
+        from . import signals  # Import signals to register receivers
+        if settings.DEBUG:
             from . import scheduler
             scheduler.start()
