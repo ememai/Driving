@@ -1,0 +1,426 @@
+{% extends 'base.html' %} {% block content %}
+
+<!-- Select2 CSS -->
+<link
+  href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+  rel="stylesheet"
+/>
+<style>
+
+  {% comment %}make custom styles on dark theme {% endcomment %}
+  @media (data-bs-theme: dark) {
+    .select2-dropdown {
+      background-color: var(--background-gradient) !important;
+      color: rgba(var(--text-rgb), 1) !important;
+    }
+  }
+
+</style>
+
+<div class="container mt-4 overflow-auto">
+  <h2>Admin Subscription Dashboard</h2>
+  <form method="get" class="mb-3 d-flex gap-2 align-items-center">
+    <input
+      type="text"
+      name="q"
+      value="{% if query %}{{ query }}{% endif %}"
+      placeholder="Search by name, email, phone"
+      class="form-control"
+      style="max-width: 300px"
+    />
+    <button type="submit" class="btn btn-primary">Search</button>
+    <button
+      type="button"
+      class="btn btn-success"
+      data-bs-toggle="modal"
+      data-bs-target="#addSubscriptionModal"
+    >
+      Add Subscription
+    </button>
+  </form>
+
+  <!-- Add Subscription Modal (general tab only) -->
+  <div
+    class="modal fade"
+    id="addSubscriptionModal"
+    tabindex="-1"
+    aria-labelledby="addSubscriptionModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addSubscriptionModalLabel">
+            Add New Subscription
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <form method="post" action="{% url 'dashboard_add_subscription' %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="user_id" class="form-label">User</label>
+              <select
+                name="user_id"
+                id="user_id"
+                class="form-select text-theme"
+                required
+              >
+                <option value="">---------</option>
+                {% for user in users %}
+                <option value="{{ user.id }}" class="text-theme">
+                  {{ user }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="plan_id" class="form-label">Plan</label>
+              <select name="plan_id" id="plan_id" class="form-select" required>
+                <option value="">---------</option>
+                {% for plan in plans %}
+                <option value="{{ plan.id }}">{{ plan.plan }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-check mb-3">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                value="1"
+                id="updated"
+                name="updated"
+              />
+              <label class="form-check-label" for="updated">Updated</label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-success">
+              Add Subscription
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <table class="table table-bordered table-striped mt-3 overflow-auto">
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="selectAll" title="Select All" /></th>
+        <th>ID</th>
+        <th>User</th>
+        <th>Plan</th>
+        <th>Price</th>
+        <th>Status</th>
+        <th>OTP Info</th>
+        <th>Timing</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sub in subscriptions %}
+      <tr>
+        <td>
+          <input
+            type="checkbox"
+            name="subscription_ids"
+            value="{{ sub.id }}"
+            class="subCheckbox"
+          />
+        </td>
+        <td>{{ sub.id }}</td>
+        <td class="text-nowrap">
+          <a
+            href="{% url 'subscription_update' sub.id %}"
+            class="text-decoration-none fw-bold"
+            >{{ sub.user }}</a
+          >
+        </td>
+        <td class="text-nowrap">{{ sub.plan.plan|default:"-" }}</td>
+        <td class="text-nowrap">
+          {% if sub.plan %}{{ sub.plan.price|default:'-' }} RWF{% else %}- {% endif %}
+        </td>
+        <td>
+          {% if sub.active_subscription %}
+          <span class="badge bg-success">Active</span>
+          {% elif sub.expires_at and sub.expires_at < now %}
+          <span class="badge bg-danger">Expired</span>
+          {% elif sub.otp_code and not sub.otp_verified %}
+          <span class="badge bg-warning">OTP Pending</span>
+          {% else %}
+          <span class="badge bg-secondary">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="text-nowrap">
+          {% if sub.otp_code %}
+          <div>Code: <span class="text-muted">{{ sub.otp_code }}</span></div>
+          <div>
+            Created:
+            <span class="text-muted"
+              >{{ sub.otp_created_at|date:"d-m-y H:i" }}</span
+            >
+          </div>
+          <div>
+            Expires:
+            <span class="text-muted"
+              >{{ sub.otp_expires_at|date:"d-m-y H:i" }}</span
+            >
+          </div>
+          <div>
+            Status: {% if sub.otp_verified %}<span class="text-success"
+              >Verified</span
+            >{% else %}<span class="text-warning">Pending</span>{% endif %}
+          </div>
+          {% else %} — {% endif %}
+        </td>
+        <td class="text-nowrap">
+          <div>
+            Started:
+            <span class="text-muted"
+              >{{ sub.started_at|date:"d-m-y H:i" }}</span
+            >
+          </div>
+          <div>
+            Updated at:
+            <span class="text-muted"
+              >{{ sub.updated_at|date:"d-m-y H:i" }}</span
+            >
+          </div>
+          <div>
+            Expires:
+            <span class="text-muted"
+              >{{ sub.expires_at|date:"d-m-y H:i" }}</span
+            >
+          </div>
+        </td>
+        <td class="d-flex gap-1 flex-nowrap align-items-center">
+          <a
+            href="{% url 'dashboard_renew_subscription' sub.id %}"
+            class="btn btn-sm btn-success"
+            onclick="return confirm('Are you sure you want to renew subscription for {{ sub.user }}?')"
+            >Renew</a
+          >
+          {% if sub.user.has_ended_subscription %}
+          <span
+            class="btn btn-sm btn-secondary disabled"
+            title="Subscription already ended"
+            >Ended</span
+          >
+
+          {% else %}
+          <a
+            href="{% url 'dashboard_end_subscription' sub.id %}"
+            class="btn btn-sm btn-danger"
+            onclick="return confirm('Are you sure you want to end subscription for {{ sub.user }}? This action cannot be undone.')"
+            >End
+          </a>
+          {% endif %} {% comment %}
+          <button
+            type="button"
+            class="btn btn-sm btn-info"
+            data-bs-toggle="modal"
+            data-bs-target="#updatePlanModal{{ sub.id }}"
+          >
+            Change
+          </button>
+          {% endcomment %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="9">No subscriptions found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Bulk Delete Form -->
+  <form
+    method="post"
+    action="{% url 'dashboard_bulk_delete' %}"
+    id="deleteForm"
+  >
+    {% csrf_token %}
+    <div id="deleteSelectedContainer" style="display: none; margin-top: 10px">
+      <button
+        type="submit"
+        class="btn btn-danger"
+        onclick="
+          return confirm(
+            'Are you sure you want to delete the selected subscriptions? This action cannot be undone.',
+          );
+        "
+      >
+        Delete Selected
+      </button>
+      <span id="selectedCount" class="ms-3 text-muted"></span>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Handle "Select All" checkbox
+  document.getElementById("selectAll").addEventListener("change", function () {
+    const checkboxes = document.querySelectorAll(".subCheckbox");
+    checkboxes.forEach((checkbox) => {
+      checkbox.checked = this.checked;
+    });
+    updateSelectedCount();
+  });
+
+  // Handle individual checkbox changes
+  document.querySelectorAll(".subCheckbox").forEach((checkbox) => {
+    checkbox.addEventListener("change", function () {
+      updateSelectedCount();
+      const allCheckboxes = document.querySelectorAll(".subCheckbox");
+      const selectAll = document.getElementById("selectAll");
+      const allChecked = Array.from(allCheckboxes).every((cb) => cb.checked);
+      const someChecked = Array.from(allCheckboxes).some((cb) => cb.checked);
+      selectAll.checked = allChecked;
+      selectAll.indeterminate = someChecked && !allChecked;
+    });
+  });
+
+  // Update selected count and show/hide delete button
+  function updateSelectedCount() {
+    const selectedCount = document.querySelectorAll(
+      ".subCheckbox:checked",
+    ).length;
+    const deleteContainer = document.getElementById("deleteSelectedContainer");
+    const selectedCountSpan = document.getElementById("selectedCount");
+
+    if (selectedCount > 0) {
+      deleteContainer.style.display = "block";
+      selectedCountSpan.textContent = `(${selectedCount} selected)`;
+    } else {
+      deleteContainer.style.display = "none";
+      selectedCountSpan.textContent = "";
+    }
+  }
+
+  // Handle bulk delete form submission
+  document
+    .getElementById("deleteForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      const selectedIds = Array.from(
+        document.querySelectorAll(".subCheckbox:checked"),
+      ).map((cb) => cb.value);
+
+      if (selectedIds.length === 0) {
+        alert("Please select at least one subscription to delete.");
+        return;
+      }
+
+      // Clear existing hidden inputs
+      this.querySelectorAll('input[name="subscription_ids"]').forEach((el) =>
+        el.remove(),
+      );
+
+      // Add selected IDs to form
+      selectedIds.forEach((id) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "subscription_ids";
+        input.value = id;
+        this.appendChild(input);
+      });
+
+      // Submit the form
+      this.submit();
+    });
+</script>
+
+<!-- Select2 JS & initialization -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<style>
+  /* Select2 dark theme styling */
+  .select2-container--default .select2-selection--single {
+    background-color: #2b2d31;
+    border: 1px solid #444;
+    color: #fff;
+  }
+  .select2-container--default.select2-focused .select2-selection--single {
+    border-color: #0d6efd;
+    outline: 0;
+  }
+  .select2-container--default
+    .select2-selection--single
+    .select2-selection__rendered {
+    color: #fff;
+  }
+  .select2-container--default
+    .select2-selection--single
+    .select2-selection__arrow {
+    height: 26px;
+  }
+  .select2-dropdown {
+    background-color: #2b2d31;
+    border: 1px solid #444;
+  }
+  .select2-results__option {
+    background-color: #2b2d31;
+    color: #fff;
+  }
+  .select2-results__option--highlighted {
+    background-color: #0d6efd;
+    color: #fff;
+  }
+  .select2-search__field {
+    background-color: #1e1f22;
+    border: 1px solid #444;
+    color: #fff;
+  }
+  .select2-search__field::placeholder {
+    color: #999;
+  }
+</style>
+<script>
+  $(document).ready(function () {
+    $("#user_id").select2({
+      placeholder: "Search and select a user...",
+      allowClear: true,
+      width: "100%",
+      // keep the dropdown within the bootstrap modal
+      dropdownParent: $("#addSubscriptionModal"),
+      // show the option text (already contains name|email|phone)
+      templateSelection: function (data) {
+        return data.text;
+      },
+    });
+
+    // when modal is shown, open the select2 dropdown so the input gets focus
+    $("#addSubscriptionModal").on("shown.bs.modal", function () {
+      $("#user_id").select2("open");
+    });
+
+    // whenever select2 opens (either programmatically or by click), focus search
+    $("#user_id").on("select2:open", function () {
+      // a tiny delay ensures dropdown markup exists
+      setTimeout(function () {
+        $(".select2-search__field").focus();
+      }, 0);
+    });
+
+    // clicking in the dropdown shouldn't close the modal
+    $(document).on("mousedown", ".select2-dropdown", function (e) {
+      e.stopPropagation();
+    });
+  });
+</script>
+
+{% endblock %}

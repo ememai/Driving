@@ -1,4 +1,3 @@
-
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
@@ -368,23 +367,174 @@ class CreateSubscriptionView(View):
         else:
             messages.error(request, "Please correct the errors below.")
             return render(request, 'dashboard/dashboard.html', {'form': form})
-        
-# update subscription
+
+
+@login_required
+@user_passes_test(staff_required)
+def dashboard_add_subscription(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        plan_id = request.POST.get('plan_id')
+        updated_flag = request.POST.get('updated') == '1'
+        if user_id and plan_id:
+            try:
+                user = UserProfile.objects.get(id=user_id)
+                plan = Plan.objects.get(id=plan_id)
+                subscription, created = Subscription.objects.get_or_create(user=user, defaults={'plan': plan})
+                subscription.plan = plan
+                # reflect updated checkbox
+                subscription.updated = updated_flag
+                if updated_flag:
+                    subscription.updated_at = timezone.now()
+                # generate otp for new or changed
+                subscription.generate_otp()
+                subscription.save()
+                messages.success(request, "New subscription added successfully.")
+            except (UserProfile.DoesNotExist, Plan.DoesNotExist):
+                messages.error(request, "Invalid user or plan.")
+        else:
+            messages.error(request, "Please provide both user and plan.")
+    return redirect('admin_subscription_dashboard')
+
+
 @login_required
 @user_passes_test(staff_required)
 def subscription_update(request, pk):
-    """
-    View to update an existing subscription.
-    """
     subscription = get_object_or_404(Subscription, pk=pk)
+
     if request.method == 'POST':
-        form = SubscriptionForm(request.POST, instance=subscription)
-        if form.is_valid():
-            form.save()
+        plan_id = request.POST.get('plan_id')
+        super_subscription = request.POST.get('super_subscription') == 'on'
+        delta_hours = request.POST.get('delta_hours')
+        delta_days = request.POST.get('delta_days')
+        updated_flag = request.POST.get('updated') == '1'
+
+        try:
+            # Handle Super Subscription
+            if super_subscription and plan_id:
+                messages.error(request, "Cannot set both Super Subscription and a specific plan.")
+                return redirect('subscription_update', pk=pk)
+            
+            if super_subscription:
+                subscription.super_subscription = True
+                subscription.plan = None
+                subscription.delta_hours = int(delta_hours or 0)
+                subscription.delta_days = int(delta_days or 0)
+                subscription.price = int(request.POST.get('price') or 0)
+            else:
+                subscription.super_subscription = False
+                if plan_id:
+                    plan = Plan.objects.get(id=plan_id)
+                    
+                    # If plan changed → generate new OTP
+                    if subscription.plan != plan:
+                        subscription.plan = plan
+                        subscription.delta_hours = 0
+                        subscription.delta_days = 0
+                        subscription.price = plan.price
+                        subscription.generate_otp()
+                    else:
+                        subscription.plan = plan
+
+            # Handle updated flag
+            subscription.updated = updated_flag
+            if updated_flag:
+                subscription.updated_at = timezone.now()
+
+            subscription.save()
             messages.success(request, "Subscription updated successfully.")
-            return redirect('admin_dashboard')
+            return redirect('admin_subscription_dashboard')
+
+        except Plan.DoesNotExist:
+            messages.error(request, "Selected plan does not exist.")
+        except ValueError:
+            messages.error(request, "Invalid input values.")
+
+    plans = Plan.objects.all()
+    return render(request, 'dashboard/subscription_update.html', {
+        'subscription': subscription,
+        'plans': plans
+    })
+
+
+@login_required
+@user_passes_test(staff_required)
+def subscription_dashboard(request):
+    subscriptions = Subscription.objects.all().order_by('-updated_at')
+    plans = Plan.objects.all().order_by('price')
+    users = UserProfile.objects.all().order_by('-date_joined')
+    query = request.GET.get('q')
+    if query:
+        subscriptions = subscriptions.filter(
+            Q(user__name__icontains=query) | Q(user__email__icontains=query) | Q(user__phone_number__icontains=query)
+        )
+    return render(request, 'dashboard/subscription_dashboard.html', {'subscriptions': subscriptions, 'query': query, 'plans': plans, 'users': users})
+
+@login_required
+@user_passes_test(staff_required)
+def dashboard_update_plans(request):
+    if request.method == 'POST':
+        for key, value in request.POST.items():
+            if key.startswith('plan_'):
+                sub_id = key.split('_')[1]
+                try:
+                    subscription = Subscription.objects.get(id=sub_id)
+                    plan = Plan.objects.get(id=value)
+                    # only update if plan actually changed
+                    if subscription.plan != plan:
+                        subscription.plan = plan
+                        subscription.generate_otp()
+                        subscription.save()
+                except (Subscription.DoesNotExist, Plan.DoesNotExist):
+                    continue
+        messages.success(request, "Plans updated successfully.")
+    return redirect('admin_subscription_dashboard')
+
+
+
+@login_required
+@user_passes_test(staff_required)
+def renew_subscription(request, pk):
+    subscription = get_object_or_404(Subscription, pk=pk)
+    if subscription.plan:
+        subscription.renew
+        subscription.price = subscription.plan.price
+        delta = subscription.plan.get_delta()
+        if delta:
+            subscription.updated = True
+            subscription.updated_at = timezone.now()
+            subscription.save()
+            messages.success(request, f"Subscription for {subscription.user} successfully renewed!")
         else:
-            messages.error(request, "Please correct the errors below.")
+            messages.error(request, "No valid duration set for plan.")
     else:
-        form = SubscriptionForm(instance=subscription)
-    return render(request, 'dashboard/subscription_update.html', {'form': form, 'subscription': subscription})
+        messages.error(request, "Cannot renew: missing plan.")
+    return redirect('admin_subscription_dashboard')
+
+@login_required
+@user_passes_test(staff_required)
+def end_subscription(request, pk):
+    subscription = get_object_or_404(Subscription, pk=pk)
+    subscription.updated = False
+    subscription.super_subscription = False
+    subscription.otp_verified = True
+    subscription.delta_hours = 0
+    subscription.delta_days = 0
+    subscription.expires_at = timezone.now()
+    subscription.save()
+    messages.success(request, f"Subscription for {subscription.user} successfully ended!")
+    return redirect('admin_subscription_dashboard')
+
+@login_required
+@user_passes_test(staff_required)
+def dashboard_bulk_delete(request):
+    if request.method == 'POST':
+        subscription_ids = request.POST.getlist('subscription_ids')
+        if subscription_ids:
+            deleted_count, _ = Subscription.objects.filter(id__in=subscription_ids).delete()
+            messages.success(request, f"Successfully deleted {deleted_count} subscription(s).")
+        else:
+            messages.warning(request, "No subscriptions selected for deletion.")
+    return redirect('admin_subscription_dashboard')
+
+

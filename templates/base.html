@@ -74,6 +74,11 @@
                 .scroll-btn {
                     transition: opacity 0.4s ease;
                 }
+                /* Remove extra right margin/scrollbar space */
+                html, body {
+                    overflow-x: hidden;
+                    width: 100%;
+                }
             </style>
             {% endblock %}
             {% if not user.is_authenticated %}
@@ -526,8 +531,13 @@
                           {{ request.user.name|slice:":2"|upper }}
                         </div>
                     </a>
+                    <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'subscription' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Gura ifatabuzi">
+                            <i class="fa-solid fa-dollar-sign fs-4"></i>
+                            <span class="nav-text">Gura ifatabuzi</span>
+                    </a>
                     <div class="border-top border-secondary w-75"></div>
                     <div class="overflow-auto align-items-center gap-3 d-flex flex-column flex-grow-1 w-100" style="max-height: 100vh;">
+                       
                         <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'home' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Ahabanza">
                             <i class="bi bi-house-door-fill fs-4"></i>
                             <em class="nav-text">Ahabanza</em>
@@ -545,6 +555,10 @@
                             <span class="nav-text">Icyumweru</span>
                         </a>
                         {% if user.is_staff %}
+                        <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'admin_subscription_dashboard' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Dashboard">
+                            <i class="fa-solid fa-circle-dollar-to-slot fs-4"></i>
+                            <span class="nav-text">Subscriptions</span>
+                        </a>
                         <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'admin:index' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Admin">
                             <i class="bi bi-speedometer2"></i>
                             <span class="nav-text">Admin</span>

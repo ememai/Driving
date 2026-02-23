@@ -47,7 +47,18 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 User = get_user_model()
-first_exam_id = Exam.objects.filter(exam_type__name__icontains='ibivanze', for_scheduling=False).order_by('created_at').first().id
+
+# avoid querying at import time without guarding for empty queryset
+# during tests there may be no exams yet, so ensure we don't crash
+
+def _get_first_exam_id():
+    exam = Exam.objects.filter(
+        exam_type__name__icontains='ibivanze',
+        for_scheduling=False,
+    ).order_by('created_at').first()
+    return exam.id if exam else None
+
+first_exam_id = _get_first_exam_id()
 
 
 def home(request):
@@ -962,9 +973,11 @@ def payment_confirm(request):
                 msg = "Renewal"
                 
                 if request.user.subscription.plan.plan == plan.plan:
-                    link = request.build_absolute_uri(reverse('admin:subscription-renew', args=[request.user.subscription.id]))
+                    link = request.build_absolute_uri(reverse('dashboard_renew_subscription', args=[request.user.subscription.id]))
                 else:
-                    link = request.build_absolute_uri(reverse('admin:app_subscription_change', args=[request.user.subscription.id]))
+                    # link = request.build_absolute_uri(reverse('admin:app_subscription_change', args=[request.user.subscription.id]))
+                    link = request.build_absolute_uri(reverse('subscription_update', args=[request.user.subscription.id]))
+
             else:
                 msg = "New"
                 link = request.build_absolute_uri(reverse('approve_payment', args=[request.user.id, plan.id]))

@@ -536,18 +536,7 @@ class SubscriptionForm(forms.ModelForm):
             'updated': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }     
 
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     user = cleaned_data.get("user")
-    #     instance = self.instance
-
-    #     if user:
-    #         # Check for existing subscription excluding the current instance (for updates)
-    #         existing = Subscription.objects.filter(user=user).exclude(pk=instance.pk).first()
-    #         if existing:
-    #             # Instead of raising a ValidationError, we silently allow it
-    #             self.cleaned_data['existing_instance'] = existing  # optional if you want to access later
-    #     return cleaned_data
+    
 
 
     def __init__(self, *args, **kwargs):

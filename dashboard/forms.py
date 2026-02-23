@@ -122,7 +122,8 @@ class SubscriptionForm(forms.ModelForm):
             existing_subscription = Subscription.objects.filter(
                 user=user,
                 plan=plan,
-                is_active=True
+                expires_at__gt=timezone.now()
+            ).exclude(id=self.instance.id if self.instance else None
             ).first()
             if existing_subscription:
                 raise forms.ValidationError(f"The user {user} already has an active subscription to the {plan} plan.")

@@ -231,7 +231,7 @@ class UserProfile(AbstractUser):
         verbose_name = "User"
         verbose_name_plural = "All Accounts"
 
-
+    
     def __str__(self):
         sub_icon = "⚡" if hasattr(self, 'subscription') else "" 
         return f"{sub_icon} {self.email if self.email else f'{self.name}**{self.phone_number[-3:]}'}"
@@ -297,6 +297,10 @@ class Plan(models.Model):
 
         if self.price <= 0:
             raise ValidationError("'price' must be greater than zero.")
+    
+    @property
+    def get_plan_display(self):
+        return dict(self.PLAN_CHOICES).get(self.plan, "Unknown Plan")
 
     def __str__(self):
         return self.plan
@@ -312,7 +316,7 @@ class Subscription(models.Model):
     # Subscription timing
     started_at = models.DateTimeField(null=True, blank=True)
     updated = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(null=True, blank=True) 
+    updated_at = models.DateTimeField(null=True, blank=True, auto_now_add=True) 
     expires_at = models.DateTimeField(null=True, blank=True)
     delta_hours = models.IntegerField(default=0)
     delta_days = models.IntegerField(default=0)
@@ -424,7 +428,7 @@ class Subscription(models.Model):
     @property
     def has_unverified_otp(self):
         return self.otp_code and not self.otp_verified
-
+    
     def __str__(self):
         return f"Subscription for {self.user}"
 

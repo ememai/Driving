@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Update Subscription</h5>
+        </div>
+
+        <div class="card-body">
+
+            <!-- NAV TABS -->
+            <ul class="nav nav-tabs mb-3" id="subscriptionTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if not subscription.super_subscription %}active{% endif %}"
+                            id="plan-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#plan"
+                            type="button">
+                        Plan Subscription
+                    </button>
+                </li>
+
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if subscription.super_subscription %}active{% endif %}"
+                            id="super-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#super"
+                            type="button">
+                        Super Subscription
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+
+                <!-- ================= PLAN TAB ================= -->
+                <div class="tab-pane fade {% if not subscription.super_subscription %}show active{% endif %}"
+                     id="plan">
+
+                    <form method="post" action="{% url 'subscription_update' subscription.id %}">
+                        {% csrf_token %}
+
+                        <input type="hidden" name="super_subscription" value="">
+
+                        <!-- User -->
+                        <div class="mb-3">
+                            <label class="form-label">User</label>
+                            <input type="text" class="form-control"
+                                   value="{{ subscription.user }}" disabled>
+                        </div>
+
+                        <!-- Plan Dropdown -->
+                        <div class="mb-3">
+                            <label class="form-label">Select Plan</label>
+                            <select name="plan_id" class="form-select" required>
+                                <option value="">-- Select Plan --</option>
+                                {% for plan in plans %}
+                                    <option value="{{ plan.id }}"
+                                        {% if subscription.plan and subscription.plan.id == plan.id %}selected{% endif %}>
+                                        {{ plan.plan }} - {{ plan.price }} RWF
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Renewal -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="updated"
+                                   value="1"
+                                   {% if subscription.updated %}checked{% endif %}>
+                            <label class="form-check-label">
+                                Mark as Renewal
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">
+                            Update Plan Subscription
+                        </button>
+                    </form>
+                </div>
+
+                <!-- ================= SUPER TAB ================= -->
+                <div class="tab-pane fade {% if subscription.super_subscription %}show active{% endif %}"
+                     id="super">
+
+                    <form method="post" action="{% url 'subscription_update' subscription.id %}">
+                        {% csrf_token %}
+
+                        {% comment %} <input type="hidden" name="super_subscription" value="on"> {% endcomment %}
+                        {% comment %} <input type="hidden" name="plan_id" value=""> {% endcomment %}
+
+                        <!-- User -->
+                        <div class="mb-3">
+                            <label class="form-label">User</label>
+                            <input type="text" class="form-control"
+                                   value="{{ subscription.user }}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="super_subscription">Super?</label>
+                            <input type="checkbox" class="form-check-input" name="super_subscription" {% if subscription.super_subscription %}checked{% endif %}>
+                        </div>
+
+                        <!-- Custom Duration -->
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="mb-3">
+                                <label class="form-label">Delta Hours</label>
+                                <input type="number"
+                                       name="delta_hours"
+                                       class="form-control"
+                                       value="{{ subscription.delta_hours }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Delta Days</label>
+                                <input type="number"
+                                       name="delta_days"
+                                       class="form-control"
+                                       value="{{ subscription.delta_days }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Price (RWF)</label>
+                                <input type="number"
+                                       name="price"
+                                       class="form-control"
+                                       value="{{ subscription.price }}">
+                            </div>
+                        </div>
+
+                        <!-- Renewal -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="updated"
+                                   value="1"
+                                   {% if subscription.updated %}checked{% endif %}>
+                            <label class="form-check-label">
+                                Mark as Renewal
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            Update Super Subscription
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- STATUS -->
+            <hr>
+            <div class="mt-3">
+                <strong>Status:</strong>
+                {% if subscription.active_subscription %}
+                    <span class="badge bg-success">Active</span>
+                {% else %}
+                    <span class="badge bg-danger">Inactive</span>
+                {% endif %}
+
+                {% if subscription.expires_at %}
+                    <span class="ms-2">
+                        Expires at: {{ subscription.expires_at }}
+                    </span>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
