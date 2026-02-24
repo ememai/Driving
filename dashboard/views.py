@@ -23,6 +23,11 @@ from app.decorators import redirect_authenticated_users  # Make sure this exists
 
 logger = logging.getLogger(__name__)
 
+# Local imports needed for pagination and realtime notifications
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 # A helper test so that only staff (admin) users can access these views.
 def staff_required(user):
     return user.is_staff
@@ -390,12 +395,17 @@ def dashboard_add_subscription(request):
                 subscription.generate_otp()
                 subscription.save()
                 messages.success(request, "New subscription added successfully.")
+                # notify user via websocket so modal can pop up immediately
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{user.id}",
+                    {"type": "unverified_subscription"},
+                )
             except (UserProfile.DoesNotExist, Plan.DoesNotExist):
                 messages.error(request, "Invalid user or plan.")
         else:
             messages.error(request, "Please provide both user and plan.")
     return redirect('admin_subscription_dashboard')
-
 
 @login_required
 @user_passes_test(staff_required)
@@ -433,6 +443,12 @@ def subscription_update(request, pk):
                         subscription.delta_days = 0
                         subscription.price = plan.price
                         subscription.generate_otp()
+                        # notify the owner
+                        channel_layer = get_channel_layer()
+                        async_to_sync(channel_layer.group_send)(
+                            f"user_{subscription.user.id}",
+                            {"type": "unverified_subscription"},
+                        )
                     else:
                         subscription.plan = plan
 
@@ -460,15 +476,41 @@ def subscription_update(request, pk):
 @login_required
 @user_passes_test(staff_required)
 def subscription_dashboard(request):
-    subscriptions = Subscription.objects.all().order_by('-updated_at')
-    plans = Plan.objects.all().order_by('price')
-    users = UserProfile.objects.all().order_by('-date_joined')
+    # build base queryset and apply filters before paginating
+    subscriptions_qs = Subscription.objects.all().order_by(
+        '-otp_created_at', '-updated_at', '-started_at', '-price',
+    )
     query = request.GET.get('q')
     if query:
-        subscriptions = subscriptions.filter(
-            Q(user__name__icontains=query) | Q(user__email__icontains=query) | Q(user__phone_number__icontains=query)
+        subscriptions_qs = subscriptions_qs.filter(
+            Q(user__name__icontains=query)
+            | Q(user__email__icontains=query)
+            | Q(user__phone_number__icontains=query)
         )
-    return render(request, 'dashboard/subscription_dashboard.html', {'subscriptions': subscriptions, 'query': query, 'plans': plans, 'users': users})
+
+    # paginate rather than slice; 10 items per page
+    paginator = Paginator(subscriptions_qs, 10)
+    page_number = request.GET.get('page')
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    plans = Plan.objects.all().order_by('price')
+    users = UserProfile.objects.all().order_by('-date_joined')
+    return render(
+        request,
+        'dashboard/subscription_dashboard.html',
+        {
+            'subscriptions': page_obj,
+            'page_obj': page_obj,
+            'query': query,
+            'plans': plans,
+            'users': users,
+        },
+    )
 
 @login_required
 @user_passes_test(staff_required)
@@ -485,6 +527,12 @@ def dashboard_update_plans(request):
                         subscription.plan = plan
                         subscription.generate_otp()
                         subscription.save()
+                        # alert the user immediately
+                        channel_layer = get_channel_layer()
+                        async_to_sync(channel_layer.group_send)(
+                            f"user_{subscription.user.id}",
+                            {"type": "unverified_subscription"},
+                        )
                 except (Subscription.DoesNotExist, Plan.DoesNotExist):
                     continue
         messages.success(request, "Plans updated successfully.")

@@ -349,3 +349,10 @@ RATELIMIT_USE_CACHE = 'default'
 # Session security
 SESSION_COOKIE_HTTPONLY = True
 
+# Channels configuration: use in-memory channel layer for development/tests
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+

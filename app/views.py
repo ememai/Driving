@@ -1391,12 +1391,10 @@ def resend_otp(request, user_id):
 
 @login_required
 def check_unverified_subscription(request):
-    has_unverified = None
+    # always return a boolean value for ease of client logic
     if not request.user.is_authenticated:
         return JsonResponse({'unverified': False, 'error': 'unauthenticated'}, status=401)
-    
+
     unverified_sub = get_unverified_subscription(request.user)
-    if unverified_sub:
-        has_unverified = True
-    print(has_unverified)
+    has_unverified = bool(unverified_sub)
     return JsonResponse({'unverified': has_unverified})

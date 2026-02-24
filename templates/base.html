@@ -640,47 +640,55 @@
                 </div>
             </div>
         </div>
+
+        {% comment %} automatically show the modal if an unverified subscription exists in context {% endcomment %}
+        {% if unverified_subscription %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                new bootstrap.Modal(document.getElementById('unverifiedModal')).show();
+            });
+        </script>
+        {% endif %}
         
         <script>
-            let modalShown = false; // Track if modal has been shown
-
-            function checkUnverified() {
-                const currentPath = window.location.pathname;
-                const activateUrls = [
-                    "{% url 'activate_subscription' %}",
-                    "{% url 'payment' %}",
-                    "{% url 'subscription' %}",
-                ];
-
-                if (activateUrls.includes(currentPath)) return;
-
+            // Signal-based subscription check (single check on page load)
+            function checkUnverifiedSubscription() {
+                // always perform check; do not skip any URL so that updated/added
+                // subscriptions trigger the modal immediately regardless of page
                 fetch("{% url 'check_unverified' %}", {
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest"
-                    }
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
                 })
-                .then(response => {
-                    if (!response.ok) throw new Error("HTTP " + response.status);
-                    return response.json();
-                })
+                .then(response => response.ok ? response.json() : Promise.reject())
                 .then(data => {
-                    if (data.unverified && !modalShown) {
-                        const modal = new bootstrap.Modal(document.getElementById("unverifiedModal"), {
-                            backdrop: true,   // allow closing by clicking outside
-                            keyboard: true    // allow closing with ESC
-                        });
-                        modal.show();
-                        modalShown = true;
+                    if (data.unverified) {
+                        new bootstrap.Modal(document.getElementById("unverifiedModal")).show();
                     }
                 })
-                .catch(err => console.error("Error checking subscription:", err));
+                .catch(err => console.error("Subscription check error:", err));
             }
 
-            document.addEventListener("DOMContentLoaded", function() {
-                checkUnverified();
-                // Poll every 30 seconds for more real-time feel
-                setInterval(checkUnverified, 30000);
-            });
+            // real-time websocket connection for unverified subscription events
+            (function() {
+                const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+                const socket = new WebSocket(scheme + '://' + window.location.host + '/ws/dashboard/');
+                socket.onmessage = function(e) {
+                    try {
+                        const data = JSON.parse(e.data);
+                        if (data.type === 'unverified_subscription') {
+                            new bootstrap.Modal(document.getElementById('unverifiedModal')).show();
+                        }
+                    } catch (err) {
+                        console.error('WS message parse error', err);
+                    }
+                };
+                socket.onclose = function(e) {
+                    // attempt reconnect after delay
+                    setTimeout(function() { location.reload(); }, 5000);
+                };
+            })();
+
+            // Check once when page loads
+            document.addEventListener("DOMContentLoaded", checkUnverifiedSubscription);
         </script>
 
         <script>

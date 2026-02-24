@@ -18,6 +18,38 @@ def log_user_login(sender, request, user, **kwargs):
     )
 
 
+@receiver(post_save, sender=Subscription)
+def handle_subscription_change(sender, instance, created, **kwargs):
+    """
+    Signal handler triggered when a subscription is created or modified.
+    
+    - Notifies admin of new subscription attempts
+    - Tracks subscription status changes
+    - Validates subscription state
+    """
+    try:
+        if created:
+            # New subscription created
+            logger.info(f"New subscription created for user {instance.user.name}")
+            from .utils import notify_admin
+            
+            message = (
+                f"📱 New Subscription Attempt\n\n"
+                f"User: {instance.user.name}\n"
+                f"Phone: {instance.user.phone_number}\n"
+                f"Plan: {instance.plan.plan if instance.plan else 'Not selected'}\n"
+                f"Status: {'Verified' if instance.otp_verified else 'Pending OTP'}"
+            )
+            notify_admin(message)
+        else:
+            # Subscription modified
+            if instance.otp_verified and not instance.user.is_subscribed:
+                logger.info(f"Subscription verified for user {instance.user.name}. Marking as active.")
+                
+    except Exception as e:
+        logger.error(f"Error in handle_subscription_change signal: {str(e)}", exc_info=True)
+
+
 @receiver(post_save, sender=PaymentConfirm)
 def auto_confirm_payment(sender, instance, created, **kwargs):
     """
