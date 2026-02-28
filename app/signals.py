@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from .models import UserActivity, PaymentConfirm, PaymentAutoConfirmSetting, Subscription, Plan, PaymentConfirmLog
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 import logging
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,14 @@ def handle_subscription_change(sender, instance, created, **kwargs):
     - Validates subscription state
     """
     try:
+        # whenever a subscription record is saved we clear the cached value
+        # for the associated user.  this keeps the context processor from
+        # serving stale information for up to 5 minutes and fixes the issue
+        # where the modal would pop up for users who had already verified an
+        # OTP (or, conversely, not appear for someone who just received a new
+        # code).
+        cache.delete(f'unverified_sub:{instance.user_id}')
+
         if created:
             # New subscription created
             logger.info(f"New subscription created for user {instance.user.name}")

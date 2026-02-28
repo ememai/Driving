@@ -349,10 +349,94 @@ RATELIMIT_USE_CACHE = 'default'
 # Session security
 SESSION_COOKIE_HTTPONLY = True
 
-# Channels configuration: use in-memory channel layer for development/tests
+# ============================================================================
+# CACHING CONFIGURATION
+# ============================================================================
+# Use Redis for caching if available, fallback to in-memory for development
+REDIS_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 50,
+                'retry_on_timeout': True
+            },
+            'SOCKET_CONNECT_TIMEOUT': 5,
+            'SOCKET_TIMEOUT': 5,
+            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+            'IGNORE_EXCEPTIONS': True,  # Don't crash if Redis unavailable
+        },
+        'KEY_PREFIX': 'kds',
+        'TIMEOUT': 300,  # Default 5 minutes
+    }
+}
+
+# ============================================================================
+# CHANNELS CONFIGURATION
+# ============================================================================
+# Use Redis for channel layer in production for better scalability
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    },
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL.replace('redis://', '')],
+            'capacity': 1500,
+            'expiry': 10,
+        },
+    } if not DEBUG else {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        }
+    }
+}
+
+# ============================================================================
+# DATABASE OPTIMIZATION
+# ============================================================================
+# Connection pooling for database
+if not DEBUG:
+    DATABASES['default']['CONN_MAX_AGE'] = 600  # Connection pooling
+    DATABASES['default']['ATOMIC_REQUESTS'] = False  # Use transactions wisely
+    
+# Enable persistent connections
+DATABASES['default']['CONN_MAX_AGE'] = config('DB_CONN_MAX_AGE', default=600, cast=int)
+
+# Query optimization
+DATABASE_AUTO_COMMIT = True
+AUTOCOMMIT = True
+
+# ============================================================================
+# CACHE TIMEOUT SETTINGS (in seconds)
+# ============================================================================
+CACHE_TIMEOUT_SHORT = 60  # 1 minute
+CACHE_TIMEOUT_MEDIUM = 300  # 5 minutes
+CACHE_TIMEOUT_LONG = 3600  # 1 hour
+CACHE_TIMEOUT_EXTRA_LONG = 86400  # 24 hours
+
+# ============================================================================
+# CELERY CONFIGURATION
+# ============================================================================
+# Celery for background tasks
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_ACCEPT_CONTENT = ['json', 'msgpack']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes hard limit
+CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes soft limit
+CELERY_WORKER_PREFETCH_MULTIPLIER = 4
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
+
+# Task routing for different queues
+CELERY_TASK_ROUTES = {
+    'app.tasks.send_email_*': {'queue': 'email'},
+    'app.tasks.process_exam_*': {'queue': 'exams'},
+    'app.tasks.notification_*': {'queue': 'notifications'},
 }
 
