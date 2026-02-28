@@ -661,7 +661,15 @@
                 .then(response => response.ok ? response.json() : Promise.reject())
                 .then(data => {
                     if (data.unverified) {
-                        new bootstrap.Modal(document.getElementById("unverifiedModal")).show();
+                        const showModal = () => {
+                            const el = document.getElementById("unverifiedModal");
+                            if (el) new bootstrap.Modal(el).show();
+                        };
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', showModal);
+                        } else {
+                            showModal();
+                        }
                     }
                 })
                 .catch(err => console.error("Subscription check error:", err));
@@ -670,21 +678,66 @@
             // real-time websocket connection for unverified subscription events
             (function() {
                 const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-                const socket = new WebSocket(scheme + '://' + window.location.host + '/ws/dashboard/');
-                socket.onmessage = function(e) {
-                    try {
-                        const data = JSON.parse(e.data);
-                        if (data.type === 'unverified_subscription') {
-                            new bootstrap.Modal(document.getElementById('unverifiedModal')).show();
+                let socket;
+                let reconnectAttempts = 0;
+                const maxDelay = 30000; // cap backoff at 30s
+
+                function connect() {
+                    socket = new WebSocket(scheme + '://' + window.location.host + '/ws/dashboard/');
+
+                    socket.onopen = function() {
+                        // reset attempts once connected
+                        reconnectAttempts = 0;
+                        console.log('WebSocket connected');
+                        // in case we missed an event while offline, double-check with an HTTP request
+                        if (typeof checkUnverifiedSubscription === 'function') {
+                            checkUnverifiedSubscription();
                         }
-                    } catch (err) {
-                        console.error('WS message parse error', err);
-                    }
-                };
-                socket.onclose = function(e) {
-                    // attempt reconnect after delay
-                    setTimeout(function() { location.reload(); }, 5000);
-                };
+                    };
+
+                    socket.onmessage = function(e) {
+                        try {
+                            const data = JSON.parse(e.data);
+                            if (data.type === 'unverified_subscription') {
+                                const el = document.getElementById('unverifiedModal');
+                                if (el) {
+                                    new bootstrap.Modal(el).show();
+                                } else {
+                                    console.warn('received unverified_subscription but modal element not found');
+                                }
+                            }
+                        } catch (err) {
+                            console.error('WS message parse error', err);
+                        }
+                    };
+
+                    socket.onerror = function(err) {
+                        console.error('WebSocket error', err);
+                        // verify status in case we missed a server push due to error
+                        if (typeof checkUnverifiedSubscription === 'function') {
+                            checkUnverifiedSubscription();
+                        }
+                    };
+
+                    socket.onclose = function(e) {
+                        // run check when connection drops; we'll reload or show modal via HTTP
+                        if (typeof checkUnverifiedSubscription === 'function') {
+                            checkUnverifiedSubscription();
+                        }
+                        // schedule reconnect with exponential backoff
+                        scheduleReconnect();
+                    };
+                }
+
+                function scheduleReconnect() {
+                    reconnectAttempts += 1;
+                    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), maxDelay);
+                    console.warn(`WebSocket closed; reconnecting in ${delay}ms (attempt ${reconnectAttempts})`);
+                    setTimeout(connect, delay);
+                }
+
+                // kick things off
+                connect();
             })();
 
             // Check once when page loads

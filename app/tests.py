@@ -54,3 +54,34 @@ class UnverifiedSubscriptionTests(TestCase):
 
         resp = self.client.get(reverse('check_unverified'))
         self.assertEqual(resp.json().get('unverified'), False)
+
+    def test_websocket_script_handles_reconnect(self):
+        """Script embedded in base.html should implement reconnect/backoff logic."""
+        response = self.client.get(reverse('home'))
+        content = response.content.decode('utf-8')
+
+        # isolate the websocket block to avoid unrelated reloads elsewhere
+        if 'real-time websocket connection for unverified subscription events' in content:
+            ws_block = content.split('real-time websocket connection for unverified subscription events')[1]
+        else:
+            self.fail('Websocket comment not found in template')
+
+        # websocket section should not reload the page on close
+        self.assertNotIn('location.reload()', ws_block)
+
+        # verify expected reconnect/backoff code exists
+        self.assertIn('reconnectAttempts', ws_block)
+        self.assertIn('scheduleReconnect', ws_block)
+        self.assertRegex(ws_block, r'Math\.pow\(2, reconnectAttempts')
+
+        # ensure we re-check via fetch when socket opens
+        self.assertIn('checkUnverifiedSubscription()', ws_block)
+        # also verify checks on error/close
+        self.assertRegex(ws_block, r'socket\.on(error|close)')
+
+        # show modal only if element exists (safeguard added)
+        self.assertIn("modal element not found", ws_block)
+
+        # check function now respects document.readyState
+        self.assertIn('document.readyState', content)
+
