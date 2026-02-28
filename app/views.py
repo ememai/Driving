@@ -1142,7 +1142,7 @@ def activate_subscription_view(request):
                 "show_modal": True,
                 "modal_title": "Error",
                 "modal_message": message,
-                "redirect_url": reverse("subscription"),
+                "redirect_url": reverse("activate_subscription"),
             })
 
     return render(request, "activate_subscription.html", context)

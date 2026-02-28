@@ -358,7 +358,7 @@
                     loaderTimeout = setTimeout(() => {
                         globalLoader.showTryAgain();
                         globalLoader.hide();
-                    }, 10000);
+                    }, 30000);
 
                     // Handle AJAX form submissions
                     if (form.dataset.ajax === 'true') {
@@ -431,7 +431,7 @@
                 clearTimeout(loaderTimeout);
                 loaderTimeout = setTimeout(() => {
                     globalLoader.showTryAgain();
-                }, 10000);
+                }, 60000);
             });
             window.addEventListener('unload', () => globalLoader.hide());
         </script>
@@ -641,8 +641,12 @@
             </div>
         </div>
 
-        {% comment %} automatically show the modal if an unverified subscription exists in context {% endcomment %}
-        {% if unverified_subscription %}
+        {% comment %} automatically show the modal if an unverified subscription exists in context,
+             but not when we’re already on the activation page (we’ll handle that
+             case via the JS guard above).  caching the url avoids hardcoding the
+             path. {% endcomment %}
+        {% url 'activate_subscription' as activate_url %}
+        {% if unverified_subscription and request.path != activate_url %}
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 new bootstrap.Modal(document.getElementById('unverifiedModal')).show();
@@ -651,97 +655,135 @@
         {% endif %}
         
         <script>
-            // Signal-based subscription check (single check on page load)
-            function checkUnverifiedSubscription() {
-                // always perform check; do not skip any URL so that updated/added
-                // subscriptions trigger the modal immediately regardless of page
-                fetch("{% url 'check_unverified' %}", {
-                    headers: { "X-Requested-With": "XMLHttpRequest" }
-                })
-                .then(response => response.ok ? response.json() : Promise.reject())
-                .then(data => {
-                    if (data.unverified) {
-                        const showModal = () => {
-                            const el = document.getElementById("unverifiedModal");
-                            if (el) new bootstrap.Modal(el).show();
-                        };
-                        if (document.readyState === 'loading') {
-                            document.addEventListener('DOMContentLoaded', showModal);
-                        } else {
-                            showModal();
-                        }
-                    }
-                })
-                .catch(err => console.error("Subscription check error:", err));
-            }
+            // we don’t want *any* of the modal logic to execute while the user is
+            // on the activate-subscription page; they are already inside the flow
+            // and it’s annoying to show the popup again if they reload.
+            const currentPath = window.location.pathname;
+            const activationPath = "{% url 'activate_subscription' %}";
+            if (currentPath !== activationPath) {
 
-            // real-time websocket connection for unverified subscription events
-            (function() {
-                const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-                let socket;
-                let reconnectAttempts = 0;
-                const maxDelay = 30000; // cap backoff at 30s
+                // Signal-based subscription check (single check on page load)
+                // we keep a flag when the user clicks the "activate" button so that
+                // we don’t reopen the modal while they are already navigating to the
+                // activation page.  the flag is cleared automatically once the HTTP
+                // check returns unverified=false (or when the socket tells us there’s
+                // no pending subscription).
+                function isActivating() {
+                    return sessionStorage.getItem('activatingSubscription') === '1';
+                }
 
-                function connect() {
-                    socket = new WebSocket(scheme + '://' + window.location.host + '/ws/dashboard/');
-
-                    socket.onopen = function() {
-                        // reset attempts once connected
-                        reconnectAttempts = 0;
-                        console.log('WebSocket connected');
-                        // in case we missed an event while offline, double-check with an HTTP request
-                        if (typeof checkUnverifiedSubscription === 'function') {
-                            checkUnverifiedSubscription();
-                        }
-                    };
-
-                    socket.onmessage = function(e) {
-                        try {
-                            const data = JSON.parse(e.data);
-                            if (data.type === 'unverified_subscription') {
-                                const el = document.getElementById('unverifiedModal');
-                                if (el) {
-                                    new bootstrap.Modal(el).show();
-                                } else {
-                                    console.warn('received unverified_subscription but modal element not found');
-                                }
+                function checkUnverifiedSubscription() {
+                    // always perform check; do not skip any URL so that updated/added
+                    // subscriptions trigger the modal immediately regardless of page
+                    // (we still make the request even if the user has clicked the
+                    // activate button so that we can clear the 'activating' flag when
+                    // the subscription eventually becomes verified).
+                    fetch("{% url 'check_unverified' %}", {
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    })
+                    .then(response => response.ok ? response.json() : Promise.reject())
+                    .then(data => {
+                        if (data.unverified && !isActivating()) {
+                            const showModal = () => {
+                                const el = document.getElementById("unverifiedModal");
+                                if (el) new bootstrap.Modal(el).show();
+                            };
+                            if (document.readyState === 'loading') {
+                                document.addEventListener('DOMContentLoaded', showModal);
+                            } else {
+                                showModal();
                             }
-                        } catch (err) {
-                            console.error('WS message parse error', err);
                         }
-                    };
-
-                    socket.onerror = function(err) {
-                        console.error('WebSocket error', err);
-                        // verify status in case we missed a server push due to error
-                        if (typeof checkUnverifiedSubscription === 'function') {
-                            checkUnverifiedSubscription();
+                        // clear the flag when the server reports there is no
+                        // outstanding unverified subscription; this typically happens
+                        // after the OTP has been successfully submitted.
+                        if (!data.unverified) {
+                            sessionStorage.removeItem('activatingSubscription');
                         }
-                    };
-
-                    socket.onclose = function(e) {
-                        // run check when connection drops; we'll reload or show modal via HTTP
-                        if (typeof checkUnverifiedSubscription === 'function') {
-                            checkUnverifiedSubscription();
-                        }
-                        // schedule reconnect with exponential backoff
-                        scheduleReconnect();
-                    };
+                    })
+                    .catch(err => console.error("Subscription check error:", err));
                 }
 
-                function scheduleReconnect() {
-                    reconnectAttempts += 1;
-                    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), maxDelay);
-                    console.warn(`WebSocket closed; reconnecting in ${delay}ms (attempt ${reconnectAttempts})`);
-                    setTimeout(connect, delay);
-                }
+                // real-time websocket connection for unverified subscription events
+                (function() {
+                    const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+                    let socket;
+                    let reconnectAttempts = 0;
+                    const maxDelay = 30000; // cap backoff at 30s
 
-                // kick things off
-                connect();
-            })();
+                    function connect() {
+                        socket = new WebSocket(scheme + '://' + window.location.host + '/ws/dashboard/');
 
-            // Check once when page loads
-            document.addEventListener("DOMContentLoaded", checkUnverifiedSubscription);
+                        socket.onopen = function() {
+                            // reset attempts once connected
+                            reconnectAttempts = 0;
+                            console.log('WebSocket connected');
+                            // in case we missed an event while offline, double-check with an HTTP request
+                            if (typeof checkUnverifiedSubscription === 'function') {
+                                checkUnverifiedSubscription();
+                            }
+                        };
+
+                        socket.onmessage = function(e) {
+                            try {
+                                const data = JSON.parse(e.data);
+                                if (data.type === 'unverified_subscription' && !isActivating()) {
+                                    const el = document.getElementById('unverifiedModal');
+                                    if (el) {
+                                        new bootstrap.Modal(el).show();
+                                    } else {
+                                        console.warn('received unverified_subscription but modal element not found');
+                                    }
+                                }
+                            } catch (err) {
+                                console.error('WS message parse error', err);
+                            }
+                        };
+
+                        socket.onerror = function(err) {
+                            console.error('WebSocket error', err);
+                            // verify status in case we missed a server push due to error
+                            if (typeof checkUnverifiedSubscription === 'function') {
+                                checkUnverifiedSubscription();
+                            }
+                        };
+
+                        socket.onclose = function(e) {
+                            // run check when connection drops; we'll reload or show modal via HTTP
+                            if (typeof checkUnverifiedSubscription === 'function') {
+                                checkUnverifiedSubscription();
+                            }
+                            // schedule reconnect with exponential backoff
+                            scheduleReconnect();
+                        };
+                    }
+
+                    function scheduleReconnect() {
+                        reconnectAttempts += 1;
+                        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), maxDelay);
+                        console.warn(`WebSocket closed; reconnecting in ${delay}ms (attempt ${reconnectAttempts})`);
+                        setTimeout(connect, delay);
+                    }
+
+                    // kick things off
+                    connect();
+                })();
+
+                // give the "activate subscription" button a hook so we can
+                // remember the user has already started the flow. this suppresses
+                // further modal opens until the server says the unverified record
+                // is gone.
+                document.addEventListener('DOMContentLoaded', function() {
+                    const btn = document.querySelector('#unverifiedModal a.btn');
+                    if (btn) {
+                        btn.addEventListener('click', function() {
+                            sessionStorage.setItem('activatingSubscription', '1');
+                        });
+                    }
+                    // now run the usual check
+                    checkUnverifiedSubscription();
+                });
+            }
         </script>
 
         <script>

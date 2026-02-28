@@ -85,3 +85,46 @@ class UnverifiedSubscriptionTests(TestCase):
         # check function now respects document.readyState
         self.assertIn('document.readyState', content)
 
+    def test_activation_click_prevents_repeat(self):
+        """The embedded JS should set a flag when the modal button is clicked
+        and skip future checks until the unverified subscription disappears."""
+        response = self.client.get(reverse('home'))
+        content = response.content.decode('utf-8')
+
+        # flag variable and early‑return should be present
+        self.assertIn('activatingSubscription', content)
+        self.assertIn('if (isActivating()', content)
+
+        # event listener for the button that writes the flag
+        self.assertRegex(content, r"querySelector\('#unverifiedModal a\.btn'\)")
+        self.assertIn("sessionStorage.setItem('activatingSubscription'", content)
+
+    def test_skip_on_activation_page(self):
+        """The script should bail out early when the current pathname matches
+        the activation view URL."""
+        response = self.client.get(reverse('home'))
+        content = response.content.decode('utf-8')
+        # guard code compares window.location.pathname against the django URL
+        self.assertIn('window.location.pathname', content)
+        self.assertIn(reverse('activate_subscription'), content)
+
+    def test_modal_not_rendered_during_activation(self):
+        """Even the initial-context script must not appear when visiting the
+        activation page; user shouldn’t see the popup at all on that view."""
+        # create a subscription so context processor returns unverified
+        sub = Subscription.objects.create(user=self.user, plan=self.plan)
+        sub.generate_otp()
+        sub.save()
+
+        response = self.client.get(reverse('activate_subscription'))
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode('utf-8')
+        # the one-line script that immediately shows the modal should be absent
+        # there shouldn't be the tiny inline script that immediately pops
+        # the unverifiedModal; match the exact structure to avoid hitting other
+        # bootstrap usages (e.g. login OTP, global loader, etc.)
+        self.assertNotRegex(
+            html,
+            r"<script>\s*document.addEventListener\('DOMContentLoaded', function\(\) \{\s*new bootstrap\.Modal\(document.getElementById\('unverifiedModal'\)\)\.show\(\);\s*\}\);\s*</script>"
+        )
+
