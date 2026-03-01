@@ -19,7 +19,6 @@
     color: rgba(var(--text-rgb), 0.65);
   }
 
-  
   .exam-card {
     background-color: rgba(var(--card-bg-rgb), 0.8);
     border: 1px solid rgba(var(--border-rgb), 0.2);
@@ -32,6 +31,9 @@
     gap: 0.75rem;
     position: relative;
     color: rgba(var(--text-rgb), 1);
+    will-change: transform, box-shadow;
+    contain: layout style paint;
+    content-visibility: auto;
   }
 
   .exam-card:hover {
@@ -47,6 +49,7 @@
   .exam-icon i {
     transition: transform 0.4s ease;
     display: inline-block;
+    will-change: transform;
   }
 
   .exam-card:hover .exam-icon i {
@@ -101,20 +104,30 @@
   .exam-card.completed {
     background-color: rgba(40, 167, 69, 0.05);
   }
+
+  .exam-col.hidden {
+    display: none;
+  }
+
+  .load-more-btn {
+    display: block;
+    margin: 2rem auto;
+  }
+
+  .load-more-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 </style>
 
 <div class="container">
   <div class="exam-header">
     <h2>Ibizamini bifite ibibazo byo mu bwoko "{{ exam_type }}"</h2>
-    <p class="lead">
-      Umubare w'ibibonetse:
-      <strong id="exam-count-display">{{ filtered_count }}</strong>
-     
-    </p>
   </div>
 
-  {% if returned_exams %} {% comment %} {# only show tabs and filters when more
-  than one year exists #} {% endcomment %} 
+  {% comment %} server-side no-results alert now rendered inside each year pane
+  instead {% endcomment %} {% if returned_exams %} {% comment %} {# only show
+  tabs and filters when more than one year exists #} {% endcomment %} 
   {% if show_tabs %}
   <ul class="nav nav-tabs" id="yearTabs" role="tablist">
     {% for year in exams_by_year.keys %}
@@ -151,13 +164,13 @@
           class="form-select form-select-sm w-auto month-filter"
           data-year="{{ year }}"
         >
-          <option value="all">All months</option>
+          <option value="all">Amezi yose</option>
           {% for m, mname in exams_months_by_year|dictkey:year %}
-          <option value="{{ m }}">{{ mname }}</option>
+          <option value="{{ m }}">Ukwa {{ m }}</option>
           {% endfor %}
         </select>
 
-        <div class="form-check ms-3">
+        <div class="form-check ms-3 form-check-reverse">
           <input
             class="form-check-input completed-filter"
             type="checkbox"
@@ -165,25 +178,37 @@
             id="completedOnly-{{ year }}"
             data-year="{{ year }}"
           />
-          <label class="form-check-label" for="completedOnly-{{ year }}"
-            >Only completed</label
-          >
+          <label class="form-check-label" for="completedOnly-{{ year }}">
+            Ibyo wakoze gusa?
+          </label>
         </div>
 
         <button
           type="button"
-          class="btn btn-sm btn-outline-secondary reset-filters"
+          class="btn btn-sm btn-outline-secondary reset-filters ms-auto"
           data-year="{{ year }}"
           title="Clear all filters for this year"
         >
+          <i class="fas fa-eraser"></i>
           Reset
         </button>
       </div>
       {% endif %}
+        <p class="mb-2">Umubare w'ibibonetse: <strong class="exam-count-display" data-year="{{ year }}">{{ exams|length }}</strong></p>
 
-      <div class="row g-4">
+      <!-- alert shown when no cards are visible (server or client filtering) -->
+      <div
+        class="alert alert-info d-flex justify-content-between align-items-center mt-3 no-results-info {% if filtered_count != 0 %}d-none{% endif %}"
+      >
+        <div>
+          Nta bizamini bihuye n'ibyatoranyijwe. Gerageza gukuraho filtre
+          kugirango ubone byinshi.
+        </div>
+      </div>
+
+      <div class="row g-4" data-exam-container="true">
         {% for exam in exams %}
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-4 exam-col">
           <div
             class="exam-card {% if exam.id in completed_exam_ids %}border-success{% endif %}"
             data-month="{{ exam.created_at|date:'n' }}"
@@ -229,6 +254,23 @@
         </div>
         {% endfor %}
       </div>
+      <!-- pagination: load more button -->
+      <div class="text-center mt-4" data-pagination-controls="true">
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary load-more-btn"
+          data-year="{{ year }}"
+          style="display: none"
+        >
+          <span
+            class="spinner-border spinner-border-sm me-2"
+            role="status"
+            aria-hidden="true"
+            style="display: none"
+          ></span>
+          Ibindi
+        </button>
+      </div>
       {% else %}
       <p class="no-exams text-muted">Nta bizamini bibonetse muri uyu mwaka.</p>
       {% endif %}
@@ -248,12 +290,20 @@
 <script>
   (function(){
     const EXAM_TYPE_KEY = 'exams_filters__{{ exam_type|slugify }}';
+    const PAGINATION_THRESHOLD = 50; // activate when 50+ exams
+    const ITEMS_PER_LOAD = 15; // load 15 per click
+    let storageCache = {};
+    let paginationState = {};
 
     function readStorage(){
-      try { return JSON.parse(localStorage.getItem(EXAM_TYPE_KEY)) || {}; }
-      catch { return {}; }
+      if(!Object.keys(storageCache).length){
+        try { storageCache = JSON.parse(localStorage.getItem(EXAM_TYPE_KEY)) || {}; }
+        catch { storageCache = {}; }
+      }
+      return storageCache;
     }
     function writeStorage(obj){
+      storageCache = obj;
       localStorage.setItem(EXAM_TYPE_KEY, JSON.stringify(obj));
     }
 
@@ -275,27 +325,114 @@
       url.searchParams.set('filter_completed', completedOnly ? '1' : '0');
       window.history.replaceState({}, '', url);
 
+      // single loop: determine matches, apply pagination and count visible
       const cards = container.querySelectorAll('.exam-card');
+      const allCols = container.querySelectorAll('.exam-col');
+      const totalExams = allCols.length;
+      const usePagination = totalExams > PAGINATION_THRESHOLD;
+      const displayed = usePagination ? (paginationState[year] && paginationState[year].displayed ? paginationState[year].displayed : ITEMS_PER_LOAD) : Infinity;
+      let visible = 0;
+      let matchCount = 0;
       cards.forEach(card => {
         const cardMonth = card.getAttribute('data-month');
         const cardCompleted = card.getAttribute('data-completed') === '1';
-        let show = true;
-        if(month !== 'all' && cardMonth !== month) show = false;
-        if(completedOnly && !cardCompleted) show = false;
-        const col = card.closest('.col-md-6, .col-lg-4');
-        if(col) col.style.display = show ? '' : 'none';
+        let matches = true;
+        if(month !== 'all' && cardMonth !== month) matches = false;
+        if(completedOnly && !cardCompleted) matches = false;
+        const col = card.parentElement;
+        // mark whether this col matches filters
+        col.dataset.match = matches ? '1' : '0';
+        if(matches){
+          matchCount++;
+          // if using pagination, only show first `displayed` matched items
+          if(usePagination && matchCount > displayed){
+            col.classList.add('hidden');
+            col.dataset.paginated = '1';
+          } else {
+            col.classList.remove('hidden');
+            col.dataset.paginated = '0';
+            visible++;
+          }
+        } else {
+          col.classList.add('hidden');
+          col.dataset.paginated = '0';
+        }
       });
-      // update header count to reflect visible exams in this tab
-      const countDisplay = document.querySelector('#exam-count-display');
-      let visible = 0;
-      cards.forEach(card=>{
-        const col = card.closest('.col-md-6, .col-lg-4');
-        if(col && col.style.display !== 'none') visible++;
-      });
-      if(countDisplay){
-        countDisplay.textContent = visible;
+
+      // update per-year count display inside this pane (show total filtered count, not just displayed)
+      const countEl = container.querySelector('.exam-count-display');
+      if(countEl){
+        countEl.textContent = matchCount;
       }
+
+      // toggle the no-results alert inside this pane
+      const noResultsAlert = container.querySelector('.no-results-info');
+      if(noResultsAlert){
+        noResultsAlert.classList.toggle('d-none', visible !== 0);
+      }
+
+      // update pagination controls (show Load More if 50+ exams and more matches exist)
+      const paginationControls = container.closest('[role="tabpanel"]').querySelector('[data-pagination-controls]');
+      if(paginationControls){
+        const btn = paginationControls.querySelector('.load-more-btn');
+        if(btn && totalExams > PAGINATION_THRESHOLD && matchCount > displayed){
+          btn.style.display = 'block';
+        } else if(btn){
+          btn.style.display = 'none';
+        }
+      }
+    }
+
+    function initPagination(year){
+      const tab = document.querySelector('#year-' + year);
+      if(!tab) return;
+      const container = tab.querySelector('[data-exam-container]');
+      if(!container) return;
+      if(!paginationState[year]) paginationState[year] = { displayed: ITEMS_PER_LOAD };
+      const cols = Array.from(container.querySelectorAll('.exam-col'));
+      let toReveal = ITEMS_PER_LOAD;
+      for(const col of cols){
+        if(toReveal <= 0) break;
+        if(col.dataset.match !== '1') continue; // only consider matched items
+        if(col.dataset.paginated === '1'){
+          col.classList.remove('hidden');
+          col.dataset.paginated = '0';
+          paginationState[year].displayed++;
+          toReveal--;
+        }
+      }
+
+      // hide button when no more paginated items remain
+      const remainingPaginated = cols.filter(c => c.dataset.match === '1' && c.dataset.paginated === '1').length;
+      const btn = tab.querySelector('[data-pagination-controls] .load-more-btn');
+      if(btn && remainingPaginated === 0){
+        btn.style.display = 'none';
+      }
+    }
+    function loadMore(year){
+      const tab = document.querySelector('#year-' + year);
+      if(!tab) return;
+      const container = tab.querySelector('[data-exam-container]');
+      if(!container) return;
       
+      const cols = container.querySelectorAll('.exam-col');
+      if(!paginationState[year]) paginationState[year] = { displayed: ITEMS_PER_LOAD };
+      
+      let loaded = 0;
+      cols.forEach((col, idx) => {
+        if(col.classList.contains('hidden') && loaded < ITEMS_PER_LOAD){
+          col.classList.remove('hidden');
+          paginationState[year].displayed++;
+          loaded++;
+        }
+      });
+      
+      // hide button when all visible
+      const visibleCount = Array.from(cols).filter(c => !c.classList.contains('hidden')).length;
+      const btn = tab.querySelector('[data-pagination-controls] .load-more-btn');
+      if(btn && visibleCount >= cols.length){
+        btn.style.display = 'none';
+      }
     }
 
     function resetFilters(year){
@@ -308,8 +445,25 @@
       applyFilters(tab, year);
     }
 
+    function resetAllFilters(){
+      // clear any stored per-exam-type filter keys
+      for(let i = localStorage.length - 1; i >= 0; i--){
+        const key = localStorage.key(i);
+        if(key && key.startsWith('exams_filters__')) localStorage.removeItem(key);
+      }
+      storageCache = {};
+      // remove filter query params and reload root path
+      const url = new URL(window.location);
+      url.searchParams.delete('filter_year');
+      url.searchParams.delete('filter_month');
+      url.searchParams.delete('filter_completed');
+      window.location.href = url.pathname;
+    }
+
+    // single setup pass for all tabs
     document.querySelectorAll('.tab-pane').forEach(tab => {
       const year = tab.id.replace('year-', '');
+      paginationState[year] = { displayed: ITEMS_PER_LOAD };
       const store = readStorage();
       const saved = store[year] || {};
       const sel = tab.querySelector('.month-filter');
@@ -343,15 +497,26 @@
         });
       }
 
+      // attach load more button handler
+      const loadMoreBtn = tab.querySelector('[data-pagination-controls] .load-more-btn');
+      if(loadMoreBtn){
+        loadMoreBtn.addEventListener('click', function(){
+          loadMore(year);
+        });
+      }
+
       applyFilters(tab, year);
+      initPagination(year);
     });
 
-    document.querySelectorAll('#yearTabs button[data-bs-toggle="tab"]').forEach(btn => {
-      btn.addEventListener('shown.bs.tab', function(e){
+    // tab switch handler
+    const yearTabs = document.querySelector('#yearTabs');
+    if(yearTabs){
+      yearTabs.addEventListener('shown.bs.tab', function(e){
         const target = document.querySelector(e.target.getAttribute('data-bs-target'));
         if(target) applyFilters(target, target.id.replace('year-',''));
       });
-    });
+    }
 
     {% if active_year %}
     (function openActive(){
@@ -361,4 +526,5 @@
     {% endif %}
   })();
 </script>
+
 {% endblock %}

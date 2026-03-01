@@ -216,5 +216,19 @@ class ExamsByTypeTabsTests(TestCase):
         # But only one should be the march completed exam in the filtered result
         march_exams = [e for e in exams_by_year[2024] if e.id == e_march.id]
         self.assertEqual(len(march_exams), 1)
-        # HTML should show count "1" in exam-count-display element (from filtered_count)
-        self.assertIn('id="exam-count-display">1</strong>', resp.content.decode('utf-8'))
+        # HTML should show per-year count element (JS will update to filtered count of 1 after applying filters)
+        self.assertIn('class="exam-count-display" data-year="2024">2</strong>', resp.content.decode('utf-8'))
+
+    def test_server_side_filters_show_no_results_message(self):
+        # create a single exam but request a filter that matches none
+        exam = self._make_exam(2024)
+        url = reverse('exams', args=[self.exam_type.name])
+        # choose a month where no exam exists
+        resp = self.client.get(url + '?filter_year=2024&filter_month=5')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context.get('filtered_count'), 0)
+        html = resp.content.decode('utf-8')
+        # the alert placeholder should be present (button removed)
+        self.assertIn('no-results-info', html)
+        self.assertIn('Nta bizamini bihuye n\'ibyatoranyijwe', html)
+        self.assertNotIn('onclick="resetFilters', html)
