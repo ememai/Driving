@@ -110,7 +110,14 @@
     </div>
   </div>
 
-  <table class="table table-bordered table-striped mt-3 overflow-auto">
+  <div id="subscriptions-container">
+    <div id="subscriptions-loading" class="text-center my-2 d-none">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <div id="subscriptions-error" class="alert alert-danger d-none" role="alert"></div>
+    <table class="table table-bordered table-striped mt-3 overflow-auto">
     <thead>
       <tr>
         <th><input type="checkbox" id="selectAll" title="Select All" /></th>
@@ -248,44 +255,88 @@
 
   {% if subscriptions.has_other_pages %}
   <nav class="mt-3" aria-label="Page navigation">
-    <ul class="pagination">
+    <ul class="pagination pagination-compact">
       {% if subscriptions.has_previous %}
       <li class="page-item">
-        <a
-          class="page-link"
-          href="?{% if query %}q={{ query }}&{% endif %}page={{ subscriptions.previous_page_number }}"
-          >Previous</a
-        >
+        <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page=1" aria-label="First page">
+          <span>«</span>
+        </a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ subscriptions.previous_page_number }}" aria-label="Previous page">
+          <span>‹</span>
+        </a>
       </li>
       {% else %}
       <li class="page-item disabled">
-        <span class="page-link">Previous</span>
+        <span class="page-link"><span>«</span></span>
       </li>
-      {% endif %} {% for num in subscriptions.paginator.page_range %}
-    <div class="d-flex align-items-center justify-content-center mx-1 text-wrap">
-      <li
-        class="page-item {% if subscriptions.number == num %}active{% endif %}"
-      >
-        <a
-          class="page-link"
-          href="?{% if query %}q={{ query }}&{% endif %}page={{ num }}"
-          >{{ num }}</a
-        >
+      <li class="page-item disabled">
+        <span class="page-link"><span>‹</span></span>
       </li>
-    </div>
-      {% endfor %} {% if subscriptions.has_next %}
+      {% endif %}
+
+      <!-- Page numbers with smart truncation -->
+      {% with current=subscriptions.number total=subscriptions.paginator.num_pages %}
+        {% for num in subscriptions.paginator.page_range %}
+          {% if num == 1 or num == total or num >= current|add:'-2' and num <= current|add:'2' %}
+            <li class="page-item {% if subscriptions.number == num %}active{% endif %}">
+              <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ num }}">{{ num }}</a>
+            </li>
+          {% elif num == 2 and current > 4 or num == total|add:'-1' and current < total|add:'-3' %}
+            <li class="page-item disabled">
+              <span class="page-link">…</span>
+            </li>
+          {% endif %}
+        {% endfor %}
+      {% endwith %}
+
+      {% if subscriptions.has_next %}
       <li class="page-item">
-        <a
-          class="page-link"
-          href="?{% if query %}q={{ query }}&{% endif %}page={{ subscriptions.next_page_number }}"
-          >Next</a
-        >
+        <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ subscriptions.next_page_number }}" aria-label="Next page">
+          <span>›</span>
+        </a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ subscriptions.paginator.num_pages }}" aria-label="Last page">
+          <span>»</span>
+        </a>
       </li>
       {% else %}
-      <li class="page-item disabled"><span class="page-link">Next</span></li>
+      <li class="page-item disabled">
+        <span class="page-link"><span>›</span></span>
+      </li>
+      <li class="page-item disabled">
+        <span class="page-link"><span>»</span></span>
+      </li>
       {% endif %}
     </ul>
   </nav>
+  </div>
+
+  <style>
+    .pagination-compact {
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      justify-content: center;
+    }
+    .pagination-compact .page-link {
+      min-width: 38px;
+      height: 38px;
+      padding: 0.375rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .pagination-compact .page-item.active .page-link {
+      background-color: var(--bs-primary);
+      border-color: var(--bs-primary);
+    }
+    .pagination-compact .page-item:not(.disabled):not(.active) .page-link:hover {
+      background-color: rgba(13, 110, 253, 0.1);
+      border-color: var(--bs-primary);
+    }
+  </style>
   {% endif %}
 
   <!-- Bulk Delete Form -->
@@ -313,76 +364,175 @@
 </div>
 
 <script>
-  // Handle "Select All" checkbox
-  document.getElementById("selectAll").addEventListener("change", function () {
-    const checkboxes = document.querySelectorAll(".subCheckbox");
-    checkboxes.forEach((checkbox) => {
-      checkbox.checked = this.checked;
+  function initSubscriptions() {
+    function updateSelectedCount() {
+      const selectedCount = document.querySelectorAll(
+        ".subCheckbox:checked",
+      ).length;
+      const deleteContainer = document.getElementById("deleteSelectedContainer");
+      const selectedCountSpan = document.getElementById("selectedCount");
+
+      if (selectedCount > 0) {
+        deleteContainer.style.display = "block";
+        selectedCountSpan.textContent = `(${selectedCount} selected)`;
+      } else {
+        deleteContainer.style.display = "none";
+        selectedCountSpan.textContent = "";
+      }
+    }
+
+    const selectAll = document.getElementById("selectAll");
+    if (selectAll) {
+      selectAll.removeEventListener("change", window._selectAllHandler);
+      window._selectAllHandler = function () {
+        const checkboxes = document.querySelectorAll(".subCheckbox");
+        checkboxes.forEach((checkbox) => {
+          checkbox.checked = this.checked;
+        });
+        updateSelectedCount();
+      };
+      selectAll.addEventListener("change", window._selectAllHandler);
+    }
+
+    document.querySelectorAll(".subCheckbox").forEach((checkbox) => {
+      checkbox.removeEventListener("change", checkbox._handler);
+      checkbox._handler = function () {
+        updateSelectedCount();
+        const allCheckboxes = document.querySelectorAll(".subCheckbox");
+        const selectAllEl = document.getElementById("selectAll");
+        const allChecked = Array.from(allCheckboxes).every((cb) => cb.checked);
+        const someChecked = Array.from(allCheckboxes).some((cb) => cb.checked);
+        if (selectAllEl) {
+          selectAllEl.checked = allChecked;
+          selectAllEl.indeterminate = someChecked && !allChecked;
+        }
+      };
+      checkbox.addEventListener("change", checkbox._handler);
     });
+
     updateSelectedCount();
-  });
 
-  // Handle individual checkbox changes
-  document.querySelectorAll(".subCheckbox").forEach((checkbox) => {
-    checkbox.addEventListener("change", function () {
-      updateSelectedCount();
-      const allCheckboxes = document.querySelectorAll(".subCheckbox");
-      const selectAll = document.getElementById("selectAll");
-      const allChecked = Array.from(allCheckboxes).every((cb) => cb.checked);
-      const someChecked = Array.from(allCheckboxes).some((cb) => cb.checked);
-      selectAll.checked = allChecked;
-      selectAll.indeterminate = someChecked && !allChecked;
-    });
-  });
+    const deleteForm = document.getElementById("deleteForm");
+    if (deleteForm) {
+      deleteForm.removeEventListener("submit", window._deleteFormHandler);
+      window._deleteFormHandler = function (e) {
+        e.preventDefault();
+        const selectedIds = Array.from(
+          document.querySelectorAll(".subCheckbox:checked"),
+        ).map((cb) => cb.value);
 
-  // Update selected count and show/hide delete button
-  function updateSelectedCount() {
-    const selectedCount = document.querySelectorAll(
-      ".subCheckbox:checked",
-    ).length;
-    const deleteContainer = document.getElementById("deleteSelectedContainer");
-    const selectedCountSpan = document.getElementById("selectedCount");
+        if (selectedIds.length === 0) {
+          alert("Please select at least one subscription to delete.");
+          return;
+        }
 
-    if (selectedCount > 0) {
-      deleteContainer.style.display = "block";
-      selectedCountSpan.textContent = `(${selectedCount} selected)`;
-    } else {
-      deleteContainer.style.display = "none";
-      selectedCountSpan.textContent = "";
+        // Clear existing hidden inputs
+        this.querySelectorAll('input[name="subscription_ids"]').forEach((el) =>
+          el.remove(),
+        );
+
+        // Add selected IDs to form
+        selectedIds.forEach((id) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "subscription_ids";
+          input.value = id;
+          this.appendChild(input);
+        });
+
+        // Submit the form
+        this.submit();
+      };
+      deleteForm.addEventListener("submit", window._deleteFormHandler);
     }
   }
 
-  // Handle bulk delete form submission
-  document
-    .getElementById("deleteForm")
-    .addEventListener("submit", function (e) {
-      e.preventDefault();
-      const selectedIds = Array.from(
-        document.querySelectorAll(".subCheckbox:checked"),
-      ).map((cb) => cb.value);
+  // initialize on first load
+  initSubscriptions();
 
-      if (selectedIds.length === 0) {
-        alert("Please select at least one subscription to delete.");
-        return;
-      }
+  // Helpers: loading & error UI
+  function showLoading() {
+    window._isFetching = true;
+    const loader = document.getElementById("subscriptions-loading");
+    const err = document.getElementById("subscriptions-error");
+    const pag = document.querySelectorAll(".pagination");
+    if (loader) loader.classList.remove("d-none");
+    if (err) err.classList.add("d-none");
+    pag.forEach((p) => p.classList.add("opacity-50","pointer-events-none"));
+  }
 
-      // Clear existing hidden inputs
-      this.querySelectorAll('input[name="subscription_ids"]').forEach((el) =>
-        el.remove(),
-      );
+  function hideLoading(errorMessage) {
+    window._isFetching = false;
+    const loader = document.getElementById("subscriptions-loading");
+    const err = document.getElementById("subscriptions-error");
+    const pag = document.querySelectorAll(".pagination");
+    if (loader) loader.classList.add("d-none");
+    pag.forEach((p) => p.classList.remove("opacity-50","pointer-events-none"));
+    if (errorMessage && err) {
+      err.textContent = errorMessage;
+      err.classList.remove("d-none");
+    }
+  }
 
-      // Add selected IDs to form
-      selectedIds.forEach((id) => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = "subscription_ids";
-        input.value = id;
-        this.appendChild(input);
+  // AJAX pagination: intercept clicks on pagination links
+  document.addEventListener("click", function (e) {
+    const a = e.target.closest && e.target.closest('.pagination a');
+    if (!a) return;
+    const container = document.getElementById("subscriptions-container");
+    if (!container) return;
+    e.preventDefault();
+    const url = a.href;
+    if (window._isFetching) return;
+    showLoading();
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        return res.text();
+      })
+      .then((html) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const newContainer = doc.getElementById("subscriptions-container");
+        if (newContainer) {
+          container.innerHTML = newContainer.innerHTML;
+          initSubscriptions();
+          history.pushState({ ajax: true }, "", url);
+        }
+        hideLoading();
+      })
+      .catch((err) => {
+        console.error(err);
+        hideLoading('Failed to load page. Please try again.');
       });
+  });
 
-      // Submit the form
-      this.submit();
-    });
+  // Handle back/forward navigation
+  window.addEventListener("popstate", function (e) {
+    const url = location.href;
+    const container = document.getElementById("subscriptions-container");
+    if (!container) return;
+    if (window._isFetching) return;
+    showLoading();
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        return res.text();
+      })
+      .then((html) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const newContainer = doc.getElementById("subscriptions-container");
+        if (newContainer) {
+          container.innerHTML = newContainer.innerHTML;
+          initSubscriptions();
+        }
+        hideLoading();
+      })
+      .catch((err) => {
+        console.error(err);
+        hideLoading('Failed to load page. Please try again.');
+      });
+  });
 </script>
 
 <!-- Select2 JS & initialization -->
