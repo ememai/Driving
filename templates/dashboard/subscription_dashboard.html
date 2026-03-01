@@ -114,7 +114,7 @@
     <thead>
       <tr>
         <th><input type="checkbox" id="selectAll" title="Select All" /></th>
-        <th>ID</th>
+        <th>Date joined</th>
         <th>User</th>
         <th>Plan</th>
         <th>Price</th>
@@ -135,7 +135,11 @@
             class="subCheckbox"
           />
         </td>
-        <td>{{ sub.id }}</td>
+        <td class="text-nowrap">
+            <span class="text-muted"
+              >{{ sub.user.date_joined|date:"d-m-y" }}</span
+            >
+        </td>
         <td class="text-nowrap">
           <a
             href="{% url 'subscription_update' sub.id %}"
@@ -258,6 +262,7 @@
         <span class="page-link">Previous</span>
       </li>
       {% endif %} {% for num in subscriptions.paginator.page_range %}
+    <div class="d-inline-block ms-1">
       <li
         class="page-item {% if subscriptions.number == num %}active{% endif %}"
       >
@@ -267,6 +272,7 @@
           >{{ num }}</a
         >
       </li>
+    </div>
       {% endfor %} {% if subscriptions.has_next %}
       <li class="page-item">
         <a
