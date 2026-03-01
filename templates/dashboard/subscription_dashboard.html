@@ -111,207 +111,219 @@
   </div>
 
   <div id="subscriptions-container">
-    <div id="subscriptions-loading" class="text-center my-2 d-none">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
-    <div id="subscriptions-error" class="alert alert-danger d-none" role="alert"></div>
     <table class="table table-bordered table-striped mt-3 overflow-auto">
-    <thead>
-      <tr>
-        <th><input type="checkbox" id="selectAll" title="Select All" /></th>
-        <th>Date joined</th>
-        <th>User</th>
-        <th>Plan</th>
-        <th>Price</th>
-        <th>Status</th>
-        <th>OTP Info</th>
-        <th>Timing</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for sub in subscriptions %}
-      <tr>
-        <td>
-          <input
-            type="checkbox"
-            name="subscription_ids"
-            value="{{ sub.id }}"
-            class="subCheckbox"
-          />
-        </td>
-        <td class="text-nowrap">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="selectAll" title="Select All" /></th>
+          <th>Date joined</th>
+          <th>User</th>
+          <th>Plan</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th>OTP Info</th>
+          <th>Timing</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sub in subscriptions %}
+        <tr>
+          <td>
+            <input
+              type="checkbox"
+              name="subscription_ids"
+              value="{{ sub.id }}"
+              class="subCheckbox"
+            />
+          </td>
+          <td class="text-nowrap">
             <span class="text-muted"
               >{{ sub.user.date_joined|date:"d-m-y" }}</span
             >
-        </td>
-        <td class="text-nowrap">
-          <a
-            href="{% url 'subscription_update' sub.id %}"
-            class="text-decoration-none fw-bold"
-            >{{ sub.user }}</a
-          >
-        </td>
-        <td class="text-nowrap">{{ sub.plan.plan|default:"-" }}</td>
-        <td class="text-nowrap">
-          {% if sub.plan %}{{ sub.plan.price|default:'-' }} RWF{% else %}- 
-          {% endif %}
-        </td>
-        <td>
-          {% if sub.active_subscription %}
-          <span class="badge bg-success">Active</span>
-          {% elif sub.expires_at and sub.expires_at < now %}
-          <span class="badge bg-danger">Expired</span>
-          {% elif sub.otp_code and not sub.otp_verified %}
-          <span class="badge bg-warning">OTP Pending</span>
-          {% else %}
-          <span class="badge bg-secondary">Inactive</span>
-          {% endif %}
-        </td>
-        <td class="text-nowrap">
-          {% if sub.otp_code %}
-          <div>Code: <span class="text-muted">{{ sub.otp_code }}</span></div>
-          <div>
-            Created:
-            <span class="text-muted"
-              >{{ sub.otp_created_at|date:"d-m-y H:i" }}</span
+          </td>
+          <td class="text-nowrap">
+            <a
+              href="{% url 'subscription_update' sub.id %}"
+              class="text-decoration-none fw-bold"
+              >{{ sub.user }}</a
             >
-          </div>
-          <div>
-            Expires:
-            <span class="text-muted"
-              >{{ sub.otp_expires_at|date:"d-m-y H:i" }}</span
+          </td>
+          <td class="text-nowrap">{{ sub.plan.plan|default:"-" }}</td>
+          <td class="text-nowrap">
+            {% if sub.plan %}{{ sub.plan.price|default:'-' }} RWF{% else %}- 
+            {% endif %}
+          </td>
+          <td>
+            {% if sub.active_subscription %}
+            <span class="badge bg-success">Active</span>
+            {% elif sub.expires_at and sub.expires_at < now %}
+            <span class="badge bg-danger">Expired</span>
+            {% elif sub.otp_code and not sub.otp_verified %}
+            <span class="badge bg-warning">OTP Pending</span>
+            {% else %}
+            <span class="badge bg-secondary">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="text-nowrap">
+            {% if sub.otp_code %}
+            <div>Code: <span class="text-muted">{{ sub.otp_code }}</span></div>
+            <div>
+              Created:
+              <span class="text-muted"
+                >{{ sub.otp_created_at|date:"d-m-y H:i" }}</span
+              >
+            </div>
+            <div>
+              Expires:
+              <span class="text-muted"
+                >{{ sub.otp_expires_at|date:"d-m-y H:i" }}</span
+              >
+            </div>
+            <div>
+              Status: 
+              {% if sub.otp_verified %}<span class="text-success">Verified</span
+              >{% else %}<span class="text-warning">Pending</span>{% endif %}
+            </div>
+            {% else %} — {% endif %}
+          </td>
+          <td class="text-nowrap">
+            <div>
+              Started:
+              <span class="text-muted"
+                >{{ sub.started_at|date:"d-m-y H:i" }}</span
+              >
+            </div>
+            <div>
+              Updated at:
+              <span class="text-muted"
+                >{{ sub.updated_at|date:"d-m-y H:i" }}</span
+              >
+            </div>
+            <div>
+              Expires:
+              <span class="text-muted"
+                >{{ sub.expires_at|date:"d-m-y H:i" }}</span
+              >
+            </div>
+          </td>
+          <td class="d-flex gap-1 flex-nowrap align-items-center">
+            <a
+              href="{% url 'dashboard_renew_subscription' sub.id %}"
+              class="btn btn-sm btn-success"
+              onclick="return confirm('Are you sure you want to renew subscription for {{ sub.user }}?')"
+              >Renew</a
             >
-          </div>
-          <div>
-            Status: {% if sub.otp_verified %}<span class="text-success"
-              >Verified</span
-            >{% else %}<span class="text-warning">Pending</span>{% endif %}
-          </div>
-          {% else %} — {% endif %}
-        </td>
-        <td class="text-nowrap">
-          <div>
-            Started:
-            <span class="text-muted"
-              >{{ sub.started_at|date:"d-m-y H:i" }}</span
+            {% if sub.user.has_ended_subscription %}
+            <span
+              class="btn btn-sm btn-secondary disabled"
+              title="Subscription already ended"
+              >Ended</span
             >
-          </div>
-          <div>
-            Updated at:
-            <span class="text-muted"
-              >{{ sub.updated_at|date:"d-m-y H:i" }}</span
-            >
-          </div>
-          <div>
-            Expires:
-            <span class="text-muted"
-              >{{ sub.expires_at|date:"d-m-y H:i" }}</span
-            >
-          </div>
-        </td>
-        <td class="d-flex gap-1 flex-nowrap align-items-center">
-          <a
-            href="{% url 'dashboard_renew_subscription' sub.id %}"
-            class="btn btn-sm btn-success"
-            onclick="return confirm('Are you sure you want to renew subscription for {{ sub.user }}?')"
-            >Renew</a
-          >
-          {% if sub.user.has_ended_subscription %}
-          <span
-            class="btn btn-sm btn-secondary disabled"
-            title="Subscription already ended"
-            >Ended</span
-          >
 
-          {% else %}
-          <a
-            href="{% url 'dashboard_end_subscription' sub.id %}"
-            class="btn btn-sm btn-danger"
-            onclick="return confirm('Are you sure you want to end subscription for {{ sub.user }}? This action cannot be undone.')"
-            >End
-          </a>
-          {% endif %} {% comment %}
-          <button
-            type="button"
-            class="btn btn-sm btn-info"
-            data-bs-toggle="modal"
-            data-bs-target="#updatePlanModal{{ sub.id }}"
-          >
-            Change
-          </button>
-          {% endcomment %}
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="9">No subscriptions found.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  {% if subscriptions.has_other_pages %}
-  <nav class="mt-3" aria-label="Page navigation">
-    <ul class="pagination pagination-compact">
-      {% if subscriptions.has_previous %}
-      <li class="page-item">
-        <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page=1" aria-label="First page">
-          <span>«</span>
-        </a>
-      </li>
-      <li class="page-item">
-        <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ subscriptions.previous_page_number }}" aria-label="Previous page">
-          <span>‹</span>
-        </a>
-      </li>
-      {% else %}
-      <li class="page-item disabled">
-        <span class="page-link"><span>«</span></span>
-      </li>
-      <li class="page-item disabled">
-        <span class="page-link"><span>‹</span></span>
-      </li>
-      {% endif %}
-
-      <!-- Page numbers with smart truncation -->
-      {% with current=subscriptions.number total=subscriptions.paginator.num_pages %}
-        {% for num in subscriptions.paginator.page_range %}
-          {% if num == 1 or num == total or num >= current|add:'-2' and num <= current|add:'2' %}
-            <li class="page-item {% if subscriptions.number == num %}active{% endif %}">
-              <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ num }}">{{ num }}</a>
-            </li>
-          {% elif num == 2 and current > 4 or num == total|add:'-1' and current < total|add:'-3' %}
-            <li class="page-item disabled">
-              <span class="page-link">…</span>
-            </li>
-          {% endif %}
+            {% else %}
+            <a
+              href="{% url 'dashboard_end_subscription' sub.id %}"
+              class="btn btn-sm btn-danger"
+              onclick="return confirm('Are you sure you want to end subscription for {{ sub.user }}? This action cannot be undone.')"
+              >End
+            </a>
+            {% endif %} {% comment %}
+            <button
+              type="button"
+              class="btn btn-sm btn-info"
+              data-bs-toggle="modal"
+              data-bs-target="#updatePlanModal{{ sub.id }}"
+            >
+              Change
+            </button>
+            {% endcomment %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9">No subscriptions found.</td>
+        </tr>
         {% endfor %}
-      {% endwith %}
+      </tbody>
+    </table>
 
-      {% if subscriptions.has_next %}
-      <li class="page-item">
-        <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ subscriptions.next_page_number }}" aria-label="Next page">
-          <span>›</span>
-        </a>
-      </li>
-      <li class="page-item">
-        <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}page={{ subscriptions.paginator.num_pages }}" aria-label="Last page">
-          <span>»</span>
-        </a>
-      </li>
-      {% else %}
-      <li class="page-item disabled">
-        <span class="page-link"><span>›</span></span>
-      </li>
-      <li class="page-item disabled">
-        <span class="page-link"><span>»</span></span>
-      </li>
-      {% endif %}
-    </ul>
-  </nav>
+    {% if subscriptions.has_other_pages %}
+    <nav class="mt-3" aria-label="Page navigation">
+      <ul class="pagination pagination-compact">
+        {% if subscriptions.has_previous %}
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?{% if query %}q={{ query }}&{% endif %}page=1"
+            aria-label="First page"
+          >
+            <span>«</span>
+          </a>
+        </li>
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?{% if query %}q={{ query }}&{% endif %}page={{ subscriptions.previous_page_number }}"
+            aria-label="Previous page"
+          >
+            <span>‹</span>
+          </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link"><span>«</span></span>
+        </li>
+        <li class="page-item disabled">
+          <span class="page-link"><span>‹</span></span>
+        </li>
+        {% endif %}
+
+        <!-- Page numbers with smart truncation -->
+        {% with current=subscriptions.number total=subscriptions.paginator.num_pages %} 
+        {% for num in subscriptions.paginator.page_range %} 
+        {% if num == 1 or num == total or num >= current|add:'-2' and num <= current|add:'2' %}
+        <li
+          class="page-item {% if subscriptions.number == num %}active{% endif %}"
+        >
+          <a
+            class="page-link"
+            href="?{% if query %}q={{ query }}&{% endif %}page={{ num }}"
+            >{{ num }}</a
+          >
+        </li>
+        {% elif num == 2 and current > 4 or num == total|add:'-1' and current < total|add:'-3' %}
+        <li class="page-item disabled">
+          <span class="page-link">…</span>
+        </li>
+        {% endif %} {% endfor %} {% endwith %} {% if subscriptions.has_next %}
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?{% if query %}q={{ query }}&{% endif %}page={{ subscriptions.next_page_number }}"
+            aria-label="Next page"
+          >
+            <span>›</span>
+          </a>
+        </li>
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?{% if query %}q={{ query }}&{% endif %}page={{ subscriptions.paginator.num_pages }}"
+            aria-label="Last page"
+          >
+            <span>»</span>
+          </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link"><span>›</span></span>
+        </li>
+        <li class="page-item disabled">
+          <span class="page-link"><span>»</span></span>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
   </div>
 
   <style>
@@ -332,7 +344,9 @@
       background-color: var(--bs-primary);
       border-color: var(--bs-primary);
     }
-    .pagination-compact .page-item:not(.disabled):not(.active) .page-link:hover {
+    .pagination-compact
+      .page-item:not(.disabled):not(.active)
+      .page-link:hover {
       background-color: rgba(13, 110, 253, 0.1);
       border-color: var(--bs-primary);
     }
@@ -369,7 +383,9 @@
       const selectedCount = document.querySelectorAll(
         ".subCheckbox:checked",
       ).length;
-      const deleteContainer = document.getElementById("deleteSelectedContainer");
+      const deleteContainer = document.getElementById(
+        "deleteSelectedContainer",
+      );
       const selectedCountSpan = document.getElementById("selectedCount");
 
       if (selectedCount > 0) {
@@ -450,45 +466,16 @@
   // initialize on first load
   initSubscriptions();
 
-  // Helpers: loading & error UI
-  function showLoading() {
-    window._isFetching = true;
-    const loader = document.getElementById("subscriptions-loading");
-    const err = document.getElementById("subscriptions-error");
-    const pag = document.querySelectorAll(".pagination");
-    if (loader) loader.classList.remove("d-none");
-    if (err) err.classList.add("d-none");
-    pag.forEach((p) => p.classList.add("opacity-50","pointer-events-none"));
-  }
-
-  function hideLoading(errorMessage) {
-    window._isFetching = false;
-    const loader = document.getElementById("subscriptions-loading");
-    const err = document.getElementById("subscriptions-error");
-    const pag = document.querySelectorAll(".pagination");
-    if (loader) loader.classList.add("d-none");
-    pag.forEach((p) => p.classList.remove("opacity-50","pointer-events-none"));
-    if (errorMessage && err) {
-      err.textContent = errorMessage;
-      err.classList.remove("d-none");
-    }
-  }
-
   // AJAX pagination: intercept clicks on pagination links
   document.addEventListener("click", function (e) {
-    const a = e.target.closest && e.target.closest('.pagination a');
+    const a = e.target.closest && e.target.closest(".pagination a");
     if (!a) return;
     const container = document.getElementById("subscriptions-container");
     if (!container) return;
     e.preventDefault();
     const url = a.href;
-    if (window._isFetching) return;
-    showLoading();
     fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-      .then((res) => {
-        if (!res.ok) throw new Error(`Server returned ${res.status}`);
-        return res.text();
-      })
+      .then((res) => res.text())
       .then((html) => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
@@ -498,12 +485,8 @@
           initSubscriptions();
           history.pushState({ ajax: true }, "", url);
         }
-        hideLoading();
       })
-      .catch((err) => {
-        console.error(err);
-        hideLoading('Failed to load page. Please try again.');
-      });
+      .catch((err) => console.error(err));
   });
 
   // Handle back/forward navigation
@@ -511,13 +494,8 @@
     const url = location.href;
     const container = document.getElementById("subscriptions-container");
     if (!container) return;
-    if (window._isFetching) return;
-    showLoading();
     fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-      .then((res) => {
-        if (!res.ok) throw new Error(`Server returned ${res.status}`);
-        return res.text();
-      })
+      .then((res) => res.text())
       .then((html) => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
@@ -526,12 +504,8 @@
           container.innerHTML = newContainer.innerHTML;
           initSubscriptions();
         }
-        hideLoading();
       })
-      .catch((err) => {
-        console.error(err);
-        hideLoading('Failed to load page. Please try again.');
-      });
+      .catch((err) => console.error(err));
   });
 </script>
 
