@@ -554,9 +554,22 @@ def exams_by_type(request, exam_type):
     from itertools import groupby
     from collections import OrderedDict
     exams_by_year = OrderedDict()
-    # groupby requires the queryset to be ordered by the same key
-    for year, exams in groupby(returned_exams, key=lambda e: e.created_at.year):
+    # groupby requires the iterable to be ordered by the grouping key
+    returned_list = list(returned_exams.order_by('-created_at'))
+    for year, exams in groupby(returned_list, key=lambda e: e.created_at.year):
         exams_by_year[year] = list(exams)
+
+    # record whether there are multiple years in the full, unfiltered set
+    all_years_count = len(exams_by_year)
+    show_tabs = all_years_count > 1
+
+    # build months available per year for filtering UI
+    from calendar import month_name
+    exams_months_by_year = OrderedDict()
+    for year, exams in exams_by_year.items():
+        months = sorted({e.created_at.month for e in exams}, reverse=True)
+        exams_months_by_year[year] = [(m, month_name[m]) for m in months]
+
 
     # Dictionary of completed exams: {exam_id: completed_at}
     completed_exams = UserExam.objects.filter(
@@ -569,16 +582,61 @@ def exams_by_type(request, exam_type):
     }
     # also keep a list of ids for simple membership checks (border highlight)
     completed_exam_ids = list(completed_exam_map.keys())
+
+    # now apply server-side filters from GET params if provided
+    # but KEEP ALL EXAMS in exams_by_year so tabs work after refresh
+    filter_year = request.GET.get('filter_year')
+    filter_month = request.GET.get('filter_month')
+    filter_completed = request.GET.get('filter_completed')
+    active_year = None
     
+    # Compute filtered_count for badge, but don't remove exams from exams_by_year
+    filtered_count = 0
+    if filter_year:
+        try:
+            fy = int(filter_year)
+            active_year = fy
+            if fy in exams_by_year:
+                filtered = exams_by_year[fy]
+                if filter_month and filter_month != 'all':
+                    fm = int(filter_month)
+                    filtered = [e for e in filtered if e.created_at.month == fm]
+                if filter_completed == '1':
+                    filtered = [e for e in filtered if e.id in completed_exam_ids]
+                filtered_count = len(filtered)
+        except ValueError:
+            filtered_count = sum(len(v) for v in exams_by_year.values())
+    else:
+        # If no year filter, compute count across all years after applying month/completed filters
+        all_filtered = []
+        for year_exams in exams_by_year.values():
+            temp = year_exams[:]
+            if filter_month and filter_month != 'all':
+                try:
+                    fm = int(filter_month)
+                    temp = [e for e in temp if e.created_at.month == fm]
+                except ValueError:
+                    pass
+            if filter_completed == '1':
+                temp = [e for e in temp if e.id in completed_exam_ids]
+            all_filtered.extend(temp)
+        filtered_count = len(all_filtered)
+
     mixed_exam_types = 'ibivanze'
     context = {
         'exam_type': exam_type,
         # we still keep raw list for any compatibility but primarily use grouped
         'returned_exams': returned_exams,
         'exams_by_year': exams_by_year,
+        'exams_months_by_year': exams_months_by_year,
+        'filter_month': filter_month or 'all',
+        'filter_completed': filter_completed or '0',
+        'active_year': active_year,
         'completed_exam_map': completed_exam_map,
         'completed_exam_ids': completed_exam_ids,
         'counted_exams': returned_exams.count(),
+        'filtered_count': filtered_count,
+        'show_tabs': show_tabs,
         'mixed_exam_types': mixed_exam_types,
     }    
     return render(request, "exams/same_exams.html", context)

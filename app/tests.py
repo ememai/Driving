@@ -183,3 +183,38 @@ class ExamsByTypeTabsTests(TestCase):
         # each exam card should appear within its year's pane
         self.assertIn(f'id="year-2024"', content)
         self.assertIn(f'id="year-2023"', content)
+
+    def test_server_side_filters_return_expected_exams(self):
+        # create two exams in 2024, one in March one in April
+        e_march = self._make_exam(2024)
+        from datetime import datetime, timezone as dt_tz
+        Exam.objects.filter(id=e_march.id).update(
+            created_at=datetime(2024, 3, 1, tzinfo=dt_tz.utc)
+        )
+        e_april = self._make_exam(2024)
+        Exam.objects.filter(id=e_april.id).update(
+            created_at=datetime(2024, 4, 1, tzinfo=dt_tz.utc)
+        )
+        # mark march exam completed; bypass subscription check by making user staff
+        self.user.is_staff = True
+        self.user.save()
+        from app.models import UserExam
+        UserExam.objects.create(user=self.user, exam=e_march, completed_at=timezone.now())
+
+        url = reverse('exams', args=[self.exam_type.name])
+        resp = self.client.get(url + '?filter_year=2024&filter_month=3&filter_completed=1')
+        self.assertEqual(resp.status_code, 200)
+
+        exams_by_year = resp.context.get('exams_by_year')
+        self.assertIsNotNone(exams_by_year)
+        # filtered_count should reflect only one exam (the filtered result)
+        self.assertEqual(resp.context.get('filtered_count'), 1)
+        # all years should still be in keys and have all exams (no server-side removal)
+        self.assertIn(2024, exams_by_year.keys())
+        # 2024 should have both exams (unfiltered at server, JS handles filtering)
+        self.assertEqual(len(exams_by_year[2024]), 2)
+        # But only one should be the march completed exam in the filtered result
+        march_exams = [e for e in exams_by_year[2024] if e.id == e_march.id]
+        self.assertEqual(len(march_exams), 1)
+        # HTML should show count "1" in exam-count-display element (from filtered_count)
+        self.assertIn('id="exam-count-display">1</strong>', resp.content.decode('utf-8'))

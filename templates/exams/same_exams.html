@@ -1,8 +1,5 @@
-{% extends "base.html" %}
-{% load static custom_filters%}
-
-{% block title %}Exams{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% load static custom_filters %} 
+{% block title %}Exams{% endblock %} {% block content %}
 
 <style>
   .exam-header {
@@ -22,6 +19,7 @@
     color: rgba(var(--text-rgb), 0.65);
   }
 
+  
   .exam-card {
     background-color: rgba(var(--card-bg-rgb), 0.8);
     border: 1px solid rgba(var(--border-rgb), 0.2);
@@ -47,7 +45,6 @@
   }
 
   .exam-icon i {
-    
     transition: transform 0.4s ease;
     display: inline-block;
   }
@@ -58,8 +55,13 @@
   }
 
   @keyframes pulseIcon {
-    0%, 100% { transform: scale(1.15); }
-    50% { transform: scale(1.25) rotate(2deg); }
+    0%,
+    100% {
+      transform: scale(1.15);
+    }
+    50% {
+      transform: scale(1.25) rotate(2deg);
+    }
   }
 
   .exam-card h2 {
@@ -79,9 +81,16 @@
     color: #fff;
   }
 
-  .badge-easy { background-color: rgba(var(--success-rgb), 1); }
-  .badge-medium { background-color: rgba(var(--warning-rgb), 1); color: #000; }
-  .badge-hard { background-color: rgba(var(--danger-rgb), 1); }
+  .badge-easy {
+    background-color: rgba(var(--success-rgb), 1);
+  }
+  .badge-medium {
+    background-color: rgba(var(--warning-rgb), 1);
+    color: #000;
+  }
+  .badge-hard {
+    background-color: rgba(var(--danger-rgb), 1);
+  }
 
   .no-exams {
     text-align: center;
@@ -92,97 +101,264 @@
   .exam-card.completed {
     background-color: rgba(40, 167, 69, 0.05);
   }
-  
 </style>
 
 <div class="container">
   <div class="exam-header">
     <h2>Ibizamini bifite ibibazo byo mu bwoko "{{ exam_type }}"</h2>
-    <p class="lead">Umubare w'ibibonetse: {{ counted_exams }}</p>
+    <p class="lead">
+      Umubare w'ibibonetse:
+      <strong id="exam-count-display">{{ filtered_count }}</strong>
+     
+    </p>
   </div>
 
-  {% if returned_exams %}
-    {# build tabs from years #}
-    <ul class="nav nav-tabs" id="yearTabs" role="tablist">
-      {% for year in exams_by_year.keys %}
-        <li class="nav-item" role="presentation">
-          <button class="nav-link {% if forloop.first %}active{% endif %}"
-                  id="tab-{{ year }}"
-                  data-bs-toggle="tab"
-                  data-bs-target="#year-{{ year }}"
-                  type="button"
-                  role="tab"
-                  aria-controls="year-{{ year }}"
-                  aria-selected="{{ forloop.first|yesno:'true,false' }}">
-            {{ year }}
-          </button>
-        </li>
-      {% endfor %}
-    </ul>
+  {% if returned_exams %} {% comment %} {# only show tabs and filters when more
+  than one year exists #} {% endcomment %} 
+  {% if show_tabs %}
+  <ul class="nav nav-tabs" id="yearTabs" role="tablist">
+    {% for year in exams_by_year.keys %}
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link {% if forloop.first %}active{% endif %}"
+        id="tab-{{ year }}"
+        data-bs-toggle="tab"
+        data-bs-target="#year-{{ year }}"
+        type="button"
+        role="tab"
+        aria-controls="year-{{ year }}"
+        aria-selected="{{ forloop.first|yesno:'true,false' }}"
+      >
+        {{ year }}
+      </button>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
 
-    <div class="tab-content mt-4" id="yearTabsContent">
-      {% for year, exams in exams_by_year.items %}
-        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
-             id="year-{{ year }}"
-             role="tabpanel"
-             aria-labelledby="tab-{{ year }}">
-          {% if exams %}
-            <div class="row g-4">
-              {% for exam in exams %}
-                <div class="col-md-6 col-lg-4">
-                  <div class="exam-card {% if exam.id in completed_exam_ids %}border-success{% endif %}">
-                    {% if exam.id in completed_exam_map %}
-                      <div class="progress mt-0">
-                        <div class="progress-bar bg-success" style="width: 100%;">
-                          Waragikoze kuri: {{ completed_exam_map|dictkey:exam.id|date:"d - m - Y  H:i" }}
-                        </div>
-                      </div>
-                    {% endif %}
+  <div class="tab-content mt-4" id="yearTabsContent">
+    {% for year, exams in exams_by_year.items %}
+    <div
+      class="tab-pane fade {% if forloop.first %}show active{% endif %}"
+      id="year-{{ year }}"
+      role="tabpanel"
+      aria-labelledby="tab-{{ year }}"
+    >
+      {% if exams %} {% if show_tabs %}
+      <div class="mb-3 d-flex gap-2 align-items-center flex-wrap">
+        <label class="mb-0">HITAMO Ukwezi:</label>
+        <select
+          class="form-select form-select-sm w-auto month-filter"
+          data-year="{{ year }}"
+        >
+          <option value="all">All months</option>
+          {% for m, mname in exams_months_by_year|dictkey:year %}
+          <option value="{{ m }}">{{ mname }}</option>
+          {% endfor %}
+        </select>
 
-                    <div class="exam-icon">
-                      <i class="{{ exam.exam_type.icon|default:'fas fa-question-circle' }}" ></i>
-                    </div>
-
-                    <h2> {{ forloop.counter }}</h2>
-                    <p><strong>Cyateguwe:</strong> {{ exam.created_at|date:"d.m.Y" }}</p>
-                    <p><strong>Ibibazo:</strong> {{ exam.total_questions }}</p>
-
-                    {% if exam.difficulty == 'easy' %}
-                      <span class="exam-badge badge-easy">Byoroshye</span>
-                    {% elif exam.difficulty == 'medium' %}
-                      <span class="exam-badge badge-medium">Hagati</span>
-                    {% elif exam.difficulty == 'hard' %}
-                      <span class="exam-badge badge-hard">Bikomeye</span>
-                    {% endif %}
-
-                    <a href="{% url 'exam_detail' exam.id %}" class="btn btn-outline-primary">
-                      {% if exam.id in completed_exam_map %}
-                      Gisubiremo
-                      {% else %}
-                      Gikore
-                      {% endif %}
-                    </a>
-
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <p class="no-exams text-muted">
-              Nta bizamini bibonetse muri uyu mwaka.
-            </p>
-          {% endif %}
+        <div class="form-check ms-3">
+          <input
+            class="form-check-input completed-filter"
+            type="checkbox"
+            value="1"
+            id="completedOnly-{{ year }}"
+            data-year="{{ year }}"
+          />
+          <label class="form-check-label" for="completedOnly-{{ year }}"
+            >Only completed</label
+          >
         </div>
-      {% endfor %}
+
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary reset-filters"
+          data-year="{{ year }}"
+          title="Clear all filters for this year"
+        >
+          Reset
+        </button>
+      </div>
+      {% endif %}
+
+      <div class="row g-4">
+        {% for exam in exams %}
+        <div class="col-md-6 col-lg-4">
+          <div
+            class="exam-card {% if exam.id in completed_exam_ids %}border-success{% endif %}"
+            data-month="{{ exam.created_at|date:'n' }}"
+            data-completed="{% if exam.id in completed_exam_ids %}1{% else %}0{% endif %}"
+          >
+            {% if exam.id in completed_exam_map %}
+            <div class="progress mt-0">
+              <div class="progress-bar bg-success" style="width: 100%">
+                Waragikoze kuri: 
+                {{ completed_exam_map|dictkey:exam.id|date:"d - m - Y H:i" }}
+              </div>
+            </div>
+            {% endif %}
+
+            <div class="exam-icon">
+              <i
+                class="{{ exam.exam_type.icon|default:'fas fa-question-circle' }}"
+              ></i>
+            </div>
+
+            <h2>{{ forloop.counter }}</h2>
+            <p>
+              <strong>Cyateguwe:</strong> {{ exam.created_at|date:"d.m.Y" }}
+            </p>
+            <p><strong>Ibibazo:</strong> {{ exam.total_questions }}</p>
+
+            {% if exam.difficulty == 'easy' %}
+            <span class="exam-badge badge-easy">Byoroshye</span>
+            {% elif exam.difficulty == 'medium' %}
+            <span class="exam-badge badge-medium">Hagati</span>
+            {% elif exam.difficulty == 'hard' %}
+            <span class="exam-badge badge-hard">Bikomeye</span>
+            {% endif %}
+
+            <a
+              href="{% url 'exam_detail' exam.id %}"
+              class="btn btn-outline-primary"
+            >
+              {% if exam.id in completed_exam_map %} Gisubiremo {% else %}
+              Gikore {% endif %}
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="no-exams text-muted">Nta bizamini bibonetse muri uyu mwaka.</p>
+      {% endif %}
     </div>
+    {% endfor %}
+  </div>
   {% else %}
-    <p class="no-exams text-muted">
-      Nta bizamini bibonetse muri ubu bwoko.
-      <a href="{% url 'exams' mixed_exam_types %}" class="fs-6">
-        Reba ibivanze
-      </a>
-    </p>
+  <p class="no-exams text-muted">
+    Nta bizamini bibonetse muri ubu bwoko.
+    <a href="{% url 'exams' mixed_exam_types %}" class="fs-6">
+      Reba ibivanze
+    </a>
+  </p>
   {% endif %}
 </div>
 
+<script>
+  (function(){
+    const EXAM_TYPE_KEY = 'exams_filters__{{ exam_type|slugify }}';
+
+    function readStorage(){
+      try { return JSON.parse(localStorage.getItem(EXAM_TYPE_KEY)) || {}; }
+      catch { return {}; }
+    }
+    function writeStorage(obj){
+      localStorage.setItem(EXAM_TYPE_KEY, JSON.stringify(obj));
+    }
+
+    function applyFilters(container, year){
+      const sel = container.querySelector('.month-filter');
+      const chk = container.querySelector('.completed-filter');
+      const month = sel ? sel.value : 'all';
+      const completedOnly = chk ? chk.checked : false;
+
+      // persist selection
+      const store = readStorage();
+      store[year] = { month: month, completed: completedOnly ? '1' : '0' };
+      writeStorage(store);
+
+      // update URL to reflect active filters
+      const url = new URL(window.location);
+      url.searchParams.set('filter_year', year);
+      url.searchParams.set('filter_month', month);
+      url.searchParams.set('filter_completed', completedOnly ? '1' : '0');
+      window.history.replaceState({}, '', url);
+
+      const cards = container.querySelectorAll('.exam-card');
+      cards.forEach(card => {
+        const cardMonth = card.getAttribute('data-month');
+        const cardCompleted = card.getAttribute('data-completed') === '1';
+        let show = true;
+        if(month !== 'all' && cardMonth !== month) show = false;
+        if(completedOnly && !cardCompleted) show = false;
+        const col = card.closest('.col-md-6, .col-lg-4');
+        if(col) col.style.display = show ? '' : 'none';
+      });
+      // update header count to reflect visible exams in this tab
+      const countDisplay = document.querySelector('#exam-count-display');
+      let visible = 0;
+      cards.forEach(card=>{
+        const col = card.closest('.col-md-6, .col-lg-4');
+        if(col && col.style.display !== 'none') visible++;
+      });
+      if(countDisplay){
+        countDisplay.textContent = visible;
+      }
+      
+    }
+
+    function resetFilters(year){
+      const tab = document.querySelector('#year-' + year);
+      if(!tab) return;
+      const sel = tab.querySelector('.month-filter');
+      const chk = tab.querySelector('.completed-filter');
+      if(sel) sel.value = 'all';
+      if(chk) chk.checked = false;
+      applyFilters(tab, year);
+    }
+
+    document.querySelectorAll('.tab-pane').forEach(tab => {
+      const year = tab.id.replace('year-', '');
+      const store = readStorage();
+      const saved = store[year] || {};
+      const sel = tab.querySelector('.month-filter');
+      const chk = tab.querySelector('.completed-filter');
+      if(sel){
+        {% if filter_month %}
+        sel.value = '{{ filter_month }}';
+        {% else %}
+        sel.value = saved.month || sel.value || 'all';
+        {% endif %}
+      }
+      if(chk){
+        {% if filter_completed %}
+        chk.checked = '{{ filter_completed }}' === '1';
+        {% else %}
+        chk.checked = (saved.completed === '1');
+        {% endif %}
+      }
+
+      tab.addEventListener('change', function(e){
+        if(e.target.matches('.month-filter') || e.target.matches('.completed-filter')){
+          applyFilters(tab, year);
+        }
+      });
+
+      // attach reset button handler for this year
+      const resetBtn = tab.querySelector('.reset-filters');
+      if(resetBtn){
+        resetBtn.addEventListener('click', function(){
+          resetFilters(year);
+        });
+      }
+
+      applyFilters(tab, year);
+    });
+
+    document.querySelectorAll('#yearTabs button[data-bs-toggle="tab"]').forEach(btn => {
+      btn.addEventListener('shown.bs.tab', function(e){
+        const target = document.querySelector(e.target.getAttribute('data-bs-target'));
+        if(target) applyFilters(target, target.id.replace('year-',''));
+      });
+    });
+
+    {% if active_year %}
+    (function openActive(){
+      const btn = document.querySelector('#tab-{{ active_year }}');
+      if(btn) btn.click();
+    })();
+    {% endif %}
+  })();
+</script>
 {% endblock %}
