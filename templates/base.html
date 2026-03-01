@@ -330,7 +330,23 @@
             };
 
             // Show loader immediately on script load (before DOMContentLoaded)
-            globalLoader.show();
+            // but skip when the page is loaded via back/forward navigation (bfcache)
+            function isHistoryNavigation() {
+                // modern Navigation Timing Level 2
+                const perf = window.performance;
+                if(perf && perf.getEntriesByType) {
+                    const nav = perf.getEntriesByType('navigation')[0];
+                    if(nav && nav.type === 'back_forward') return true;
+                }
+                // legacy API
+                if(perf && perf.navigation && perf.navigation.type === 2) {
+                    return true;
+                }
+                return false;
+            }
+            if (!isHistoryNavigation()) {
+                globalLoader.show();
+            }
 
             // Timeout for loader (60 seconds)
             let loaderTimeout = setTimeout(() => {
@@ -434,6 +450,16 @@
                 }, 60000);
             });
             window.addEventListener('unload', () => globalLoader.hide());
+
+            // if the page is restored from the bfcache (user hit back/forward),
+            // make sure any previously‑active loader is hidden as we don't want
+            // the semi‑opaque overlay hanging around.
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted || isHistoryNavigation()) {
+                    globalLoader.hide();
+                    globalLoader.hideTryAgain();
+                }
+            });
         </script>
         <script type="application/ld+json">
             {
