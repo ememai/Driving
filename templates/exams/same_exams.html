@@ -119,6 +119,20 @@
     cursor: not-allowed;
   }
 
+  /* spinner overlay shown while filtering/pagination is happening */
+  .spinner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255,255,255,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
   /* filters panel card styling */
   .filter-card {
     border-radius: 0.75rem;
@@ -239,7 +253,12 @@
         </div>
       </div>
 
-      <div class="row g-4" data-exam-container="true">
+      <div class="row g-4 position-relative" data-exam-container="true">
+        <div class="spinner-overlay d-none">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
         {% for exam in exams %}
         <div class="col-md-6 col-lg-4 exam-col">
           <div
@@ -340,7 +359,19 @@
       localStorage.setItem(EXAM_TYPE_KEY, JSON.stringify(obj));
     }
 
+    // simple overlay spinner control
+    function showSpinner(container){
+      const overlay = container.querySelector('.spinner-overlay');
+      if(overlay) overlay.classList.remove('d-none');
+    }
+    function hideSpinner(container){
+      const overlay = container.querySelector('.spinner-overlay');
+      if(overlay) overlay.classList.add('d-none');
+    }
+
     function applyFilters(container, year){
+      // trick browser into showing spinner by deferring heavy work
+      showSpinner(container);
       const sel = container.querySelector('.month-filter');
       const chk = container.querySelector('.completed-filter');
       const month = sel ? sel.value : 'all';
@@ -414,6 +445,11 @@
           btn.style.display = 'none';
         }
       }
+
+      // ensure spinner disappears after DOM updates; keep visible at least 300ms
+      requestAnimationFrame(() => {
+        setTimeout(() => hideSpinner(container), 300);
+      });
     }
 
     function initPagination(year){
@@ -447,7 +483,8 @@
       if(!tab) return;
       const container = tab.querySelector('[data-exam-container]');
       if(!container) return;
-      
+
+      showSpinner(container);
       const cols = container.querySelectorAll('.exam-col');
       if(!paginationState[year]) paginationState[year] = { displayed: ITEMS_PER_LOAD };
       
@@ -466,6 +503,10 @@
       if(btn && visibleCount >= cols.length){
         btn.style.display = 'none';
       }
+
+      requestAnimationFrame(() => {
+        setTimeout(() => hideSpinner(container), 300);
+      });
     }
 
     function resetFilters(year){
@@ -547,7 +588,13 @@
     if(yearTabs){
       yearTabs.addEventListener('shown.bs.tab', function(e){
         const target = document.querySelector(e.target.getAttribute('data-bs-target'));
-        if(target) applyFilters(target, target.id.replace('year-',''));
+        if(target){
+          showSpinner(target);
+          applyFilters(target, target.id.replace('year-',''));
+          requestAnimationFrame(() => {
+            setTimeout(() => hideSpinner(target), 300);
+          });
+        }
       });
     }
 
