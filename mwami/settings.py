@@ -343,7 +343,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
 # Rate limiting
-RATELIMIT_ENABLE = True 
+RATELIMIT_ENABLE = True
 RATELIMIT_USE_CACHE = 'default'
 
 # Session security
@@ -380,19 +380,19 @@ CACHES = {
 # ============================================================================
 # Use Redis for channel layer in production for better scalability
 # Ensure we pass a full Redis URL (including scheme) to channels_redis
-if not DEBUG:
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
-                'hosts': [REDIS_URL],
-                'capacity': 1500,
-                'expiry': 10,
-            },
-        }
-    }
-else:
-    CHANNEL_LAYERS = {
+# if not DEBUG:
+#     CHANNEL_LAYERS = {
+#         'default': {
+#             'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#             'CONFIG': {
+#                 'hosts': [REDIS_URL],
+#                 'capacity': 1500,
+#                 'expiry': 10,
+#             },
+#         }
+#     }
+# else:
+CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels.layers.InMemoryChannelLayer',
         }
@@ -405,7 +405,7 @@ else:
 if not DEBUG:
     DATABASES['default']['CONN_MAX_AGE'] = 600  # Connection pooling
     DATABASES['default']['ATOMIC_REQUESTS'] = False  # Use transactions wisely
-    
+
 # Enable persistent connections
 DATABASES['default']['CONN_MAX_AGE'] = config('DB_CONN_MAX_AGE', default=600, cast=int)
 
