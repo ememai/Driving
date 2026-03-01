@@ -262,7 +262,7 @@
         <span class="page-link">Previous</span>
       </li>
       {% endif %} {% for num in subscriptions.paginator.page_range %}
-    <div class="d-inline-block ms-1">
+    <div class="d-flex align-items-center justify-content-center mx-1 text-wrap">
       <li
         class="page-item {% if subscriptions.number == num %}active{% endif %}"
       >

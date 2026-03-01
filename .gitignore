@@ -14,6 +14,7 @@ __pycache__/
 venv/
 anywhere.json
 anydata.json
+dump.json
 record
 
 *media/courses/
