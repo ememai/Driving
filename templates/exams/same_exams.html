@@ -118,6 +118,33 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+
+  /* filters panel card styling */
+  .filter-card {
+    border-radius: 0.75rem;
+    background-color: rgba(var(--card-bg-rgb), 0.9);
+  }
+  .filter-card .form-select {
+    min-width: 120px;
+  }
+  /* ensure controls use full width on very small screens */
+  @media (max-width: 576px) {
+    .filter-card .form-select {
+      width: 100%;
+      align-self: flex-start;
+    }
+    /* let the checkbox shrink to its contents rather than fill the row */
+    .filter-card .form-check {
+      width: auto;
+      align-self: flex-start;
+      margin-top: 0.5rem;
+    }
+    .filter-card .reset-filters {
+      width: 100%;
+      margin-top: 0.5rem;
+      margin-left: 0; /* cancel any auto margin leftover */
+    }
+  }
 </style>
 
 <div class="container">
@@ -158,40 +185,46 @@
       aria-labelledby="tab-{{ year }}"
     >
       {% if exams %} {% if show_tabs %}
-      <div class="mb-3 d-flex gap-2 align-items-center flex-wrap">
-        <label class="mb-0">HITAMO Ukwezi:</label>
-        <select
-          class="form-select form-select-sm w-auto month-filter"
-          data-year="{{ year }}"
-        >
-          <option value="all">Amezi yose</option>
-          {% for m, mname in exams_months_by_year|dictkey:year %}
-          <option value="{{ m }}">Ukwa {{ m }}</option>
-          {% endfor %}
-        </select>
+      <div class="mb-3">
+        <div class="card filter-card">
+          <div class="card-body d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
+            <div class="d-flex align-items-center gap-2">
+            <label class="mb-0">HITAMO Ukwezi:</label>
+            <select
+              class="form-select form-select-sm w-auto month-filter"
+              data-year="{{ year }}"
+            >
+              <option value="all">Amezi yose</option>
+              {% for m, mname in exams_months_by_year|dictkey:year %}
+              <option value="{{ m }}">Ukwa {{ m }}</option>
+              {% endfor %}
+            </select>
+            </div>
 
-        <div class="form-check ms-3 form-check-reverse">
-          <input
-            class="form-check-input completed-filter"
-            type="checkbox"
-            value="1"
-            id="completedOnly-{{ year }}"
-            data-year="{{ year }}"
-          />
-          <label class="form-check-label" for="completedOnly-{{ year }}">
-            Ibyo wakoze gusa?
-          </label>
+            <div class="form-check ms-sm-3 form-check-reverse">
+              <input
+                class="form-check-input completed-filter"
+                type="checkbox"
+                value="1"
+                id="completedOnly-{{ year }}"
+                data-year="{{ year }}"
+              />
+              <label class="form-check-label" for="completedOnly-{{ year }}">
+                Ibyo wakoze gusa?
+              </label>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary reset-filters ms-sm-auto"
+              data-year="{{ year }}"
+              title="Clear all filters for this year"
+            >
+              <i class="fas fa-eraser"></i>
+              Reset
+            </button>
+          </div>
         </div>
-
-        <button
-          type="button"
-          class="btn btn-sm btn-outline-secondary reset-filters ms-auto"
-          data-year="{{ year }}"
-          title="Clear all filters for this year"
-        >
-          <i class="fas fa-eraser"></i>
-          Reset
-        </button>
       </div>
       {% endif %}
         <p class="mb-2">Umubare w'ibibonetse: <strong class="exam-count-display" data-year="{{ year }}">{{ exams|length }}</strong></p>
