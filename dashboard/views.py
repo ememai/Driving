@@ -382,13 +382,23 @@ def scheduled_exam_delete(request, pk):
 
 # @login_required
 # @user_passes_test(staff_required)
+@method_decorator(login_required(login_url="staff_login"), name='dispatch')
+@method_decorator(user_passes_test(staff_required), name='dispatch')
 class CreateSubscriptionView(View):
     """
     View to create a new subscription.
     """
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.page = 'create_subscription'
+    
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
     def get(self, request):
         form = SubscriptionForm()
-        return render(request, 'dashboard/create_subscription.html', {'form': form})
+        return render(request, 'dashboard/create_subscription.html', {'form': form, 'page': self.page})
 
     def post(self, request):
         form = SubscriptionForm(request.POST)
