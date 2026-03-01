@@ -67,9 +67,13 @@
       </td>
     </tr>
     {% endfor %}
-        
   </tbody>
-  <button type="button" class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#createSubscriptionModal">
+  <button
+    type="button"
+    class="btn btn-success mt-3"
+    data-bs-toggle="modal"
+    data-bs-target="#createSubscriptionModal"
+  >
     Create New Subscription
   </button>
 </table>
@@ -131,42 +135,78 @@
   </tbody>
 </table>
 
-
-<div class="modal fade" id="createSubscriptionModal" tabindex="-1" aria-labelledby="createSubscriptionModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="createSubscriptionModalLabel">Create Subscription</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form method="post" action="{% url 'create_subscription' %}">
-            {% csrf_token %}
-            <div class="mb-3">
-              <label for="user" class="form-label">User</label>
-              <select class="form-select" id="user" name="user" required>
-                {% for user in users %}
-                <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="plan" class="form-label">Plan</label>
-              <input type="text" class="form-control" id="plan" name="plan" required>
-            </div>
-            <div class="mb-3">
-              <label for="price" class="form-label">Price</label>
-              <input type="number" class="form-control" id="price" name="price" required>
-            </div>
-            <div class="mb-3">
-              <label for="duration_days" class="form-label">Duration (days)</label>
-              <input type="number" class="form-control" id="duration_days" name="duration_days" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Create Subscription</button>
-          </form>
-        </div>
+<div
+  class="modal fade"
+  id="createSubscriptionModal"
+  tabindex="-1"
+  aria-labelledby="createSubscriptionModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createSubscriptionModalLabel">
+          Create Subscription
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" action="{% url 'create_subscription' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="user" class="form-label">User</label>
+            <select class="form-select" id="user" name="user" required>
+              {% for user in users %}
+              <option value="{{ user.id }}">
+                {{ user.username }} ({{ user.email }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="plan" class="form-label">Plan</label>
+            <input
+              type="text"
+              class="form-control"
+              id="plan"
+              name="plan"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="price" class="form-label">Price</label>
+            <input
+              type="number"
+              class="form-control"
+              id="price"
+              name="price"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="duration_days" class="form-label"
+              >Duration (days)</label
+            >
+            <input
+              type="number"
+              class="form-control"
+              id="duration_days"
+              name="duration_days"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">
+            Create Subscription
+          </button>
+        </form>
       </div>
     </div>
   </div>
- 
+</div>
+
 {% endblock %}

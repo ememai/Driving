@@ -284,11 +284,38 @@ def admin_dashboard(request):
     """
     Displays tables for Payments, Subscriptions, Users, and Scheduled Exams.
     """
-    payments = Payment.objects.all()
-    subscriptions = Subscription.objects.all()
-    users = UserProfile.objects.all()
-    scheduled_exams = ScheduledExam.objects.all()
-    
+    # avoid loading entire tables on a busy site; only pull a window of recent
+    # rows and grab related foreign‑keys in the same query.  This keeps the
+    # admin dashboard light even when the underlying tables are huge.
+    payments = (
+        Payment.objects.select_related('user')
+        .order_by('-created_at')[:50]
+    )
+
+    # use the helper defined in app.performance so we can keep the optimisations
+    # in one place and unit‑test them separately.
+    from app.performance import optimize_subscription_queries
+    subscriptions = (
+        optimize_subscription_queries()
+        .order_by('-started_at')[:50]
+    )
+
+    # user dropdown on the subscription modal can easily blow up if you load
+    # every field; only request the columns we actually render and cache it
+    # briefly.
+    users = cache.get('dashboard_users')
+    if users is None:
+        users = list(
+            UserProfile.objects.only('id', 'email', 'name')
+            .order_by('-date_joined')[:200]
+        )
+        cache.set('dashboard_users', users, 300)  # five minutes
+
+    scheduled_exams = (
+        ScheduledExam.objects.select_related('exam')
+        .order_by('-scheduled_datetime')[:50]
+    )
+
     context = {
         'payments': payments,
         'subscriptions': subscriptions,
@@ -410,7 +437,10 @@ def dashboard_add_subscription(request):
 @login_required
 @user_passes_test(staff_required)
 def subscription_update(request, pk):
-    subscription = get_object_or_404(Subscription, pk=pk)
+    # fetch related plan upfront; avoid joining the user table because some
+    # tests deliberately delete the user row and we still want the subscription
+    # form to render (the old behaviour was to tolerate an orphaned FK).
+    subscription = get_object_or_404(Subscription.objects.select_related('plan'), pk=pk)
 
     if request.method == 'POST':
         plan_id = request.POST.get('plan_id')
@@ -418,6 +448,11 @@ def subscription_update(request, pk):
         delta_hours = request.POST.get('delta_hours')
         delta_days = request.POST.get('delta_days')
         updated_flag = request.POST.get('updated') == '1'
+
+        # cache plan list once so that we don't hit the database inside the
+        # conditional branches (which would otherwise be N queries for N
+        # requests in a batch update page).
+        plan_map = {p.id: p for p in Plan.objects.only('id', 'price', 'plan')}
 
         try:
             # Handle Super Subscription
@@ -434,7 +469,9 @@ def subscription_update(request, pk):
             else:
                 subscription.super_subscription = False
                 if plan_id:
-                    plan = Plan.objects.get(id=plan_id)
+                    plan = plan_map.get(int(plan_id))
+                    if not plan:
+                        raise Plan.DoesNotExist
                     
                     # If plan changed → generate new OTP
                     if subscription.plan != plan:
@@ -477,8 +514,13 @@ def subscription_update(request, pk):
 @user_passes_test(staff_required)
 def subscription_dashboard(request):
     # build base queryset and apply filters before paginating
-    subscriptions_qs = Subscription.objects.all().order_by(
-        '-otp_created_at', '-updated_at', '-started_at', '-price',
+    # build base queryset with select_related to avoid N+1 while iterating
+    # rows in the template.  use the shared performance helper so other parts
+    # of the code can reuse the same strategy.
+    from app.performance import optimize_subscription_queries
+    subscriptions_qs = (
+        optimize_subscription_queries()
+        .order_by('-otp_created_at', '-updated_at', '-started_at', '-price')
     )
     query = request.GET.get('q')
     if query:
@@ -498,8 +540,23 @@ def subscription_dashboard(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
 
-    plans = Plan.objects.all().order_by('price')
-    users = UserProfile.objects.all().order_by('-date_joined')
+    # plans rarely change; load only a few fields and cache them briefly.
+    plans = cache.get('dashboard_plans')
+    if plans is None:
+        plans = list(Plan.objects.only('id', 'plan', 'price').order_by('price'))
+        cache.set('dashboard_plans', plans, 300)
+
+    # users list is only used for the "add subscription" modal so we don't need
+    # full objects; cache it for a short period to keep the page fast.  fall
+    # back to querying the database if the cache is empty (tests expect
+    # dropdown options even when admin_dashboard hasn't been hit yet).
+    users = cache.get('dashboard_users')
+    if users is None:
+        users = list(
+            UserProfile.objects.only('id', 'email', 'name')
+            .order_by('-date_joined')[:200]
+        )
+        cache.set('dashboard_users', users, 300)
     return render(
         request,
         'dashboard/subscription_dashboard.html',
@@ -516,25 +573,32 @@ def subscription_dashboard(request):
 @user_passes_test(staff_required)
 def dashboard_update_plans(request):
     if request.method == 'POST':
+        # preload all subscriptions we might touch along with users so that
+        # iterating doesn't hit the database per row.
+        subs_map = {str(s.id): s for s in Subscription.objects.select_related('user', 'plan')}
+        # and grab the small plan dictionary up front too
+        plan_map = {p.id: p for p in Plan.objects.only('id', 'price', 'plan')}
+
         for key, value in request.POST.items():
             if key.startswith('plan_'):
                 sub_id = key.split('_')[1]
-                try:
-                    subscription = Subscription.objects.get(id=sub_id)
-                    plan = Plan.objects.get(id=value)
-                    # only update if plan actually changed
-                    if subscription.plan != plan:
-                        subscription.plan = plan
-                        subscription.generate_otp()
-                        subscription.save()
-                        # alert the user immediately
-                        channel_layer = get_channel_layer()
-                        async_to_sync(channel_layer.group_send)(
-                            f"user_{subscription.user.id}",
-                            {"type": "unverified_subscription"},
-                        )
-                except (Subscription.DoesNotExist, Plan.DoesNotExist):
+                subscription = subs_map.get(sub_id)
+                if not subscription:
                     continue
+                plan = plan_map.get(int(value))
+                if not plan:
+                    continue
+                # only update if plan actually changed
+                if subscription.plan != plan:
+                    subscription.plan = plan
+                    subscription.generate_otp()
+                    subscription.save()
+                    # alert the user immediately
+                    channel_layer = get_channel_layer()
+                    async_to_sync(channel_layer.group_send)(
+                        f"user_{subscription.user.id}",
+                        {"type": "unverified_subscription"},
+                    )
         messages.success(request, "Plans updated successfully.")
     return redirect('admin_subscription_dashboard')
 

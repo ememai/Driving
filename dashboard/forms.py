@@ -14,14 +14,27 @@ class ScheduledExamForm(forms.ModelForm):
         help_text="Select a future date and time."
     )
 
+    # don't execute the query at import time; load lazily in __init__ so
+    # we can also cache if needed and avoid paying the cost when the form is
+    # imported by management commands or tests that never render it.
     exam = forms.ModelChoiceField(
-        queryset=Exam.objects.all(),
+        queryset=Exam.objects.none(),
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     
     class Meta:
         model = ScheduledExam
         fields = ['exam', 'scheduled_datetime']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # lazy load and cache exam list for a short period; the typical
+        # dashboard workload doesn't change exam options often.
+        exams = cache.get('dashboard_exam_list')
+        if exams is None:
+            exams = Exam.objects.all()
+            cache.set('dashboard_exam_list', exams, 300)
+        self.fields['exam'].queryset = exams
     
     def clean_scheduled_datetime(self):
         scheduled_datetime = self.cleaned_data.get('scheduled_datetime')

@@ -379,20 +379,23 @@ CACHES = {
 # CHANNELS CONFIGURATION
 # ============================================================================
 # Use Redis for channel layer in production for better scalability
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [REDIS_URL.replace('redis://', '')],
-            'capacity': 1500,
-            'expiry': 10,
-        },
-    } if not DEBUG else {
+if not DEBUG:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [REDIS_URL.replace('redis://', '')],
+                'capacity': 1500,
+                'expiry': 10,
+            },
+        }
+    }
+else:
+    CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels.layers.InMemoryChannelLayer',
         }
     }
-}
 
 # ============================================================================
 # DATABASE OPTIMIZATION
