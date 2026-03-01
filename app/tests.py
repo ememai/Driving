@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
-from app.models import UserProfile, Plan, Subscription
+from app.models import UserProfile, Plan, Subscription, ExamType, Exam
+from django.utils import timezone
 
 
 
@@ -128,3 +129,57 @@ class UnverifiedSubscriptionTests(TestCase):
             r"<script>\s*document.addEventListener\('DOMContentLoaded', function\(\) \{\s*new bootstrap\.Modal\(document.getElementById\('unverifiedModal'\)\)\.show\(\);\s*\}\);\s*</script>"
         )
 
+class ExamsByTypeTabsTests(TestCase):
+    def setUp(self):
+        # create a user and log in
+        self.user = UserProfile.objects.create_user(
+            phone_number='250780000002',
+            email='examtester@example.com',
+            password='password123',
+        )
+        self.client.force_login(self.user)
+
+        # create an exam type
+        self.exam_type = ExamType.objects.create(name='ExampleType')
+
+    def _make_exam(self, year):
+        # create an exam and then force its created_at year
+        exam = Exam.objects.create(
+            exam_type=self.exam_type,
+            for_scheduling=False  # bypass scheduling exclusion
+        )
+        # manually update created_at to the start of the given year
+        # use standard library timezone for UTC
+        from datetime import datetime, timezone as dt_tz
+        dt = datetime(year, 1, 1, tzinfo=dt_tz.utc)
+        Exam.objects.filter(id=exam.id).update(created_at=dt)
+        # reload from db to ensure attribute reflects change
+        exam.refresh_from_db()
+        return exam
+
+    def test_exams_grouped_by_year_tabs(self):
+        # create exams in different years
+        e2023a = self._make_exam(2023)
+        e2023b = self._make_exam(2023)
+        e2024 = self._make_exam(2024)
+
+        url = reverse('exams', args=[self.exam_type.name])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        # context should contain grouped exams and correct years
+        exams_by_year = response.context.get('exams_by_year')
+        self.assertIsNotNone(exams_by_year)
+        # keys should include 2024 and 2023 in order
+        self.assertEqual(list(exams_by_year.keys()), [2024, 2023])
+        self.assertCountEqual(exams_by_year[2023], [e2023a, e2023b])
+        self.assertEqual(exams_by_year[2024], [e2024])
+
+        content = response.content.decode('utf-8')
+        # tabs should render year labels
+        self.assertIn('id="tab-2024"', content)
+        self.assertIn('id="tab-2023"', content)
+
+        # each exam card should appear within its year's pane
+        self.assertIn(f'id="year-2024"', content)
+        self.assertIn(f'id="year-2023"', content)

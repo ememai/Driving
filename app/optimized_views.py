@@ -91,7 +91,7 @@ def exams_by_type_optimized(request, exam_type):
         'questions__question_type'
     ).order_by('-updated_at')
     
-    # Paginate results
+    # Paginate results (kept for compatibility though template now groups by year)
     paginator, page_obj, is_paginated = paginate_results(returned_exams, request, per_page=15)
     
     # Get completed exams for the user (once instead of repeatedly)
@@ -101,11 +101,21 @@ def exams_by_type_optimized(request, exam_type):
     ).values_list('exam_id', 'completed_at')
     
     completed_exam_map = {exam_id: completed_at for exam_id, completed_at in completed_exams}
-    
+    completed_exam_ids = list(completed_exam_map.keys())
+
+    # group full queryset by creation year (ignore pagination for grouping)
+    from itertools import groupby
+    from collections import OrderedDict
+    exams_by_year = OrderedDict()
+    for year, exams in groupby(returned_exams, key=lambda e: e.created_at.year):
+        exams_by_year[year] = list(exams)
+
     context = {
         'exam_type': exam_type,
         'returned_exams': page_obj.object_list,
+        'exams_by_year': exams_by_year,
         'completed_exam_map': completed_exam_map,
+        'completed_exam_ids': completed_exam_ids,
         'counted_exams': paginator.count,
         'mixed_exam_types': 'ibivanze',
         'page_obj': page_obj,

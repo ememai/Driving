@@ -548,7 +548,15 @@ def exams_by_type(request, exam_type):
         exam_type__name=exam_type
     ).exclude(
         Q(for_scheduling=True) & Q(scheduledexam__scheduled_datetime__gt=timezone.now())
-    ).order_by('-updated_at')
+    ).order_by('-created_at')  # order most recent first
+
+    # group the queryset by creation year so the template can render tabs
+    from itertools import groupby
+    from collections import OrderedDict
+    exams_by_year = OrderedDict()
+    # groupby requires the queryset to be ordered by the same key
+    for year, exams in groupby(returned_exams, key=lambda e: e.created_at.year):
+        exams_by_year[year] = list(exams)
 
     # Dictionary of completed exams: {exam_id: completed_at}
     completed_exams = UserExam.objects.filter(
@@ -559,12 +567,17 @@ def exams_by_type(request, exam_type):
     completed_exam_map = {
         item['exam_id']: item['completed_at'] for item in completed_exams
     }
+    # also keep a list of ids for simple membership checks (border highlight)
+    completed_exam_ids = list(completed_exam_map.keys())
     
     mixed_exam_types = 'ibivanze'
     context = {
         'exam_type': exam_type,
+        # we still keep raw list for any compatibility but primarily use grouped
         'returned_exams': returned_exams,
+        'exams_by_year': exams_by_year,
         'completed_exam_map': completed_exam_map,
+        'completed_exam_ids': completed_exam_ids,
         'counted_exams': returned_exams.count(),
         'mixed_exam_types': mixed_exam_types,
     }    
