@@ -14,7 +14,6 @@
       color: rgba(var(--text-rgb), 1) !important;
     }
   }
-
 </style>
 
 <div class="container mt-4 overflow-auto">
@@ -72,11 +71,6 @@
                 required
               >
                 <option value="">---------</option>
-                {% for user in users %}
-                <option value="{{ user.id }}" class="text-theme">
-                  {{ user }}
-                </option>
-                {% endfor %}
               </select>
             </div>
             <div class="mb-3">
@@ -151,7 +145,8 @@
         </td>
         <td class="text-nowrap">{{ sub.plan.plan|default:"-" }}</td>
         <td class="text-nowrap">
-          {% if sub.plan %}{{ sub.plan.price|default:'-' }} RWF{% else %}- {% endif %}
+          {% if sub.plan %}{{ sub.plan.price|default:'-' }} RWF{% else %}- 
+          {% endif %}
         </td>
         <td>
           {% if sub.active_subscription %}
@@ -432,31 +427,50 @@
 <script>
   $(document).ready(function () {
     $("#user_id").select2({
-      placeholder: "Search and select a user...",
+      placeholder: "Search by name, email, or phone...",
       allowClear: true,
       width: "100%",
-      // keep the dropdown within the bootstrap modal
+      minimumInputLength: 0,
+      ajax: {
+        url: "{% url 'search_users_api' %}",
+        dataType: "json",
+        delay: 300,
+        data: function (params) {
+          return {
+            q: params.term,
+            limit: 50,
+          };
+        },
+        processResults: function (data) {
+          return {
+            results: data.results,
+          };
+        },
+        cache: true,
+      },
       dropdownParent: $("#addSubscriptionModal"),
-      // show the option text (already contains name|email|phone)
       templateSelection: function (data) {
-        return data.text;
+        return data.text || data.id;
+      },
+      templateResult: function (data) {
+        if (!data.id) return data.text;
+        return $("<span>" + data.text + "</span>");
       },
     });
 
-    // when modal is shown, open the select2 dropdown so the input gets focus
+    // Open dropdown and focus search when modal is shown
     $("#addSubscriptionModal").on("shown.bs.modal", function () {
       $("#user_id").select2("open");
     });
 
-    // whenever select2 opens (either programmatically or by click), focus search
+    // Focus search input when dropdown opens
     $("#user_id").on("select2:open", function () {
-      // a tiny delay ensures dropdown markup exists
       setTimeout(function () {
         $(".select2-search__field").focus();
       }, 0);
     });
 
-    // clicking in the dropdown shouldn't close the modal
+    // Prevent modal from closing when interacting with Select2 dropdown
     $(document).on("mousedown", ".select2-dropdown", function (e) {
       e.stopPropagation();
     });

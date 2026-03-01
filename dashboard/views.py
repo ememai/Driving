@@ -556,17 +556,11 @@ def subscription_dashboard(request):
         plans = list(Plan.objects.only('id', 'plan', 'price').order_by('price'))
         cache.set('dashboard_plans', plans, 300)
 
-    # users list is only used for the "add subscription" modal so we don't need
-    # full objects; cache it for a short period to keep the page fast.  fall
-    # back to querying the database if the cache is empty (tests expect
-    # dropdown options even when admin_dashboard hasn't been hit yet).
-    users = cache.get('dashboard_users')
-    if users is None:
-        users = list(
-            UserProfile.objects.only('id', 'email', 'name')
-            .order_by('-date_joined')[:200]
-        )
-        cache.set('dashboard_users', users, 300)
+    # NOTE: users are no longer loaded here in the subscription_dashboard view.
+    # They are now fetched dynamically via AJAX/search_users_api endpoint for better
+    # performance and to avoid loading all users upfront. This reduces initial page
+    # load time and memory usage, especially with large user databases.
+    
     return render(
         request,
         'dashboard/subscription_dashboard.html',
@@ -575,9 +569,41 @@ def subscription_dashboard(request):
             'page_obj': page_obj,
             'query': query,
             'plans': plans,
-            'users': users,
         },
     )
+
+@login_required
+@user_passes_test(staff_required)
+def search_users_api(request):
+    """
+    API endpoint for AJAX-based user search in subscription dashboard modal.
+    Returns JSON list of users matching the search query.
+    Optimized for Select2 integration with proper formatting.
+    """
+    from django.http import JsonResponse
+    
+    search_term = request.GET.get('q', '').strip()
+    limit = int(request.GET.get('limit', 50))
+    
+    # Build optimized query with only necessary fields
+    users_qs = UserProfile.objects.only('id', 'name', 'email', 'phone_number').filter(
+        Q(name__icontains=search_term) | 
+        Q(email__icontains=search_term) | 
+        Q(phone_number__icontains=search_term)
+    ).order_by('-date_joined')[:limit]
+    
+    # Format results for Select2 compatibility
+    results = []
+    for user in users_qs:
+        # Create display text as __str__ method of UserProfile, which handles missing fields gracefully
+        display_text = str(user)  # This will use the __str__ method of UserProfile
+                
+        results.append({
+            'id': user.id,
+            'text': display_text
+        })
+    
+    return JsonResponse({'results': results})
 
 @login_required
 @user_passes_test(staff_required)
