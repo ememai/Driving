@@ -158,7 +158,8 @@ class StaffLoginView(View):
         # if next_url:
         #     return redirect(next_url)
 
-        return redirect("admin:index")
+        # return redirect("admin:index")
+        return redirect("home")
 
         messages.success(request, "Staff login successful! Welcome back.")
         return redirect("home")
@@ -590,7 +591,10 @@ def search_users_api(request):
         Q(name__icontains=search_term) | 
         Q(email__icontains=search_term) | 
         Q(phone_number__icontains=search_term)
-    ).order_by('-date_joined')[:limit]
+    )
+    
+    if not search_term:
+        users_qs = users_qs.order_by('-date_joined')[:limit]
     
     # Format results for Select2 compatibility
     results = []
