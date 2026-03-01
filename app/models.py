@@ -660,6 +660,14 @@ class Exam(models.Model):
 
     @property
     def total_questions(self):
+        # if queryset was annotated with a count, the value is stored in __dict__
+        # and we can return it directly, avoiding an extra query.
+        # note: optimized views annotate using 'question_count' to avoid
+        # clashing with the property setter; check both names here.
+        if 'total_questions' in self.__dict__:
+            return self.__dict__['total_questions']
+        if 'question_count' in self.__dict__:
+            return self.__dict__['question_count']
         return self.questions.count()
 
     @property

@@ -510,10 +510,10 @@ def subscription_update(request, pk):
 
         except Plan.DoesNotExist:
             messages.error(request, "Selected plan does not exist.")
-        except ValueError:
-            messages.error(request, "Invalid input values.")
+        except ValueError as e:
+            messages.error(request, f"Error processing form data: {e}")
 
-    plans = Plan.objects.all()
+    plans = Plan.objects.all().order_by('price')
     return render(request, 'dashboard/subscription_update.html', {
         'subscription': subscription,
         'plans': plans

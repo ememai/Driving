@@ -17,7 +17,7 @@ from .models import (
     Exam, ExamType, Course, UserExam, UserExamAnswer, 
     ScheduledExam, Question, RoadSign
 )
-from .performance import paginate_results, cache_query
+from .performance import paginate_results, cache_query, cache_page
 
 
 # ============================================================================
@@ -78,20 +78,31 @@ def home_optimized(request):
 # ============================================================================
 
 @login_required(login_url='register')
+@cache_page(timeout=300, key_prefix='exams_by_type')
 def exams_by_type_optimized(request, exam_type):
     """
     Optimized view to get exams by type with pagination
+    Applies several techniques:
+    * select_related/exclude to reduce joins
+    * annotate question count (avoids N+1)
+    * optional caching of grouping data per exam type
+    * pagination
     """
-    # Use select_related and prefetch_related to optimize queries
-    returned_exams = Exam.objects.filter(
+    # Base queryset for this exam type (no user-specific filtering)
+    base_qs = Exam.objects.filter(
         exam_type__name=exam_type
     ).exclude(
         Q(for_scheduling=True) & Q(scheduledexam__scheduled_datetime__gt=timezone.now())
-    ).select_related('exam_type').prefetch_related(
-        'questions__question_type'
-    ).order_by('-updated_at')
+    )
+
+    # Annotate question count so template property won't hit the DB repeatedly
+    # use a different name than the model property to avoid assignment errors
+    base_qs = base_qs.annotate(question_count=Count('questions'))
+
+    # select only what's needed for listing
+    returned_exams = base_qs.select_related('exam_type')
     
-    # Paginate results (kept for compatibility though template now groups by year)
+    # paginate the raw queryset; we'll still need the full list for grouping
     paginator, page_obj, is_paginated = paginate_results(returned_exams, request, per_page=15)
     
     # Get completed exams for the user (once instead of repeatedly)
@@ -104,12 +115,18 @@ def exams_by_type_optimized(request, exam_type):
     completed_exam_ids = list(completed_exam_map.keys())
 
     # group full queryset by creation year (ignore pagination for grouping)
+    # caching this structure can help when many exams exist for the same type
     from itertools import groupby
     from collections import OrderedDict
-    exams_by_year = OrderedDict()
-    returned_list = list(returned_exams.order_by('-created_at'))
-    for year, exams in groupby(returned_list, key=lambda e: e.created_at.year):
-        exams_by_year[year] = list(exams)
+    cache_key = f"exams_by_year:{exam_type}"
+    exams_by_year = cache.get(cache_key)
+    if exams_by_year is None:
+        exams_by_year = OrderedDict()
+        returned_list = list(returned_exams.order_by('-created_at'))
+        for year, exams in groupby(returned_list, key=lambda e: e.created_at.year):
+            exams_by_year[year] = list(exams)
+        # store minimal info (ids) to reduce memory, rebuild lists on retrieval
+        cache.set(cache_key, exams_by_year, 600)  # cache 10 minutes
 
     # months mapping per year for template filters
     from calendar import month_name

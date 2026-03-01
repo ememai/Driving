@@ -4,6 +4,8 @@ from .user_profile_view import profile_view
 from .views import *
 from .decorators import subscription_required
 from .api import get_questions_for_exam_type
+# import optimized versions when available
+from .optimized_views import exams_by_type_optimized
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import views as auth_views
 from app.forms import CustomSetPasswordForm
@@ -18,7 +20,8 @@ urlpatterns = [
     path('isomo/stream/<int:course_id>/', views.secure_stream, name='secure_stream'),
     path('isomo/download/<int:course_id>/', views.secure_download, name='secure_download'),
     path('amasomo/', views.courses, name='courses'),
-    path("ibibazo-byo-mubwoko-/<str:exam_type>/", exams_by_type, name='exams'),
+    # use optimized exam listing for better performance
+    path("ibibazo-byo-mubwoko-/<str:exam_type>/", exams_by_type_optimized, name='exams'),
     path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
 
     path('create-exam/', create_exam_page, name='create_exam'),

@@ -154,8 +154,8 @@ def check_unique_field(request):
 
 
 def whatsapp_consent(request):
-    #Redirect if the user has already given consent
-    if request.user.whatsapp_consent:
+    # Redirect if the user is already authenticated and has given consent
+    if request.user.is_authenticated and request.user.whatsapp_consent:
         return redirect('home')
 
     # Get the newly registered user from the session

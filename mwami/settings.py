@@ -379,12 +379,13 @@ CACHES = {
 # CHANNELS CONFIGURATION
 # ============================================================================
 # Use Redis for channel layer in production for better scalability
+# Ensure we pass a full Redis URL (including scheme) to channels_redis
 if not DEBUG:
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
             'CONFIG': {
-                'hosts': [REDIS_URL.replace('redis://', '')],
+                'hosts': [REDIS_URL],
                 'capacity': 1500,
                 'expiry': 10,
             },

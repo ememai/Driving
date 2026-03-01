@@ -173,3 +173,28 @@ class SubscriptionDashboardUITest(TestCase):
         with self.assertNumQueries(10):
             self.client.get(url)
 
+    def test_channel_layer_hosts_include_scheme(self):
+        """Ensure CHANNEL_LAYERS is configured with a full Redis URL (with scheme).
+
+        Because tests run with DEBUG=True the default CHANNEL_LAYERS in the
+        loaded settings use the in-memory backend, so we reload the settings
+        module with DEBUG=False and a custom REDIS_URL to exercise the
+        production branch of the file.
+        """
+        import os
+        from importlib import reload
+
+        # prepare environment for reload
+        os.environ['MY_DEBUG'] = 'False'
+        os.environ['REDIS_URL'] = 'redis://example.com:6379/1'
+        # reload the settings module so CHANNEL_LAYERS is recomputed
+        import mwami.settings as settings_module
+        reload(settings_module)
+
+        hosts = settings_module.CHANNEL_LAYERS['default']['CONFIG']['hosts']
+        # there should be at least one host and it must match exactly our url
+        self.assertEqual(hosts, ['redis://example.com:6379/1'])
+        # cleanup: restore DEBUG back to True for rest of tests
+        os.environ['MY_DEBUG'] = 'True'
+        reload(settings_module)
+
