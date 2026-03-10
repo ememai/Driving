@@ -27,6 +27,7 @@ def handle_subscription_change(sender, instance, created, **kwargs):
     - Notifies admin of new subscription attempts
     - Tracks subscription status changes
     - Validates subscription state
+    - Notifies admin of subscription renewals
     """
     try:
         # whenever a subscription record is saved we clear the cached value
@@ -52,8 +53,26 @@ def handle_subscription_change(sender, instance, created, **kwargs):
             notify_admin(message)
         else:
             # Subscription modified
+            from .utils import notify_admin
+            
+            # Check if this is a subscription renewal (updated flag set and OTP regenerated)
+            if instance.updated and instance.otp_code and not instance.otp_verified:
+                logger.info(f"Subscription renewed for user {instance.user.name}. OTP: {instance.otp_code}")
+                
+                message = (
+                    f"🔄 SUBSCRIPTION RENEWED\n\n"
+                    f"User: {instance.user.name}\n"
+                    f"Phone: {instance.user.phone_number}\n"
+                    f"Plan: {instance.plan.plan if instance.plan else 'Not selected'}\n"
+                    f"Price: {instance.price}\n"
+                    f"OTP Code: {instance.otp_code}\n\n"
+                    f"User must verify this OTP to activate renewal."
+                )
+                notify_admin(message)
+            
             if instance.otp_verified and not instance.user.is_subscribed:
                 logger.info(f"Subscription verified for user {instance.user.name}. Marking as active.")
+                
                 
     except Exception as e:
         logger.error(f"Error in handle_subscription_change signal: {str(e)}", exc_info=True)
