@@ -24,5 +24,6 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 RUN pip install gunicorn
 
 # Expose port and start the Django server
-EXPOSE 8000
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "mwami.wsgi:application"]
+EXPOSE 8080
+CMD python manage.py migrate --noinput && \
+    gunicorn --bind 0.0.0.0:8080 mwami.wsgi:application
