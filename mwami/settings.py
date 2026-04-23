@@ -131,7 +131,7 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
-if DEBUG:
+if DEBUG and config('ENABLE_RECORD_APP', default=False, cast=bool):
     INSTALLED_APPS += [
         'record.apps.RecordConfig',
     ]
