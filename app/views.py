@@ -58,7 +58,7 @@ def _get_first_exam_id():
     ).order_by('created_at').first()
     return exam.id if exam else None
 
-first_exam_id = _get_first_exam_id()
+# first_exam_id = _get_first_exam_id()
 
 
 def home(request):
@@ -821,7 +821,7 @@ def exam(request, exam_id, question_number):
 def exam_results(request, user_exam_id):
     
     user_exam = get_object_or_404(UserExam, id=user_exam_id, user=request.user)
-    
+    first_exam_id = _get_first_exam_id()
     if not request.user.is_subscribed and not user_exam.exam.id == first_exam_id:
         messages.error(request, mark_safe(
             f"<span>Iki kizamini ufite amanota</span> {user_exam.score}<br><h5>Gura ifatabuguzi kugirango ubashe kureba byose!</h5>"
@@ -956,6 +956,7 @@ def get_unverified_subscription(user):
 # ---------------------
 @login_required(login_url='register')
 def payment(request):
+    first_exam_id = _get_first_exam_id()
     page = 'payment'
     all_plans=Plan.objects.all().order_by('price')
     context = {
@@ -981,6 +982,7 @@ def recreate_otp(request):
 @login_required(login_url='register')
 def subscription_status(request): 
     show_modal = request.GET.get('confirm') == '1'
+    first_exam_id = _get_first_exam_id()
     page = 'subscription_status'
     plans = Plan.PLAN_CHOICES
     unverified_subscription = get_unverified_subscription(request.user)
@@ -1015,6 +1017,7 @@ def payment_confirm(request):
                 validate_phone_number(whatsapp_number)
             except ValidationError as e:
                 messages.error(request, str(e))
+                first_exam_id = _get_first_exam_id()
                 return render(request, 'payment.html', {'first_exam_id': first_exam_id})
             
             # Get plan
@@ -1022,6 +1025,7 @@ def payment_confirm(request):
                 plan = Plan.objects.get(price=plan_choice)
             except Plan.DoesNotExist:
                 messages.error(request, "Server error")
+                first_exam_id = _get_first_exam_id()
                 return render(request, 'payment.html', {'first_exam_id': first_exam_id})
             
             # Create/update payment confirmation
