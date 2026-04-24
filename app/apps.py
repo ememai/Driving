@@ -8,6 +8,5 @@ class AppConfig(AppConfig):
     
     def ready(self):
         from . import signals  # Import signals to register receivers
-        if settings.DEBUG:
-            from . import scheduler
-            scheduler.start()
+        from . import scheduler
+        scheduler.start()
