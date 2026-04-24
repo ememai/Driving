@@ -131,10 +131,10 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
-if DEBUG and config('ENABLE_RECORD_APP', default=False, cast=bool):
-    INSTALLED_APPS += [
-        'record.apps.RecordConfig',
-    ]
+# if DEBUG and config('ENABLE_RECORD_APP', default=False, cast=bool):
+#     INSTALLED_APPS += [
+#         'record.apps.RecordConfig',
+#     ]
 # SESSION SETTINGS
 SESSION_COOKIE_AGE = 60*60*24*30 # 30 days
 
