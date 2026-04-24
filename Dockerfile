@@ -25,5 +25,6 @@ RUN pip install gunicorn
 
 # Expose port and start the Django server
 EXPOSE 8080
-CMD python manage.py migrate --noinput && \
-    gunicorn --bind 0.0.0.0:8080 mwami.wsgi:application
+# CMD python manage.py migrate --noinput && \
+#     gunicorn mwami.wsgi:application --bind 0.0.0.0:$PORT
+CMD gunicorn mwami.wsgi:application --bind 0.0.0.0:$PORT
