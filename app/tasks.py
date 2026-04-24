@@ -1,9 +1,9 @@
 """
-Celery tasks for background job processing
-Handles email sending, notifications, and other async operations
+Background task functions for Kigali Driving School.
+These are plain Python functions called directly by the APScheduler jobs
+defined in app/scheduler.py — no Celery or Redis required.
 """
 
-from celery import shared_task
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
@@ -17,14 +17,13 @@ User = get_user_model()
 
 
 # ============================================================================
-# EMAIL TASKS
+# EMAIL FUNCTIONS
 # ============================================================================
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_email_task(self, subject, message, recipient_list, from_email=None):
+def send_email_task(subject, message, recipient_list, from_email=None):
     """
-    Send email asynchronously
-    
+    Send an email synchronously.
+
     Args:
         subject: Email subject
         message: Email body
@@ -38,10 +37,9 @@ def send_email_task(self, subject, message, recipient_list, from_email=None):
         return f"Email sent successfully to {len(recipient_list)} recipients"
     except Exception as exc:
         logger.error(f"Failed to send email: {str(exc)}")
-        self.retry(exc=exc)
+        raise
 
 
-@shared_task
 def send_otp_email_task(user_id, email, otp_code):
     """Send OTP email to user"""
     try:
@@ -61,14 +59,13 @@ def send_otp_email_task(user_id, email, otp_code):
         return False
 
 
-@shared_task
 def send_subscription_confirmation_task(user_id):
     """Send subscription confirmation email"""
     try:
         user = User.objects.get(id=user_id)
         subject = "Ifatabuguzi Ryatangira"
         message = f"Mwamukirayo {user.name}, ifatabuguzi ryacu ryatangira. Mukomeze musomera neza!"
-        
+
         send_mail(
             subject=subject,
             message=message,
@@ -82,28 +79,29 @@ def send_subscription_confirmation_task(user_id):
 
 
 # ============================================================================
-# SUBSCRIPTION TASKS
+# SUBSCRIPTION FUNCTIONS
 # ============================================================================
 
-@shared_task
 def check_subscription_expiry():
     """
-    Check for expiring subscriptions and send renewal reminders
-    Runs daily at midnight
+    Check for expiring subscriptions and send renewal reminders.
+    Scheduled daily at midnight via APScheduler.
     """
     try:
-        # Find subscriptions expiring in the next 3 days
         now = timezone.now()
         expiring_soon = Subscription.objects.filter(
             expires_at__lte=now + timezone.timedelta(days=3),
             expires_at__gte=now
         ).select_related('user')
-        
+
         for sub in expiring_soon:
             if sub.user.email:
                 subject = "Ifatabuguzi Irangira"
-                message = f"Mwami {sub.user.name}, ifatabuguzi ryacu irangira mu minsi {(sub.expires_at - now).days}. Musubiremo muri hano niba urundi kubona ubwiyunge."
-                
+                message = (
+                    f"Mwami {sub.user.name}, ifatabuguzi ryacu irangira mu minsi "
+                    f"{(sub.expires_at - now).days}. Musubiremo muri hano niba urundi kubona ubwiyunge."
+                )
+
                 send_mail(
                     subject=subject,
                     message=message,
@@ -111,7 +109,7 @@ def check_subscription_expiry():
                     recipient_list=[sub.user.email],
                     fail_silently=False,
                 )
-        
+
         logger.info(f"Subscription expiry check completed. {expiring_soon.count()} users notified.")
         return f"Checked {expiring_soon.count()} expiring subscriptions"
     except Exception as e:
@@ -120,14 +118,13 @@ def check_subscription_expiry():
 
 
 # ============================================================================
-# NOTIFICATION TASKS
+# NOTIFICATION FUNCTIONS
 # ============================================================================
 
-@shared_task
 def send_scheduled_exams_notification():
     """
-    Send notifications about upcoming scheduled exams
-    Runs every 2 hours
+    Send notifications about upcoming scheduled exams.
+    Scheduled every 2 hours via APScheduler.
     """
     try:
         now = timezone.now()
@@ -136,14 +133,17 @@ def send_scheduled_exams_notification():
             scheduled_datetime__lte=now + timezone.timedelta(hours=3),
             exam__is_active=True
         ).select_related('exam', 'exam__exam_type')
-        
+
         if upcoming_exams.exists():
             users = User.objects.filter(is_active=True)
-            
+
             for exam_schedule in upcoming_exams:
                 subject = f"Ikizamini Kizaba Mumahoro: {exam_schedule.exam.exam_type.name}"
-                message = f"Ikizamini cy'ibivanze kizaba mu gihe cyo mu irangamuntu {exam_schedule.scheduled_datetime.strftime('%H:%M')}. Witeguye?"
-                
+                message = (
+                    f"Ikizamini cy'ibivanze kizaba mu gihe cyo mu irangamuntu "
+                    f"{exam_schedule.scheduled_datetime.strftime('%H:%M')}. Witeguye?"
+                )
+
                 for user in users.filter(email__isnull=False):
                     send_mail(
                         subject=subject,
@@ -152,7 +152,7 @@ def send_scheduled_exams_notification():
                         recipient_list=[user.email],
                         fail_silently=True,
                     )
-        
+
         logger.info(f"Exam notifications sent for {upcoming_exams.count()} scheduled exams")
         return f"Notified users about {upcoming_exams.count()} upcoming exams"
     except Exception as e:
@@ -160,9 +160,8 @@ def send_scheduled_exams_notification():
         return f"Error: {str(e)}"
 
 
-@shared_task
 def send_notification_task(user_id, message, notification_type='info'):
-    """Send in-app notification to user"""
+    """Create an in-app notification for a user"""
     try:
         user = User.objects.get(id=user_id)
         Notification.objects.create(
@@ -177,14 +176,11 @@ def send_notification_task(user_id, message, notification_type='info'):
 
 
 # ============================================================================
-# EXAM TASKS
+# EXAM FUNCTIONS
 # ============================================================================
 
-@shared_task
 def auto_schedule_recent_exams_task():
-    """
-    Auto schedule the most recent exams daily
-    """
+    """Auto-schedule the most recent exams. Called daily by APScheduler."""
     try:
         auto_schedule_recent_exams()
         logger.info("✅ Exams scheduled successfully")
@@ -194,40 +190,23 @@ def auto_schedule_recent_exams_task():
         return f"Error: {str(e)}"
 
 
-@shared_task
 def cleanup_old_data():
     """
-    Cleanup old exam data and logs
-    Runs weekly on Sunday at 2 AM
+    Clean up old exam data and logs.
+    Scheduled weekly on Sunday at 02:00 via APScheduler.
     """
     try:
-        from django.db.models import Q
         from datetime import timedelta
-        
+
         cutoff_date = timezone.now() - timedelta(days=90)
-        
-        # Archive/delete old user activity logs
+
         from .models import UserActivity
         deleted_count = UserActivity.objects.filter(
             timestamp__lt=cutoff_date
         ).delete()[0]
-        
+
         logger.info(f"Cleaned up {deleted_count} old activity records")
         return f"Cleaned up {deleted_count} old records"
     except Exception as e:
         logger.error(f"Error during cleanup: {str(e)}")
         return f"Error: {str(e)}"
-
-
-# ============================================================================
-# Example management command that was previously in tasks.py
-# ============================================================================
-
-from django.core.management.base import BaseCommand
-
-class Command(BaseCommand):
-    help = 'Auto schedules the most recent exams daily'
-
-    def handle(self, *args, **kwargs):
-        auto_schedule_recent_exams()
-        self.stdout.write(self.style.SUCCESS('✅ Exams scheduled successfully.'))
