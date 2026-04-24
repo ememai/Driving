@@ -59,7 +59,7 @@ def send_whatsapp_message(phone_number, message):
     try:
         whatsapp_num = process_whatsapp_number(phone_number)
         
-        response = session.post(
+        response = requests.post(
             f"{settings.WHATSAPP_API_URL}/waInstance{settings.INSTANCE_ID}/sendMessage/{settings.WHATSAPP_API_TOKEN}",
             json={
                 "chatId": f"{whatsapp_num}@c.us",
