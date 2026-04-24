@@ -9,4 +9,8 @@ class AppConfig(AppConfig):
     def ready(self):
         from . import signals  # Import signals to register receivers
         from . import scheduler
-        scheduler.start()
+        import threading
+
+        # Start scheduler in background thread to avoid blocking Django startup
+        scheduler_thread = threading.Thread(target=scheduler.start, daemon=True)
+        scheduler_thread.start()
