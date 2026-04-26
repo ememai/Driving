@@ -15,6 +15,7 @@ venv/
 anywhere.json
 anydata.json
 dump.json
+*.json
 record
 
 *media/courses/

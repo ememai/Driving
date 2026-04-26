@@ -47,7 +47,7 @@ def handle_subscription_change(sender, instance, created, **kwargs):
                 f"📱 New Subscription Attempt\n\n"
                 f"User: {instance.user.name}\n"
                 f"Phone: {instance.user.phone_number}\n"
-                f"Plan: {instance.plan.plan if instance.plan else 'Not selected'}\n"
+                f"Plan: {instance.plan.plan if instance and instance.plan_id else 'Not selected'}\n"
                 f"Status: {'Verified' if instance.otp_verified else 'Pending OTP'}"
             )
             notify_admin(message)
@@ -63,7 +63,7 @@ def handle_subscription_change(sender, instance, created, **kwargs):
                     f"🔄 SUBSCRIPTION RENEWED\n\n"
                     f"User: {instance.user.name}\n"
                     f"Phone: {instance.user.phone_number}\n"
-                    f"Plan: {instance.plan.plan if instance.plan else 'Not selected'}\n"
+                    f"Plan: {instance.plan.plan if instance and instance.plan_id else 'Not selected'}\n"
                     f"Price: {instance.price}\n"
                     f"OTP Code: {instance.otp_code}\n\n"
                     f"User must verify this OTP to activate renewal."

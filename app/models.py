@@ -23,6 +23,7 @@ from smtplib import SMTPException  # <- correct source
 from django.utils.text import slugify
 from django.db.models.functions import Cast
 from ckeditor.fields import RichTextField
+from zoneinfo import ZoneInfo
 
 class UserProfileManager(BaseUserManager):
     """Custom manager to allow login with either email or phone."""

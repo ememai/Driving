@@ -49,7 +49,10 @@ def exams_slider_context(request):
     Get scheduled exams for slider with caching
     Caches for 30 minutes since exams are scheduled in advance
     """
-    cache_key = 'exams_slider_context'
+    # Include date in cache key so it refreshes each day
+    today = timezone.localtime(timezone.now()).date()
+    cache_key = f'exams_slider_context_{today}'
+    
     context = cache.get(cache_key)
     
     if context is None:

@@ -78,7 +78,6 @@ def home_optimized(request):
 # ============================================================================
 
 @login_required(login_url='register')
-@cache_page(timeout=300, key_prefix='exams_by_type')
 def exams_by_type_optimized(request, exam_type):
     """
     Optimized view to get exams by type with pagination
