@@ -59,7 +59,7 @@ def send_whatsapp_message(phone_number, message):
     try:
         whatsapp_num = process_whatsapp_number(phone_number)
         
-        response = session.post(
+        response = requests.post(
             f"{settings.WHATSAPP_API_URL}/waInstance{settings.INSTANCE_ID}/sendMessage/{settings.WHATSAPP_API_TOKEN}",
             json={
                 "chatId": f"{whatsapp_num}@c.us",
@@ -137,25 +137,44 @@ def job_notify_new_published_exams():
 
 def start():
     try:
-        scheduler = BackgroundScheduler(timezone=ZoneInfo("Africa/Kigali"))    
-        
+        from .tasks import check_subscription_expiry, cleanup_old_data
+
+        scheduler = BackgroundScheduler(timezone=ZoneInfo("Africa/Kigali"))
+
         # 1. Run exam scheduling every day at 00:00
         scheduler.add_job(
             job_auto_schedule_exams,
             CronTrigger(hour=0, minute=0, second=0),
-            id="auto_schedule_exams"
+            id="auto_schedule_exams",
+            replace_existing=True,
         )
 
-        
+        # 2. Email notification every hour from 08:20 to 15:20
         scheduler.add_job(
             job_notify_new_published_exams,
-            CronTrigger(minute='20', hour='8-15', second=00),
-            id="notify_emails"
+            CronTrigger(minute='20', hour='8-15', second=0),
+            id="notify_emails",
+            replace_existing=True,
         )
-        
+
+        # 3. Check subscription expiry daily at midnight
+        scheduler.add_job(
+            check_subscription_expiry,
+            CronTrigger(hour=0, minute=5, second=0),
+            id="check_subscription_expiry",
+            replace_existing=True,
+        )
+
+        # 4. Clean up old data weekly on Sunday at 02:00
+        scheduler.add_job(
+            cleanup_old_data,
+            CronTrigger(day_of_week='sun', hour=2, minute=0, second=0),
+            id="cleanup_old_data",
+            replace_existing=True,
+        )
+
         scheduler.start()
         logger.info("Scheduler started successfully")
     except Exception as e:
         logger.error(f"Failed to start scheduler: {str(e)}", exc_info=True)
         raise
-    

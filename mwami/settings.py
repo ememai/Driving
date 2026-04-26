@@ -355,25 +355,11 @@ SESSION_COOKIE_HTTPONLY = True
 # ============================================================================
 # CACHING CONFIGURATION
 # ============================================================================
-# Use Redis for caching if available, fallback to in-memory for development
-REDIS_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
-
+# Use Django's built-in in-memory cache — no Redis required.
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDIS_URL,
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_KWARGS': {
-                'max_connections': 50,
-                'retry_on_timeout': True
-            },
-            'SOCKET_CONNECT_TIMEOUT': 5,
-            'SOCKET_TIMEOUT': 5,
-            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
-            'IGNORE_EXCEPTIONS': True,  # Don't crash if Redis unavailable
-        },
-        'KEY_PREFIX': 'kds',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'kds-cache',
         'TIMEOUT': 300,  # Default 5 minutes
     }
 }
@@ -424,26 +410,4 @@ CACHE_TIMEOUT_MEDIUM = 300  # 5 minutes
 CACHE_TIMEOUT_LONG = 3600  # 1 hour
 CACHE_TIMEOUT_EXTRA_LONG = 86400  # 24 hours
 
-# ============================================================================
-# CELERY CONFIGURATION
-# ============================================================================
-# Celery for background tasks
-CELERY_BROKER_URL = REDIS_URL
-CELERY_RESULT_BACKEND = REDIS_URL
-CELERY_ACCEPT_CONTENT = ['json', 'msgpack']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes hard limit
-CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes soft limit
-CELERY_WORKER_PREFETCH_MULTIPLIER = 4
-CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
-
-# Task routing for different queues
-CELERY_TASK_ROUTES = {
-    'app.tasks.send_email_*': {'queue': 'email'},
-    'app.tasks.process_exam_*': {'queue': 'exams'},
-    'app.tasks.notification_*': {'queue': 'notifications'},
-}
 
