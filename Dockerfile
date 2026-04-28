@@ -27,4 +27,4 @@ RUN pip install daphne
 EXPOSE 8080
 # CMD python manage.py migrate --noinput && \
 #     daphne -b 0.0.0.0 -p $PORT mwami.asgi:application
-CMD daphne -b 0.0.0.0 -p $PORT mwami.asgi:application
+CMD ["sh", "-c", "daphne -b 0.0.0.0 -p $PORT mwami.asgi:application"]
