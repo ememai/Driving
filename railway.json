@@ -7,6 +7,8 @@
     "runtime": "V2",
     "numReplicas": 1,
     "sleepApplication": false,
+    "startCommand": "daphne -b 0.0.0.0 -p 8000 mwami.asgi:application",
+    "preDeployCommand": "python manage.py migrate && python manage.py collectstatic --noinput",
     "multiRegionConfig": {
       "us-west2": {
         "numReplicas": 1

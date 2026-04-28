@@ -20,11 +20,11 @@ COPY . /app/
 # Install Python dependencies
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Ensure gunicorn is installed
-RUN pip install gunicorn
+# Ensure daphne is installed
+RUN pip install daphne
 
 # Expose port and start the Django server
 EXPOSE 8080
 # CMD python manage.py migrate --noinput && \
-#     gunicorn mwami.wsgi:application --bind 0.0.0.0:$PORT
-CMD gunicorn mwami.wsgi:application --bind 0.0.0.0:$PORT
+#     daphne -b 0.0.0.0 -p $PORT mwami.asgi:application
+CMD daphne -b 0.0.0.0 -p $PORT mwami.asgi:application
