@@ -286,8 +286,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 if CLOUDINARY_STORAGE["CLOUD_NAME"]:
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 else:
-    # Fallback to local storage if Cloudinary not configured
-    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+    # Fallback to persistent local storage if Cloudinary not configured
+    DEFAULT_FILE_STORAGE = "app.storage.PersistentMediaStorage"
 
 MEDIA_URL = '/media/'
 

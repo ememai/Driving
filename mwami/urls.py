@@ -29,11 +29,18 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
 ]
 
-# Serve media files from the persistent volume
-# This works in both DEBUG and production with proper file storage
+# Serve media files from the persistent volume with proper headers
 if settings.MEDIA_ROOT:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    from django.views.static import serve
+    from django.urls import re_path
+
+    def serve_media(request, path):
+        """Serve media files with proper content-type headers"""
+        return serve(request, path, document_root=settings.MEDIA_ROOT)
+
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve_media, name='media'),
+    ]
 # urlpatterns += path('pptx/', include('record.urls')), 
 
 handler404 = 'app.views.custom_page_not_found'
-
