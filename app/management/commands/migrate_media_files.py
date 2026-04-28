@@ -3,7 +3,6 @@ import logging
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from app.models import RoadSign, UserProfile
-from django.core.files.base import ContentFile
 import urllib.request
 import urllib.parse
 
@@ -35,6 +34,52 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS('Media migration completed!'))
 
+    def try_download_from_github(self, filename):
+        """Try to download a file from GitHub with various filename variations"""
+        variations = self.get_filename_variations(filename)
+        
+        for variation in variations:
+            try:
+                # URL-encode the filename
+                path_parts = variation.split('/')
+                encoded_parts = [urllib.parse.quote(part, safe='') for part in path_parts]
+                encoded_filename = '/'.join(encoded_parts)
+                
+                github_url = f"https://raw.githubusercontent.com/ememai/Driving/main/{encoded_filename}"
+                
+                with urllib.request.urlopen(github_url, timeout=5) as response:
+                    return response.read(), variation
+            except (urllib.error.HTTPError, urllib.error.URLError, Exception):
+                continue
+        
+        return None, None
+
+    def get_filename_variations(self, filename):
+        """Generate filename variations to try"""
+        variations = [filename]  # Try original first
+        
+        # Try without spaces
+        if ' ' in filename:
+            variations.append(filename.replace(' ', '_'))
+            variations.append(filename.replace(' ', ''))
+        
+        # Try different extensions
+        base, ext = os.path.splitext(filename)
+        if ext.lower() in ['.jpg', '.jpeg']:
+            variations.append(base + '.png')
+            variations.append(base + '.jpeg' if ext.lower() == '.jpg' else base + '.jpg')
+        elif ext.lower() == '.png':
+            variations.append(base + '.jpg')
+            variations.append(base + '.jpeg')
+        
+        # Try without path prefix variations
+        if '/' in filename:
+            just_name = os.path.basename(filename)
+            variations.append(just_name)
+            variations.extend(self.get_filename_variations(just_name))
+        
+        return list(dict.fromkeys(variations))  # Remove duplicates while preserving order
+
     def migrate_road_signs(self, dry_run=False):
         """Migrate road sign images from repo to volume"""
         self.stdout.write('Migrating road signs...')
@@ -45,7 +90,6 @@ class Command(BaseCommand):
         
         for sign in road_signs:
             try:
-                # Get the filename from the database
                 filename = sign.sign_image.name
                 
                 # Check if file already exists in volume
@@ -55,25 +99,15 @@ class Command(BaseCommand):
                     migrated += 1
                     continue
                 
-                # URL-encode the filename to handle spaces and special characters
-                # Split path and encode each part separately
-                path_parts = filename.split('/')
-                encoded_parts = [urllib.parse.quote(part, safe='') for part in path_parts]
-                encoded_filename = '/'.join(encoded_parts)
-                
-                # Try to fetch from GitHub raw content
-                github_url = f"https://raw.githubusercontent.com/ememai/Driving/main/{encoded_filename}"
-                
                 if dry_run:
-                    self.stdout.write(f'  [DRY RUN] Would migrate: {filename}')
+                    self.stdout.write(f'  [DRY RUN] Would try to migrate: {filename}')
                     migrated += 1
                     continue
                 
-                try:
-                    # Download file from GitHub
-                    with urllib.request.urlopen(github_url) as response:
-                        file_content = response.read()
-                    
+                # Try to download with variations
+                file_content, found_as = self.try_download_from_github(filename)
+                
+                if file_content:
                     # Ensure directory exists
                     os.makedirs(os.path.dirname(full_path), exist_ok=True)
                     
@@ -81,10 +115,12 @@ class Command(BaseCommand):
                     with open(full_path, 'wb') as f:
                         f.write(file_content)
                     
-                    self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename}'))
+                    if found_as != filename:
+                        self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename} (found as: {found_as})'))
+                    else:
+                        self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename}'))
                     migrated += 1
-                
-                except urllib.error.HTTPError as e:
+                else:
                     self.stdout.write(self.style.WARNING(f'  ⊘ Not found on GitHub: {filename}'))
                     failed += 1
                 
@@ -117,31 +153,26 @@ class Command(BaseCommand):
                     migrated += 1
                     continue
                 
-                # URL-encode the filename
-                path_parts = filename.split('/')
-                encoded_parts = [urllib.parse.quote(part, safe='') for part in path_parts]
-                encoded_filename = '/'.join(encoded_parts)
-                
-                github_url = f"https://raw.githubusercontent.com/ememai/Driving/main/{encoded_filename}"
-                
                 if dry_run:
-                    self.stdout.write(f'  [DRY RUN] Would migrate: {filename}')
+                    self.stdout.write(f'  [DRY RUN] Would try to migrate: {filename}')
                     migrated += 1
                     continue
                 
-                try:
-                    with urllib.request.urlopen(github_url) as response:
-                        file_content = response.read()
-                    
+                # Try to download with variations
+                file_content, found_as = self.try_download_from_github(filename)
+                
+                if file_content:
                     os.makedirs(os.path.dirname(full_path), exist_ok=True)
                     
                     with open(full_path, 'wb') as f:
                         f.write(file_content)
                     
-                    self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename}'))
+                    if found_as != filename:
+                        self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename} (found as: {found_as})'))
+                    else:
+                        self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename}'))
                     migrated += 1
-                
-                except urllib.error.HTTPError:
+                else:
                     self.stdout.write(self.style.WARNING(f'  ⊘ Not found on GitHub: {filename}'))
                     failed += 1
                 
