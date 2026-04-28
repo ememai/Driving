@@ -55,6 +55,7 @@ Markdown==3.8.2
 moviepy==2.2.1
 msgpack==1.1.2
 multidict==6.6.3
+mysql-connector-python>=8.0.33
 mysqlclient==2.2.7
 numpy==2.2.6
 oauthlib==3.3.1

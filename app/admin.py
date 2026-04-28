@@ -714,3 +714,45 @@ class BulkImageUploadAdmin(admin.ModelAdmin):
         return "No image"
     image_preview.short_description = "Preview"
     
+
+
+
+# ---------------------------------------------------------------------------
+# Custom admin endpoint: /admin/migrate-media/
+# Allows superusers to trigger the migrate_media_files management command
+# directly from the browser without needing SSH access.
+# ---------------------------------------------------------------------------
+from django.http import HttpResponseRedirect
+from django.core.management import call_command
+from io import StringIO
+
+
+def migrate_media_view(request):
+    """Run the migrate_media_files management command and report results."""
+    if not request.user.is_staff or not request.user.is_superuser:
+        messages.error(request, 'Permission denied')
+        return HttpResponseRedirect('/admin/')
+
+    try:
+        out = StringIO()
+        call_command('migrate_media_files', stdout=out)
+        output = out.getvalue()
+        messages.success(request, f'Media migration completed!\n{output}')
+    except Exception as e:
+        messages.error(request, f'Migration failed: {str(e)}')
+
+    return HttpResponseRedirect('/admin/')
+
+
+_original_get_urls = admin.site.__class__.get_urls
+
+
+def _custom_get_urls(self):
+    urls = _original_get_urls(self)
+    custom_urls = [
+        path('migrate-media/', self.admin_view(migrate_media_view), name='migrate_media'),
+    ]
+    return custom_urls + urls
+
+
+admin.site.__class__.get_urls = _custom_get_urls
