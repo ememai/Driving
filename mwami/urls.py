@@ -29,7 +29,8 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+IF settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # urlpatterns += path('pptx/', include('record.urls')), 
 
 handler404 = 'app.views.custom_page_not_found'
