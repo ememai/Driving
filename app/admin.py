@@ -636,3 +636,5 @@ class NotificationAdmin(admin.ModelAdmin):
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('title', 'category', 'created_at')
     prepopulated_fields = {'slug': ('title',)}  # Optional: Auto-fill slug
+    list_editable = ('category',)
+    search_fields = ('title', 'category')
