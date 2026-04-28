@@ -279,13 +279,15 @@ cloudinary.config(
     api_secret=CLOUDINARY_STORAGE["API_SECRET"],
 )
 
+# Always set MEDIA_ROOT for local file serving
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Use Cloudinary for media files if credentials are set, otherwise use local storage
 if CLOUDINARY_STORAGE["CLOUD_NAME"]:
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 else:
     # Fallback to local storage if Cloudinary not configured
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 MEDIA_URL = '/media/'
 

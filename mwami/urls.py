@@ -29,8 +29,10 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
 ]
 
-# if settings.DEBUG:
-#     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files from the persistent volume
+# This works in both DEBUG and production with proper file storage
+if settings.MEDIA_ROOT:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # urlpatterns += path('pptx/', include('record.urls')), 
 
 handler404 = 'app.views.custom_page_not_found'
