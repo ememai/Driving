@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     "django_browser_reload",
     'social_django',
     'ckeditor',
+    "cloudinary",
+    "cloudinary_storage",
 
 ]
 
@@ -261,8 +263,20 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
     ]
 
+# Cloudinary config
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
+    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+}
+
+# Use Cloudinary for media files
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+# Media URL (not really used, but keep it clean)
+
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Default primary key field type
