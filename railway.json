@@ -1,14 +1,14 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "RAILPACK"
   },
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
     "sleepApplication": false,
-    "startCommand": "daphne -b 0.0.0.0 -p 8000 mwami.asgi:application",
-    "preDeployCommand": "python manage.py migrate && python manage.py collectstatic --noinput",
+    "startCommand": "daphne -b 0.0.0.0 -p $PORT mwami.asgi:application",
+    "preDeployCommand": "python manage.py migrate && python manage.py collectstatic --noinput && mkdir -p /app/media && chmod 755 /app/media",
     "multiRegionConfig": {
       "us-west2": {
         "numReplicas": 1
