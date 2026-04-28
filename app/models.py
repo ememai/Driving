@@ -492,6 +492,26 @@ class Course(models.Model):
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
 
+    def get_thumbnail_url(self, width=300, height=300):
+        """Get optimized thumbnail URL from Cloudinary"""
+        if self.thumbnail:
+            from app.cloudinary_utils import CloudinaryMediaHandler
+            return CloudinaryMediaHandler.get_optimized_url(
+                self.thumbnail.name,
+                transformation_preset='course_preview'
+            )
+        return None
+
+    def get_file_url(self):
+        """Get optimized file URL from Cloudinary"""
+        if self.course_file:
+            from app.cloudinary_utils import CloudinaryMediaHandler
+            return CloudinaryMediaHandler.get_optimized_url(
+                self.course_file.name,
+                transformation_preset='pdf_preview'
+            )
+        return None
+
     def __str__(self):
         return self.title
 
@@ -543,6 +563,15 @@ class RoadSign(models.Model):
     def image_url(self):
         """Returns full URL or None"""
         return self.sign_image.url if self.sign_image else None
+
+    def get_optimized_image_url(self):
+        """Get optimized image URL with responsive srcset"""
+        if self.sign_image:
+            from app.cloudinary_utils import CloudinaryMediaHandler
+            return CloudinaryMediaHandler.get_responsive_image_srcset(
+                self.sign_image.name
+            )
+        return None
 
 
 class QuestionManager(models.Manager):

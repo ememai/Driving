@@ -263,20 +263,102 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
     ]
 
-# Cloudinary config
+# Cloudinary configuration - use config() for Railway environment variables
+import cloudinary
+
 CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
-    "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
-    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME", default=""),
+    "API_KEY": config("CLOUDINARY_API_KEY", default=""),
+    "API_SECRET": config("CLOUDINARY_API_SECRET", default=""),
 }
 
-# Use Cloudinary for media files
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+# Configure cloudinary SDK
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE["CLOUD_NAME"],
+    api_key=CLOUDINARY_STORAGE["API_KEY"],
+    api_secret=CLOUDINARY_STORAGE["API_SECRET"],
+)
 
-# Media URL (not really used, but keep it clean)
+# Always set MEDIA_ROOT for local file serving
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Use Cloudinary for media files if credentials are set, otherwise use local storage
+if CLOUDINARY_STORAGE["CLOUD_NAME"]:
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+else:
+    # Fallback to persistent local storage if Cloudinary not configured
+    DEFAULT_FILE_STORAGE = "app.storage.PersistentMediaStorage"
 
 MEDIA_URL = '/media/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ============================================================================
+# CLOUDINARY OPTIMIZATION
+# ============================================================================
+
+# Cloudinary transformation presets for different use cases
+CLOUDINARY_TRANSFORMATIONS = {
+    # Thumbnail optimization - compress and resize
+    'thumbnail': {
+        'width': 300,
+        'height': 300,
+        'crop': 'fill',
+        'quality': 'auto',
+        'fetch_format': 'auto',
+    },
+    # Course preview images - responsive sizing
+    'course_preview': {
+        'width': 600,
+        'height': 400,
+        'crop': 'fill',
+        'quality': 'auto:good',
+        'fetch_format': 'auto',
+    },
+    # Road sign images - high quality
+    'road_sign': {
+        'width': 400,
+        'height': 400,
+        'crop': 'fill',
+        'quality': 'auto:best',
+        'fetch_format': 'auto',
+    },
+    # PDF preview - first page thumbnail
+    'pdf_preview': {
+        'page': 1,
+        'width': 300,
+        'height': 400,
+        'crop': 'fill',
+        'quality': 'auto',
+        'fetch_format': 'jpg',
+    },
+}
+
+# Cloudinary upload settings
+CLOUDINARY_UPLOAD_SETTINGS = {
+    'folder': 'driving-school',  # Organize uploads in a folder
+    'resource_type': 'auto',  # Auto-detect file type
+    'use_filename': True,  # Preserve original filename
+    'unique_filename': True,  # Add unique suffix to avoid conflicts
+    'overwrite': False,  # Don't overwrite existing files
+    'invalidate': True,  # Invalidate CDN cache on upload
+    'eager': [
+        # Pre-generate thumbnail on upload
+        {'width': 300, 'height': 300, 'crop': 'fill', 'quality': 'auto', 'fetch_format': 'auto'},
+    ],
+}
+
+# Cloudinary CDN and caching settings
+CLOUDINARY_CDN_SETTINGS = {
+    'secure': True,  # Use HTTPS URLs
+    'cdn_subdomain': True,  # Use CDN subdomain for better caching
+    'sign_url': False,  # Don't require signed URLs (public files)
+    'type': 'upload',  # Use upload resource type
+}
+
+# Cache control headers for Cloudinary URLs
+CLOUDINARY_CACHE_CONTROL = {
+    'max_age': 31536000,  # 1 year for versioned assets
+    'public': True,  # Allow public caching
+}
 
 
 # Default primary key field type
