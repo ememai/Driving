@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 from .models import *
 from .forms import *
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 
 from django.urls import reverse, path
 from django.utils.html import format_html
@@ -289,10 +289,12 @@ class RoadSignAdmin(admin.ModelAdmin):
         js = ('admin/js/roadsign_admin.js',)
         css = {'all': ('admin/css/roadsign_admin.css',)}
 
-    list_display = ('definition', 'image_preview', 'type', 'uploaded_at', 'date_updated')
+    list_display = ('definition', 'image_preview', 'type', 'is_active', 'uploaded_at', 'date_updated')
     search_fields = ('definition', 'type__name')
     list_filter = ('type', 'is_active')
+    list_editable = ('type', 'is_active')  # Enable bulk editing
     readonly_fields = ('image_preview', 'uploaded_at', 'date_updated')
+    actions = ['activate_signs', 'deactivate_signs', 'bulk_delete_signs']
 
     def get_fieldsets(self, request, obj=None):
         if obj:  # Change form
@@ -336,6 +338,33 @@ class RoadSignAdmin(admin.ModelAdmin):
         return obj.image_preview()
     image_preview.short_description = 'Preview'
     image_preview.allow_tags = True
+
+    # Bulk actions for road signs
+    @admin.action(description='Activate selected road signs')
+    def activate_signs(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'{updated} road sign(s) activated.', messages.SUCCESS)
+
+    @admin.action(description='Deactivate selected road signs')
+    def deactivate_signs(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'{updated} road sign(s) deactivated.', messages.SUCCESS)
+
+    @admin.action(description='Delete selected road signs (with confirmation)')
+    def bulk_delete_signs(self, request, queryset):
+        # For safety, require confirmation via query string
+        if request.POST.get('confirm_delete'):
+            deleted_count = queryset.count()
+            queryset.delete()
+            self.message_user(request, f'{deleted_count} road sign(s) deleted.', messages.SUCCESS)
+        else:
+            # Show confirmation page
+            return render(request, 'admin/road_sign_confirm_delete.html', {
+                'title': 'Delete Road Signs',
+                'queryset': queryset,
+                'action': 'bulk_delete_signs',
+            })
+    bulk_delete_signs.short_description = 'Delete selected road signs'
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):

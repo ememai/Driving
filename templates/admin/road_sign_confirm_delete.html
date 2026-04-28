@@ -1,0 +1,30 @@
+{% extends "base.html" %} {% load static %} {% block title %}Confirm Delete Road
+Signs{% endblock %} {% block content %}
+<div class="container mt-4">
+  <h2>Confirm Delete Road Signs</h2>
+  <p>
+    Are you sure you want to delete the following
+    <strong>{{ queryset.count }}</strong> road sign(s)?
+  </p>
+
+  <ul class="list-group mb-4" style="max-height: 300px; overflow-y: auto">
+    {% for sign in queryset %}
+    <li class="list-group-item">{{ sign.definition|truncatechars:50 }}</li>
+    {% endfor %}
+  </ul>
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="confirm_delete" value="1" />
+    {% for obj in queryset %}
+    <input type="hidden" name="_selected_action" value="{{ obj.pk }}" />
+    {% endfor %}
+    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    <a
+      href="{% url 'admin:app_roadsign_changelist' %}"
+      class="btn btn-secondary"
+      >Cancel</a
+    >
+  </form>
+</div>
+{% endblock %}
