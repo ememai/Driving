@@ -547,6 +547,7 @@ class RoadSign(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
+    
 
 
     def image_preview(self):

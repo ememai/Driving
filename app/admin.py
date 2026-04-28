@@ -291,7 +291,7 @@ class RoadSignAdmin(admin.ModelAdmin):
 
     list_display = ('definition', 'image_preview', 'type', 'is_active', 'uploaded_at', 'date_updated')
     search_fields = ('definition', 'type__name')
-    list_filter = ('type', 'is_active')
+    list_filter = ('type', 'is_active', 'sign_image')
     list_editable = ('type', 'is_active')  # Enable bulk editing
     readonly_fields = ('image_preview', 'uploaded_at', 'date_updated')
     actions = ['activate_signs', 'deactivate_signs', 'bulk_delete_signs']
