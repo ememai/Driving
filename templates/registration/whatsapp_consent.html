@@ -93,21 +93,16 @@
                   )
                 "
                 oninput="this.setCustomValidity('')"
-                {%
-                if
-                form.whatsapp_number.value
-                %}
+                {% if form.whatsapp_number.value %}
                 value="{{ form.whatsapp_number.value }}"
-                {%
-                endif
-                %}
+                {% endif %}
                 required
               />
               <label for="whatsappNumber" class="form-label text-secondary">
                 <i class="bi bi-whatsapp text-green"></i>
                 Andika Nimero ukoresha kuri WhatsApp:
               </label>
-              <div class="form-text">Urugero: <code>+2507...</code></div>
+              <div class="form-text">Urugero: <code>+2507... cg 07...</code></div>
               {% if form.whatsapp_number.errors %}
               <div class="text-danger mt-1">
                 {{ form.whatsapp_number.errors.0 }}
