@@ -291,7 +291,7 @@ def validate_phone_number(phone_number):
     cleaned_number = re.sub(r'\D', '', phone_number)
 
     # if cleaned_number.startswith('+250') or cleaned_number.startswith('07'):
-    return len(cleaned_number) == 10 and cleaned_number.startswith('07') or len(cleaned_number) == 12 and cleaned_number.startswith('+250')
+    return len(cleaned_number) == 10 and cleaned_number.startswith('07') or len(cleaned_number) == 12 and not cleaned_number.startswith('+250')
 
     # else:
     #     # For other countries, allow only valid E.164 format: starts with '+' and 10-15 digits
