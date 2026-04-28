@@ -5,6 +5,7 @@ from django.conf import settings
 from app.models import RoadSign, UserProfile
 from django.core.files.base import ContentFile
 import urllib.request
+import urllib.parse
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +55,14 @@ class Command(BaseCommand):
                     migrated += 1
                     continue
                 
+                # URL-encode the filename to handle spaces and special characters
+                # Split path and encode each part separately
+                path_parts = filename.split('/')
+                encoded_parts = [urllib.parse.quote(part, safe='') for part in path_parts]
+                encoded_filename = '/'.join(encoded_parts)
+                
                 # Try to fetch from GitHub raw content
-                github_url = f"https://raw.githubusercontent.com/ememai/Driving/main/{filename}"
+                github_url = f"https://raw.githubusercontent.com/ememai/Driving/main/{encoded_filename}"
                 
                 if dry_run:
                     self.stdout.write(f'  [DRY RUN] Would migrate: {filename}')
@@ -78,7 +85,7 @@ class Command(BaseCommand):
                     migrated += 1
                 
                 except urllib.error.HTTPError as e:
-                    self.stdout.write(self.style.ERROR(f'  ✗ Not found on GitHub: {filename}'))
+                    self.stdout.write(self.style.WARNING(f'  ⊘ Not found on GitHub: {filename}'))
                     failed += 1
                 
             except Exception as e:
@@ -110,7 +117,12 @@ class Command(BaseCommand):
                     migrated += 1
                     continue
                 
-                github_url = f"https://raw.githubusercontent.com/ememai/Driving/main/{filename}"
+                # URL-encode the filename
+                path_parts = filename.split('/')
+                encoded_parts = [urllib.parse.quote(part, safe='') for part in path_parts]
+                encoded_filename = '/'.join(encoded_parts)
+                
+                github_url = f"https://raw.githubusercontent.com/ememai/Driving/main/{encoded_filename}"
                 
                 if dry_run:
                     self.stdout.write(f'  [DRY RUN] Would migrate: {filename}')
