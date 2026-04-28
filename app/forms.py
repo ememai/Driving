@@ -418,6 +418,47 @@ class RoadSignAdminForm(forms.ModelForm):
         if 'sign_image' in self._errors and self.cleaned_data.get('image_choice') == self.USE_EXISTING:
             del self._errors['sign_image']
 
+
+class MultipleImageFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleImageFileField(forms.ImageField):
+    widget = MultipleImageFileInput
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+
+        if isinstance(data, (list, tuple)):
+            return [single_file_clean(item, initial) for item in data]
+
+        if data:
+            return [single_file_clean(data, initial)]
+
+        return []
+
+
+class BulkImageUploadAdminForm(forms.ModelForm):
+    images = MultipleImageFileField(
+        required=False,
+        label="Images",
+        help_text="Select one or more JPG, JPEG, or PNG images.",
+    )
+
+    class Meta:
+        model = BulkImageUpload
+        fields = ["image", "images"]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        images = cleaned_data.get("images") or []
+        current_image = getattr(self.instance, "image", None)
+
+        if not images and not current_image:
+            raise ValidationError("Please upload at least one image.")
+
+        return cleaned_data
+
 class QuestionForm(forms.ModelForm, ImageLabelMixin):
     remove_question_image = forms.BooleanField(
         required=False,

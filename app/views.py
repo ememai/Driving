@@ -1473,3 +1473,4 @@ def check_unverified_subscription(request):
     unverified_sub = get_unverified_subscription(request.user)
     has_unverified = bool(unverified_sub)
     return JsonResponse({'unverified': has_unverified})
+

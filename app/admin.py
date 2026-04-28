@@ -667,3 +667,50 @@ class CourseAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}  # Optional: Auto-fill slug
     list_editable = ('category',)
     search_fields = ('title', 'category')
+    
+    
+
+@admin.register(BulkImageUpload)
+class BulkImageUploadAdmin(admin.ModelAdmin):
+    form = BulkImageUploadAdminForm
+    list_display = ('image_preview', 'uploaded_at', 'date_updated')
+    search_fields = ('image',)
+    readonly_fields = ('image_preview', 'uploaded_at', 'date_updated')
+    fields = ('images', 'image_preview', 'uploaded_at', 'date_updated')
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = list(super().get_readonly_fields(request, obj))
+        if not obj:
+            readonly_fields = [field for field in readonly_fields if field != 'image_preview']
+        return readonly_fields
+
+    def get_fields(self, request, obj=None):
+        if obj:
+            return ('image', 'image_preview', 'uploaded_at', 'date_updated')
+        return ('images',)
+
+    def save_model(self, request, obj, form, change):
+        images = form.cleaned_data.get('images', [])
+
+        if change:
+            if images:
+                obj.image = images[0]
+            super().save_model(request, obj, form, change)
+            return
+
+        if not images:
+            return
+
+        first_image, *remaining_images = images
+        obj.image = first_image
+        super().save_model(request, obj, form, change)
+
+        for image in remaining_images:
+            BulkImageUpload.objects.create(image=image)
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" height="100"/>', obj.image.url)
+        return "No image"
+    image_preview.short_description = "Preview"
+    

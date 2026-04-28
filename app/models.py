@@ -24,6 +24,7 @@ from django.utils.text import slugify
 from django.db.models.functions import Cast
 from ckeditor.fields import RichTextField
 from zoneinfo import ZoneInfo
+from django.contrib import admin
 
 class UserProfileManager(BaseUserManager):
     """Custom manager to allow login with either email or phone."""
@@ -572,6 +573,14 @@ class RoadSign(models.Model):
                 self.sign_image.name
             )
         return None
+
+
+class BulkImageUpload(models.Model):
+    image = models.ImageField(upload_to='road_signs', validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])])
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    date_updated = models.DateTimeField(auto_now=True)
+    
+    
 
 
 class QuestionManager(models.Manager):
