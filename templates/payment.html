@@ -2,144 +2,171 @@
 {% load custom_filters static %} {% block title %}Ifatabuguzi
 {% endblock %} {% block extra_css %}
 <style>
-  .underline {
-    text-decoration: underline;
-  }
-  .cursor-pointer {
-    cursor: pointer;
-  }
-  hr {
-    border: 2px solid;
-  }
-  .hours {
-    display: none;
-  }
-  .card {
-    height: 200px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
-    cursor: pointer;
-    max-width: 500px;
-    margin: 0 auto;
-    padding-top: 0;
-  }
-  .card:hover {
-    transform: scale(1.05);
-  }
-  @media (min-width: 589px) {
-    .card {
-      width: 500px;
-      height: auto;
-      padding-bottom: 20px;
-    }
-  }
-  .card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
-  }
-  input[type="radio"] {
-    background-color:rgb(255, 255, 255);
-    border: 3px solid rgb(0, 0, 0);
-    border-radius: 50%;
-  }
+  /* =========================
+   MODERN SUBSCRIPTION UI
+========================= */
 
+#plan-carousel {
+  position: relative;
+  background: rgba(var(--card-bg-rgb), 0.95);
+  border: 1px solid rgba(var(--border-rgb), 0.15);
+  border-radius: 30px;
+  padding: 3rem 1.5rem 2rem !important;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.08),
+    inset 0 1px 0 rgba(255,255,255,.08);
+}
 
+/* Title badge */
+#plan-carousel > p {
+  background: rgba(var(--text-rgb), 1) !important;
+  color: rgba(var(--background-rgb), 1) !important;
+  border-radius: 999px;
+  padding: .7rem 1.5rem;
+  font-size: .95rem;
+  letter-spacing: .5px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.15);
+}
+
+/* Grid Layout */
+.plans {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem !important;
+}
+
+/* Card */
+.plan-card {
+  position: relative;
+  overflow: visible;
+  border-radius: 24px !important;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: rgba(var(--card-bg-rgb), 1);
+  transition: all .35s ease;
+  transform: translateY(0);
+  cursor: pointer;
+  min-height: 100%;
+}
+
+.plan-card .badge {
+  z-index: 2;
+}
+
+.plan-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0,0,0,.12);
+}
+
+/* Selected */
+.plan-card.active {
+  border: 1px solid rgb(0, 44, 0);
+  transform: translateY(-10px);
+  box-shadow:
+    0 0 0 6px rgba(0, 255, 0, .12),
+    0 20px 45px rgba(0,0,0,.18);
+}
+
+{% comment %} /* Recommended */
+.plan-card#default-plan {
+  border: 2px solid rgba(0, 103, 0, 0.5);
+} {% endcomment %}
+
+.plan-card .badge {
+  padding: .6rem 1rem;
+  border-radius: 999px;
+  font-size: .75rem;
+  letter-spacing: .5px;
+}
+
+/* Header */
+.plan-card .card-header {
+  background: transparent;
+  border: none;
+  padding-top: 1.5rem !important;
+}
+
+/* Old Price */
+.plan-card .text-decoration-line-through {
+  opacity: .5;
+  font-size: .9rem !important;
+}
+
+/* Current Price */
+.plan-card .fs-2 {
+  font-size: 2rem !important;
+  font-weight: 800;
+}
+
+/* Features */
+.plan-description {
+  padding: 0 1.5rem;
+  margin-top: 1rem;
+}
+
+.plan-description li {
+  margin-bottom: .9rem;
+  font-size: 1rem !important;
+  color: rgba(var(--text-rgb), .9);
+}
+
+{% comment %} .check-icon {
+  color: rgba(var(--success-rgb), 1) !important;
+} {% endcomment %}
+
+/* Button */
+.btnSelectPlan {
+  border-radius: 999px !important;
+  padding: .85rem 1.8rem !important;
+  font-weight: 700;
+  transition: all .3s ease;
+}
+
+.plan-card.active .btnSelectPlan {
+  background: rgb(0, 40, 0);
+  border-color: rgb(0, 62, 0);
+  color: #ffffff;
+}
+
+.btnSelectPlan:hover {
+  transform: scale(1.04);
+}
+
+/* Payment Card */
+.payment-method-card {
+  background: rgba(var(--card-bg-rgb), 1);
+  border-radius: 24px;
+  border: 1px solid rgba(var(--border-rgb), .15);
+  box-shadow: 0 10px 25px rgba(0,0,0,.08);
+  overflow: hidden;
+}
+
+/* USSD Box */
+.ussd-code {
+  background: rgba(var(--surface-rgb), 1);
+  border: 1px solid rgba(var(--border-rgb), .25);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  display: inline-block;
+  margin: 1rem 0;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
   #plan-carousel {
-    scroll-behavior: smooth;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    width: 100%;
-    {% comment %} box-shadow: 2px 4px 8px rgba(var(--text-rgb), 1); {% endcomment %}
+    padding: 3rem 1rem 1.5rem !important;
   }
-  #plan-carousel::-webkit-scrollbar {
-    display: none;
-  }
+
   .plan-card {
-    cursor: pointer;
-    user-select: none;
-    width: 90vw;
-    transition: transform 0.5s ease, box-shadow 0.5s ease;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transform: scale(0.9);
+    width: 100%;
   }
 
-  @media (min-width: 768px) {
-    .plans {
-      width: 100%;
-      max-width: 800px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    }
+  .plan-card .fs-2 {
+    font-size: 1.7rem !important;
   }
-  .plan-card:active {
-    transform: scale(1.10);
-    opacity: 1;
-    z-index: 2;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  }
-  .plan-description {
-    line-height: 1.7;
-    font-size: 1rem;
-    color: rgba(var(--text-rgb), 1);
-  }
-  .plan-description li {
-    margin-bottom: 0.4rem;
-  }
-  .method {
-    background-image: url("{% static "img/online-payment-3.png" %}");
-    background-blend-mode: overlay;
-    background-position: center;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    background-size: cover;
-  }
-  .method h2 {
-    font-style: italic;
-  }
-  .method h4 {
-    font-family: "Times New Roman", Times, serif;
-  }
-
-  /* USSD code display */
-  .ussd-code {
-    background: rgba(0, 0, 0, 0.05);
-    padding: 0.8rem 1.2rem;
-    border-radius: 8px;
-    font-family: monospace;
-    font-size: 1.2rem;
-    margin: 1rem 0;
-    display: inline-block;
-  }
-
-  /* Payment method cards */
-  .payment-method-card {
-    background: rgba(255, 255, 255, 1);
-    border-radius: 10px;
-    padding: 1.5rem;
-    margin: 1rem auto;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-  }
-
-  .subscription-status {
-    padding: 0 1rem;
-    border-radius: 10px;
-    margin-bottom: 1.5rem;
-    text-align: center;
-  }
-
-  .status-active {
-    color: #155724;
-  }
-
-  .status-expired {
-    color: #721c24;
-  }
-  .status-none {
-    color: #cb9901ff;
-  }
+}
 </style>
 {% endblock %} {% block content %}
 <div class="container py-4">
@@ -303,7 +330,7 @@
 
     {% else %}
 
-    <div class="alert text-center fs-5 p-0" role="alert">
+    <div class="alert text-center fs-5 p-0" role="alert text-theme">
       <form method="post" id="planSelectionForm">
         {% csrf_token %}
         <!-- Hidden inputs for plan selection -->
@@ -312,7 +339,7 @@
         {% endfor %}
         <div
           id="plan-carousel"
-          class="d-flex flex-wrap align-items-center justify-content-center gap-1 px-5 py-3 plans shadow-md rounded-4 bg-theme"
+          class="plans mx-auto"
         >
           <p
             class="fw-bold position-absolute top-0 start-50 translate-middle badge bg-black text-white"
@@ -321,7 +348,7 @@
           </p>
           {% for plan in all_plans %}
           <div
-            class="card flex-shrink-0 text-center plan-card rounded-5"
+            class="card flex-shrink-0 text-center shadow-sm  plan-card rounded-5"
             data-plan-price="{{ plan.price }}"
             data-plan-id="plan_{{ plan.price }}"
             data-plan-value="{{ plan.price }}"
@@ -353,14 +380,14 @@
                   class="form-check-label fs-2 cursor-pointer"
                   for="plan_{{ plan.price }}"
                 >
-                  {{ plan.price }} RWF
+                  {{ plan.price }}
                 </label>
               </div>
             </div>
             <ul class="plan-description list-unstyled text-start px-1">
               {% for icon, line in plan.plan|get_plan_description %}
-              <li class="d-flex align-items-center gap-2 fs-5">
-                <i class="bi bi-circle-fill check-icon me-0 text-muted"></i>
+              <li class="d-flex align-items-center gap-2">
+                <i class="bi bi-check-circle-fill check-icon"></i>
                 {{ line }} {{ icon }}
               </li>
               {% endfor %}
@@ -368,7 +395,7 @@
             <div class="card-body border-0 mt-0 pt-0 text-center">
               <button
                 type="button"
-                class="btn btn-outline-primary rounded-pill btnSelectPlan fs-5 px-4 fw-bold"
+                class="btn btn-theme btnSelectPlan fs-6  px-4 fw-bold"
               >
                 <i class="bi bi-check2-circle" aria-hidden="true"></i>
                 Ishyura {{ plan.price }} RWF
@@ -379,10 +406,10 @@
         </div>
 
         <!-- Payment Methods -->
-        <div class="mt-5 ">
+        <div class="mt-5 text-theme">
           
           <div class="payment-method-card method text-dark">
-            <h2 class="fw-bold text-primary ">
+            <h2 class="fw-bold text-primary py-4">
               <i class="bi bi-credit-card"></i>
                 Uburyo bwo kwishyura:
               </h2>
@@ -406,8 +433,8 @@
             <hr class="my-4" />
           <div class="" id="mobileMoneyMethod">
           
-         <h4 class="underline">1. Koresha code:</h4>
-            <div class="ussd-code">
+         <h4 class="text-decoration-underline text-theme">1. Koresha code:</h4>
+            <div class="ussd-code text-theme">
               *182*8*1*187756*<strong id="js-plan-momo">0</strong>#
             </div>
 
@@ -417,14 +444,14 @@
               >
               <i class="bi bi-telephone me-2"></i>Emeza
             </button>
-            <h4 class="underline">2. Koresha nimero:</h4>
-            <div class="fs-4 fw-bold">0785287885</div>
+            <h4 class="text-decoration-underline text-theme">2. Koresha nimero:</h4>
+            <div class="fs-4 fw-bold text-theme">0785287885</div>
 
         </div>
         <div class="mt-4" id="AirtelPayMethod" style="display: none;">
-          <h4 class="">Airtel pay</h4>
-            <div class="ussd-code">
-              *182*1*1*0735777412*<strong id="js-plan-airtel">0</strong>#
+          <h4 class="text-theme">Airtel pay</h4>
+            <div class="ussd-code text-theme">
+             *182*1*1*0735777412*<strong id="js-plan-airtel">0</strong>#
             </div>
             <button
               id="callButton-airtel"
@@ -433,7 +460,7 @@
               <i class="bi bi-telephone me-2"></i>Emeza
             </button>
           </div>
-            <p class="mt-2 mb-0">
+            <p class="mt-2 mb-0 text-muted">
               Hose amazina ni: <strong>"Mwami Modeste"</strong>
             </p>
 
@@ -678,7 +705,7 @@
       planCards.forEach((card) => {
         card.addEventListener("click", function (e) {
           if (e.target.tagName === "INPUT") return;
-          const input = card.querySelector('input[name="plan"]');
+          const input = document.getElementById(card.dataset.planId);
           if (input) {
             input.checked = true;
             input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -702,13 +729,14 @@
         });
       });
 
-      if (defaultPlanCard) {
-        defaultPlanCard.click();
+      const initialPlanCard = defaultPlanCard || planCards[0];
+      if (initialPlanCard) {
+        initialPlanCard.click();
       }
 
       function updateActiveCard() {
         planCards.forEach((card) => {
-          const input = card.querySelector('input[name="plan"]');
+          const input = document.getElementById(card.dataset.planId);
           card.classList.toggle("active", input && input.checked);
         });
       }
