@@ -59,6 +59,29 @@ def percentage(value, total):
 def current_date(value):
     return timezone.now().date()
 
+
+@register.filter
+def get_old_price(value):
+    return {
+        'Hourly': '500 RWF',
+        # 'Daily': '1000 RWF',
+        'Weekly': '3000 RWF',
+        'Half-Month': '5000 RWF',
+        'Monthly': '10000 RWF',
+        'VIP': '25000 RWF',        
+        }.get(value, '')
+
+@register.filter
+def get_plan_price(value):
+    return {
+        'Hourly': '300',
+        'Daily': '1000',
+        'Weekly': '2500',
+        'Half-Month': '4500',
+        'Monthly': '8000',
+        'VIP': '15000',
+        }.get(value, '')
+
 @register.filter
 def get_plan_description(plan_value):
     return {
@@ -67,8 +90,8 @@ def get_plan_description(plan_value):
             ('', 'Ukora ibizamini byose ushaka'),
             ('', 'Wemerewe amasomo yose'),
         ],
-        'Half-Day': [
-            ('', 'Rimara amasaha 12'),
+        'Daily': [
+            ('', 'Rimara amasaha 24'),
             ('', 'Ukora ibizamini byose ushaka'),
             ('', 'Wemerewe amasomo yose'),
             ('', 'Tugufasha ibibazo bikugora'),
@@ -85,35 +108,22 @@ def get_plan_description(plan_value):
             ('', 'Ukora ibizamini byose ushaka'),
             ('', 'Wemerewe amasomo yose'),
         ],
+        
+        'Monthly': [
+            ('', 'Rimara Iminsi 30'),
+            ('', 'Ukora ibizamini byose ushaka'),
+            ('', 'Wemerewe amasomo yose'),
+        ],
+        
         'VIP': [
             ('💳', 'Wishyura inshuro imwe gusa'),
-            ('', 'Rirangira wabonye provisior yawe'),
+            ('', 'Rirangira wabonye provisoire ariko nturenze iminsi 90'),
             ('', 'Ukora ibizamini byose ushaka'),
             ('', 'Wemerewe amasomo yose'),
             ('🤝', "Turakwigisha by'umwihariko"),
         ],
         }.get(plan_value, [])
 
-
-@register.filter
-def get_old_price(value):
-    return {
-        'Hourly': '500 RWF',
-        'Half-Day': '1000 RWF',
-        # 'Weekly': '3000 RWF',
-        'Half-Month': '4000 RWF',
-        'VIP': '7000 RWF',        
-        }.get(value, '')
-
-@register.filter
-def get_plan_price(value):
-    return {
-        'Hourly': '300',
-        'Half-Day': '500',
-        'Weekly': '2000',
-        'Half-Month': '3000',
-        'VIP': '5000',
-        }.get(value, '')
 
 @register.filter
 def choice_class(answer, choice):

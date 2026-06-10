@@ -264,9 +264,10 @@ class StaffLoginAttempt(models.Model):
 class Plan(models.Model):
     PLAN_CHOICES = (
         ('Hourly', "Isaha"),
-        ('Half-Day', "Amasaha 12"),
+        ('Daily', "Amasaha 24"),
         ('Weekly', "Icyumweru"),
         ('Half-Month', "Iminsi 15"),
+        ('Monthly', "Iminsi 30"),
         ('VIP', "VIP"),
         )
 
