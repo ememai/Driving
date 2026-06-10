@@ -117,10 +117,10 @@ def get_plan_description(plan_value):
         
         'VIP': [
             ('💳', 'Wishyura inshuro imwe gusa'),
-            ('', 'Rirangira wabonye provisoire ariko nturenze iminsi 90'),
+            ('', 'Rirangira wabonye provisoire'),
             ('', 'Ukora ibizamini byose ushaka'),
             ('', 'Wemerewe amasomo yose'),
-            ('🤝', "Turakwigisha by'umwihariko"),
+            ('🤝', "Uhabwa ubufasha bwose ukeneye k'ubuntu"),
         ],
         }.get(plan_value, [])
 
