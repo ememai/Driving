@@ -77,4 +77,7 @@ urlpatterns = [
     
     path('hindura-password/', views.password_reset, name='password_reset'),
     path('reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
+    
+    # Error reporting
+    path('report-error/', views.report_error, name='report_error'),
 ]

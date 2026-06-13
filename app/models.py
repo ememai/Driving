@@ -224,7 +224,7 @@ class UserProfile(AbstractUser):
             raise ValidationError(
                 f"Imeri '{self.email}' ntabwo yakiriye ubutumwa. Waba warayanditse nabi cyangwa ntiyabayeho?"
                 )
-
+ 
 
     def verify_otp(self, otp):
         return self.otp_code == otp
@@ -470,6 +470,7 @@ class Course(models.Model):
         blank=True, null=True, 
         help_text="Ibibisobanuro by'isomo"
     )
+    # bn = models.BooleanField(default=False, verbose_name="Buri wese")
     thumbnail = models.ImageField(upload_to='courses/thumbnails/', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'png', 'jpeg'])])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -986,6 +987,60 @@ class PaymentAutoConfirmSetting(models.Model):
                 raise ValidationError("Another active auto-confirm setting overlaps with this period.")
         
         super().save(*args, **kwargs)
+
+
+class ErrorReport(models.Model):
+    """
+    Model to store error reports submitted by users from error pages.
+    """
+    ERROR_TYPES = [
+        ('400', 'Bad Request'),
+        ('403', 'Forbidden'),
+        ('404', 'Not Found'),
+        ('500', 'Server Error'),
+    ]
+    
+    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='error_reports')
+    error_type = models.CharField(max_length=10, choices=ERROR_TYPES)
+    error_message = models.TextField(blank=True, help_text="Error message or exception details")
+    request_path = models.CharField(max_length=500, blank=True, help_text="The URL path where error occurred")
+    request_method = models.CharField(max_length=10, blank=True, default='GET')
+    user_agent = models.TextField(blank=True, help_text="Browser user agent string")
+    remote_address = models.CharField(max_length=50, blank=True, help_text="Client IP address")
+    referrer = models.CharField(max_length=500, blank=True, help_text="HTTP referrer")
+    status = models.CharField(
+        max_length=20,
+        default='new',
+        choices=[
+            ('new', 'New'),
+            ('in_progress', 'In Progress'),
+            ('resolved', 'Resolved'),
+            ('ignored', 'Ignored'),
+        ]
+    )
+    admin_notes = models.TextField(blank=True, help_text="Notes added by admin")
+    reported_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        verbose_name = "Error Report"
+        verbose_name_plural = "Error Reports"
+        ordering = ['-reported_at']
+        indexes = [
+            models.Index(fields=['-reported_at']),
+            models.Index(fields=['status']),
+            models.Index(fields=['error_type']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_error_type_display()} - {self.reported_at.strftime('%Y-%m-%d %H:%M')}"
+    
+    def mark_resolved(self):
+        """Mark error report as resolved."""
+        self.status = 'resolved'
+        self.resolved_at = timezone.now()
+        self.save(update_fields=['status', 'resolved_at', 'updated_at'])
 
 
 class PaymentConfirmLog(models.Model):

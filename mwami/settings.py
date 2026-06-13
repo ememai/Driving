@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('DJANGO_SECRET_KEY')
 DEBUG = config('MY_DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('MY_ALLOWED_HOSTS', default='127.0.0.1', cast=lambda v: v.split(','))
+ALLOWED_HOSTS = config('MY_ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=lambda v: [h.strip() for h in v.split(',')])
 
 
 CSRF_TRUSTED_ORIGINS = config('MY_CSRF_TRUSTED_ORIGINS', cast=lambda v: v.split(','))

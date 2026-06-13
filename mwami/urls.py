@@ -43,4 +43,7 @@ if settings.MEDIA_ROOT:
     ]
 # urlpatterns += path('pptx/', include('record.urls')), 
 
-handler404 = 'app.views.custom_page_not_found'
+handler400 = 'app.views.custom_bad_request'  # 400 Bad Request
+handler403 = 'app.views.csrf_failure'         # 403 Forbidden (CSRF failures)
+handler404 = 'app.views.custom_page_not_found'  # 404 Not Found
+handler500 = 'app.views.custom_server_error'    # 500 Server Error

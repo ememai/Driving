@@ -157,22 +157,7 @@
 
                 
             </style>
-            {% comment %} {% if user.is_staff %}
-                    <button id="test-loader-btn" class="btn btn-warning position-fixed" style="top: 80px; right: 20px; z-index: 20001;">Test Loader & Try Again</button>
-                    <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        var btn = document.getElementById('test-loader-btn');
-                        if (btn) {
-                            btn.addEventListener('click', function() {
-                                globalLoader.show();
-                                setTimeout(function() {
-                                    globalLoader.showTryAgain();
-                                }, 1000); // Show Try Again after 11s
-                            });
-                        }
-                    });
-                    </script>
-            {% endif %}  {% endcomment %}
+           
         <!-- Status Icons -->
         <div class="status-icon checkmark-icon" id="success-indicator">
             <i class="bi bi-check-circle-fill"></i> <!-- Bootstrap checkmark icon -->

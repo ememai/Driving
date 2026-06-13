@@ -755,4 +755,91 @@ def _custom_get_urls(self):
     return custom_urls + urls
 
 
+# Error Report Admin
+@admin.register(ErrorReport)
+class ErrorReportAdmin(admin.ModelAdmin):
+    list_display = ('error_type_display', 'reported_at', 'user_display', 'status_display', 'remote_address')
+    list_filter = ('status', 'error_type', 'reported_at')
+    search_fields = ('user__username', 'user__email', 'error_message', 'remote_address')
+    readonly_fields = ('user', 'error_type', 'error_message', 'request_path', 'request_method', 
+                       'user_agent', 'remote_address', 'referrer', 'reported_at', 'updated_at', 'resolved_at')
+    fieldsets = (
+        ('Error Information', {
+            'fields': ('error_type', 'status', 'error_message', 'request_path', 'request_method')
+        }),
+        ('User Information', {
+            'fields': ('user', 'remote_address', 'user_agent', 'referrer')
+        }),
+        ('Admin Notes', {
+            'fields': ('admin_notes',)
+        }),
+        ('Timestamps', {
+            'fields': ('reported_at', 'updated_at', 'resolved_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    @admin.display(description='Error Type')
+    def error_type_display(self, obj):
+        """Display error type with color coding."""
+        colors = {
+            '400': '#FFC107',  # Yellow
+            '403': '#FF5722',  # Orange
+            '404': '#2196F3',  # Blue
+            '500': '#F44336',  # Red
+        }
+        color = colors.get(obj.error_type, '#9C27B0')
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{}</span>',
+            color,
+            obj.get_error_type_display()
+        )
+    
+    @admin.display(description='User')
+    def user_display(self, obj):
+        """Display user info or Anonymous."""
+        if obj.user:
+            return f"{obj.user.username} ({obj.user.email})"
+        return "Anonymous"
+    
+    @admin.display(description='Status')
+    def status_display(self, obj):
+        """Display status with color coding."""
+        colors = {
+            'new': '#2196F3',        # Blue
+            'in_progress': '#FF9800', # Orange
+            'resolved': '#4CAF50',    # Green
+            'ignored': '#9E9E9E',     # Gray
+        }
+        color = colors.get(obj.status, '#9C27B0')
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{}</span>',
+            color,
+            obj.get_status_display()
+        )
+    
+    actions = ['mark_in_progress', 'mark_resolved', 'mark_ignored']
+    
+    @admin.action(description='Mark selected as In Progress')
+    def mark_in_progress(self, request, queryset):
+        """Mark selected error reports as in progress."""
+        updated = queryset.update(status='in_progress')
+        self.message_user(request, f'{updated} error reports marked as In Progress.', messages.SUCCESS)
+    
+    @admin.action(description='Mark selected as Resolved')
+    def mark_resolved(self, request, queryset):
+        """Mark selected error reports as resolved."""
+        updated = 0
+        for report in queryset:
+            report.mark_resolved()
+            updated += 1
+        self.message_user(request, f'{updated} error reports marked as Resolved.', messages.SUCCESS)
+    
+    @admin.action(description='Mark selected as Ignored')
+    def mark_ignored(self, request, queryset):
+        """Mark selected error reports as ignored."""
+        updated = queryset.update(status='ignored')
+        self.message_user(request, f'{updated} error reports marked as Ignored.', messages.SUCCESS)
+
+
 admin.site.__class__.get_urls = _custom_get_urls

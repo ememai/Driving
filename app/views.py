@@ -9,6 +9,7 @@ from .models import *
 from django.shortcuts import get_object_or_404
 from .forms import *
 import uuid
+import logging
 from .momo_utils import *
 from .utils import *
 from django.views.decorators.csrf import csrf_exempt
@@ -47,6 +48,9 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 User = get_user_model()
+
+# Configure logger for error handling
+logger = logging.getLogger(__name__)
 
 # avoid querying at import time without guarding for empty queryset
 # during tests there may be no exams yet, so ensure we don't crash
@@ -1438,18 +1442,205 @@ def bulk_delete_scheduled_exams(request):
     return redirect('manage_scheduled_exams')
 
 # ---------------------
+# Error Handlers
+# 400 Bad Request
+def custom_bad_request(request, exception):
+    """
+    Handle 400 bad request errors with proper logging.
+    """
+    # Safely get user - may not exist during early middleware exceptions
+    user = 'Anonymous'
+    if hasattr(request, 'user') and request.user and hasattr(request.user, 'is_authenticated'):
+        user = request.user if request.user.is_authenticated else 'Anonymous'
+    
+    logger.error(
+        "400 Bad Request",
+        extra={
+            'status_code': 400,
+            'path': getattr(request, 'path', 'Unknown'),
+            'method': getattr(request, 'method', 'Unknown'),
+            'user': user,
+            'remote_addr': request.META.get('REMOTE_ADDR', 'Unknown'),
+            'exception': str(exception),
+        }
+    )
+    
+    context = {
+        'error_code': 400,
+        'error_message': 'Bad Request - Invalid request format',
+    }
+    if hasattr(request, 'path'):
+        context['requested_path'] = request.path
+    
+    # Try to render error page, fallback to simple response
+    try:
+        return render(request, '400.html', context, status=400)
+    except:
+        return HttpResponse(
+            f"<h1>400 - Bad Request</h1><p>Invalid request format.</p>",
+            status=400,
+            content_type='text/html'
+        )
+
 #404 Error Page
 def custom_page_not_found(request, exception):
+    """
+    Handle 404 not found errors with proper logging.
+    """
+    # Safely get user - may not exist during early middleware exceptions
+    user = 'Anonymous'
+    if hasattr(request, 'user') and request.user and hasattr(request.user, 'is_authenticated'):
+        user = request.user if request.user.is_authenticated else 'Anonymous'
     
-    context = {}
+    logger.warning(
+        "404 Page Not Found",
+        extra={
+            'status_code': 404,
+            'path': getattr(request, 'path', 'Unknown'),
+            'method': getattr(request, 'method', 'Unknown'),
+            'user': user,
+            'remote_addr': request.META.get('REMOTE_ADDR', 'Unknown'),
+            'exception': str(exception),
+        }
+    )
+    
+    context = {
+        'error_code': 404,
+        'error_message': 'Page Not Found',
+        'requested_path': getattr(request, 'path', 'Unknown'),
+    }
     return render(request, '404.html', context, status=404)
+#500 Error Page
+def custom_server_error(request):
+    """
+    Handle 500 server errors with proper logging and context.
+    """
+    # Safely get user - may not exist during early middleware exceptions
+    user = 'Anonymous'
+    if hasattr(request, 'user') and request.user and hasattr(request.user, 'is_authenticated'):
+        user = request.user if request.user.is_authenticated else 'Anonymous'
+    
+    logger.error(
+        "500 Server Error occurred",
+        extra={
+            'status_code': 500,
+            'path': getattr(request, 'path', 'Unknown'),
+            'method': getattr(request, 'method', 'Unknown'),
+            'user': user,
+            'remote_addr': request.META.get('REMOTE_ADDR', 'Unknown'),
+        },
+        exc_info=True
+    )
+    
+    context = {
+        'error_code': 500,
+        'error_message': 'Internal Server Error',
+        'support_email': 'support@example.com',  # Update with your support email
+    }
+    try:
+        return render(request, '500.html', context, status=500)
+    except:
+        # Fallback if template rendering fails
+        return HttpResponse(
+            "<h1>500 - Server Error</h1><p>We're sorry, but something went wrong on our end.</p>",
+            status=500,
+            content_type='text/html'
+        )
+
+
+# Error Reporting View
+@require_POST
+@csrf_exempt  # Form is CSRF protected via token in template
+def report_error(request):
+    """
+    Handle error reports submitted by users from error pages.
+    POST parameters: error_type, error_message
+    """
+    try:
+        error_type = request.POST.get('error_type', '500').strip()
+        error_message = request.POST.get('error_message', '').strip()
+        
+        # Validate error type
+        valid_error_types = ['400', '403', '404', '500']
+        if error_type not in valid_error_types:
+            error_type = '500'
+        
+        # Get request metadata
+        user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
+        remote_address = request.META.get('REMOTE_ADDR', '')
+        referrer = request.META.get('HTTP_REFERER', '')[:500]
+        
+        # Get current user if authenticated
+        user = request.user if request.user.is_authenticated else None
+        
+        # Create error report
+        error_report = ErrorReport(
+            user=user,
+            error_type=error_type,
+            error_message=error_message,
+            request_path=request.path,
+            request_method=request.method,
+            user_agent=user_agent,
+            remote_address=remote_address,
+            referrer=referrer,
+        )
+        error_report.save()
+        
+        logger.info(
+            f"Error report #{error_report.id} received",
+            extra={
+                'error_type': error_type,
+                'user': user if user else 'Anonymous',
+                'remote_addr': remote_address,
+                'referrer': referrer,
+            }
+        )
+        
+        # Return to home page with success message
+        return JsonResponse({
+            'success': True,
+            'message': 'Murakoze gutanga raporo y’ikosa. Turayisuzuma vuba.'
+        })
+        
+    
+    except Exception as e:
+        logger.error(
+            f"Error while processing error report: {str(e)}",
+            exc_info=True
+        )
+        return JsonResponse({
+            'success': False,
+            'message': 'Karibu jaribu tena baadaye.'
+        }, status=500)
 
 
 @csrf_exempt  # We exempt this view from CSRF since it handles CSRF failures
 def csrf_failure(request, reason=""):
+    """
+    Handle CSRF failures with proper logging and user feedback.
+    """
+    # Safely get user - may not exist during early middleware exceptions
+    user = 'Anonymous'
+    if hasattr(request, 'user') and request.user and hasattr(request.user, 'is_authenticated'):
+        user = request.user if request.user.is_authenticated else 'Anonymous'
+    
+    logger.warning(
+        f"CSRF failure: {reason}",
+        extra={
+            'status_code': 403,
+            'path': getattr(request, 'path', 'Unknown'),
+            'method': getattr(request, 'method', 'Unknown'),
+            'reason': reason,
+            'user': user,
+            'remote_addr': request.META.get('REMOTE_ADDR', 'Unknown'),
+        }
+    )
+    
     ctx = {
         'reason': reason,
         'csrf_token': get_token(request),  # Generate new token
+        'error_code': 403,
+        'error_message': 'Forbidden - CSRF token missing or invalid',
     }
     return render(request, '403.html', ctx, status=403)
 
