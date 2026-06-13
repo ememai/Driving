@@ -5,18 +5,21 @@
 ### 🎯 New Visitor Analytics Features
 
 #### 1. **Geographic Location Tracking**
+
 - **Countries**: See where your visitors are coming from
 - **Cities**: Detailed city-level analytics for top locations
 - Auto-detection from IP address using multiple services
 - Fallback to IP-API for location data when primary method fails
 
 #### 2. **Device & Platform Detection**
+
 - **Device Types**: Mobile, Tablet, Desktop, Unknown
 - **Operating Systems**: iOS, Android, Windows, macOS, Linux
 - **Browser Information**: Browser name and version (Chrome, Firefox, Safari, etc.)
 - **Device Models**: Specific device names (iPhone 12, Samsung Galaxy, etc.)
 
 #### 3. **Traffic Source Identification**
+
 - **Direct Visits**: Direct URL access
 - **WhatsApp**: Traffic from WhatsApp clicks
 - **Facebook**: Traffic from Facebook referrals
@@ -27,6 +30,7 @@
 - Smart detection based on referrer analysis
 
 #### 4. **Enhanced Hourly Traffic Chart**
+
 - Now shows **ONLY HOURS** (8, 9, 10, 11... 23)
 - Formatted as "8:00", "9:00", etc. for clarity
 - No minute-level granularity
@@ -56,6 +60,7 @@
 ### 🗄️ Database Model Enhancements
 
 #### New Fields in TrafficLog:
+
 ```
 Location Data:
 - country (String, Indexed)
@@ -75,6 +80,7 @@ Traffic Source:
 ```
 
 #### Database Indexes Added:
+
 - `country, -timestamp`
 - `device_type, -timestamp`
 - `browser, -timestamp`
@@ -84,6 +90,7 @@ Traffic Source:
 ### 🔧 Technical Improvements
 
 #### Middleware Enhancements (`app/middleware.py`)
+
 ```python
 # New Functions:
 - parse_user_agent()      # Extract device/browser/OS from user agent
@@ -92,6 +99,7 @@ Traffic Source:
 ```
 
 #### Dependencies Added:
+
 ```
 user-agents==2.2.0        # For user agent parsing
 ua-parser==1.0.2          # User agent parser library
@@ -129,6 +137,7 @@ ua-parser==1.0.2          # User agent parser library
 ### 📈 Analytics Data Now Available
 
 **Top Tables:**
+
 - Top Countries (with country codes)
 - Top Cities (with country)
 - Device Types Distribution
@@ -142,9 +151,11 @@ ua-parser==1.0.2          # User agent parser library
 - Referrers
 
 **Charts:**
+
 - Hourly Traffic (Last 24 hours with hourly breakdowns: 8, 9, 10... 23)
 
 **Key Metrics:**
+
 - Total Requests
 - Unique Users
 - Unique IPs
@@ -153,6 +164,7 @@ ua-parser==1.0.2          # User agent parser library
 ### 🔍 Admin Panel Enhancements
 
 **TrafficLogAdmin Improvements:**
+
 - Date hierarchy by timestamp
 - Expandable fieldsets for organization
 - More detailed list display
@@ -174,11 +186,13 @@ ua-parser==1.0.2          # User agent parser library
 ### 📍 Location Detection Methods
 
 **Priority Order:**
+
 1. Django GeoIP2 (if configured with MaxMind DB)
 2. IP-API service (HTTP-based fallback)
 3. Manual entry (if using custom GeoIP library)
 
 Location data includes:
+
 - Country name
 - Country code (2-letter ISO)
 - City name
@@ -198,6 +212,7 @@ Location data includes:
 **Migration:** `0078_alter_trafficlog_options_trafficlog_browser_and_more`
 
 Creates:
+
 - 9 new fields
 - 9 new database indexes
 - Updated Meta options
@@ -236,6 +251,7 @@ Check "Top Countries" and "Top Cities" sections to understand visitor geography
 ### 🌐 Geographic Data Privacy
 
 Location data is extracted from IP addresses:
+
 - No personal user data stored
 - IP-based geolocation only
 - Country and city level only (not exact coordinates)

@@ -1,678 +1,745 @@
 <!-- dashboard/templates/dashboard/traffic_dashboard.html -->
-{% extends "dashboard/base.html" %}
-{% load static %}
-
-{% block content %}
+{% extends "dashboard/base.html" %} {% load static %} {% block content %}
 <style>
-    .stats-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    .stats-card.blue {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    .stats-card.green {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-    
-    .stats-card.orange {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-    
-    .stats-card.red {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
-    
-    .stats-value {
-        font-size: 28px;
-        font-weight: bold;
-        margin: 10px 0;
-    }
-    
-    .stats-label {
-        font-size: 14px;
-        opacity: 0.9;
-    }
-    
-    .chart-container {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    .table-container {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    .status-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: bold;
-    }
-    
-    .status-200 { background-color: #d4edda; color: #155724; }
-    .status-301 { background-color: #cce5ff; color: #004085; }
-    .status-302 { background-color: #cce5ff; color: #004085; }
-    .status-400 { background-color: #fff3cd; color: #856404; }
-    .status-404 { background-color: #fff3cd; color: #856404; }
-    .status-500 { background-color: #f8d7da; color: #721c24; }
-    
-    .device-badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: bold;
-        margin: 2px;
-    }
-    
-    .device-mobile { background-color: #e3f2fd; color: #1565c0; }
-    .device-tablet { background-color: #f3e5f5; color: #6a1b9a; }
-    .device-desktop { background-color: #e0f2f1; color: #00695c; }
-    .device-unknown { background-color: #f5f5f5; color: #616161; }
+  .stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .stats-card.blue {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .stats-card.green {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .stats-card.orange {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+
+  .stats-card.red {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  }
+
+  .stats-value {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+
+  .stats-label {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+
+  .chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .table-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .status-200 {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  .status-301 {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+  .status-302 {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+  .status-400 {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  .status-404 {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  .status-500 {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  .device-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    margin: 2px;
+  }
+
+  .device-mobile {
+    background-color: #e3f2fd;
+    color: #1565c0;
+  }
+  .device-tablet {
+    background-color: #f3e5f5;
+    color: #6a1b9a;
+  }
+  .device-desktop {
+    background-color: #e0f2f1;
+    color: #00695c;
+  }
+  .device-unknown {
+    background-color: #f5f5f5;
+    color: #616161;
+  }
 </style>
 
 <div class="container-fluid mt-4">
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h1 class="mb-0">📊 Traffic Analytics Dashboard</h1>
-        </div>
-        <div class="col-md-6 text-end">
-            <div class="btn-group" role="group">
-                <a href="?days=1" class="btn btn-sm {% if days == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}">24h</a>
-                <a href="?days=7" class="btn btn-sm {% if days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}">7d</a>
-                <a href="?days=30" class="btn btn-sm {% if days == 30 %}btn-primary{% else %}btn-outline-primary{% endif %}">30d</a>
-                <a href="?days=90" class="btn btn-sm {% if days == 90 %}btn-primary{% else %}btn-outline-primary{% endif %}">90d</a>
-            </div>
-        </div>
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h1 class="mb-0">📊 Traffic Analytics Dashboard</h1>
     </div>
-    
-    <!-- Key Statistics -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="stats-card blue">
-                <div class="stats-label">Total Requests</div>
-                <div class="stats-value">{{ total_requests|default:0 }}</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card green">
-                <div class="stats-label">Unique Users</div>
-                <div class="stats-value">{{ unique_users|default:0 }}</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card orange">
-                <div class="stats-label">Unique IPs</div>
-                <div class="stats-value">{{ unique_ips|default:0 }}</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card red">
-                <div class="stats-label">Avg Response Time</div>
-                <div class="stats-value">{{ avg_response_time|default:0 }}ms</div>
-            </div>
-        </div>
+    <div class="col-md-6 text-end">
+      <div class="btn-group" role="group">
+        <a
+          href="?days=1"
+          class="btn btn-sm {% if days == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}"
+          >24h</a
+        >
+        <a
+          href="?days=7"
+          class="btn btn-sm {% if days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}"
+          >7d</a
+        >
+        <a
+          href="?days=30"
+          class="btn btn-sm {% if days == 30 %}btn-primary{% else %}btn-outline-primary{% endif %}"
+          >30d</a
+        >
+        <a
+          href="?days=90"
+          class="btn btn-sm {% if days == 90 %}btn-primary{% else %}btn-outline-primary{% endif %}"
+          >90d</a
+        >
+      </div>
     </div>
-    
-    <!-- Hourly Traffic Chart -->
-    <div class="chart-container">
-        <h4 class="mb-3">📈 Traffic Over Time (Last 24 Hours - Hourly)</h4>
-        <canvas id="hourlyTrafficChart" style="max-height: 300px;"></canvas>
+  </div>
+
+  <!-- Key Statistics -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="stats-card blue">
+        <div class="stats-label">Total Requests</div>
+        <div class="stats-value">{{ total_requests|default:0 }}</div>
+      </div>
     </div>
-    
-    <!-- Geographic Distribution -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="table-container">
-                <h4 class="mb-3">🌍 Top Countries</h4>
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Country</th>
-                            <th class="text-end">Visitors</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for country in top_countries %}
-                        <tr>
-                            <td>
-                                <span class="badge bg-info">{{ country.country_code }}</span>
-                                {{ country.country }}
-                            </td>
-                            <td class="text-end">
-                                <span class="badge bg-primary">{{ country.count }}</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No location data available</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="table-container">
-                <h4 class="mb-3">🏙️ Top Cities</h4>
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>City</th>
-                            <th>Country</th>
-                            <th class="text-end">Visitors</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for city in top_cities %}
-                        <tr>
-                            <td>{{ city.city }}</td>
-                            <td><small>{{ city.country }}</small></td>
-                            <td class="text-end">
-                                <span class="badge bg-primary">{{ city.count }}</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="text-center text-muted">No city data available</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="col-md-3">
+      <div class="stats-card green">
+        <div class="stats-label">Unique Users</div>
+        <div class="stats-value">{{ unique_users|default:0 }}</div>
+      </div>
     </div>
-    
-    <!-- Device & Platform Distribution -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="table-container">
-                <h4 class="mb-3">📱 Device Types</h4>
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Device</th>
-                            <th class="text-end">Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for device in device_types %}
-                        <tr>
-                            <td>
-                                <span class="device-badge device-{{ device.device_type }}">
-                                    {{ device.device_type|upper }}
-                                </span>
-                            </td>
-                            <td class="text-end">
-                                <span class="badge bg-secondary">{{ device.count }}</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No device data</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="table-container">
-                <h4 class="mb-3">💻 Operating Systems</h4>
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>OS</th>
-                            <th class="text-end">Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for os in operating_systems %}
-                        <tr>
-                            <td>
-                                <span class="badge bg-warning">{{ os.os|upper }}</span>
-                            </td>
-                            <td class="text-end">
-                                <span class="badge bg-secondary">{{ os.count }}</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No OS data</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="table-container">
-                <h4 class="mb-3">🚀 Traffic Source</h4>
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Platform</th>
-                            <th class="text-end">Visitors</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for platform in platforms %}
-                        <tr>
-                            <td>
-                                {% if platform.platform == 'whatsapp' %}
-                                    <i class="bi bi-whatsapp text-success"></i>
-                                {% elif platform.platform == 'facebook' %}
-                                    <i class="bi bi-facebook text-primary"></i>
-                                {% elif platform.platform == 'twitter' %}
-                                    <i class="bi bi-twitter text-info"></i>
-                                {% elif platform.platform == 'google' %}
-                                    <i class="bi bi-search text-danger"></i>
-                                {% elif platform.platform == 'direct' %}
-                                    <i class="bi bi-arrow-up text-secondary"></i>
-                                {% else %}
-                                    <i class="bi bi-link-45deg"></i>
-                                {% endif %}
-                                {{ platform.platform|upper }}
-                            </td>
-                            <td class="text-end">
-                                <span class="badge bg-success">{{ platform.count }}</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No source data</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="col-md-3">
+      <div class="stats-card orange">
+        <div class="stats-label">Unique IPs</div>
+        <div class="stats-value">{{ unique_ips|default:0 }}</div>
+      </div>
     </div>
-    
-    <!-- Browsers and Device Names -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="table-container">
-                <h4 class="mb-3">🌐 Top Browsers</h4>
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Browser</th>
-                            <th class="text-end">Visits</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for browser in browsers %}
-                        <tr>
-                            <td>
-                                <small title="{{ browser.browser }}">{{ browser.browser|truncatechars:30 }}</small>
-                            </td>
-                            <td class="text-end">
-                                <span class="badge bg-secondary">{{ browser.count }}</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No browser data</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="table-container">
-                <h4 class="mb-3">📲 Device Models</h4>
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Device</th>
-                            <th class="text-end">Visits</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for device in device_names %}
-                        <tr>
-                            <td>
-                                <small>{{ device.device_name|truncatechars:40 }}</small>
-                            </td>
-                            <td class="text-end">
-                                <span class="badge bg-secondary">{{ device.count }}</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No device model data</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="col-md-3">
+      <div class="stats-card red">
+        <div class="stats-label">Avg Response Time</div>
+        <div class="stats-value">{{ avg_response_time|default:0 }}ms</div>
+      </div>
     </div>
-    
-    <!-- Pages and Status Codes -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="table-container">
-                <h4 class="mb-3">📄 Top Pages by Traffic</h4>
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Page</th>
-                            <th class="text-end">Requests</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for page in top_pages %}
-                        <tr>
-                            <td>
-                                <small title="{{ page.path }}">{{ page.path|truncatechars:50 }}</small>
-                            </td>
-                            <td class="text-end">
-                                <span class="badge bg-primary">{{ page.count }}</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No data available</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="table-container">
-                <h4 class="mb-3">✅ HTTP Status Codes</h4>
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Status</th>
-                            <th class="text-end">Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for status in status_codes %}
-                        <tr>
-                            <td>
-                                <span class="status-badge status-{{ status.status_code }}">
-                                    {{ status.status_code }}
-                                </span>
-                            </td>
-                            <td class="text-end">
-                                <span class="badge bg-secondary">{{ status.count }}</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No data available</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+  </div>
+
+  <!-- Hourly Traffic Chart -->
+  <div class="chart-container">
+    <h4 class="mb-3">📈 Traffic Over Time (Last 24 Hours - Hourly)</h4>
+    <canvas id="hourlyTrafficChart" style="max-height: 300px"></canvas>
+  </div>
+
+  <!-- Geographic Distribution -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="table-container">
+        <h4 class="mb-3">🌍 Top Countries</h4>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>Country</th>
+              <th class="text-end">Visitors</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for country in top_countries %}
+            <tr>
+              <td>
+                <span class="badge bg-info">{{ country.country_code }}</span>
+                {{ country.country }}
+              </td>
+              <td class="text-end">
+                <span class="badge bg-primary">{{ country.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-center text-muted">
+                No location data available
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-    
-    <!-- HTTP Methods and Referrers -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="table-container">
-                <h4 class="mb-3">🔧 HTTP Methods</h4>
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Method</th>
-                            <th class="text-end">Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for method in methods %}
-                        <tr>
-                            <td>
-                                <span class="badge bg-info">{{ method.method }}</span>
-                            </td>
-                            <td class="text-end">
-                                <span class="badge bg-secondary">{{ method.count }}</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No data available</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="table-container">
-                <h4 class="mb-3">🔗 Top Referrers</h4>
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Referrer</th>
-                            <th class="text-end">Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for referrer in top_referrers %}
-                        <tr>
-                            <td>
-                                <small title="{{ referrer.referrer }}">
-                                    {{ referrer.referrer|truncatechars:40 }}
-                                </small>
-                            </td>
-                            <td class="text-end">
-                                <span class="badge bg-secondary">{{ referrer.count }}</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No referrer data available</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+
+    <div class="col-md-6">
+      <div class="table-container">
+        <h4 class="mb-3">🏙️ Top Cities</h4>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>City</th>
+              <th>Country</th>
+              <th class="text-end">Visitors</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for city in top_cities %}
+            <tr>
+              <td>{{ city.city }}</td>
+              <td><small>{{ city.country }}</small></td>
+              <td class="text-end">
+                <span class="badge bg-primary">{{ city.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="text-center text-muted">
+                No city data available
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-    
-    <!-- Recent Traffic Logs -->
-    <div class="table-container">
-        <h4 class="mb-3">📋 Recent Traffic Logs</h4>
-        <div class="table-responsive">
-            <table class="table table-sm table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Time</th>
-                        <th>User</th>
-                        <th>Page</th>
-                        <th>Device</th>
-                        <th>Location</th>
-                        <th>Source</th>
-                        <th>Status</th>
-                        <th>Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in recent_logs %}
-                    <tr>
-                        <td><small>{{ log.timestamp|date:"H:i:s" }}</small></td>
-                        <td>
-                            {% if log.user %}
-                                <small>{{ log.user.name }}</small>
-                            {% else %}
-                                <span class="text-muted text-nowrap">Anonymous</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <small title="{{ log.path }}">{{ log.path|truncatechars:25 }}</small>
-                        </td>
-                        <td>
-                            <small>
-                                <span class="device-badge device-{{ log.device_type }}">
-                                    {{ log.device_type|upper }}
-                                </span>
-                            </small>
-                        </td>
-                        <td>
-                            <small>
-                                {% if log.city %}
-                                    {{ log.city }}, {{ log.country_code }}
-                                {% elif log.country %}
-                                    {{ log.country }}
-                                {% else %}
-                                    <span class="text-muted">N/A</span>
-                                {% endif %}
-                            </small>
-                        </td>
-                        <td>
-                            <small>
-                                {% if log.platform == 'whatsapp' %}
-                                    <i class="bi bi-whatsapp text-success"></i> WhatsApp
-                                {% elif log.platform == 'facebook' %}
-                                    <i class="bi bi-facebook text-primary"></i> FB
-                                {% elif log.platform == 'google' %}
-                                    <i class="bi bi-search"></i> Google
-                                {% elif log.platform == 'direct' %}
-                                    <i class="bi bi-arrow-up"></i> Direct
-                                {% else %}
-                                    {{ log.platform }}
-                                {% endif %}
-                            </small>
-                        </td>
-                        <td>
-                            <span class="status-badge status-{{ log.status_code }}">
-                                {{ log.status_code }}
-                            </span>
-                        </td>
-                        <td><small>{{ log.response_time|floatformat:1 }}ms</small></td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="8" class="text-center text-muted">No traffic data available</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- Pagination -->
-        {% if recent_logs.has_other_pages %}
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                {% if recent_logs.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1&days={{ days }}">First</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ recent_logs.previous_page_number }}&days={{ days }}">
-                            Previous
-                        </a>
-                    </li>
+  </div>
+
+  <!-- Device & Platform Distribution -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="table-container">
+        <h4 class="mb-3">📱 Device Types</h4>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>Device</th>
+              <th class="text-end">Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for device in device_types %}
+            <tr>
+              <td>
+                <span class="device-badge device-{{ device.device_type }}">
+                  {{ device.device_type|upper }}
+                </span>
+              </td>
+              <td class="text-end">
+                <span class="badge bg-secondary">{{ device.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-center text-muted">No device data</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="table-container">
+        <h4 class="mb-3">💻 Operating Systems</h4>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>OS</th>
+              <th class="text-end">Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for os in operating_systems %}
+            <tr>
+              <td>
+                <span class="badge bg-warning">{{ os.os|upper }}</span>
+              </td>
+              <td class="text-end">
+                <span class="badge bg-secondary">{{ os.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-center text-muted">No OS data</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="table-container">
+        <h4 class="mb-3">🚀 Traffic Source</h4>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th class="text-end">Visitors</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for platform in platforms %}
+            <tr>
+              <td>
+                {% if platform.platform == 'whatsapp' %}
+                <i class="bi bi-whatsapp text-success"></i>
+                {% elif platform.platform == 'facebook' %}
+                <i class="bi bi-facebook text-primary"></i>
+                {% elif platform.platform == 'twitter' %}
+                <i class="bi bi-twitter text-info"></i>
+                {% elif platform.platform == 'google' %}
+                <i class="bi bi-search text-danger"></i>
+                {% elif platform.platform == 'direct' %}
+                <i class="bi bi-arrow-up text-secondary"></i>
+                {% else %}
+                <i class="bi bi-link-45deg"></i>
+                {% endif %} {{ platform.platform|upper }}
+              </td>
+              <td class="text-end">
+                <span class="badge bg-success">{{ platform.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-center text-muted">No source data</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Browsers and Device Names -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="table-container">
+        <h4 class="mb-3">🌐 Top Browsers</h4>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>Browser</th>
+              <th class="text-end">Visits</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for browser in browsers %}
+            <tr>
+              <td>
+                <small title="{{ browser.browser }}"
+                  >{{ browser.browser|truncatechars:30 }}</small
+                >
+              </td>
+              <td class="text-end">
+                <span class="badge bg-secondary">{{ browser.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-center text-muted">
+                No browser data
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="table-container">
+        <h4 class="mb-3">📲 Device Models</h4>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>Device</th>
+              <th class="text-end">Visits</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for device in device_names %}
+            <tr>
+              <td>
+                <small>{{ device.device_name|truncatechars:40 }}</small>
+              </td>
+              <td class="text-end">
+                <span class="badge bg-secondary">{{ device.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-center text-muted">
+                No device model data
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pages and Status Codes -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="table-container">
+        <h4 class="mb-3">📄 Top Pages by Traffic</h4>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th class="text-end">Requests</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for page in top_pages %}
+            <tr>
+              <td>
+                <small title="{{ page.path }}"
+                  >{{ page.path|truncatechars:50 }}</small
+                >
+              </td>
+              <td class="text-end">
+                <span class="badge bg-primary">{{ page.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-center text-muted">
+                No data available
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="table-container">
+        <h4 class="mb-3">✅ HTTP Status Codes</h4>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th class="text-end">Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for status in status_codes %}
+            <tr>
+              <td>
+                <span class="status-badge status-{{ status.status_code }}">
+                  {{ status.status_code }}
+                </span>
+              </td>
+              <td class="text-end">
+                <span class="badge bg-secondary">{{ status.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-center text-muted">
+                No data available
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- HTTP Methods and Referrers -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="table-container">
+        <h4 class="mb-3">🔧 HTTP Methods</h4>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th class="text-end">Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for method in methods %}
+            <tr>
+              <td>
+                <span class="badge bg-info">{{ method.method }}</span>
+              </td>
+              <td class="text-end">
+                <span class="badge bg-secondary">{{ method.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-center text-muted">
+                No data available
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="table-container">
+        <h4 class="mb-3">🔗 Top Referrers</h4>
+        <table class="table table-sm table-hover">
+          <thead>
+            <tr>
+              <th>Referrer</th>
+              <th class="text-end">Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for referrer in top_referrers %}
+            <tr>
+              <td>
+                <small title="{{ referrer.referrer }}">
+                  {{ referrer.referrer|truncatechars:40 }}
+                </small>
+              </td>
+              <td class="text-end">
+                <span class="badge bg-secondary">{{ referrer.count }}</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="text-center text-muted">
+                No referrer data available
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Traffic Logs -->
+  <div class="table-container">
+    <h4 class="mb-3">📋 Recent Traffic Logs</h4>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Time</th>
+            <th>User</th>
+            <th>Page</th>
+            <th>Device</th>
+            <th>Location</th>
+            <th>Source</th>
+            <th>Status</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in recent_logs %}
+          <tr>
+            <td><small>{{ log.timestamp|date:"H:i:s" }}</small></td>
+            <td>
+              {% if log.user %}
+              <small>{{ log.user.name }}</small>
+              {% else %}
+              <span class="text-muted text-nowrap">Anonymous</span>
+              {% endif %}
+            </td>
+            <td>
+              <small title="{{ log.path }}"
+                >{{ log.path|truncatechars:25 }}</small
+              >
+            </td>
+            <td>
+              <small>
+                <span class="device-badge device-{{ log.device_type }}">
+                  {{ log.device_type|upper }}
+                </span>
+              </small>
+            </td>
+            <td>
+              <small>
+                {% if log.city %} {{ log.city }}, {{ log.country_code }} {% elif
+                log.country %} {{ log.country }} {% else %}
+                <span class="text-muted">N/A</span>
                 {% endif %}
-                
-                {% for num in recent_logs.paginator.page_range %}
-                    {% if recent_logs.number == num %}
-                        <li class="page-item active">
-                            <span class="page-link">{{ num }}</span>
-                        </li>
-                    {% elif num > recent_logs.number|add:'-3' and num < recent_logs.number|add:'3' %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ num }}&days={{ days }}">{{ num }}</a>
-                        </li>
-                    {% endif %}
-                {% endfor %}
-                
-                {% if recent_logs.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ recent_logs.next_page_number }}&days={{ days }}">
-                            Next
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ recent_logs.paginator.num_pages }}&days={{ days }}">
-                            Last
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
+              </small>
+            </td>
+            <td>
+              <small>
+                {% if log.platform == 'whatsapp' %}
+                <i class="bi bi-whatsapp text-success"></i> WhatsApp {% elif
+                log.platform == 'facebook' %}
+                <i class="bi bi-facebook text-primary"></i> FB {% elif
+                log.platform == 'google' %} <i class="bi bi-search"></i> Google
+                {% elif log.platform == 'direct' %}
+                <i class="bi bi-arrow-up"></i> Direct {% else %} {{ log.platform
+                }} {% endif %}
+              </small>
+            </td>
+            <td>
+              <span class="status-badge status-{{ log.status_code }}">
+                {{ log.status_code }}
+              </span>
+            </td>
+            <td><small>{{ log.response_time|floatformat:1 }}ms</small></td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center text-muted">
+              No traffic data available
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if recent_logs.has_other_pages %}
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+        {% if recent_logs.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page=1&days={{ days }}">First</a>
+        </li>
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?page={{ recent_logs.previous_page_number }}&days={{ days }}"
+          >
+            Previous
+          </a>
+        </li>
+        {% endif %} {% for num in recent_logs.paginator.page_range %} {% if
+        recent_logs.number == num %}
+        <li class="page-item active">
+          <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > recent_logs.number|add:'-3' and num <
+        recent_logs.number|add:'3' %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ num }}&days={{ days }}"
+            >{{ num }}</a
+          >
+        </li>
+        {% endif %} {% endfor %} {% if recent_logs.has_next %}
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?page={{ recent_logs.next_page_number }}&days={{ days }}"
+          >
+            Next
+          </a>
+        </li>
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?page={{ recent_logs.paginator.num_pages }}&days={{ days }}"
+          >
+            Last
+          </a>
+        </li>
         {% endif %}
-    </div>
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
 </div>
 
 <!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
 <script>
-    // Hourly Traffic Chart - Shows only hours (8, 9, 10, etc.)
-    const hourlyTrafficCtx = document.getElementById('hourlyTrafficChart').getContext('2d');
-    const hourlyTrafficData = {{ hourly_traffic|safe }};
-    
-    new Chart(hourlyTrafficCtx, {
-        type: 'line',
-        data: {
-            labels: hourlyTrafficData.map(d => d.hour + ':00'),  // Format as "8:00", "9:00", etc.
-            datasets: [{
-                label: 'Requests per Hour',
-                data: hourlyTrafficData.map(d => d.count),
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: '#667eea',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 5,
-                pointHoverRadius: 7
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: true,
-                    labels: {
-                        boxWidth: 12,
-                        font: { size: 12 }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Number of Requests' }
-                },
-                x: {
-                    title: { display: true, text: 'Hour of Day' }
-                }
-            }
-        }
-    });
+  // Hourly Traffic Chart - Shows only hours (8, 9, 10, etc.)
+  const hourlyTrafficCtx = document.getElementById('hourlyTrafficChart').getContext('2d');
+  const hourlyTrafficData = {{ hourly_traffic|safe }};
+
+  new Chart(hourlyTrafficCtx, {
+      type: 'line',
+      data: {
+          labels: hourlyTrafficData.map(d => d.hour + ':00'),  // Format as "8:00", "9:00", etc.
+          datasets: [{
+              label: 'Requests per Hour',
+              data: hourlyTrafficData.map(d => d.count),
+              borderColor: '#667eea',
+              backgroundColor: 'rgba(102, 126, 234, 0.1)',
+              borderWidth: 3,
+              tension: 0.4,
+              fill: true,
+              pointBackgroundColor: '#667eea',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+              legend: {
+                  display: true,
+                  labels: {
+                      boxWidth: 12,
+                      font: { size: 12 }
+                  }
+              }
+          },
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  title: { display: true, text: 'Number of Requests' }
+              },
+              x: {
+                  title: { display: true, text: 'Hour of Day' }
+              }
+          }
+      }
+  });
 </script>
 {% endblock %}
