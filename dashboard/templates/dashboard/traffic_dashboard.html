@@ -603,8 +603,8 @@
             </td>
             <td>
               <small>
-                {% if log.city %} {{ log.city }}, {{ log.country_code }} {% elif
-                log.country %} {{ log.country }} {% else %}
+                {% if log.city %} {{ log.city }}, {{ log.country_code }} 
+                {% elif log.country %} {{ log.country }} {% else %}
                 <span class="text-muted">N/A</span>
                 {% endif %}
               </small>
@@ -612,13 +612,10 @@
             <td>
               <small>
                 {% if log.platform == 'whatsapp' %}
-                <i class="bi bi-whatsapp text-success"></i> WhatsApp {% elif
-                log.platform == 'facebook' %}
-                <i class="bi bi-facebook text-primary"></i> FB {% elif
-                log.platform == 'google' %} <i class="bi bi-search"></i> Google
+                <i class="bi bi-whatsapp text-success"></i> WhatsApp {% elif log.platform == 'facebook' %}
+                <i class="bi bi-facebook text-primary"></i> FB {% elif log.platform == 'google' %} <i class="bi bi-search"></i> Google
                 {% elif log.platform == 'direct' %}
-                <i class="bi bi-arrow-up"></i> Direct {% else %} {{ log.platform
-                }} {% endif %}
+                <i class="bi bi-arrow-up"></i> Direct {% else %} {{ log.platform }} {% endif %}
               </small>
             </td>
             <td>
@@ -655,13 +652,12 @@
             Previous
           </a>
         </li>
-        {% endif %} {% for num in recent_logs.paginator.page_range %} {% if
-        recent_logs.number == num %}
+        {% endif %} {% for num in recent_logs.paginator.page_range %} 
+        {% if recent_logs.number == num %}
         <li class="page-item active">
           <span class="page-link">{{ num }}</span>
         </li>
-        {% elif num > recent_logs.number|add:'-3' and num <
-        recent_logs.number|add:'3' %}
+        {% elif num > recent_logs.number|add:'-3' and num < recent_logs.number|add:'3' %}
         <li class="page-item">
           <a class="page-link" href="?page={{ num }}&days={{ days }}"
             >{{ num }}</a
