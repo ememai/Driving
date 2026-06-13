@@ -325,6 +325,176 @@ def admin_dashboard(request):
     }
     return render(request, 'dashboard/dashboard.html', context)
 
+
+@login_required
+@user_passes_test(staff_required)
+def traffic_dashboard(request):
+    """
+    Display website traffic analytics and statistics with visitor details
+    """
+    from datetime import timedelta
+    from django.db.models import Count, Q, Avg
+    
+    # Get time range filter from query parameters
+    days = int(request.GET.get('days', 7))
+    start_date = timezone.now() - timedelta(days=days)
+    
+    # Traffic logs for the selected period
+    traffic_logs = TrafficLog.objects.filter(timestamp__gte=start_date).order_by('-timestamp')
+    
+    # Calculate statistics
+    total_requests = traffic_logs.count()
+    unique_users = traffic_logs.filter(user__isnull=False).values('user').distinct().count()
+    unique_ips = traffic_logs.values('ip_address').distinct().count()
+    avg_response_time = traffic_logs.aggregate(Avg('response_time'))['response_time__avg'] or 0
+    
+    # Top pages by traffic
+    top_pages = (
+        traffic_logs
+        .values('path')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:15]
+    )
+    
+    # Status code distribution
+    status_codes = (
+        traffic_logs
+        .values('status_code')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    
+    # Traffic by hour (last 24 hours) - Fixed to show hours only
+    last_24h = timezone.now() - timedelta(days=1)
+    traffic_24h = traffic_logs.filter(timestamp__gte=last_24h)
+    
+    hourly_traffic = []
+    for i in range(24, 0, -1):
+        hour_start = timezone.now() - timedelta(hours=i)
+        hour_end = hour_start + timedelta(hours=1)
+        count = traffic_24h.filter(timestamp__gte=hour_start, timestamp__lt=hour_end).count()
+        hourly_traffic.append({
+            'hour': hour_start.strftime('%H'),  # Only show hour (8, 9, 10, etc)
+            'count': count
+        })
+    
+    # Geographic distribution (Country and City)
+    top_countries = (
+        traffic_logs
+        .filter(country__isnull=False)
+        .exclude(country='')
+        .values('country', 'country_code')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    
+    top_cities = (
+        traffic_logs
+        .filter(city__isnull=False)
+        .exclude(city='')
+        .values('city', 'country')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    
+    # Device distribution
+    device_types = (
+        traffic_logs
+        .values('device_type')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    
+    # Browser distribution
+    browsers = (
+        traffic_logs
+        .filter(browser__isnull=False)
+        .exclude(browser='')
+        .values('browser')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    
+    # Operating system distribution
+    operating_systems = (
+        traffic_logs
+        .values('os')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    
+    # Traffic platform/source distribution
+    platforms = (
+        traffic_logs
+        .values('platform')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    
+    # Top referrers
+    top_referrers = (
+        traffic_logs
+        .filter(referrer__isnull=False)
+        .exclude(referrer='')
+        .values('referrer')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    
+    # HTTP methods
+    methods = (
+        traffic_logs
+        .values('method')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    
+    # Device names (specific devices)
+    device_names = (
+        traffic_logs
+        .filter(device_name__isnull=False)
+        .exclude(device_name='')
+        .values('device_name')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    
+    # Paginate recent logs
+    paginator = Paginator(traffic_logs, 50)
+    page = request.GET.get('page')
+    try:
+        recent_logs = paginator.page(page)
+    except PageNotAnInteger:
+        recent_logs = paginator.page(1)
+    except EmptyPage:
+        recent_logs = paginator.page(paginator.num_pages)
+    
+    context = {
+        'days': days,
+        'total_requests': total_requests,
+        'unique_users': unique_users,
+        'unique_ips': unique_ips,
+        'avg_response_time': round(avg_response_time, 2),
+        'top_pages': top_pages,
+        'status_codes': status_codes,
+        'hourly_traffic': hourly_traffic,
+        
+        # New analytics
+        'top_countries': top_countries,
+        'top_cities': top_cities,
+        'device_types': device_types,
+        'browsers': browsers,
+        'operating_systems': operating_systems,
+        'platforms': platforms,
+        'device_names': device_names,
+        'top_referrers': top_referrers,
+        'methods': methods,
+        'recent_logs': recent_logs,
+    }
+    
+    return render(request, 'dashboard/traffic_dashboard.html', context)
+
+
 @login_required
 @user_passes_test(staff_required)
 def schedule_exam(request):

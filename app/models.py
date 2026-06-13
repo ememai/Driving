@@ -899,9 +899,86 @@ class ContactMessage(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+
+class TrafficLog(models.Model):
+    """Model to track website traffic and user visits"""
+    DEVICE_CHOICES = [
+        ('mobile', 'Mobile'),
+        ('tablet', 'Tablet'),
+        ('desktop', 'Desktop'),
+        ('unknown', 'Unknown'),
+    ]
+    
+    OS_CHOICES = [
+        ('ios', 'iOS'),
+        ('android', 'Android'),
+        ('windows', 'Windows'),
+        ('macos', 'macOS'),
+        ('linux', 'Linux'),
+        ('unknown', 'Unknown'),
+    ]
+    
+    PLATFORM_CHOICES = [
+        ('direct', 'Direct Visit'),
+        ('whatsapp', 'WhatsApp'),
+        ('facebook', 'Facebook'),
+        ('twitter', 'Twitter'),
+        ('instagram', 'Instagram'),
+        ('linkedin', 'LinkedIn'),
+        ('google', 'Google'),
+        ('email', 'Email'),
+        ('other', 'Other Referrer'),
+        ('unknown', 'Unknown'),
+    ]
+    
+    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='traffic_logs')
+    path = models.CharField(max_length=500)
+    method = models.CharField(max_length=10, default='GET')
+    status_code = models.IntegerField(default=200)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    
+    # Location data
+    country = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    country_code = models.CharField(max_length=2, blank=True, null=True)
+    
+    # Device information
+    device_type = models.CharField(max_length=20, choices=DEVICE_CHOICES, default='unknown', db_index=True)
+    device_name = models.CharField(max_length=200, blank=True, null=True)
+    browser = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    browser_version = models.CharField(max_length=50, blank=True, null=True)
+    os = models.CharField(max_length=20, choices=OS_CHOICES, default='unknown', db_index=True)
+    os_version = models.CharField(max_length=50, blank=True, null=True)
+    
+    # Traffic source
+    platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES, default='unknown', db_index=True)
+    
+    # User agent and referrer
+    user_agent = models.TextField(blank=True, null=True)
+    referrer = models.CharField(max_length=500, blank=True, null=True)
+    
+    # Performance
+    response_time = models.FloatField(default=0.0, help_text="Response time in milliseconds")
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    
     class Meta:
-        verbose_name = "Message"
-        verbose_name_plural = "User Messages"
+        ordering = ['-timestamp']
+        verbose_name = "Traffic Log"
+        verbose_name_plural = "Traffic Logs"
+        indexes = [
+            models.Index(fields=['-timestamp']),
+            models.Index(fields=['path', '-timestamp']),
+            models.Index(fields=['user', '-timestamp']),
+            models.Index(fields=['status_code', '-timestamp']),
+            models.Index(fields=['country', '-timestamp']),
+            models.Index(fields=['device_type', '-timestamp']),
+            models.Index(fields=['browser', '-timestamp']),
+            models.Index(fields=['os', '-timestamp']),
+            models.Index(fields=['platform', '-timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.path} - {self.status_code} - {self.timestamp}"
 
     def __str__(self):
         return f"Message from {self.name} ({self.email})"

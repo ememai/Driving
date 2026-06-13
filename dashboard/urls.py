@@ -6,6 +6,7 @@ from .views import *
 
 urlpatterns = [
     path('', admin_dashboard, name='admin_dashboard'),
+    path('traffic/', traffic_dashboard, name='traffic_dashboard'),
     path('staff-login/', StaffLoginView.as_view(), name='staff_login'),
     path('schedule-exam/', schedule_exam, name='schedule_exam'),
     path('schedule-exam/<int:pk>/update/', scheduled_exam_update, name='scheduled_exam_update'),

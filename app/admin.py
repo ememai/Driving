@@ -744,6 +744,43 @@ def migrate_media_view(request):
     return HttpResponseRedirect('/admin/')
 
 
+@admin.register(TrafficLog)
+class TrafficLogAdmin(admin.ModelAdmin):
+    list_display = ('timestamp', 'path', 'status_code', 'method', 'user_display', 'device_type', 'country', 'platform', 'response_time')
+    list_filter = ('timestamp', 'status_code', 'method', 'device_type', 'os', 'platform', 'country')
+    search_fields = ('path', 'ip_address', 'user__name', 'country', 'city', 'browser')
+    readonly_fields = ('timestamp', 'path', 'method', 'status_code', 'ip_address', 'user_agent', 'referrer', 'response_time', 'user', 'country', 'city', 'country_code', 'device_type', 'device_name', 'browser', 'browser_version', 'os', 'os_version', 'platform')
+    ordering = ('-timestamp',)
+    date_hierarchy = 'timestamp'
+    
+    fieldsets = (
+        ('Request Information', {
+            'fields': ('timestamp', 'path', 'method', 'status_code', 'user', 'response_time')
+        }),
+        ('Client Information', {
+            'fields': ('ip_address', 'user_agent', 'device_type', 'device_name', 'browser', 'browser_version', 'os', 'os_version')
+        }),
+        ('Location Data', {
+            'fields': ('country', 'country_code', 'city'),
+            'classes': ('collapse',)
+        }),
+        ('Traffic Source', {
+            'fields': ('platform', 'referrer'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def user_display(self, obj):
+        return obj.user.name if obj.user else "Anonymous"
+    user_display.short_description = "User"
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
 _original_get_urls = admin.site.__class__.get_urls
 
 
