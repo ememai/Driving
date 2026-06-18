@@ -61,9 +61,10 @@
               {% for scheduled in scheduled_exams %}
               <tr>
                 <td>
-                  <input type="checkbox" class="form-check-input exam-checkbox" name="selected_exams" value="{{ scheduled.id }}">
+                  <label class="form-check-label" for="examCheckbox{{ scheduled.id }}">{{ forloop.counter }}</label>
+                  <input type="checkbox"  class="form-check-input exam-checkbox" name="selected_exams" value="{{ scheduled.id }}">
                 </td>
-                <th scope="row">{{ forloop.counter }}</th>
+                <th scope="row">{{ scheduled.exam.id }} | {{ scheduled.id }}</th>
                 <td>
                   <strong>{{ scheduled.exam.exam_type.name }}</strong><br />
                   <small class="text-muted">{{ scheduled.exam.schedule_hour }}</small>
@@ -81,7 +82,7 @@
                 <span class="badge bg-info">Scheduled</span>
                 {% endif %}
               </td>
-              <td>{{ scheduled.updated_datetime|date:"d M Y, H:i" }}</td>
+              <td>{{ scheduled.exam.created_at|date:"d M Y, H:i" }}</td>
               <td class="text-end">
                 <div class="d-flex justify-content-end gap-1">
                 <a
