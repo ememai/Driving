@@ -215,16 +215,23 @@ def check_exam_availability(hour):
 def auto_create_exams(number, for_scheduling=True, ):
     exams_created = 0
     created_exam_ids = []
+    skipped_reasons = []
 
-
+    # If today is Sunday, skip creating exams
     if timezone.localtime(timezone.now()).weekday() == 6:  # Sunday is represented by 6
-        print("❌ No exams created on Sundays.")
+        msg = "❌ No exams created on Sundays."
+        logger.info(msg)
+        total_q = Question.objects.count()
+        notify_admin(f"{localtime().strftime('%d-%m-%Y %H:%M')} {msg} Total questions available: {total_q}")
         return exams_created, created_exam_ids
+
     for i in range(number):
         try:
             exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
             questions = Question.objects.order_by('?')[:20]
-            if questions.count() < 20:
+            qcount = questions.count()
+            if qcount < 20:
+                skipped_reasons.append(f"Not enough questions for exam #{i+1} (found {qcount})")
                 continue
 
             last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
@@ -245,8 +252,19 @@ def auto_create_exams(number, for_scheduling=True, ):
             exams_created += 1
 
         except Exception as e:
-            print(f"Error: {e}")
-    notify_admin(f"✅done creating {exams_created} exams")
+            logger.exception("Error creating exam #%s: %s", i + 1, e)
+            skipped_reasons.append(f"Exception for exam #{i+1}: {e}")
+            continue
+
+    # Send diagnostic admin notification when nothing was created
+    total_questions = Question.objects.count()
+    if exams_created == 0:
+        reason_summary = "; ".join(skipped_reasons) if skipped_reasons else "Unknown"
+        notify_admin(
+            f"{localtime().strftime('%d-%m-%Y %H:%M')} ❌ Done creating 0 exams. Reasons: {reason_summary}. Total questions available: {total_questions}"
+        )
+    else:
+        notify_admin(f"{localtime().strftime('%d-%m-%Y %H:%M')} ✅ Created {exams_created} exams. Skipped: {len(skipped_reasons)}")
 
     return exams_created, created_exam_ids
 
