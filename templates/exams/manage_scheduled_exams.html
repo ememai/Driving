@@ -16,35 +16,48 @@
         </button>
       </div>
 
-      {% include "flash_message.html" %}
-
-      {% if scheduled_exams %}
+      {% include "flash_message.html" %} {% if scheduled_exams %}
       <!-- Bulk Actions -->
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-          <button type="button" class="btn btn-outline-danger btn-sm" id="deleteSelectedBtn" disabled>
+          <button
+            type="button"
+            class="btn btn-outline-danger btn-sm"
+            id="deleteSelectedBtn"
+            disabled
+          >
             <i class="bi bi-trash me-1"></i> Delete Selected
           </button>
         </div>
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="selectAll">
-          <label class="form-check-label" for="selectAll">
-            Select All
-          </label>
+          <input class="form-check-input" type="checkbox" id="selectAll" />
+          <label class="form-check-label" for="selectAll"> Select All </label>
         </div>
       </div>
 
-      <form id="bulkDeleteForm" method="post" action="{% url 'bulk_delete_scheduled_exams' %}">
+      <form
+        id="bulkDeleteForm"
+        method="post"
+        action="{% url 'bulk_delete_scheduled_exams' %}"
+      >
         {% csrf_token %}
         <div class="table-responsive">
-          <table class="table table-hover table-bordered align-middle shadow-sm">
+          <table
+            class="table table-hover table-bordered align-middle shadow-sm"
+          >
             <thead class="table-dark">
               <tr>
                 <th scope="col">
-                  <input type="checkbox" class="form-check-input" id="selectAllTable">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="selectAllTable"
+                  />
                 </th>
                 <th scope="col">#</th>
-                <th scope="col"><i class="bi bi-journal-text me-1"></i> Exam</th>
+                <th scope="col">
+                  <i class="bi bi-journal-text me-1"></i> Exam
+                </th>
                 <th scope="col">
                   <i class="bi bi-clock me-1"></i> Scheduled Date & Time
                 </th>
@@ -61,62 +74,75 @@
               {% for scheduled in scheduled_exams %}
               <tr>
                 <td>
-                  <label class="form-check-label" for="examCheckbox{{ scheduled.id }}">{{ forloop.counter }}</label>
-                  <input type="checkbox"  class="form-check-input exam-checkbox" name="selected_exams" value="{{ scheduled.id }}">
+                  <label
+                    class="form-check-label"
+                    for="examCheckbox{{ scheduled.id }}"
+                    >{{ forloop.counter }}</label
+                  >
+                  <input
+                    type="checkbox"
+                    class="form-check-input exam-checkbox"
+                    name="selected_exams"
+                    value="{{ scheduled.id }}"
+                  />
                 </td>
-                <th scope="row">{{ scheduled.exam.id }} | {{ scheduled.id }}</th>
+                <th scope="row">
+                  {{ scheduled.exam.id }} | {{ scheduled.id }}
+                </th>
                 <td>
                   <strong>{{ scheduled.exam.exam_type.name }}</strong><br />
-                  <small class="text-muted">{{ scheduled.exam.schedule_hour }}</small>
+                  <small class="text-muted"
+                    >{{ scheduled.exam.schedule_hour }}</small
+                  >
                   <small class="d-block mt-1">
                     ({{ scheduled.exam.total_questions }} questions)
                   </small>
                 </td>
                 <td>{{ scheduled.scheduled_datetime|date:"d M Y, H:i" }}</td>
                 <td>
-                {% if scheduled.is_published %}
-                <span class="badge bg-success">Published</span>
-                {% elif scheduled.is_live %}
-                <span class="badge bg-warning">Live</span>
-                {% else %}
-                <span class="badge bg-info">Scheduled</span>
-                {% endif %}
-              </td>
-              <td>{{ scheduled.exam.created_at|date:"d M Y, H:i" }}</td>
-              <td class="text-end">
-                <div class="d-flex justify-content-end gap-1">
-                <a
-                  href="{% url 'edit_scheduled_exam' scheduled.id %}"
-                  class="btn btn-sm btn-outline-primary me-1"
-                  title="Edit Scheduled Exam"
+                  {% if scheduled.is_published %}
+                  <span class="badge bg-success">Published</span>
+                  {% elif scheduled.is_live %}
+                  <span class="badge bg-warning">Live</span>
+                  {% else %}
+                  <span class="badge bg-info">Scheduled</span>
+                  {% endif %}
+                </td>
+                <td>{{ scheduled.exam.created_at|date:"d M Y, H:i" }}</td>
+                <td class="text-end">
+                  <div class="d-flex justify-content-end gap-1">
+                    <a
+                      href="{% url 'edit_scheduled_exam' scheduled.id %}"
+                      class="btn btn-sm btn-outline-primary me-1"
+                      title="Edit Scheduled Exam"
                     >
-                  <i class="bi bi-pencil"></i>
-                </a>
-                <form
-                  action="{% url 'delete_scheduled_exam' scheduled.id %}"
-                  method="post"
-                  class="d-inline"
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <form
+                      action="{% url 'delete_scheduled_exam' scheduled.id %}"
+                      method="post"
+                      class="d-inline"
                     >
-                  {% csrf_token %}
-                  <button
-                    type="submit"
-                    class="btn btn-sm btn-outline-danger"
-                    title="Delete Scheduled Exam"
-                    onclick="
-                      return confirm(
-                        'Are you sure you want to delete this scheduled exam?',
-                      );
-                    "
-                  >
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </form>
-                </div>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+                      {% csrf_token %}
+                      <button
+                        type="submit"
+                        class="btn btn-sm btn-outline-danger"
+                        title="Delete Scheduled Exam"
+                        onclick="
+                          return confirm(
+                            'Are you sure you want to delete this scheduled exam?',
+                          );
+                        "
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </form>
       {% else %}
@@ -129,7 +155,8 @@
 
   <!-- Schedule/Edit Exam Modal -->
   <div
-    class="modal fade top-50 start-50 translate-middle" style="transition:all 0.3; z-index: 12000;" 
+    class="modal fade top-50 start-50 translate-middle"
+    style="transition: all 0.3; z-index: 12000"
     id="scheduleExamModal"
     tabindex="-1"
     aria-labelledby="scheduleExamModalLabel"
@@ -154,6 +181,22 @@
         <form method="POST">
           {% csrf_token %}
           <div class="modal-body">
+            <div
+              id="modal-error-alert"
+              class="alert alert-danger alert-dismissible fade show"
+              role="alert"
+              style="display: none"
+            >
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <strong>Scheduling Error:</strong>
+              <span id="modal-error-message"></span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+              ></button>
+            </div>
             <div class="mb-3">
               <label for="exam" class="form-label">Select Exam</label>
               <select class="form-select" id="exam" name="exam" required>
@@ -188,6 +231,11 @@
               />
               <div class="form-text">
                 Select a future date and time for the exam to be published.
+              </div>
+              <div class="alert alert-info mt-2" role="alert">
+                Note: only exams marked for scheduling are selectable. If an
+                exam hour on the chosen date is already taken, the scheduler
+                will skip that hour — choose a different hour or date.
               </div>
             </div>
           </div>
@@ -224,72 +272,122 @@
 {% endif %}
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const selectAllCheckbox = document.getElementById('selectAll');
-    const selectAllTableCheckbox = document.getElementById('selectAllTable');
-    const examCheckboxes = document.querySelectorAll('.exam-checkbox');
-    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
-    const bulkDeleteForm = document.getElementById('bulkDeleteForm');
+  document.addEventListener("DOMContentLoaded", function () {
+    const selectAllCheckbox = document.getElementById("selectAll");
+    const selectAllTableCheckbox = document.getElementById("selectAllTable");
+    const examCheckboxes = document.querySelectorAll(".exam-checkbox");
+    const deleteSelectedBtn = document.getElementById("deleteSelectedBtn");
+    const bulkDeleteForm = document.getElementById("bulkDeleteForm");
 
     // Function to update delete button state
     function updateDeleteButton() {
-        const checkedBoxes = document.querySelectorAll('.exam-checkbox:checked');
-        deleteSelectedBtn.disabled = checkedBoxes.length === 0;
-        deleteSelectedBtn.textContent = checkedBoxes.length === 0 
-            ? ' Delete Selected' 
-            : ` Delete Selected (${checkedBoxes.length})`;
+      const checkedBoxes = document.querySelectorAll(".exam-checkbox:checked");
+      deleteSelectedBtn.disabled = checkedBoxes.length === 0;
+      deleteSelectedBtn.textContent =
+        checkedBoxes.length === 0
+          ? " Delete Selected"
+          : ` Delete Selected (${checkedBoxes.length})`;
     }
 
     // Function to update select all checkboxes
     function updateSelectAll() {
-        const totalCheckboxes = examCheckboxes.length;
-        const checkedCheckboxes = document.querySelectorAll('.exam-checkbox:checked').length;
-        
-        selectAllCheckbox.checked = checkedCheckboxes === totalCheckboxes && totalCheckboxes > 0;
-        selectAllTableCheckbox.checked = selectAllCheckbox.checked;
+      const totalCheckboxes = examCheckboxes.length;
+      const checkedCheckboxes = document.querySelectorAll(
+        ".exam-checkbox:checked",
+      ).length;
+
+      selectAllCheckbox.checked =
+        checkedCheckboxes === totalCheckboxes && totalCheckboxes > 0;
+      selectAllTableCheckbox.checked = selectAllCheckbox.checked;
     }
 
     // Select all functionality
-    selectAllCheckbox.addEventListener('change', function() {
-        examCheckboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-        });
-        selectAllTableCheckbox.checked = this.checked;
-        updateDeleteButton();
+    selectAllCheckbox.addEventListener("change", function () {
+      examCheckboxes.forEach((checkbox) => {
+        checkbox.checked = this.checked;
+      });
+      selectAllTableCheckbox.checked = this.checked;
+      updateDeleteButton();
     });
 
-    selectAllTableCheckbox.addEventListener('change', function() {
-        examCheckboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-        });
-        selectAllCheckbox.checked = this.checked;
-        updateDeleteButton();
+    selectAllTableCheckbox.addEventListener("change", function () {
+      examCheckboxes.forEach((checkbox) => {
+        checkbox.checked = this.checked;
+      });
+      selectAllCheckbox.checked = this.checked;
+      updateDeleteButton();
     });
 
     // Individual checkbox change
-    examCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            updateSelectAll();
-            updateDeleteButton();
-        });
+    examCheckboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", function () {
+        updateSelectAll();
+        updateDeleteButton();
+      });
     });
 
     // Delete selected button
-    deleteSelectedBtn.addEventListener('click', function() {
-        const checkedBoxes = document.querySelectorAll('.exam-checkbox:checked');
-        if (checkedBoxes.length === 0) return;
+    deleteSelectedBtn.addEventListener("click", function () {
+      const checkedBoxes = document.querySelectorAll(".exam-checkbox:checked");
+      if (checkedBoxes.length === 0) return;
 
-        const count = checkedBoxes.length;
-        const confirmMessage = `Are you sure you want to delete ${count} selected scheduled exam${count > 1 ? 's' : ''}?`;
-        
-        if (confirm(confirmMessage)) {
-            bulkDeleteForm.submit();
-        }
+      const count = checkedBoxes.length;
+      const confirmMessage = `Are you sure you want to delete ${count} selected scheduled exam${count > 1 ? "s" : ""}?`;
+
+      if (confirm(confirmMessage)) {
+        bulkDeleteForm.submit();
+      }
     });
 
     // Initialize button state
     updateDeleteButton();
-});
+  });
+
+  // Handle error messages and modal display
+  document.addEventListener("DOMContentLoaded", function () {
+    const flashMessages = document.querySelectorAll(".flash-popup");
+    const scheduleForm = document.querySelector("form[method='POST']");
+    const modalErrorAlert = document.getElementById("modal-error-alert");
+    const modalErrorMessage = document.getElementById("modal-error-message");
+    const scheduleModal = new bootstrap.Modal(
+      document.getElementById("scheduleExamModal"),
+    );
+
+    // Check if any error message contains scheduling-related keywords
+    let hasSchedulingError = false;
+    flashMessages.forEach((msg) => {
+      const text = msg.textContent.toLowerCase();
+      if (
+        text.includes("already scheduled") ||
+        text.includes("datetime") ||
+        text.includes("scheduling error")
+      ) {
+        hasSchedulingError = true;
+        // Extract error message and show in modal
+        const errorText = msg.textContent.trim();
+        modalErrorMessage.textContent = errorText;
+        modalErrorAlert.style.display = "block";
+      }
+    });
+
+    // If there was a scheduling error, reopen the modal
+    if (hasSchedulingError) {
+      scheduleModal.show();
+    }
+
+    // Validate datetime before submission
+    if (scheduleForm) {
+      scheduleForm.addEventListener("submit", function (e) {
+        const datetime = document.getElementById("scheduled_datetime").value;
+        if (!datetime) {
+          e.preventDefault();
+          modalErrorMessage.textContent = "Please select a date and time.";
+          modalErrorAlert.style.display = "block";
+          return false;
+        }
+      });
+    }
+  });
 </script>
 
 {% endblock %}

@@ -1,7 +1,11 @@
 from django.test import TestCase
 from django.urls import reverse
-from app.models import UserProfile, Plan, Subscription, ExamType, Exam
 from django.utils import timezone
+from datetime import timedelta
+
+from app.models import UserProfile, Plan, Subscription, ExamType, Exam, ScheduledExam
+from app.utils import auto_schedule_recent_exams
+from dashboard.forms import ScheduledExamForm
 
 
 
@@ -232,3 +236,45 @@ class ExamsByTypeTabsTests(TestCase):
         self.assertIn('no-results-info', html)
         self.assertIn('Nta bizamini bihuye n\'ibyatoranyijwe', html)
         self.assertNotIn('onclick="resetFilters', html)
+
+
+class ScheduledExamGuardTests(TestCase):
+    def setUp(self):
+        self.staff = UserProfile.objects.create_user(
+            phone_number='250780000010',
+            email='staff@example.com',
+            password='staffpass',
+            is_staff=True,
+        )
+        self.exam_type = ExamType.objects.create(name='GuardTestType')
+        self.scheduled_exam = Exam.objects.create(
+            exam_type=self.exam_type,
+            schedule_hour=timezone.now().time().replace(minute=0, second=0, microsecond=0),
+            for_scheduling=True,
+            is_active=False,
+        )
+        self.unscheduled_exam = Exam.objects.create(
+            exam_type=self.exam_type,
+            schedule_hour=timezone.now().time().replace(minute=0, second=0, microsecond=0),
+            for_scheduling=True,
+            is_active=False,
+        )
+        ScheduledExam.objects.create(
+            exam=self.scheduled_exam,
+            scheduled_datetime=timezone.now() + timedelta(days=1)
+        )
+
+    def test_scheduled_exam_form_rejects_previously_scheduled_exam(self):
+        data = {
+            'exam': self.scheduled_exam.id,
+            'scheduled_datetime': (timezone.now() + timedelta(days=2)).strftime('%Y-%m-%dT%H:%M'),
+        }
+        form = ScheduledExamForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('exam', form.errors)
+        self.assertEqual(form.errors['exam'], ['This exam is already scheduled.'])
+
+    def test_auto_schedule_recent_exams_skips_already_scheduled_exams(self):
+        count, message = auto_schedule_recent_exams()
+        self.assertEqual(count, 1)
+        self.assertIn('scheduled successfully', message)

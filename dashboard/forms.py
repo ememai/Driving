@@ -34,13 +34,57 @@ class ScheduledExamForm(forms.ModelForm):
         if exams is None:
             exams = Exam.objects.all()
             cache.set('dashboard_exam_list', exams, 300)
-        self.fields['exam'].queryset = exams
+
+        excluded_exam_ids = list(ScheduledExam.objects.values_list('exam_id', flat=True))
+        if self.instance and self.instance.pk and self.instance.exam_id:
+            excluded_exam_ids = [exam_id for exam_id in excluded_exam_ids if exam_id != self.instance.exam_id]
+
+        # Only allow exams marked for scheduling and not already scheduled
+        self.fields['exam'].queryset = exams.filter(for_scheduling=True).exclude(id__in=excluded_exam_ids)
     
+    def clean_exam(self):
+        exam = self.cleaned_data.get('exam')
+        if exam is None:
+            return exam
+
+        already_scheduled = ScheduledExam.objects.filter(exam=exam).exists()
+        if already_scheduled and not self.instance.pk:
+            raise forms.ValidationError("This exam is already scheduled.")
+
+        if already_scheduled and self.instance.pk and self.instance.exam_id != exam.id:
+            raise forms.ValidationError("This exam is already scheduled.")
+
+        return exam
+
     def clean_scheduled_datetime(self):
         scheduled_datetime = self.cleaned_data.get('scheduled_datetime')
         if scheduled_datetime < timezone.now():
             raise forms.ValidationError("Scheduled time cannot be in the past.")
         return scheduled_datetime
+
+    def clean(self):
+        cleaned_data = super().clean()
+        scheduled_datetime = cleaned_data.get('scheduled_datetime')
+        
+        if not scheduled_datetime:
+            return cleaned_data
+        
+        # Check for duplicate datetime
+        conflict = ScheduledExam.objects.filter(
+            scheduled_datetime=scheduled_datetime
+        )
+        
+        # Exclude current instance if updating
+        if self.instance and self.instance.pk:
+            conflict = conflict.exclude(pk=self.instance.pk)
+        
+        if conflict.exists():
+            conflict_exam = conflict.first()
+            raise forms.ValidationError(
+                f"Another exam ({conflict_exam.exam.exam_type.name if conflict_exam.exam.exam_type else 'Unknown'}) is already scheduled at {scheduled_datetime}. Choose a different time."
+            )
+        
+        return cleaned_data
 
 
 class StaffLoginForm(forms.Form):

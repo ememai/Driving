@@ -1389,9 +1389,13 @@ def schedule_recent_exams(request):
     
     if request.method == 'POST':
         
-        _ , message =  auto_schedule_recent_exams()
-    
-        messages.success(request, message)
+        count, message = auto_schedule_recent_exams()
+        
+        # Show as success if any exams were scheduled, warning otherwise
+        if count > 0:
+            messages.success(request, message)
+        else:
+            messages.warning(request, message)
         return redirect('auto_schedule_exams')  # Or redirect to a success page
 
     return render(request, 'exams/schedule_recent_exams.html')
@@ -1420,21 +1424,44 @@ def manage_scheduled_exams(request, scheduled_exam_id=None):
             
             if scheduled_exam:
                 # Update existing scheduled exam
+                if scheduled_exam.exam_id != exam.id and ScheduledExam.objects.filter(exam=exam).exists():
+                    raise ValueError("This exam is already scheduled.")
+
+                # Prevent scheduling conflicts: no two exams at same datetime
+                conflict = ScheduledExam.objects.filter(
+                    scheduled_datetime=scheduled_datetime
+                ).exclude(id=scheduled_exam.id).exists()
+                if conflict:
+                    raise ValueError("Another exam is already scheduled at that exact date and time.")
+
                 scheduled_exam.exam = exam
                 scheduled_exam.scheduled_datetime = scheduled_datetime
                 scheduled_exam.save()
                 messages.success(request, "Scheduled exam updated successfully!")
             else:
-                # Create new scheduled exam
+                # Ensure the exam is marked for scheduling
+                if not exam.for_scheduling:
+                    raise ValueError("This exam is not allowed for scheduling.")
+
+                # Prevent scheduling an exam that already has a scheduled record
+                if ScheduledExam.objects.filter(exam=exam).exists():
+                    raise ValueError("This exam is already scheduled.")
+
+                # Prevent scheduling conflicts: no two exams at same datetime
+                if ScheduledExam.objects.filter(
+                    scheduled_datetime=scheduled_datetime
+                ).exists():
+                    raise ValueError("Another exam is already scheduled at that exact date and time.")
+
                 ScheduledExam.objects.create(
                     exam=exam,
                     scheduled_datetime=scheduled_datetime,
                 )
                 messages.success(request, "Exam scheduled successfully!")
-            
+
             return redirect('manage_scheduled_exams')
         except (ValueError, TypeError) as e:
-            messages.error(request, f"Invalid input: {e}")
+            messages.error(request, str(e))
 
     # Get all scheduled exams
     scheduled_exams = ScheduledExam.objects.select_related('exam').order_by('-scheduled_datetime')

@@ -252,7 +252,11 @@ def auto_create_exams(number, for_scheduling=True, ):
 
 def auto_schedule_recent_exams():
     scheduled_exams_count = 0
-    recent_exams = Exam.objects.filter(for_scheduling=True).order_by('-created_at')[:8]
+    skipped_exams = []
+    recent_exams = Exam.objects.filter(
+        for_scheduling=True,
+        scheduledexam__isnull=True
+    ).order_by('-created_at')[:8]
     today = timezone.localtime(timezone.now()).date()
     message = ''
 
@@ -261,19 +265,70 @@ def auto_schedule_recent_exams():
         print(message)
         return scheduled_exams_count, message
 
+    if not recent_exams.exists():
+        message = "ℹ️ No new unscheduled exams found to schedule."
+        return scheduled_exams_count, message
+
     for exam in recent_exams:
         scheduled_time = timezone.make_aware(
             datetime.combine(today, time(hour=exam.schedule_hour.hour, minute=20))
         )
+        # Double-check inside a transaction to avoid race conditions where
+        # another process may create a ScheduledExam for this exam concurrently.
+        try:
+            from django.db import transaction, IntegrityError
 
-        ScheduledExam.objects.update_or_create(
-            exam=exam,
-            defaults={'scheduled_datetime': scheduled_time}
-        )
-        scheduled_exams_count += 1
-        message += f"\n\n🏁 Exam '{exam.schedule_hour}' scheduled successfully!\n"
+            with transaction.atomic():
+                # Skip if exam already scheduled
+                if ScheduledExam.objects.filter(exam=exam).exists():
+                    logger.info("Skipping exam %s: already has ScheduledExam", exam.id)
+                    skipped_exams.append(
+                        f"⏸️ {exam.exam_type.name}: Already scheduled"
+                    )
+                    continue
 
-    return scheduled_exams_count, message
+                # Skip if that exact datetime is already taken by another scheduled exam
+                if ScheduledExam.objects.filter(
+                    scheduled_datetime=scheduled_time
+                ).exists():
+                    logger.info(
+                        "Skipping exam %s: datetime %s already taken",
+                        exam.id,
+                        scheduled_time,
+                    )
+                    conflicting = ScheduledExam.objects.get(
+                        scheduled_datetime=scheduled_time
+                    )
+                    skipped_exams.append(
+                        f"❌ {exam.exam_type.name}: Another exam ({conflicting.exam.exam_type.name if conflicting.exam.exam_type else 'Unknown'}) is already scheduled at {scheduled_time.strftime('%H:%M')}"
+                    )
+                    continue
+
+                ScheduledExam.objects.create(
+                    exam=exam,
+                    scheduled_datetime=scheduled_time
+                )
+                scheduled_exams_count += 1
+                message += f"✅ {exam.exam_type.name} scheduled at {scheduled_time.strftime('%Y-%m-%d %H:%M')}\n"
+        except IntegrityError:
+            # If a concurrent create slipped through, skip and continue.
+            skipped_exams.append(
+                f"❌ {exam.exam_type.name}: Concurrent scheduling error (try again)"
+            )
+            continue
+
+    # Build final message with summary
+    summary = f"\n\n📊 **Scheduling Summary:**\n"
+    summary += f"✅ Successfully scheduled: {scheduled_exams_count}\n"
+    summary += f"⏭️ Skipped: {len(skipped_exams)}\n"
+    
+    if skipped_exams:
+        summary += f"\n**Skipped Exams (Reasons):**\n"
+        for skip in skipped_exams:
+            summary += f"{skip}\n"
+    
+    return scheduled_exams_count, message + summary
+
 
 import re
 
