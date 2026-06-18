@@ -1280,13 +1280,15 @@ def create_exam_page(request, exam_id=None):
     exam = None
     if exam_id:
         exam = get_object_or_404(Exam, id=exam_id)
-    
+
+    number_of_exams = 1
     if request.method == 'POST':
         try:
             schedule_hour = request.POST.get('schedule_hour')
             duration = int(request.POST.get('duration', 20))
+            number_of_exams = int(request.POST.get('number_of_exams', 1))
             for_scheduling = 'for_scheduling' in request.POST
-            
+
             if exam:
                 # Update existing exam
                 exam.schedule_hour = schedule_hour
@@ -1295,22 +1297,67 @@ def create_exam_page(request, exam_id=None):
                 exam.save()
                 messages.success(request, "Exam updated successfully!")
             else:
-                # Create new exam
+                if number_of_exams < 1:
+                    raise ValueError("Number of exams must be at least 1.")
+                if number_of_exams > 50:
+                    raise ValueError("Number of exams cannot exceed 50.")
+
                 exam_type = ExamType.objects.get_or_create(name='Ibivanze')[0]
-                questions = Question.objects.order_by('?')[:20]
-                if questions.count() < 20:
+                total_questions = Question.objects.count()
+                if total_questions < 20:
                     messages.error(request, "Not enough questions available.")
                     return redirect('create_exam')
+
+                created_exam_ids = []
                 
-                exam = Exam.objects.create(
-                    exam_type=exam_type,
-                    schedule_hour=schedule_hour,
-                    duration=duration,
-                    for_scheduling=for_scheduling,
-                )
-                exam.questions.set(questions)
-                messages.success(request, "Exam created successfully!")
-            
+                # Use auto_create_exams flow when creating multiple exams
+                if number_of_exams > 1:
+                    # Check if Sunday
+                    if timezone.localtime(timezone.now()).weekday() == 6:
+                        messages.error(request, "Cannot create exams on Sundays.")
+                        return redirect('create_exam')
+                    
+                    # Create multiple exams with auto-calculated schedule hours
+                    for _ in range(number_of_exams):
+                        try:
+                            questions = Question.objects.order_by('?')[:20]
+                            if questions.count() < 20:
+                                continue
+                            
+                            # Get last exam with for_scheduling=True to calculate next hour
+                            last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
+                            next_hour = (last_exam.schedule_hour.hour + 1 if last_exam and last_exam.schedule_hour else 8) % 24
+                            next_hour = next_hour if next_hour >= 8 and next_hour <= 15 else 8
+                            
+                            exam_schedule_hour = time(next_hour, 0)
+                            
+                            new_exam = Exam.objects.create(
+                                exam_type=exam_type,
+                                schedule_hour=exam_schedule_hour,
+                                duration=duration,
+                                for_scheduling=True,  # Always True for batch creation
+                            )
+                            new_exam.questions.set(questions)
+                            created_exam_ids.append(new_exam.id)
+                        except Exception as e:
+                            continue
+                else:
+                    # Single exam creation: use user input for schedule_hour and for_scheduling
+                    if not schedule_hour:
+                        raise ValueError("Schedule hour is required for single exam creation.")
+                    questions = Question.objects.order_by('?')[:20]
+                    new_exam = Exam.objects.create(
+                        exam_type=exam_type,
+                        schedule_hour=schedule_hour,
+                        duration=duration,
+                        for_scheduling=for_scheduling,
+                    )
+                    new_exam.questions.set(questions)
+                    created_exam_ids.append(new_exam.id)
+
+                request.session['undo_exam_ids'] = created_exam_ids
+                messages.success(request, f"{len(created_exam_ids)} exam{'s' if len(created_exam_ids) != 1 else ''} created successfully!")
+
             return redirect('create_exam')
         except (ValueError, TypeError) as e:
             messages.error(request, f"Invalid input: {e}")
@@ -1318,10 +1365,11 @@ def create_exam_page(request, exam_id=None):
     # Show last 10 Ibivanze exams
     ibivanze_type = ExamType.objects.filter(name='Ibivanze').first()
     recent_exams = Exam.objects.filter(exam_type=ibivanze_type).order_by('-created_at')[:10]
-    
+
     context = {
         'recent_exams': recent_exams,
         'exam': exam,
+        'number_of_exams': number_of_exams,
     }
     return render(request, 'exams/create_exam.html', context)
 
