@@ -227,6 +227,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     const numberInput = document.getElementById("number_of_exams");
     const scheduleHourField = document.getElementById("schedule_hour_field");
+    const scheduleHourInput = document.getElementById("schedule_hour");
     const forSchedulingNote = document.getElementById("for_scheduling_note");
     const forSchedulingCheck = document.getElementById("for_scheduling_check");
 
@@ -236,12 +237,16 @@
       if (numberOfExams > 1) {
         // Hide schedule hour field and show notes for batch creation
         scheduleHourField.classList.add("d-none");
+        scheduleHourInput.required = false;
+        scheduleHourInput.disabled = true;
         forSchedulingNote.classList.remove("d-none");
         forSchedulingCheck.style.opacity = "0.5";
         document.getElementById("for_scheduling").disabled = true;
       } else {
         // Show schedule hour field and hide notes for single exam
         scheduleHourField.classList.remove("d-none");
+        scheduleHourInput.required = true;
+        scheduleHourInput.disabled = false;
         forSchedulingNote.classList.add("d-none");
         forSchedulingCheck.style.opacity = "1";
         document.getElementById("for_scheduling").disabled = false;
