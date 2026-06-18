@@ -1,8 +1,8 @@
 # yourapp/signals.py
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
-from django.db.models.signals import post_save
-from .models import UserActivity, PaymentConfirm, PaymentAutoConfirmSetting, Subscription, Plan, PaymentConfirmLog
+from django.db.models.signals import post_save, post_delete
+from .models import UserActivity, PaymentConfirm, PaymentAutoConfirmSetting, Subscription, Plan, PaymentConfirmLog, ScheduledExam
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.cache import cache
@@ -76,6 +76,28 @@ def handle_subscription_change(sender, instance, created, **kwargs):
                 
     except Exception as e:
         logger.error(f"Error in handle_subscription_change signal: {str(e)}", exc_info=True)
+
+
+@receiver(post_save, sender=ScheduledExam)
+def invalidate_scheduled_exam_cache(sender, instance, **kwargs):
+    try:
+        today = timezone.localtime(timezone.now()).date()
+        scheduled_date = timezone.localtime(instance.scheduled_datetime).date()
+        cache.delete(f'exams_slider_context_{today}')
+        cache.delete(f'exams_slider_context_{scheduled_date}')
+    except Exception as e:
+        logger.error(f"Error invalidating scheduled exam cache on save: {str(e)}", exc_info=True)
+
+
+@receiver(post_delete, sender=ScheduledExam)
+def invalidate_scheduled_exam_cache_on_delete(sender, instance, **kwargs):
+    try:
+        today = timezone.localtime(timezone.now()).date()
+        scheduled_date = timezone.localtime(instance.scheduled_datetime).date()
+        cache.delete(f'exams_slider_context_{today}')
+        cache.delete(f'exams_slider_context_{scheduled_date}')
+    except Exception as e:
+        logger.error(f"Error invalidating scheduled exam cache on delete: {str(e)}", exc_info=True)
 
 
 @receiver(post_save, sender=PaymentConfirm)

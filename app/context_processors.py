@@ -61,9 +61,11 @@ def exams_slider_context(request):
         end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
 
         context = {
-            'exams_scheduled': ScheduledExam.objects.filter(
-                scheduled_datetime__range=(start_of_day, end_of_day)
-            ).select_related('exam', 'exam__exam_type'),
+            'exams_scheduled': list(
+                ScheduledExam.objects.filter(
+                    scheduled_datetime__range=(start_of_day, end_of_day)
+                ).select_related('exam', 'exam__exam_type')
+            ),
         }
         
         # Cache for 30 minutes
