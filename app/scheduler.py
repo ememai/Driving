@@ -25,15 +25,20 @@ def job_auto_schedule_exams():
     connections.close_all()
     print("🕛 Running daily auto-schedule...")
     try:
-        exams_created, _ = auto_create_exams(8)      
-        notify_admin(f"{localtime().strftime('%d-%m-%Y %H:%M')} ✅ {exams_created} Exams Created successfully!")
+        exams_created, created_ids, failed_count = auto_create_exams(8)
+
+        if failed_count > 0:
+            logger.warning(f"⚠️ {failed_count} exams failed to create")
+            notify_admin(f"⚠️ {localtime().strftime('%d-%m-%Y %H:%M')} - {exams_created}/8 exams created, {failed_count} failed")
+        else:
+            notify_admin(f"✅ {localtime().strftime('%d-%m-%Y %H:%M')} - {exams_created} exams created successfully")
+
         scheduled_exams_count, message = auto_schedule_recent_exams()
-        
-        notify_admin(f"✅ {localtime().strftime('%d-%m-%Y %H:%M')} {scheduled_exams_count} exams scheduled {message}")
-    
+        notify_admin(f"✅ {localtime().strftime('%d-%m-%Y %H:%M')} - {scheduled_exams_count} exams scheduled")
+
     except Exception as e:
+        logger.error(f"❌ Error in auto-scheduling: {str(e)}", exc_info=True)
         notify_admin(f"❌ Error in auto-scheduling: {str(e)}")
-        print(f"❌ Error: {str(e)}")
 
 
 def process_whatsapp_number(number):
