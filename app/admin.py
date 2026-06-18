@@ -2,6 +2,7 @@ from django.contrib import admin, messages
 from .models import *
 from .forms import *
 from django.shortcuts import redirect, render
+from django.core.cache import cache
 
 from django.urls import reverse, path
 from django.utils.html import format_html
@@ -648,6 +649,24 @@ class ScheduledExamAdmin(admin.ModelAdmin):
         for scheduled_exam in queryset:
             scheduled_exam.publish()
     publish_exam.short_description = "Publish Scheduled Exams"
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        self._invalidate_scheduled_exam_cache(obj)
+
+    def delete_model(self, request, obj):
+        scheduled_date = timezone.localtime(obj.scheduled_datetime).date()
+        super().delete_model(request, obj)
+        self._invalidate_scheduled_exam_cache(obj, scheduled_date)
+
+    def _invalidate_scheduled_exam_cache(self, obj, scheduled_date=None):
+        try:
+            today = timezone.localtime(timezone.now()).date()
+            scheduled_date = scheduled_date or timezone.localtime(obj.scheduled_datetime).date()
+            cache.delete(f'exams_slider_context_{today}')
+            cache.delete(f'exams_slider_context_{scheduled_date}')
+        except Exception:
+            pass
 
 
 @admin.register(UserActivity)
