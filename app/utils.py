@@ -212,27 +212,54 @@ def check_exam_availability(hour):
 #     print(f"✅{exams_created} Exams Created successfully!")
 #     return exams_created
 
-def auto_create_exams(number, for_scheduling=True, ):
+def auto_create_exams(number, for_scheduling=True):
+    """
+    Create exams with random questions for daily scheduling.
+
+    Args:
+        number: Number of exams to attempt to create
+        for_scheduling: Whether exams are for auto-scheduling
+
+    Returns:
+        tuple: (exams_created, created_exam_ids, failed_count)
+    """
     exams_created = 0
     created_exam_ids = []
+    failed_count = 0
 
+    # Don't create exams on Sundays
+    if timezone.localtime(timezone.now()).weekday() == 6:
+        logger.info("❌ No exams created on Sundays.")
+        return exams_created, created_exam_ids, failed_count
 
-    if timezone.localtime(timezone.now()).weekday() == 6:  # Sunday is represented by 6
-        print("❌ No exams created on Sundays.")
-        return exams_created, created_exam_ids
     for i in range(number):
         try:
             exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
             questions = Question.objects.order_by('?')[:20]
+
+            # Check if we have enough questions
             if questions.count() < 20:
+                logger.warning(f"⚠️ Insufficient questions: {questions.count()}/20 available")
+                failed_count += 1
                 continue
 
+            # Get the last exam to determine next hour
             last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
-            next_hour = (last_exam.schedule_hour.hour + 1 if last_exam and last_exam.schedule_hour else 8) % 24
-            next_hour = next_hour if next_hour >= 8 and next_hour <= 15 else 8
+
+            if last_exam and last_exam.schedule_hour:
+                try:
+                    next_hour = (last_exam.schedule_hour.hour + 1) % 24
+                    # Keep exams within business hours (8-15)
+                    if next_hour < 8 or next_hour > 15:
+                        next_hour = 8
+                except (ValueError, AttributeError):
+                    next_hour = 8
+            else:
+                next_hour = 8
 
             exam_schedule_hour = time(next_hour, 0)
 
+            # Create the exam
             exam = Exam.objects.create(
                 exam_type=exam_type,
                 schedule_hour=exam_schedule_hour,
@@ -241,14 +268,24 @@ def auto_create_exams(number, for_scheduling=True, ):
                 is_active=False,
             )
             exam.questions.set(questions)
+            exam.save()
+
             created_exam_ids.append(exam.id)
             exams_created += 1
+            logger.info(f"✅ Exam created at {exam_schedule_hour} (ID: {exam.id})")
 
         except Exception as e:
-            print(f"Error: {e}")
-    notify_admin(f"✅done creating {exams_created} exams")
+            logger.error(f"❌ Error creating exam {i+1}/{number}: {str(e)}", exc_info=True)
+            failed_count += 1
 
-    return exams_created, created_exam_ids
+    # Log summary
+    logger.info(f"📊 Exam creation summary: {exams_created} created, {failed_count} failed")
+
+    # Notify admin of failures
+    if failed_count > 0:
+        notify_admin(f"⚠️ Exam creation: {exams_created}/{number} created, {failed_count} failed")
+
+    return exams_created, created_exam_ids, failed_count
 
 def auto_schedule_recent_exams():
     scheduled_exams_count = 0
