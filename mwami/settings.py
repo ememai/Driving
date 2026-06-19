@@ -189,20 +189,7 @@ WSGI_APPLICATION = 'mwami.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 LOCAL_DB = config('LOCAL_DB', default=False, cast=bool)
 if LOCAL_DB == True:
-   DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'kds',
-        'USER': 'root',
-        'PASSWORD': 'ememai',
-        'HOST': '127.0.0.1',  # Or 'localhost'
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'connect_timeout': 28800,
-        }
-    }
-}
+   from .local_settings import DATABASES
 
 
 

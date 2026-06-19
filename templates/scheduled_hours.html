@@ -192,10 +192,10 @@
             role="timer"
             aria-live="polite"
           >
-            {% with exam.remaining_time|minutes as minutes %} {% with
-            exam.remaining_time|seconds as seconds %} {{ minutes }}:{{
-            seconds|default:"00"|stringformat:"02d" }} {% endwith %} {% endwith
-            %}
+            {% with exam.remaining_time|minutes as minutes %} 
+            {% with exam.remaining_time|seconds as seconds %} {{ minutes }}:
+            {{ seconds|default:"00"|stringformat:"02d" }} {% endwith %} 
+            {% endwith %}
           </span>
 
           <span>{{ exam.scheduled_datetime|time:"H:00" }}</span>
