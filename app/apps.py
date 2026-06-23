@@ -7,10 +7,6 @@ class AppConfig(AppConfig):
     name = 'app'
     
     def ready(self):
-        from . import signals  # Import signals to register receivers
-        from . import scheduler
-        import threading
-
-        # Start scheduler in background thread to avoid blocking Django startup
-        scheduler_thread = threading.Thread(target=scheduler.start, daemon=True)
-        scheduler_thread.start()
+        from . import signals
+        # Scheduler disabled for now - causes startup hang
+        # TODO: Re-enable with proper threading in background
