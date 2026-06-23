@@ -173,8 +173,9 @@ def start():
             replace_existing=True,
         )
 
+        logger.info("Starting APScheduler...")
         scheduler.start()
         logger.info("Scheduler started successfully")
     except Exception as e:
         logger.error(f"Failed to start scheduler: {str(e)}", exc_info=True)
-        raise
+        # Don't raise - let the app continue without scheduler
