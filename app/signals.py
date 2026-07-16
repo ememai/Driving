@@ -172,6 +172,16 @@ def _auto_approve_payment(user, plan, setting):
         notify_admin(message)
         
         logger.info(f"Payment auto-confirmed for user {user.name}. OTP: {subscription.otp_code}")
+        # Delete user's payment confirm logs within the auto-confirm period
+        try:
+            deleted_count, _ = PaymentConfirmLog.objects.filter(
+                user=user,
+                payment_confirm__time__gte=setting.period_start,
+                payment_confirm__time__lte=setting.period_end
+            ).delete()
+            logger.info(f"Deleted {deleted_count} PaymentConfirmLog entries for user {user.name} after auto-confirm")
+        except Exception as e:
+            logger.error(f"Error deleting PaymentConfirmLog after auto-approve: {str(e)}", exc_info=True)
         
     except Exception as e:
         logger.error(f"Error in _auto_approve_payment: {str(e)}", exc_info=True)
