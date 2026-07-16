@@ -2,6 +2,7 @@
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
+from django.db.backends.signals import connection_created
 from .models import UserActivity, PaymentConfirm, PaymentAutoConfirmSetting, Subscription, Plan, PaymentConfirmLog, ScheduledExam
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -174,3 +175,11 @@ def _auto_approve_payment(user, plan, setting):
         
     except Exception as e:
         logger.error(f"Error in _auto_approve_payment: {str(e)}", exc_info=True)
+
+
+@receiver(connection_created)
+def disable_statement_timeout(sender, connection, **kwargs):
+    """Reset Postgres statement timeout on every new database connection."""
+    if connection.vendor == 'postgresql':
+        with connection.cursor() as cursor:
+            cursor.execute("SET statement_timeout = 0")

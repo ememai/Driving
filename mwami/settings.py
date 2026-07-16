@@ -192,11 +192,17 @@ if LOCAL_DB == True:
    from .local_settings import DATABASES
 
 
-
 else:
     DATABASES = {
         'default': dj_database_url.config(default=config('DB_URL'))
     }
+    # Only set DB-specific OPTIONS when appropriate for the database backend
+    db_engine = DATABASES['default'].get('ENGINE', '')
+    db_options_value = config('DB_OPTIONS', default='-c statement_timeout=0')
+    if 'postgresql' in db_engine or 'psycopg' in db_engine or 'postgres' in db_engine:
+        DATABASES['default'].setdefault('OPTIONS', {})['options'] = db_options_value
+
+# print(DATABASES)
 
 AUTHENTICATION_BACKENDS = [
     'app.authentication.EmailOrPhoneBackend',  # Custom email/phone backend
