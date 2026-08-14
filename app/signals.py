@@ -7,7 +7,10 @@ from .models import UserActivity, PaymentConfirm, PaymentAutoConfirmSetting, Sub
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.cache import cache
-import logging
+from django.conf import settings
+from django.urls import reverse
+from urllib.parse import urljoin
+import logging, requests, json
 
 logger = logging.getLogger(__name__)
 
@@ -43,14 +46,19 @@ def handle_subscription_change(sender, instance, created, **kwargs):
             # New subscription created
             logger.info(f"New subscription created for user {instance.user.name}")
             from .utils import notify_admin
-            
-            
+            # link to end subscription — build absolute URL from BASE_URL setting
+            try:
+                link = urljoin(getattr(settings, 'BASE_URL', ''), reverse('dashboard_end_subscription', args=[instance.id]))
+            except Exception:
+                link = reverse('dashboard_end_subscription', args=[instance.id])
+
             message = (
                 f"📱 New Subscription Attempt\n\n"
                 f"User: {instance.user.name}\n"
                 f"Phone: {instance.user.phone_number}\n"
                 f"Plan: {instance.plan.plan if instance and instance.plan_id else 'Not selected'}\n"
                 f"Status: {'Verified' if instance.otp_verified else 'Pending OTP'}"
+                f"End Subscription Link: {link}\n"
             )
             notify_admin(message)
         else:
@@ -159,9 +167,12 @@ def _auto_approve_payment(user, plan, setting):
         
         # Send notification to admin
         from .utils import notify_admin
-        #link to end subscription
-        link = request.build_absolute_uri(reverse('dashboard_end_subscription', args=[request.user.subscription.id]))
-                    
+        # link to end subscription — build absolute URL from BASE_URL setting
+        try:
+            link = urljoin(getattr(settings, 'BASE_URL', ''), reverse('dashboard_end_subscription', args=[subscription.id]))
+        except Exception:
+            link = reverse('dashboard_end_subscription', args=[subscription.id])
+
         message = (
             f"✅ AUTO-CONFIRMED PAYMENT\n\n"
             f"User: {user.name}\n"
@@ -169,8 +180,8 @@ def _auto_approve_payment(user, plan, setting):
             f"Plan: {plan.plan}\n"
             f"Price: {plan.price}\n"
             f"OTP Code: {subscription.otp_code}\n\n"
+            f"User must verify this OTP to activate subscription.\n\n"
             f"End Subscription Link: {link}\n"
-            f"User must verify this OTP to activate subscription."
         )
         
         notify_admin(message)
