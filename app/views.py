@@ -1116,7 +1116,7 @@ def _handle_payment_approval(request, user, requested_plan):
     
     
     messages.success(request, f"Payment approved and subscription created for {user.name}.")
-    return redirect('admin:app_subscription_changelist')
+    return redirect('subscription')
 
 # @login_required(login_url='/?login=true')
 # def subscription_view(request):

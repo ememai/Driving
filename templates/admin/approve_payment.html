@@ -11,7 +11,9 @@
     <select name="plan_instance" class="form-control " style="width: 300px; margin-bottom: 15px;">
         <option disabled>Select a Plan</option>
         {% for plan in plans %}
-            <option  value="{{ plan.id }}" {% if plan.id == requested_plan.id %}selected{% endif %}>{{ plan.plan }} - {{ plan.price }}</option>
+            <option  value="{{ plan.id }}" {% if plan.id == requested_plan.id %}selected{% endif %}>
+                {% if requested_plan %}{{ requested_plan.plan }} - {{ requested_plan.price }} {% else %}{{ plan.plan }} - {{ plan.price }}{% endif %} 
+            </option>
         {% endfor %}
     </select>
     <br>

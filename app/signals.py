@@ -44,6 +44,7 @@ def handle_subscription_change(sender, instance, created, **kwargs):
             logger.info(f"New subscription created for user {instance.user.name}")
             from .utils import notify_admin
             
+            
             message = (
                 f"📱 New Subscription Attempt\n\n"
                 f"User: {instance.user.name}\n"
@@ -158,7 +159,9 @@ def _auto_approve_payment(user, plan, setting):
         
         # Send notification to admin
         from .utils import notify_admin
-        
+        #link to end subscription
+        link = request.build_absolute_uri(reverse('dashboard_end_subscription', args=[request.user.subscription.id]))
+                    
         message = (
             f"✅ AUTO-CONFIRMED PAYMENT\n\n"
             f"User: {user.name}\n"
@@ -166,6 +169,7 @@ def _auto_approve_payment(user, plan, setting):
             f"Plan: {plan.plan}\n"
             f"Price: {plan.price}\n"
             f"OTP Code: {subscription.otp_code}\n\n"
+            f"End Subscription Link: {link}\n"
             f"User must verify this OTP to activate subscription."
         )
         
