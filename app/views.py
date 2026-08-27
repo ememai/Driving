@@ -1107,7 +1107,7 @@ def _handle_payment_approval(request, user, requested_plan):
             subscription.plan = Plan.objects.get(id=plan_id)
         except Plan.DoesNotExist:
             messages.error(request, "Selected plan does not exist.")
-            return redirect('subscription')
+            return redirect('admin_subscription_dashboard')
     else:
         subscription.plan = requested_plan
     
@@ -1116,7 +1116,7 @@ def _handle_payment_approval(request, user, requested_plan):
     
     
     messages.success(request, f"Payment approved and subscription created for {user.name}.")
-    return redirect('subscription')
+    return redirect('admin_subscription_dashboard')
 
 # @login_required(login_url='/?login=true')
 # def subscription_view(request):
