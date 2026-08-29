@@ -1,15 +1,14 @@
 import os
 import logging
+import shutil
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from app.models import RoadSign, UserProfile
-import urllib.request
-import urllib.parse
 
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
-    help = 'Migrate media files from GitHub repo to persistent volume'
+    help = 'Migrate media files from local storage to persistent volume'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -17,71 +16,63 @@ class Command(BaseCommand):
             action='store_true',
             help='Show what would be migrated without actually doing it',
         )
+        parser.add_argument(
+            '--source-dir',
+            type=str,
+            default='/app/media_backup',
+            help='Source directory to migrate from (default: /app/media_backup)',
+        )
 
     def handle(self, *args, **options):
         dry_run = options.get('dry_run', False)
+        source_dir = options.get('source_dir', '/app/media_backup')
         
-        self.stdout.write(self.style.SUCCESS('Starting media migration...'))
+        self.stdout.write(self.style.SUCCESS('Starting media migration from local storage...'))
         
         if dry_run:
             self.stdout.write(self.style.WARNING('DRY RUN MODE - No files will be modified'))
         
+        self.stdout.write(f'Source directory: {source_dir}')
+        self.stdout.write(f'Target directory: {settings.MEDIA_ROOT}')
+        
+        # Check if source exists
+        if not os.path.exists(source_dir):
+            self.stdout.write(self.style.WARNING(f'Source directory does not exist: {source_dir}'))
+            self.stdout.write('No files to migrate.')
+            return
+        
         # Migrate road signs
-        self.migrate_road_signs(dry_run)
+        self.migrate_road_signs(source_dir, dry_run)
         
         # Migrate profile pictures
-        self.migrate_profile_pictures(dry_run)
+        self.migrate_profile_pictures(source_dir, dry_run)
         
         self.stdout.write(self.style.SUCCESS('Media migration completed!'))
 
-    def try_download_from_github(self, filename):
-        """Try to download a file from GitHub with various filename variations"""
-        variations = self.get_filename_variations(filename)
+    def find_file_in_source(self, filename, source_dir):
+        """Try to find a file in the source directory"""
+        # Try exact match first
+        full_path = os.path.join(source_dir, filename)
+        if os.path.exists(full_path):
+            return full_path
         
-        for variation in variations:
-            try:
-                # URL-encode the filename
-                path_parts = variation.split('/')
-                encoded_parts = [urllib.parse.quote(part, safe='') for part in path_parts]
-                encoded_filename = '/'.join(encoded_parts)
-                
-                github_url = f"https://raw.githubusercontent.com/ememai/Driving/main/{encoded_filename}"
-                
-                with urllib.request.urlopen(github_url, timeout=5) as response:
-                    return response.read(), variation
-            except (urllib.error.HTTPError, urllib.error.URLError, Exception):
-                continue
+        # Try just the basename
+        basename = os.path.basename(filename)
+        basename_path = os.path.join(source_dir, basename)
+        if os.path.exists(basename_path):
+            return basename_path
         
-        return None, None
-
-    def get_filename_variations(self, filename):
-        """Generate filename variations to try"""
-        variations = [filename]  # Try original first
-        
-        # Try without spaces
-        if ' ' in filename:
-            variations.append(filename.replace(' ', '_'))
-            variations.append(filename.replace(' ', ''))
-        
-        # Try different extensions
+        # Try without extension variations
         base, ext = os.path.splitext(filename)
-        if ext.lower() in ['.jpg', '.jpeg']:
-            variations.append(base + '.png')
-            variations.append(base + '.jpeg' if ext.lower() == '.jpg' else base + '.jpg')
-        elif ext.lower() == '.png':
-            variations.append(base + '.jpg')
-            variations.append(base + '.jpeg')
+        for alt_ext in ['.jpg', '.jpeg', '.png', '.gif']:
+            alt_path = os.path.join(source_dir, os.path.basename(base) + alt_ext)
+            if os.path.exists(alt_path):
+                return alt_path
         
-        # Try without path prefix variations
-        if '/' in filename:
-            just_name = os.path.basename(filename)
-            variations.append(just_name)
-            variations.extend(self.get_filename_variations(just_name))
-        
-        return list(dict.fromkeys(variations))  # Remove duplicates while preserving order
+        return None
 
-    def migrate_road_signs(self, dry_run=False):
-        """Migrate road sign images from repo to volume"""
+    def migrate_road_signs(self, source_dir, dry_run=False):
+        """Migrate road sign images from source to volume"""
         self.stdout.write('Migrating road signs...')
         
         road_signs = RoadSign.objects.filter(sign_image__isnull=False)
@@ -99,30 +90,27 @@ class Command(BaseCommand):
                     migrated += 1
                     continue
                 
+                # Try to find file in source
+                source_path = self.find_file_in_source(filename, source_dir)
+                
+                if not source_path:
+                    self.stdout.write(self.style.WARNING(f'  ⊘ Not found in source: {filename}'))
+                    failed += 1
+                    continue
+                
                 if dry_run:
-                    self.stdout.write(f'  [DRY RUN] Would try to migrate: {filename}')
+                    self.stdout.write(f'  [DRY RUN] Would copy: {filename}')
                     migrated += 1
                     continue
                 
-                # Try to download with variations
-                file_content, found_as = self.try_download_from_github(filename)
+                # Ensure target directory exists
+                os.makedirs(os.path.dirname(full_path), exist_ok=True)
                 
-                if file_content:
-                    # Ensure directory exists
-                    os.makedirs(os.path.dirname(full_path), exist_ok=True)
-                    
-                    # Write to volume
-                    with open(full_path, 'wb') as f:
-                        f.write(file_content)
-                    
-                    if found_as != filename:
-                        self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename} (found as: {found_as})'))
-                    else:
-                        self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename}'))
-                    migrated += 1
-                else:
-                    self.stdout.write(self.style.WARNING(f'  ⊘ Not found on GitHub: {filename}'))
-                    failed += 1
+                # Copy file
+                shutil.copy2(source_path, full_path)
+                
+                self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename}'))
+                migrated += 1
                 
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f'  ✗ Error migrating {filename}: {str(e)}'))
@@ -130,8 +118,8 @@ class Command(BaseCommand):
         
         self.stdout.write(f'Road signs: {migrated} migrated, {failed} failed')
 
-    def migrate_profile_pictures(self, dry_run=False):
-        """Migrate user profile pictures from repo to volume"""
+    def migrate_profile_pictures(self, source_dir, dry_run=False):
+        """Migrate user profile pictures from source to volume"""
         self.stdout.write('Migrating profile pictures...')
         
         users = UserProfile.objects.filter(profile_picture__isnull=False).exclude(profile_picture='')
@@ -153,28 +141,27 @@ class Command(BaseCommand):
                     migrated += 1
                     continue
                 
+                # Try to find file in source
+                source_path = self.find_file_in_source(filename, source_dir)
+                
+                if not source_path:
+                    self.stdout.write(self.style.WARNING(f'  ⊘ Not found in source: {filename}'))
+                    failed += 1
+                    continue
+                
                 if dry_run:
-                    self.stdout.write(f'  [DRY RUN] Would try to migrate: {filename}')
+                    self.stdout.write(f'  [DRY RUN] Would copy: {filename}')
                     migrated += 1
                     continue
                 
-                # Try to download with variations
-                file_content, found_as = self.try_download_from_github(filename)
+                # Ensure target directory exists
+                os.makedirs(os.path.dirname(full_path), exist_ok=True)
                 
-                if file_content:
-                    os.makedirs(os.path.dirname(full_path), exist_ok=True)
-                    
-                    with open(full_path, 'wb') as f:
-                        f.write(file_content)
-                    
-                    if found_as != filename:
-                        self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename} (found as: {found_as})'))
-                    else:
-                        self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename}'))
-                    migrated += 1
-                else:
-                    self.stdout.write(self.style.WARNING(f'  ⊘ Not found on GitHub: {filename}'))
-                    failed += 1
+                # Copy file
+                shutil.copy2(source_path, full_path)
+                
+                self.stdout.write(self.style.SUCCESS(f'  ✓ Migrated: {filename}'))
+                migrated += 1
                 
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f'  ✗ Error: {str(e)}'))
