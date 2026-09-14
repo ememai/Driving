@@ -1007,6 +1007,9 @@ def subscription_status(request):
 @transaction.atomic
 def payment_confirm(request):
     
+    if  request.user.is_subscribed:
+            return redirect('home')
+    
     if request.method == 'POST':
         try:
             payeer_name = request.POST.get('payeer_name', '').strip()
