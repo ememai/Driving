@@ -1171,8 +1171,10 @@ def activate_subscription_view(request):
     if unverified_subscription:
         user_otp = unverified_subscription.otp_code
         context['user_otp'] = user_otp
-    else:
+    elif not request.user.is_subscribed:
         return redirect('subscription')
+    else:
+        return redirect('home')
 
     if request.method == "POST":
         otp = request.POST.get("otp")
