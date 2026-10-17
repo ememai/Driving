@@ -215,17 +215,17 @@
             </select>
             </div>
 
-            <div class="form-check ms-sm-3 form-check-reverse">
-              <input
-                class="form-check-input completed-filter"
-                type="checkbox"
-                value="1"
-                id="completedOnly-{{ year }}"
+            <div class="d-flex align-items-center gap-2 ms-sm-3">
+              <label class="mb-0" for="completionFilter-{{ year }}">Imiterere:</label>
+              <select
+                class="form-select form-select-sm w-auto completed-filter"
+                id="completionFilter-{{ year }}"
                 data-year="{{ year }}"
-              />
-              <label class="form-check-label" for="completedOnly-{{ year }}">
-                Ibyo wakoze gusa?
-              </label>
+              >
+                <option value="all">Byose</option>
+                <option value="1">Ibyo wakoze gusa</option>
+                <option value="not_completed">Ibyo utarakora gusa</option>
+              </select>
             </div>
 
             <button
@@ -375,18 +375,18 @@
       const sel = container.querySelector('.month-filter');
       const chk = container.querySelector('.completed-filter');
       const month = sel ? sel.value : 'all';
-      const completedOnly = chk ? chk.checked : false;
+      const completion = chk ? chk.value : 'all';
 
       // persist selection
       const store = readStorage();
-      store[year] = { month: month, completed: completedOnly ? '1' : '0' };
+      store[year] = { month: month, completed: completion };
       writeStorage(store);
 
       // update URL to reflect active filters
       const url = new URL(window.location);
       url.searchParams.set('filter_year', year);
       url.searchParams.set('filter_month', month);
-      url.searchParams.set('filter_completed', completedOnly ? '1' : '0');
+      url.searchParams.set('filter_completed', completion);
       window.history.replaceState({}, '', url);
 
       // single loop: determine matches, apply pagination and count visible
@@ -402,7 +402,8 @@
         const cardCompleted = card.getAttribute('data-completed') === '1';
         let matches = true;
         if(month !== 'all' && cardMonth !== month) matches = false;
-        if(completedOnly && !cardCompleted) matches = false;
+        if(completion === '1' && !cardCompleted) matches = false;
+        if(completion === 'not_completed' && cardCompleted) matches = false;
         const col = card.parentElement;
         // mark whether this col matches filters
         col.dataset.match = matches ? '1' : '0';
@@ -515,7 +516,7 @@
       const sel = tab.querySelector('.month-filter');
       const chk = tab.querySelector('.completed-filter');
       if(sel) sel.value = 'all';
-      if(chk) chk.checked = false;
+      if(chk) chk.value = 'all';
       applyFilters(tab, year);
     }
 
@@ -543,17 +544,19 @@
       const sel = tab.querySelector('.month-filter');
       const chk = tab.querySelector('.completed-filter');
       if(sel){
-        {% if filter_month %}
+        {% if active_year == year %}
         sel.value = '{{ filter_month }}';
         {% else %}
         sel.value = saved.month || sel.value || 'all';
         {% endif %}
       }
       if(chk){
-        {% if filter_completed %}
-        chk.checked = '{{ filter_completed }}' === '1';
+        {% if active_year == year %}
+        chk.value = '{{ filter_completed }}';
         {% else %}
-        chk.checked = (saved.completed === '1');
+        chk.value = saved.completed === '1' || saved.completed === 'not_completed'
+          ? saved.completed
+          : 'all';
         {% endif %}
       }
 

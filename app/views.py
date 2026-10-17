@@ -620,6 +620,8 @@ def exams_by_type(request, exam_type):
                     filtered = [e for e in filtered if e.created_at.month == fm]
                 if filter_completed == '1':
                     filtered = [e for e in filtered if e.id in completed_exam_ids]
+                elif filter_completed == 'not_completed':
+                    filtered = [e for e in filtered if e.id not in completed_exam_ids]
                 filtered_count = len(filtered)
         except ValueError:
             filtered_count = sum(len(v) for v in exams_by_year.values())
@@ -636,6 +638,8 @@ def exams_by_type(request, exam_type):
                     pass
             if filter_completed == '1':
                 temp = [e for e in temp if e.id in completed_exam_ids]
+            elif filter_completed == 'not_completed':
+                temp = [e for e in temp if e.id not in completed_exam_ids]
             all_filtered.extend(temp)
         filtered_count = len(all_filtered)
 
@@ -647,7 +651,7 @@ def exams_by_type(request, exam_type):
         'exams_by_year': exams_by_year,
         'exams_months_by_year': exams_months_by_year,
         'filter_month': filter_month or 'all',
-        'filter_completed': filter_completed or '0',
+        'filter_completed': filter_completed if filter_completed in ('1', 'not_completed') else 'all',
         'active_year': active_year,
         'completed_exam_map': completed_exam_map,
         'completed_exam_ids': completed_exam_ids,

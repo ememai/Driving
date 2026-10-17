@@ -135,6 +135,9 @@ class UnverifiedSubscriptionTests(TestCase):
 
 class ExamsByTypeTabsTests(TestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
+
         # create a user and log in
         self.user = UserProfile.objects.create_user(
             phone_number='250780000002',
@@ -222,6 +225,28 @@ class ExamsByTypeTabsTests(TestCase):
         self.assertEqual(len(march_exams), 1)
         # HTML should show per-year count element (JS will update to filtered count of 1 after applying filters)
         self.assertIn('class="exam-count-display" data-year="2024">2</strong>', resp.content.decode('utf-8'))
+
+    def test_server_side_filter_returns_only_noncompleted_exams(self):
+        completed_exam = self._make_exam(2024)
+        noncompleted_exam = self._make_exam(2024)
+        self._make_exam(2023)
+        self.user.is_staff = True
+        self.user.save()
+        from app.models import UserExam
+        UserExam.objects.create(
+            user=self.user,
+            exam=completed_exam,
+            completed_at=timezone.now(),
+        )
+
+        url = reverse('exams', args=[self.exam_type.name])
+        response = self.client.get(
+            url + '?filter_year=2024&filter_completed=not_completed'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context.get('filtered_count'), 1)
+        self.assertContains(response, '<option value="not_completed">Ibyo utarakora gusa</option>')
 
     def test_server_side_filters_show_no_results_message(self):
         # create a single exam but request a filter that matches none
