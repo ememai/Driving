@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Count
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -439,6 +440,18 @@ def courses(request):
         courses = courses.filter(title__icontains=query)
         context['courses'] = courses
     return render(request, 'courses/courses.html', context)
+
+@login_required(login_url='register')
+def exam_types(request):
+    exam_types = list(
+        ExamType.objects.annotate(
+            exam_count=Count('exam', distinct=True)
+        ).order_by('order', 'name')
+    )
+    return render(request, 'exams/exam_types.html', {
+        'exam_types': exam_types,
+        'total_exam_count': sum(exam_type.exam_count for exam_type in exam_types),
+    })
 
 
 def navbar(request):
@@ -1744,4 +1757,3 @@ def check_unverified_subscription(request):
     unverified_sub = get_unverified_subscription(request.user)
     has_unverified = bool(unverified_sub)
     return JsonResponse({'unverified': has_unverified})
-

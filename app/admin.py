@@ -377,6 +377,8 @@ class QuestionAdmin(admin.ModelAdmin):
     # list_display_links = ('correct_choice_display',)
     search_fields = ('question_text', 'order', 'question_type__name')
     ordering = ('order',)
+    # list_select_related = ('question_type',)
+    
 
     class Media:
         css = {
@@ -513,7 +515,8 @@ class ExamAdmin(admin.ModelAdmin):
     list_display = ('exam_type','schedule_hour', 'total_questions','for_scheduling', 'created_at', 'updated_at')
 
     ordering = ('-created_at',)
-    list_editable = ('for_scheduling',)
+    list_display_links = ('created_at',)
+    list_editable = ('for_scheduling','exam_type')
     list_filter = ('exam_type', 'for_scheduling', )
     list_per_page = 11
     search_fields = ('exam_type',)

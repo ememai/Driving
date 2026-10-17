@@ -138,6 +138,15 @@
               >
               {% endif %}
             </li>
+            <li>
+              <a
+                  class="dropdown-item text-theme"
+                  href="{% url 'contact' %}"
+                  >
+                  <i class="bi bi-envelope-fill"></i>
+                  <span >Twandikire</span>
+              </a>
+            </li>
             <li><hr class="dropdown-divider" /></li>
             {% if user.is_staff %}
             <li>

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Ibyiciro by'Ibizamini{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .exam-types-hero {
+        background: linear-gradient(
+            135deg,
+            rgba(var(--primary-rgb), 0.1),
+            rgba(var(--primary-rgb), 0.05)
+        );
+        border-radius: 1.25rem;
+        color: rgba(var(--text-rgb), 1);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .exam-types-hero::after {
+        background: radial-gradient(
+            circle,
+            rgba(var(--primary-rgb), 0.08) 0%,
+            transparent 70%
+        );
+        border-radius: 50%;
+        content: "";
+        height: 19rem;
+        position: absolute;
+        right: -5rem;
+        top: -10rem;
+        width: 19rem;
+    }
+
+    .exam-type-card {
+        background-color: rgba(var(--surface-rgb), 1);
+        border: 1px solid rgba(var(--border-rgb), 0.1);
+        border-radius: 1rem;
+        height: 100%;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .exam-type-card:hover {
+        border-color: rgba(var(--primary-rgb), 0.3);
+        box-shadow: 0 0.75rem 1.75rem rgba(0, 0, 0, 0.12);
+        transform: translateY(-4px);
+    }
+
+    .exam-type-icon {
+        align-items: center;
+        {% comment %} background: rgba(var(--primary-rgb), 0.1); {% endcomment %}
+        border-radius: 0.9rem;
+        {% comment %} color: rgba(var(--primary-rgb), 1); {% endcomment %}
+        display: inline-flex;
+        font-size: 1.5rem;
+        height: 3.25rem;
+        justify-content: center;
+        width: 3.25rem;
+    }
+
+    .exam-types-badge {
+        background: rgba(var(--primary-rgb), 0.15);
+        color: rgba(var(--text-rgb), 1);
+    }
+
+    .exam-type-count {
+        background: rgba(var(--primary-rgb), 0.15);
+        color: rgba(var(--text-rgb), 1);
+    }
+
+    .exam-type-link {
+        color: rgba(var(--primary-rgb), 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .exam-type-card {
+            transition: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-lg-5">
+    <section class="exam-types-hero p-4 mb-4 mb-lg-5 shadow-sm">
+        <div class="row align-items-center g-4 position-relative" style="z-index: 1;">
+            <div class="col-lg-8">
+                <span class="badge fs-5 rounded-pill exam-types-badge mb-3 px-3 py-2">
+                    <i class="bi bi-patch-check me-1" aria-hidden="true"></i> Igazeti y'ibibazo n'ibisubizo
+                </span>
+                
+                <p class="lead mb-0 text-body-secondary">
+                     Igazeti twayivunaguye mu byiciro {{ exam_types|length }} hakurikijwe ubwoko bwa buri kibazo, 
+                     ibibazo 20 byo mu bwoko bumwe birihuza bigakora ikizamini cy'ubwo bwoko.
+                </p>
+                <div class="alert alert-info d-flex align-items-start gap-2 mt-3 mb-0" role="note">
+                    <i class="bi bi-lightbulb-fill mt-1" aria-hidden="true"></i>
+                    <p class="mb-0">
+                        <strong>Inama:</strong> Kugira ngo wige neza mu gihe gito, banza ukore ibizamini byo muri buri bwoko.
+                        Numara kubirangiza byose, ukore ibizamini bivanze.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="d-flex gap-3 justify-content-lg-end">
+                    <div class="bg-body rounded-4 p-3 text-center flex-fill shadow-sm">
+                        <div class="small text-body-secondary">Ubwoko</div>
+                        <div class="fs-2 fw-bold">{{ exam_types|length }}</div>
+                    </div>
+                    <div class="bg-body rounded-4 p-3 text-center flex-fill shadow-sm">
+                        <div class="small text-body-secondary">Ibizamini</div>
+                        <div class="fs-2 fw-bold">{{ total_exam_count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+        <div>
+            <h2 class="h4 fw-bold mb-1">Hitamo ubwoko</h2>
+            <p class="text-body-secondary mb-0">Reba ibizamini biri muri buri bwoko.</p>
+        </div>
+    </div>
+
+    {% if exam_types %}
+        <div class="row g-3 g-lg-4">
+            {% for exam_type in exam_types %}
+                <div class="col-sm-6 col-xl-4">
+                    <a class="text-decoration-none text-body" href="{% url 'exams' exam_type.name %}">
+                        <article class="exam-type-card p-4 d-flex flex-column">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <span class="exam-type-icon">
+                                    <i class="{{ exam_type.icon|default:'bi bi-journal-text' }}" aria-hidden="true"></i>
+                                </span>
+                                <span class="badge rounded-pill exam-type-count">
+                                    {% if exam_type.exam_count == 1 %}ikizamini{% else %}ibizamini{% endif %}
+                                    {{ exam_type.exam_count }} 
+                                </span>
+                            </div>
+                            <h3 class="h5 fw-bold mb-2">{{ exam_type.name }}</h3>
+                            <p class="text-body-secondary mb-4">
+                                {% if exam_type.exam_count %}
+                                    Ibizamini birimpo ibibazo by'<em class="fw-bold">{{ exam_type.name }}</em> gusa.
+                                {% else %}
+                                    ubu bwoko burateguwe. Ibizamini bizagaragara hano nibimara kongerwamo.
+                                {% endif %}
+                            </p>
+                            <span class="mt-auto fw-semibold exam-type-link">
+                                Reba ibizamini <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+                            </span>
+                        </article>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center bg-body-tertiary rounded-4 p-5">
+            <i class="bi bi-journal-x display-5 text-body-secondary" aria-hidden="true"></i>
+            <h2 class="h5 fw-bold mt-3">Nta byiciro by'ibizamini birahari</h2>
+            <p class="text-body-secondary mb-0">Ongera ugerageze nyuma y'igihe gito.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

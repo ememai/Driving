@@ -20,6 +20,7 @@ urlpatterns = [
     path('isomo/stream/<int:course_id>/', views.secure_stream, name='secure_stream'),
     path('isomo/download/<int:course_id>/', views.secure_download, name='secure_download'),
     path('amasomo/', views.courses, name='courses'),
+    path("igazeti-ibibazo-n'ibisubizo/", views.exam_types, name='exam_types'),
     # use optimized exam listing for better performance
     path("ibibazo-byo-mubwoko-/<str:exam_type>/", exams_by_type_optimized, name='exams'),
     path('exam-detail/<int:pk>/', subscription_required(views.exam_detail), name='exam_detail'),
@@ -39,7 +40,7 @@ urlpatterns = [
     path('exam-results/<int:user_exam_id>/', views.exam_results, name='exam_results'),
 
     path('exam/<int:exam_id>/retake/', views.retake_exam, name='retake_exam'),
-    path('ibizamini-byicyumweru/', views.weekly_exams, name='weekly_exams'),
+    path('ibizamini-by\'icyumweru/', views.weekly_exams, name='weekly_exams'),
 
     path('check-exam-status/<int:exam_id>/', check_exam_status, name='check_exam_status'),
     path('exam-timer/<int:exam_id>/', subscription_required(views.exam_timer), name='exam_timer'),

@@ -518,11 +518,12 @@
                     </a>
                     <a
                     class="nav-link d-flex flex-column align-items-center"
-                    href="{% url 'contact' %}"
+                    href="{% url 'exam_types' %}"
                     >
-                    <i class="bi bi-envelope-fill {% if request.path == '/contact/' %}bg-secondary rounded px-2{% endif %}"></i>
-                    <span class="nav-text">Twandikire</span>
+                    <i class="bi bi-journal-check {% if request.path == '/ibizamini/' %}bg-secondary rounded px-2{% endif %}"></i>
+                    <span class="nav-text">Igazeti</span>
                     </a>
+                    
                     <a
                     class="nav-link d-flex flex-column align-items-center"
                     href="{% url 'weekly_exams' %}"
@@ -560,6 +561,10 @@
                         <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'home' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Ahabanza">
                             <i class="bi bi-house-door-fill fs-4"></i>
                             <em class="nav-text">Ahabanza</em>
+                        </a>
+                        <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'exam_types' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Ibizamini">
+                            <i class="bi bi-journal-check fs-4"></i>
+                            <span class="nav-text">Igazeti</span>
                         </a>
                         <a class="nav-link d-flex gap-2 align-items-center sidebar-link" href="{% url 'courses' %}" data-bs-toggle="tooltip" data-bs-placement="right" title="Amasomo">
                             <i class="bi bi-book-fill fs-4"></i>

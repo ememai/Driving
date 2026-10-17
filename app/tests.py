@@ -238,6 +238,47 @@ class ExamsByTypeTabsTests(TestCase):
         self.assertNotIn('onclick="resetFilters', html)
 
 
+class ExamTypesDirectoryTests(TestCase):
+    def setUp(self):
+        self.user = UserProfile.objects.create_user(
+            phone_number='250780000003',
+            email='types@example.com',
+            password='password123',
+        )
+        self.client.force_login(self.user)
+
+    def test_directory_lists_all_types_with_counts_and_category_links(self):
+        populated_type = ExamType.objects.create(name='Ibimenyetso', order=1)
+        empty_type = ExamType.objects.create(name='Amategeko', order=2)
+        Exam.objects.create(exam_type=populated_type, for_scheduling=False)
+
+        response = self.client.get(reverse('exam_types'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [exam_type.name for exam_type in response.context['exam_types']],
+            ['Ibimenyetso', 'Amategeko'],
+        )
+        self.assertEqual(
+            [exam_type.exam_count for exam_type in response.context['exam_types']],
+            [1, 0],
+        )
+        self.assertEqual(response.context['total_exam_count'], 1)
+
+        html = response.content.decode('utf-8')
+        self.assertIn(reverse('exams', args=[populated_type.name]), html)
+        self.assertIn(reverse('exams', args=[empty_type.name]), html)
+        self.assertIn('href="{}"'.format(reverse('exam_types')), html)
+
+    def test_directory_requires_login(self):
+        self.client.logout()
+
+        response = self.client.get(reverse('exam_types'))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('register'), response.url)
+
+
 class ScheduledExamGuardTests(TestCase):
     def setUp(self):
         self.staff = UserProfile.objects.create_user(
