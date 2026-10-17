@@ -1,8 +1,11 @@
 from django.contrib import admin, messages
+from django import forms
 from .models import *
 from .forms import *
 from django.shortcuts import redirect, render
 from django.core.cache import cache
+from django.http import HttpResponse
+from django.template import Template, Context, RequestContext
 
 from django.urls import reverse, path
 from django.utils.html import format_html
@@ -367,9 +370,19 @@ class RoadSignAdmin(admin.ModelAdmin):
             })
     bulk_delete_signs.short_description = 'Delete selected road signs'
 
+class QuestionActionForm(admin.helpers.ActionForm):
+    question_type = forms.ModelChoiceField(
+        queryset=Question._meta.get_field('question_type').remote_field.model.objects.all(),
+        required=False,
+        label='Question type',
+    )
+
+
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     form = QuestionForm
+    action_form = QuestionActionForm
+    actions = ['change_question_type']
     list_display = ('question_preview', 'display_choices', 'correct_choice_display', 'order','question_type')
     list_per_page = 10
     list_editable = ('order','question_type')
@@ -378,6 +391,152 @@ class QuestionAdmin(admin.ModelAdmin):
     search_fields = ('question_text', 'order', 'question_type__name')
     ordering = ('order',)
     # list_select_related = ('question_type',)
+
+    @admin.action(description='Set type for selected questions')
+    def change_question_type(self, request, queryset):
+        question_type_id = request.POST.get('question_type')
+        if not question_type_id:
+            self.message_user(request, 'Select a question type in the action bar.', messages.ERROR)
+            return
+
+        if not request.POST.get('post'):
+            question_type_model = Question._meta.get_field('question_type').remote_field.model
+            question_type = question_type_model.objects.filter(pk=question_type_id).first()
+            selected_ids = [str(pk) for pk in queryset.values_list('pk', flat=True)]
+            selected_questions = list(queryset.select_related('question_type').order_by('order'))
+            cancel_url = reverse(f'admin:{self.model._meta.app_label}_{self.model._meta.model_name}_changelist')
+            template = Template('''
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>{{ title }}</title>
+                    <style>
+                        body {
+                            font-family: "Segoe UI", Arial, sans-serif;
+                            background: #f8f8f8;
+                            margin: 0;
+                            color: #2c2c2c;
+                        }
+                        .admin-confirm-shell {
+                            max-width: 760px;
+                            margin: 48px auto;
+                            padding: 24px;
+                        }
+                        .module {
+                            background: #fff;
+                            border: 1px solid #d9d9d9;
+                            border-radius: 6px;
+                            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+                            padding: 20px 24px;
+                        }
+                        h1 {
+                            font-size: 1.8rem;
+                            margin: 0 0 16px;
+                            color: #242424;
+                        }
+                        .help {
+                            margin-bottom: 18px;
+                            font-size: 15px;
+                            line-height: 1.5;
+                        }
+                        .model-list {
+                            border: 1px solid #e8e8e8;
+                            border-radius: 6px;
+                            background: #fafafa;
+                            padding: 12px 16px;
+                            margin: 18px 0;
+                        }
+                        .model-list h2 {
+                            font-size: 13px;
+                            letter-spacing: 0.04em;
+                            text-transform: uppercase;
+                            color: #666;
+                            margin: 0 0 10px;
+                        }
+                        ul {
+                            margin: 0;
+                            padding-left: 18px;
+                        }
+                        li {
+                            margin: 6px 0;
+                            color: #404040;
+                        }
+                        .actions {
+                            margin-top: 20px;
+                        }
+                        button, a.button {
+                            display: inline-block;
+                            padding: 9px 16px;
+                            margin-right: 10px;
+                            border-radius: 4px;
+                            font-size: 14px;
+                            text-decoration: none;
+                            cursor: pointer;
+                            border: 1px solid transparent;
+                        }
+                        button {
+                            background: #0d6efd;
+                            color: white;
+                            border-color: #0d6efd;
+                        }
+                        a.button {
+                            background: #f5f5f5;
+                            color: #333;
+                            border-color: #d8d8d8;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="admin-confirm-shell">
+                        <div class="module">
+                            <h1>{{ title }}</h1>
+                            <div class="help">
+                                Are you sure you want to change <strong>{{ count }}</strong> question(s) to <strong>{{ question_type_name }}</strong>?
+                            </div>
+
+                            {% if selected_questions %}
+                                <div class="model-list">
+                                    <h2>Selected questions</h2>
+                                    <ul>
+                                        {% for question in selected_questions %}
+                                            <li>#{{ question.order }} <span style="color: #0d6efd;">[{{ question.question_type.name }}]</span> — {{ question.question_text|truncatechars:120 }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="change_question_type">
+                                <input type="hidden" name="question_type" value="{{ question_type_id }}">
+                                <input type="hidden" name="post" value="yes">
+                                {% for pk in selected_ids %}
+                                    <input type="hidden" name="{{ action_checkbox_name }}" value="{{ pk }}">
+                                {% endfor %}
+                                <div class="actions">
+                                    <button type="submit">Confirm</button>
+                                    <a class="button" href="{{ cancel_url }}">Cancel</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            ''')
+            context = RequestContext(request, {
+                'title': 'Confirm question type change',
+                'count': queryset.count(),
+                'question_type_name': question_type.name if question_type else 'Unknown type',
+                'question_type_id': question_type_id,
+                'selected_ids': selected_ids,
+                'selected_questions': selected_questions,
+                'action_checkbox_name': admin.helpers.ACTION_CHECKBOX_NAME,
+                'cancel_url': cancel_url,
+            })
+            return HttpResponse(template.render(context))
+
+        updated = queryset.update(question_type_id=question_type_id)
+        self.message_user(request, f'{updated} question(s) updated.', messages.SUCCESS)
     
 
     class Media:
