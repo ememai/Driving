@@ -158,7 +158,14 @@ MIDDLEWARE = [
     'app.middleware.TrafficLoggingMiddleware',
 ]
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 ROOT_URLCONF = 'mwami.urls'
 
@@ -499,5 +506,4 @@ CACHE_TIMEOUT_SHORT = 60  # 1 minute
 CACHE_TIMEOUT_MEDIUM = 300  # 5 minutes
 CACHE_TIMEOUT_LONG = 3600  # 1 hour
 CACHE_TIMEOUT_EXTRA_LONG = 86400  # 24 hours
-
 
