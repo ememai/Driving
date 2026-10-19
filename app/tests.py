@@ -275,24 +275,28 @@ class ExamTypesDirectoryTests(TestCase):
     def test_directory_lists_all_types_with_counts_and_category_links(self):
         populated_type = ExamType.objects.create(name='Ibimenyetso', order=1)
         empty_type = ExamType.objects.create(name='Amategeko', order=2)
+        mixed_type = ExamType.objects.create(name='Ibivanze', order=3, mixed_type=True)
         Exam.objects.create(exam_type=populated_type, for_scheduling=False)
+        Exam.objects.create(exam_type=mixed_type, for_scheduling=False)
 
         response = self.client.get(reverse('exam_types'))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             [exam_type.name for exam_type in response.context['exam_types']],
-            ['Ibimenyetso', 'Amategeko'],
+            ['Ibimenyetso', 'Amategeko', 'Ibivanze'],
         )
         self.assertEqual(
             [exam_type.exam_count for exam_type in response.context['exam_types']],
-            [1, 0],
+            [1, 0, 1],
         )
+        self.assertEqual(response.context['exam_type_count'], 2)
         self.assertEqual(response.context['total_exam_count'], 1)
 
         html = response.content.decode('utf-8')
         self.assertIn(reverse('exams', args=[populated_type.name]), html)
         self.assertIn(reverse('exams', args=[empty_type.name]), html)
+        self.assertIn(reverse('exams', args=[mixed_type.name]), html)
         self.assertIn('href="{}"'.format(reverse('exam_types')), html)
 
     def test_directory_requires_login(self):

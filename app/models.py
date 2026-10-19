@@ -663,8 +663,9 @@ class Question(models.Model):
         return f"Q{self.order}: {self.question_text}... [type: {self.question_type.name if self.question_type else 'None'}]"
 
 class ExamType(models.Model):
-    name = models.CharField(max_length=500, default='Ibivanze')
-    order = models.IntegerField(default=5)
+    name = models.CharField(max_length=500, unique=True)
+    order = models.IntegerField(default=5, help_text="Lower numbers appear first in the list.")
+    mixed_type = models.BooleanField(default=False, help_text="If checked, questions from this type can be mixed with others in exams.")
     icon = models.CharField(max_length=50, blank=True, null=True, help_text="Bootstrap icon class name (e.g., 'bi bi-journal-text')")
 
     def __str__(self):

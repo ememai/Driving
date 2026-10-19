@@ -448,9 +448,15 @@ def exam_types(request):
             exam_count=Count('exam', distinct=True)
         ).order_by('order', 'name')
     )
+    counted_exam_types = [
+        exam_type for exam_type in exam_types if not exam_type.mixed_type
+    ]
     return render(request, 'exams/exam_types.html', {
         'exam_types': exam_types,
-        'total_exam_count': sum(exam_type.exam_count for exam_type in exam_types),
+        'exam_type_count': len(counted_exam_types),
+        'total_exam_count': sum(
+            exam_type.exam_count for exam_type in counted_exam_types
+        ),
     })
 
 
