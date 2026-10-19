@@ -64,7 +64,7 @@ JAZZMIN_SETTINGS = {
     "site_logo": "img/logo.png",
     "site_logo_classes": "img-circle",
     "site_logo_small": "img/logo.png",
-    "site_icon": "img/favicon.ico",
+    "site_icon": "img/logo.png",
     "welcome_sign": f"Welcome to Kigali Driving School Admin | {datetime.now().year}",
     "copyright": f"Kigali Driving School",
 
@@ -506,4 +506,3 @@ CACHE_TIMEOUT_SHORT = 60  # 1 minute
 CACHE_TIMEOUT_MEDIUM = 300  # 5 minutes
 CACHE_TIMEOUT_LONG = 3600  # 1 hour
 CACHE_TIMEOUT_EXTRA_LONG = 86400  # 24 hours
-
