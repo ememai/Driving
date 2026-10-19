@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 class Command(BaseCommand):
     help = "Verify production static assets resolve through the manifest."
 
-    assets = ("css/theme.css", "img/main.jpg")
+    assets = ("css/theme.css", "img/logo.png", "img/main.jpg")
 
     def handle(self, *args, **options):
         if settings.DEBUG:
