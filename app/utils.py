@@ -85,6 +85,14 @@ def clean_phone_number(number):
         raise ValueError("Invalid phone number format.")
 
 
+def get_admin_notification_setting():
+    """Return the shared settings record, creating it with the configured admin number."""
+    return AdminNotificationSetting.objects.get_or_create(
+        pk=1,
+        defaults={"phone_number": settings.ADMIN_PHONE_NUMBER},
+    )[0]
+
+
 def notify_admin(message):
     """Send admin notifications via whats_api with improved error handling"""
     try:

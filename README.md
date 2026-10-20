@@ -2,15 +2,11 @@
 
 ## Payment method details
 
-MoMo/Airtel payment codes, the MoMo phone number, and recipient name are managed in
-Django admin under **Payment Method Settings**. These values are rendered on the
-payment page and are visible to customers; they are configurable details, not
-secrets. Run `python manage.py migrate` after deployment to create the settings
-record with the current payment details as defaults.
-
-The WhatsApp recipient for automated admin notifications and the public support
-phone number are managed under **Admin Notification Settings** in Django admin.
-The migration initializes the notification number from `ADMIN_PHONE_NUMBER` and
-the support number to the existing public number. Changes saved in admin take
-effect immediately. The environment setting remains a fallback for notification
+MoMo/Airtel payment codes, the MoMo phone number, recipient name, admin
+notification WhatsApp number, and public support phone number are managed together
+on the **Site Settings** page in Django admin. Payment details are rendered on the
+payment page and remain visible to customers; they are configurable details, not
+secrets. Run `python manage.py migrate` after deployment. The migration preserves
+existing payment details and initializes the admin notification number from
+`ADMIN_PHONE_NUMBER`. That environment setting remains a fallback for notification
 delivery if the database record cannot be read.

@@ -231,27 +231,21 @@ class PaymentConfirmAdmin(admin.ModelAdmin):
     ordering = ('-time',)
 
 
-@admin.register(PaymentMethodSetting)
-class PaymentMethodSettingAdmin(admin.ModelAdmin):
-    list_display = ('momo_merchant_code', 'airtel_payee_phone', 'momo_payment_phone', 'recipient_name')
-    
-    fields = (
-        'momo_merchant_code',
-        'airtel_payee_phone',
-        'momo_payment_phone',
-        'recipient_name',
-    )
-
-    def has_add_permission(self, request):
-        return not PaymentMethodSetting.objects.exists()
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-
 @admin.register(AdminNotificationSetting)
 class AdminNotificationSettingAdmin(admin.ModelAdmin):
-    fields = ('phone_number', 'support_phone_number')
+    fieldsets = (
+        ('Contact Numbers', {
+            'fields': ('phone_number', 'support_phone_number'),
+        }),
+        ('Payment Details', {
+            'fields': (
+                'momo_merchant_code',
+                'airtel_payee_phone',
+                'momo_payment_phone',
+                'recipient_name',
+            ),
+        }),
+    )
 
     def has_add_permission(self, request):
         return not AdminNotificationSetting.objects.exists()

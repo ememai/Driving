@@ -11,14 +11,18 @@ from app.models import (
     UserProfile,
     Plan,
     Subscription,
-    PaymentMethodSetting,
     AdminNotificationSetting,
     ExamType,
     Exam,
     ScheduledExam,
     TrafficLog,
 )
-from app.utils import auto_schedule_recent_exams, get_support_phone_number, notify_admin
+from app.utils import (
+    auto_schedule_recent_exams,
+    get_admin_notification_setting,
+    get_support_phone_number,
+    notify_admin,
+)
 from dashboard.forms import ScheduledExamForm
 
 
@@ -36,9 +40,11 @@ class UnverifiedSubscriptionTests(TestCase):
         self.client.force_login(self.user)
 
     def test_payment_page_uses_payment_method_settings(self):
-        PaymentMethodSetting.objects.update_or_create(
+        AdminNotificationSetting.objects.update_or_create(
             pk=1,
             defaults={
+                "phone_number": "0788111222",
+                "support_phone_number": "0788000001",
                 "momo_merchant_code": "123456",
                 "airtel_payee_phone": "0722000000",
                 "momo_payment_phone": "0788000000",
@@ -75,6 +81,27 @@ class UnverifiedSubscriptionTests(TestCase):
             "250788123456@c.us",
         )
         self.assertEqual(get_support_phone_number(), "0788000001")
+
+    def test_site_settings_are_editable_on_one_admin_page(self):
+        get_admin_notification_setting()
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save(update_fields=["is_staff", "is_superuser"])
+
+        response = self.client.get(
+            reverse("admin:app_adminnotificationsetting_change", args=[1])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        for field_name in (
+            "phone_number",
+            "support_phone_number",
+            "momo_merchant_code",
+            "airtel_payee_phone",
+            "momo_payment_phone",
+            "recipient_name",
+        ):
+            self.assertContains(response, f'name="{field_name}"')
 
     def test_context_and_endpoint_return_true(self):
         # initially no unverified subscription

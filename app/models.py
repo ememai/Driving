@@ -460,7 +460,19 @@ class Payment(models.Model):
         verbose_name_plural = "User Payments"
 
 
-class PaymentMethodSetting(models.Model):
+class AdminNotificationSetting(models.Model):
+    phone_number = models.CharField(
+        max_length=20,
+        validators=[RegexValidator(r"^\+?[\d\s-]{9,19}$", "Enter a valid phone number.")],
+        help_text="WhatsApp number that receives automated admin notifications.",
+        verbose_name="Admin notification WhatsApp number",
+    )
+    support_phone_number = models.CharField(
+        max_length=20,
+        default="0785287885",
+        validators=[RegexValidator(r"^\+?[\d\s-]{9,19}$", "Enter a valid phone number.")],
+        help_text="Public phone number users should contact for support.",
+    )
     momo_merchant_code = models.CharField(
         max_length=20,
         default="187756",
@@ -486,36 +498,15 @@ class PaymentMethodSetting(models.Model):
     )
 
     class Meta:
-        verbose_name = "Payment Method Setting"
-        verbose_name_plural = "Payment Method Settings"
-
-    def __str__(self):
-        return "Payment method details"
-
-
-class AdminNotificationSetting(models.Model):
-    phone_number = models.CharField(
-        max_length=20,
-        validators=[RegexValidator(r"^\+?[\d\s-]{9,19}$", "Enter a valid phone number.")],
-        help_text="WhatsApp number that receives automated admin notifications.",
-    )
-    support_phone_number = models.CharField(
-        max_length=20,
-        default="0785287885",
-        validators=[RegexValidator(r"^\+?[\d\s-]{9,19}$", "Enter a valid phone number.")],
-        help_text="Public phone number users should contact for support.",
-    )
-
-    class Meta:
-        verbose_name = "Admin Notification Setting"
-        verbose_name_plural = "Admin Notification Settings"
+        verbose_name = "Site Setting"
+        verbose_name_plural = "Site Settings"
 
     def save(self, *args, **kwargs):
         self.pk = 1
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return "Admin contact numbers"
+        return "Site settings"
 
 
 class Course(models.Model):
