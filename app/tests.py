@@ -3,6 +3,7 @@ from django.test import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
+from unittest.mock import patch
 from app.views import custom_server_error
 from app.admin import TrafficLogAdmin
 
@@ -11,12 +12,13 @@ from app.models import (
     Plan,
     Subscription,
     PaymentMethodSetting,
+    AdminNotificationSetting,
     ExamType,
     Exam,
     ScheduledExam,
     TrafficLog,
 )
-from app.utils import auto_schedule_recent_exams
+from app.utils import auto_schedule_recent_exams, get_support_phone_number, notify_admin
 from dashboard.forms import ScheduledExamForm
 
 
@@ -51,6 +53,28 @@ class UnverifiedSubscriptionTests(TestCase):
         self.assertContains(response, "0788000000")
         self.assertContains(response, "*182*1*1*0722000000*")
         self.assertContains(response, "Test Recipient")
+
+    def test_admin_notification_uses_database_phone_number(self):
+        AdminNotificationSetting.objects.update_or_create(
+            pk=1,
+            defaults={
+                "phone_number": "+250 788 123 456",
+                "support_phone_number": "0788000001",
+            },
+        )
+
+        with patch("app.utils.validate_whats_api_credentials", return_value=True), patch(
+            "app.utils.session.post"
+        ) as post:
+            post.return_value.status_code = 200
+            notify_admin("Test notification")
+
+        self.assertIn("chatId", post.call_args.kwargs["json"])
+        self.assertEqual(
+            post.call_args.kwargs["json"]["chatId"],
+            "250788123456@c.us",
+        )
+        self.assertEqual(get_support_phone_number(), "0788000001")
 
     def test_context_and_endpoint_return_true(self):
         # initially no unverified subscription

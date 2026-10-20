@@ -346,7 +346,7 @@ def password_reset(request):
 
         messages.success(
             request,
-            "Link yo guhindura ijambobanga yoherejwe, reba kuri WhatsApp cyangwa sms yawe. Niba utabona link, saba ubufasha 0785287885.",
+            f"Link yo guhindura ijambobanga yoherejwe, reba kuri WhatsApp cyangwa sms yawe. Niba utabona link, saba ubufasha {get_support_phone_number()}.",
         )
         return redirect("login")
 
@@ -1103,7 +1103,7 @@ def payment_confirm(request):
             return redirect('home')
             
         except Exception as e:
-            messages.error(request, "Server error, kindly contact us on 0785287885 for support.")
+            messages.error(request, f"Server error, kindly contact us on {get_support_phone_number()} for support.")
     
     return redirect(f"{reverse('subscription')}?confirm=1")
 

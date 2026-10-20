@@ -72,3 +72,7 @@ def exams_slider_context(request):
         cache.set(cache_key, context, 1800)
     
     return context
+
+
+def support_phone_context(request):
+    return {'support_phone_number': get_support_phone_number()}

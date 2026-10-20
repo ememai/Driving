@@ -12,7 +12,7 @@ import textwrap
 from django.db import close_old_connections, connections
 import requests
 from django.db.models import Q
-from .utils import notify_admin
+from .utils import get_support_phone_number, notify_admin
 import logging
 from django.utils.timezone import localtime, now, make_aware, datetime
 
@@ -111,7 +111,7 @@ def job_notify_new_published_exams():
             ⏰ Ikizamini cya Saa {scheduled_time} cyageze ku rubuga.
             📝 Gikore uciye aha: {exam_url}
                 
-            📞 Ukeneye ubufasha: 0785287885
+            📞 Ukeneye ubufasha: {get_support_phone_number()}
             
                     📅 {today_date}
             ''')

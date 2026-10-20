@@ -249,6 +249,17 @@ class PaymentMethodSettingAdmin(admin.ModelAdmin):
         return False
 
 
+@admin.register(AdminNotificationSetting)
+class AdminNotificationSettingAdmin(admin.ModelAdmin):
+    fields = ('phone_number', 'support_phone_number')
+
+    def has_add_permission(self, request):
+        return not AdminNotificationSetting.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(PaymentAutoConfirmSetting)
 class PaymentAutoConfirmSettingAdmin(admin.ModelAdmin):
     list_display = ('status_indicator', 'period_display', 'required_confirms', 'is_active_indicator', 'updated_at')

@@ -4,6 +4,7 @@ from django.utils.timezone import now, localtime
 import random
 from django.utils import timezone
 from django.conf import settings
+from django.db import DatabaseError
 from django.core.mail import send_mail
 import requests
 from requests.adapters import HTTPAdapter
@@ -86,7 +87,17 @@ def clean_phone_number(number):
 
 def notify_admin(message):
     """Send admin notifications via whats_api with improved error handling"""
-    admin_number = re.sub(r'\D', '', settings.ADMIN_PHONE_NUMBER )
+    try:
+        admin_setting = AdminNotificationSetting.objects.filter(pk=1).only('phone_number').first()
+        configured_number = admin_setting.phone_number if admin_setting else settings.ADMIN_PHONE_NUMBER
+    except DatabaseError:
+        logger.exception("Could not load admin notification number from the database; using environment setting")
+        configured_number = settings.ADMIN_PHONE_NUMBER
+
+    admin_number = re.sub(r'\D', '', configured_number)
+    if not admin_number:
+        logger.error("Cannot send admin notification - no admin phone number is configured")
+        return
 
     if not validate_whats_api_credentials():
         logger.error("Cannot send admin notification - whats_api credentials invalid")
@@ -108,6 +119,19 @@ def notify_admin(message):
             logger.error(f"❌ whats_api admin error (HTTP {response.status_code}): {response.text}")
     except Exception as e:
         logger.error(f"🚨 Admin notification failed: {str(e)}", exc_info=True)
+
+
+def get_support_phone_number():
+    """Return the public support phone number configured in admin."""
+    try:
+        setting = AdminNotificationSetting.objects.filter(pk=1).only('support_phone_number').first()
+    except DatabaseError:
+        logger.exception("Could not load support phone number from the database")
+        return "0785287885"
+    if setting:
+        return setting.support_phone_number
+    logger.warning("No admin contact settings found; using the default support phone number")
+    return "0785287885"
 
 
 def phone_or_email():

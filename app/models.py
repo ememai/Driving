@@ -493,6 +493,31 @@ class PaymentMethodSetting(models.Model):
         return "Payment method details"
 
 
+class AdminNotificationSetting(models.Model):
+    phone_number = models.CharField(
+        max_length=20,
+        validators=[RegexValidator(r"^\+?[\d\s-]{9,19}$", "Enter a valid phone number.")],
+        help_text="WhatsApp number that receives automated admin notifications.",
+    )
+    support_phone_number = models.CharField(
+        max_length=20,
+        default="0785287885",
+        validators=[RegexValidator(r"^\+?[\d\s-]{9,19}$", "Enter a valid phone number.")],
+        help_text="Public phone number users should contact for support.",
+    )
+
+    class Meta:
+        verbose_name = "Admin Notification Setting"
+        verbose_name_plural = "Admin Notification Settings"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return "Admin contact numbers"
+
+
 class Course(models.Model):
     course_file = models.FileField(upload_to='courses/', validators=[FileExtensionValidator(['pdf', 'mp4', 'avi', 'mkv'])], unique=True)
     title = models.CharField(max_length=200, unique=True)

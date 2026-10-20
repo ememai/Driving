@@ -184,6 +184,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'app.context_processors.exams_slider_context',
                 'app.context_processors.unverified_subscription_context',
+                'app.context_processors.support_phone_context',
             ],
         },
     },
