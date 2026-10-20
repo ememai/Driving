@@ -11,9 +11,11 @@ from django.shortcuts import get_object_or_404
 from .forms import *
 import uuid
 import logging
+import sys
 from .momo_utils import *
 from .utils import *
 from django.views.decorators.csrf import csrf_exempt
+from django.views.debug import ExceptionReporter
 from django.middleware.csrf import get_token
 import json
 import base64
@@ -1640,6 +1642,16 @@ def custom_server_error(request):
         'error_message': 'Internal Server Error',
         'support_email': 'support@example.com',  # Update with your support email
     }
+    if getattr(getattr(request, 'user', None), 'is_staff', False):
+        exception_type, exception, exception_traceback = sys.exc_info()
+        if exception is not None:
+            context['error_details'] = ExceptionReporter(
+                request,
+                exception_type,
+                exception,
+                exception_traceback,
+            ).get_traceback_text()
+
     try:
         return render(request, '500.html', context, status=500)
     except:

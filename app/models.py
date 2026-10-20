@@ -981,9 +981,6 @@ class TrafficLog(models.Model):
     def __str__(self):
         return f"{self.path} - {self.status_code} - {self.timestamp}"
 
-    def __str__(self):
-        return f"Message from {self.name} ({self.email})"
-
 class UserActivity(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     activity_type = models.CharField(max_length=255)
@@ -1137,4 +1134,3 @@ class PaymentConfirmLog(models.Model):
 
     def __str__(self):
         return f"{self.user.name} - {self.created_at.strftime('%d.%m.%Y %H:%M')}"
-

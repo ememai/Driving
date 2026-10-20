@@ -932,7 +932,6 @@ class TrafficLogAdmin(admin.ModelAdmin):
     search_fields = ('path', 'ip_address', 'user__name', 'country', 'city', 'browser')
     readonly_fields = ('timestamp', 'path', 'method', 'status_code', 'ip_address', 'user_agent', 'referrer', 'response_time', 'user', 'country', 'city', 'country_code', 'device_type', 'device_name', 'browser', 'browser_version', 'os', 'os_version', 'platform')
     ordering = ('-timestamp',)
-    date_hierarchy = 'timestamp'
     
     fieldsets = (
         ('Request Information', {
@@ -984,7 +983,7 @@ class ErrorReportAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Error Information', {
             'fields': ('error_type', 'status', 'error_message', 'request_path', 'request_method')
-        }),
+        }), 
         ('User Information', {
             'fields': ('user', 'remote_address', 'user_agent', 'referrer')
         }),

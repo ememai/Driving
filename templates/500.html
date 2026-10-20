@@ -47,6 +47,16 @@
       .button-group a {
         margin: 5px;
       }
+      .error-details {
+        margin-top: 20px;
+        text-align: left;
+      }
+      .error-details pre {
+        max-height: 60vh;
+        overflow: auto;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
     </style>
   </head>
   <body>
@@ -70,7 +80,24 @@
         >
           <i class="fas fa-exclamation-triangle"></i> Report Error
         </button>
+        {% if error_details %}
+        <button
+          type="button"
+          id="viewErrorDetailsBtn"
+          class="btn btn-outline-danger"
+          aria-expanded="false"
+          aria-controls="errorDetails"
+        >
+          <i class="fas fa-code"></i> View Full Error Description
+        </button>
+        {% endif %}
       </div>
+
+      {% if error_details %}
+      <div id="errorDetails" class="error-details" hidden>
+        <pre class="alert alert-light">{{ error_details }}</pre>
+      </div>
+      {% endif %}
 
       <div id="alertMessage" class="alert-message"></div>
     </div>
@@ -184,6 +211,17 @@
       }
 
       $(document).ready(function () {
+        $("#viewErrorDetailsBtn").click(function () {
+          var isExpanded = $(this).attr("aria-expanded") === "true";
+          $(this).attr("aria-expanded", !isExpanded);
+          $("#errorDetails").prop("hidden", isExpanded);
+          $(this).html(
+            isExpanded
+              ? '<i class="fas fa-code"></i> View Full Error Description'
+              : '<i class="fas fa-eye-slash"></i> Hide Error Description',
+          );
+        });
+
         // Show modal on button click
         $("#reportErrorBtn").click(function () {
           $("#reportErrorModal").modal("show");

@@ -1,9 +1,12 @@
 from django.test import TestCase
+from django.test import RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
+from app.views import custom_server_error
+from app.admin import TrafficLogAdmin
 
-from app.models import UserProfile, Plan, Subscription, ExamType, Exam, ScheduledExam
+from app.models import UserProfile, Plan, Subscription, ExamType, Exam, ScheduledExam, TrafficLog
 from app.utils import auto_schedule_recent_exams
 from dashboard.forms import ScheduledExamForm
 
@@ -90,6 +93,7 @@ class UnverifiedSubscriptionTests(TestCase):
         # check function now respects document.readyState
         self.assertIn('document.readyState', content)
 
+
     def test_activation_click_prevents_repeat(self):
         """The embedded JS should set a flag when the modal button is clicked
         and skip future checks until the unverified subscription disappears."""
@@ -132,6 +136,73 @@ class UnverifiedSubscriptionTests(TestCase):
             html,
             r"<script>\s*document.addEventListener\('DOMContentLoaded', function\(\) \{\s*new bootstrap\.Modal\(document.getElementById\('unverifiedModal'\)\)\.show\(\);\s*\}\);\s*</script>"
         )
+
+class ServerErrorPageTests(TestCase):
+    def test_staff_can_view_full_error_description(self):
+        staff_user = UserProfile.objects.create_user(
+            phone_number='250780000002',
+            email='staff@example.com',
+            password='password123',
+            is_staff=True,
+        )
+        request = RequestFactory().get('/admin/app/trafficlog/')
+        request.user = staff_user
+
+        try:
+            raise ValueError(
+                'Database returned an invalid datetime value. '
+                'Are time zone definitions for your database installed?'
+            )
+        except ValueError:
+            response = custom_server_error(request)
+
+        content = response.content.decode('utf-8')
+        self.assertContains(response, 'View Full Error Description', status_code=500)
+        self.assertIn(
+            'Database returned an invalid datetime value. '
+            'Are time zone definitions for your database installed?',
+            content,
+        )
+        self.assertIn('Request Method', content)
+        self.assertIn('/admin/app/trafficlog/', content)
+
+    def test_public_visitor_cannot_view_error_description(self):
+        from django.contrib.auth.models import AnonymousUser
+
+        request = RequestFactory().get('/error')
+        request.user = AnonymousUser()
+
+        try:
+            raise RuntimeError('Sensitive test error description')
+        except RuntimeError:
+            response = custom_server_error(request)
+
+        content = response.content.decode('utf-8')
+        self.assertEqual(response.status_code, 500)
+        self.assertNotIn('id="viewErrorDetailsBtn"', content)
+        self.assertNotIn('Sensitive test error description', content)
+
+
+class TrafficLogAdminTests(TestCase):
+    def test_changelist_loads_without_date_hierarchy(self):
+        admin_user = UserProfile.objects.create_superuser(
+            phone_number='250780000003',
+            email='traffic-admin@example.com',
+            password='password123',
+        )
+        TrafficLog.objects.create(
+            user=admin_user,
+            path='/admin/app/trafficlog/',
+            status_code=200,
+        )
+        self.client.force_login(admin_user)
+
+        response = self.client.get(reverse('admin:app_trafficlog_changelist'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(TrafficLogAdmin.date_hierarchy)
+        self.assertContains(response, '/admin/app/trafficlog/')
+
 
 class ExamsByTypeTabsTests(TestCase):
     def setUp(self):
