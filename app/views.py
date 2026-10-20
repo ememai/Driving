@@ -988,7 +988,7 @@ def payment(request):
     first_exam_id = _get_first_exam_id()
     page = 'payment'
     all_plans=Plan.objects.all().order_by('price')
-    payment_settings = get_admin_notification_setting()
+    payment_settings = get_payment_site_settings()
     context = {
         'all_plans': all_plans,
         'range_10': range(10),
@@ -1054,7 +1054,7 @@ def payment_confirm(request):
                 first_exam_id = _get_first_exam_id()
                 return render(request, 'payment.html', {
                     'first_exam_id': first_exam_id,
-                    'payment_settings': get_admin_notification_setting(),
+                    'payment_settings': get_site_settings(),
                 })
             
             # Get plan
@@ -1065,7 +1065,7 @@ def payment_confirm(request):
                 first_exam_id = _get_first_exam_id()
                 return render(request, 'payment.html', {
                     'first_exam_id': first_exam_id,
-                    'payment_settings': get_admin_notification_setting(),
+                    'payment_settings': get_site_settings(),
                 })
             
             # Create/update payment confirmation

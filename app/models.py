@@ -460,7 +460,7 @@ class Payment(models.Model):
         verbose_name_plural = "User Payments"
 
 
-class AdminNotificationSetting(models.Model):
+class SiteSettings(models.Model):
     phone_number = models.CharField(
         max_length=20,
         validators=[RegexValidator(r"^\+?[\d\s-]{9,19}$", "Enter a valid phone number.")],

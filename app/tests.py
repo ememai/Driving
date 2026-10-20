@@ -11,7 +11,7 @@ from app.models import (
     UserProfile,
     Plan,
     Subscription,
-    AdminNotificationSetting,
+    SiteSettings,
     ExamType,
     Exam,
     ScheduledExam,
@@ -19,7 +19,7 @@ from app.models import (
 )
 from app.utils import (
     auto_schedule_recent_exams,
-    get_admin_notification_setting,
+    get_payment_site_settings,
     get_support_phone_number,
     notify_admin,
 )
@@ -40,7 +40,7 @@ class UnverifiedSubscriptionTests(TestCase):
         self.client.force_login(self.user)
 
     def test_payment_page_uses_payment_method_settings(self):
-        AdminNotificationSetting.objects.update_or_create(
+        SiteSettings.objects.update_or_create(
             pk=1,
             defaults={
                 "phone_number": "0788111222",
@@ -61,7 +61,7 @@ class UnverifiedSubscriptionTests(TestCase):
         self.assertContains(response, "Test Recipient")
 
     def test_admin_notification_uses_database_phone_number(self):
-        AdminNotificationSetting.objects.update_or_create(
+        SiteSettings.objects.update_or_create(
             pk=1,
             defaults={
                 "phone_number": "+250 788 123 456",
@@ -83,13 +83,13 @@ class UnverifiedSubscriptionTests(TestCase):
         self.assertEqual(get_support_phone_number(), "0788000001")
 
     def test_site_settings_are_editable_on_one_admin_page(self):
-        get_admin_notification_setting()
+        get_site_settings()
         self.user.is_staff = True
         self.user.is_superuser = True
         self.user.save(update_fields=["is_staff", "is_superuser"])
 
         response = self.client.get(
-            reverse("admin:app_adminnotificationsetting_change", args=[1])
+            reverse("admin:app_sitesettings_change", args=[1])
         )
 
         self.assertEqual(response.status_code, 200)

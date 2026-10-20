@@ -231,8 +231,8 @@ class PaymentConfirmAdmin(admin.ModelAdmin):
     ordering = ('-time',)
 
 
-@admin.register(AdminNotificationSetting)
-class AdminNotificationSettingAdmin(admin.ModelAdmin):
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Contact Numbers', {
             'fields': ('phone_number', 'support_phone_number'),
@@ -248,7 +248,7 @@ class AdminNotificationSettingAdmin(admin.ModelAdmin):
     )
 
     def has_add_permission(self, request):
-        return not AdminNotificationSetting.objects.exists()
+        return not SiteSettings.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return False

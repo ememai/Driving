@@ -85,9 +85,9 @@ def clean_phone_number(number):
         raise ValueError("Invalid phone number format.")
 
 
-def get_admin_notification_setting():
+def get_payment_site_settings():
     """Return the shared settings record, creating it with the configured admin number."""
-    return AdminNotificationSetting.objects.get_or_create(
+    return SiteSettings.objects.get_or_create(
         pk=1,
         defaults={"phone_number": settings.ADMIN_PHONE_NUMBER},
     )[0]
@@ -96,7 +96,7 @@ def get_admin_notification_setting():
 def notify_admin(message):
     """Send admin notifications via whats_api with improved error handling"""
     try:
-        admin_setting = AdminNotificationSetting.objects.filter(pk=1).only('phone_number').first()
+        admin_setting = SiteSettings.objects.filter(pk=1).only('phone_number').first()
         configured_number = admin_setting.phone_number if admin_setting else settings.ADMIN_PHONE_NUMBER
     except DatabaseError:
         logger.exception("Could not load admin notification number from the database; using environment setting")
@@ -132,7 +132,7 @@ def notify_admin(message):
 def get_support_phone_number():
     """Return the public support phone number configured in admin."""
     try:
-        setting = AdminNotificationSetting.objects.filter(pk=1).only('support_phone_number').first()
+        setting = SiteSettings.objects.filter(pk=1).only('support_phone_number').first()
     except DatabaseError:
         logger.exception("Could not load support phone number from the database")
         return "0785287885"
