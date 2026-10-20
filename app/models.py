@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.utils.timezone import localtime
 from django.utils.html import format_html
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, RegexValidator
 import json  # Import the json module
 from django.db.models import Count, F, ExpressionWrapper, FloatField,OuterRef,Subquery
 from django.core.mail import send_mail, BadHeaderError
@@ -458,6 +458,39 @@ class Payment(models.Model):
     class Meta:
         verbose_name = "User Payment"
         verbose_name_plural = "User Payments"
+
+
+class PaymentMethodSetting(models.Model):
+    momo_merchant_code = models.CharField(
+        max_length=20,
+        default="187756",
+        validators=[RegexValidator(r"^\d+$", "Enter digits only.")],
+        help_text="Displayed publicly in the MoMo payment instructions.",
+    )
+    airtel_payee_phone = models.CharField(
+        max_length=20,
+        default="0735777412",
+        validators=[RegexValidator(r"^\d+$", "Enter digits only.")],
+        help_text="Displayed publicly in the Airtel Money payment instructions.",
+    )
+    momo_payment_phone = models.CharField(
+        max_length=20,
+        default="0785287885",
+        validators=[RegexValidator(r"^\d+$", "Enter digits only.")],
+        help_text="Phone number displayed for MoMo payments.",
+    )
+    recipient_name = models.CharField(
+        max_length=100,
+        default="Mwami Modeste",
+        help_text="Account holder name displayed to customers.",
+    )
+
+    class Meta:
+        verbose_name = "Payment Method Setting"
+        verbose_name_plural = "Payment Method Settings"
+
+    def __str__(self):
+        return "Payment method details"
 
 
 class Course(models.Model):

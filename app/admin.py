@@ -231,6 +231,24 @@ class PaymentConfirmAdmin(admin.ModelAdmin):
     ordering = ('-time',)
 
 
+@admin.register(PaymentMethodSetting)
+class PaymentMethodSettingAdmin(admin.ModelAdmin):
+    list_display = ('momo_merchant_code', 'airtel_payee_phone', 'momo_payment_phone', 'recipient_name')
+    
+    fields = (
+        'momo_merchant_code',
+        'airtel_payee_phone',
+        'momo_payment_phone',
+        'recipient_name',
+    )
+
+    def has_add_permission(self, request):
+        return not PaymentMethodSetting.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(PaymentAutoConfirmSetting)
 class PaymentAutoConfirmSettingAdmin(admin.ModelAdmin):
     list_display = ('status_indicator', 'period_display', 'required_confirms', 'is_active_indicator', 'updated_at')
@@ -268,6 +286,10 @@ class PaymentAutoConfirmSettingAdmin(admin.ModelAdmin):
     @admin.display(description='Currently Active', boolean=True, ordering='is_enabled')
     def is_active_indicator(self, obj):
         return obj.is_active
+    
+    def has_add_permission(self, request):
+        """Allow adding a setting only when none exists yet."""
+        return not PaymentAutoConfirmSetting.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         """Allow deleting only if there are other settings.

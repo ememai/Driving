@@ -988,11 +988,13 @@ def payment(request):
     first_exam_id = _get_first_exam_id()
     page = 'payment'
     all_plans=Plan.objects.all().order_by('price')
+    payment_settings, _ = PaymentMethodSetting.objects.get_or_create(pk=1)
     context = {
         'all_plans': all_plans,
         'range_10': range(10),
         'first_exam_id': first_exam_id,
         'page': page,
+        'payment_settings': payment_settings,
     }
     return render(request, 'payment.html', context)
 
@@ -1050,7 +1052,10 @@ def payment_confirm(request):
             except ValidationError as e:
                 messages.error(request, str(e))
                 first_exam_id = _get_first_exam_id()
-                return render(request, 'payment.html', {'first_exam_id': first_exam_id})
+                return render(request, 'payment.html', {
+                    'first_exam_id': first_exam_id,
+                    'payment_settings': PaymentMethodSetting.objects.get_or_create(pk=1)[0],
+                })
             
             # Get plan
             try:
@@ -1058,7 +1063,10 @@ def payment_confirm(request):
             except Plan.DoesNotExist:
                 messages.error(request, "Server error")
                 first_exam_id = _get_first_exam_id()
-                return render(request, 'payment.html', {'first_exam_id': first_exam_id})
+                return render(request, 'payment.html', {
+                    'first_exam_id': first_exam_id,
+                    'payment_settings': PaymentMethodSetting.objects.get_or_create(pk=1)[0],
+                })
             
             # Create/update payment confirmation
             PaymentConfirm.objects.update_or_create(

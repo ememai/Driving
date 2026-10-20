@@ -6,7 +6,16 @@ from datetime import timedelta
 from app.views import custom_server_error
 from app.admin import TrafficLogAdmin
 
-from app.models import UserProfile, Plan, Subscription, ExamType, Exam, ScheduledExam, TrafficLog
+from app.models import (
+    UserProfile,
+    Plan,
+    Subscription,
+    PaymentMethodSetting,
+    ExamType,
+    Exam,
+    ScheduledExam,
+    TrafficLog,
+)
 from app.utils import auto_schedule_recent_exams
 from dashboard.forms import ScheduledExamForm
 
@@ -23,6 +32,25 @@ class UnverifiedSubscriptionTests(TestCase):
         )
         self.plan = Plan.objects.create(plan='Basic', price=500)
         self.client.force_login(self.user)
+
+    def test_payment_page_uses_payment_method_settings(self):
+        PaymentMethodSetting.objects.update_or_create(
+            pk=1,
+            defaults={
+                "momo_merchant_code": "123456",
+                "airtel_payee_phone": "0722000000",
+                "momo_payment_phone": "0788000000",
+                "recipient_name": "Test Recipient",
+            },
+        )
+
+        response = self.client.get(reverse('payment'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "*182*8*1*123456*")
+        self.assertContains(response, "0788000000")
+        self.assertContains(response, "*182*1*1*0722000000*")
+        self.assertContains(response, "Test Recipient")
 
     def test_context_and_endpoint_return_true(self):
         # initially no unverified subscription
