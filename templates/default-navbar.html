@@ -159,7 +159,7 @@
                   <i class="fa-solid fa-circle-dollar-to-slot"></i>
                 <a
                   class="nav-link p-0 {% if request.path == '/admin/' %}active{% endif %}"
-                  href="/admin"
+                  href="{% url 'admin:index' %}"
                   aria-label="Admin Dashboard"
                   style="color: inherit"
                   ><i class="bi bi-speedometer2"></i
