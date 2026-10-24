@@ -1355,49 +1355,38 @@ def create_exam_page(request, exam_id=None):
                         messages.error(request, "Cannot create exams on Sundays.")
                         return redirect('create_exam')
                     
-                    # Create multiple exams with auto-calculated schedule hours
-                    for _ in range(number_of_exams):
-                        try:
-                            questions = Question.objects.order_by('?')[:20]
-                            if questions.count() < 20:
-                                continue
-                            
-                            # Get last exam with for_scheduling=True to calculate next hour
-                            last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
-                            next_hour = (last_exam.schedule_hour.hour + 1 if last_exam and last_exam.schedule_hour else 8) % 24
-                            next_hour = next_hour if next_hour >= 8 and next_hour <= 15 else 8
-                            
-                            exam_schedule_hour = time(next_hour, 0)
-                            
-                            new_exam = Exam.objects.create(
-                                exam_type=exam_type,
-                                schedule_hour=exam_schedule_hour,
-                                duration=duration,
-                                for_scheduling=True,  # Always True for batch creation
-                            )
-                            new_exam.questions.set(questions)
-                            created_exam_ids.append(new_exam.id)
-                        except Exception as e:
-                            continue
+                    _, created_exam_ids = auto_create_exams(
+                        number_of_exams,
+                        for_scheduling=True,
+                        duration=duration,
+                    )
                 else:
                     # Single exam creation: use user input for schedule_hour and for_scheduling
                     if not schedule_hour:
                         raise ValueError("Schedule hour is required for single exam creation.")
-                    questions = Question.objects.order_by('?')[:20]
-                    new_exam = Exam.objects.create(
-                        exam_type=exam_type,
-                        schedule_hour=schedule_hour,
-                        duration=duration,
-                        for_scheduling=for_scheduling,
-                    )
-                    new_exam.questions.set(questions)
-                    created_exam_ids.append(new_exam.id)
+                    with transaction.atomic():
+                        question_ids = reserve_rotated_questions()
+                        new_exam = Exam.objects.create(
+                            exam_type=exam_type,
+                            schedule_hour=schedule_hour,
+                            duration=duration,
+                            for_scheduling=for_scheduling,
+                        )
+                        new_exam.questions.set(question_ids)
+                        created_exam_ids.append(new_exam.id)
 
                 request.session['undo_exam_ids'] = created_exam_ids
-                messages.success(request, f"{len(created_exam_ids)} exam{'s' if len(created_exam_ids) != 1 else ''} created successfully!")
+                if created_exam_ids:
+                    messages.success(request, f"{len(created_exam_ids)} exam{'s' if len(created_exam_ids) != 1 else ''} created successfully!")
+                else:
+                    messages.error(
+                        request,
+                        "No exam was created because the question bank cannot meet the no-repeat and overlap rules. "
+                        "Add more questions, then try again.",
+                    )
 
             return redirect('create_exam')
-        except (ValueError, TypeError) as e:
+        except (ValueError, TypeError, ExamQuestionSelectionError) as e:
             messages.error(request, f"Invalid input: {e}")
 
     # Show last 10 Ibivanze exams

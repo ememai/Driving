@@ -245,6 +245,10 @@ class SiteSettingsAdmin(admin.ModelAdmin):
                 'recipient_name',
             ),
         }),
+        ('Exam Generation', {
+            'fields': ('exam_max_shared_questions', 'exam_similarity_history_limit'),
+            'description': 'Controls how similar newly generated exams may be to recent exams.',
+        }),
     )
 
     def has_add_permission(self, request):

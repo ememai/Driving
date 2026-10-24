@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.test import RequestFactory
+from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
@@ -14,20 +15,90 @@ from app.models import (
     SiteSettings,
     ExamType,
     Exam,
+    Question,
     ScheduledExam,
     TrafficLog,
 )
 from app.utils import (
     auto_schedule_recent_exams,
+    ExamQuestionSelectionError,
     get_payment_site_settings,
     get_support_phone_number,
     notify_admin,
+    reserve_rotated_questions,
 )
 from dashboard.forms import ScheduledExamForm
 
 
 
 # Create your tests here.
+
+
+class ExamQuestionRotationTests(TestCase):
+    def create_questions(self, count):
+        for index in range(count):
+            Question.objects.create(
+                question_text=f"Rotation question {index}",
+                choice1_text="Correct",
+                choice2_text="Incorrect",
+                correct_choice=1,
+                order=index + 1,
+            )
+
+    def save_exam_with_reserved_questions(self):
+        with transaction.atomic():
+            question_ids = reserve_rotated_questions()
+            exam = Exam.objects.create(duration=20)
+            exam.questions.set(question_ids)
+        return exam
+
+    def test_questions_do_not_repeat_until_the_bank_is_exhausted(self):
+        self.create_questions(40)
+
+        first_exam = self.save_exam_with_reserved_questions()
+        second_exam = self.save_exam_with_reserved_questions()
+
+        first_ids = set(first_exam.questions.values_list("id", flat=True))
+        second_ids = set(second_exam.questions.values_list("id", flat=True))
+        self.assertEqual(len(first_ids), 20)
+        self.assertEqual(len(second_ids), 20)
+        self.assertFalse(first_ids & second_ids)
+        self.assertEqual(first_ids | second_ids, set(Question.objects.values_list("id", flat=True)))
+
+    def test_impossible_overlap_requirement_does_not_create_a_duplicate(self):
+        self.create_questions(40)
+        self.save_exam_with_reserved_questions()
+        self.save_exam_with_reserved_questions()
+
+        with self.assertRaises(ExamQuestionSelectionError):
+            reserve_rotated_questions()
+
+    def test_400_questions_supports_a_new_form_after_a_full_rotation(self):
+        self.create_questions(400)
+
+        completed_round = [self.save_exam_with_reserved_questions() for _ in range(20)]
+        next_exam = self.save_exam_with_reserved_questions()
+        next_ids = set(next_exam.questions.values_list("id", flat=True))
+
+        self.assertEqual(len(next_ids), 20)
+        for previous_exam in completed_round:
+            previous_ids = set(previous_exam.questions.values_list("id", flat=True))
+            self.assertLessEqual(len(next_ids & previous_ids), 1)
+
+    def test_similarity_limit_only_considers_recent_exams(self):
+        self.create_questions(40)
+        site_settings = get_payment_site_settings()
+        site_settings.exam_similarity_history_limit = 1
+        site_settings.save()
+        first_exam = self.save_exam_with_reserved_questions()
+        second_exam = self.save_exam_with_reserved_questions()
+        third_exam = self.save_exam_with_reserved_questions()
+
+        first_ids = set(first_exam.questions.values_list("id", flat=True))
+        second_ids = set(second_exam.questions.values_list("id", flat=True))
+        third_ids = set(third_exam.questions.values_list("id", flat=True))
+        self.assertLessEqual(len(third_ids & second_ids), 1)
+        self.assertGreater(len(third_ids & first_ids), 1)
 
 class UnverifiedSubscriptionTests(TestCase):
     def setUp(self):

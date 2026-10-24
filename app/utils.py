@@ -4,7 +4,7 @@ from django.utils.timezone import now, localtime
 import random
 from django.utils import timezone
 from django.conf import settings
-from django.db import DatabaseError
+from django.db import DatabaseError, transaction
 from django.core.mail import send_mail
 import requests
 from requests.adapters import HTTPAdapter
@@ -15,6 +15,186 @@ from django.db import connections
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
+
+
+QUESTIONS_PER_EXAM = 20
+ROTATION_SCOPE = "all-exams"
+
+
+class ExamQuestionSelectionError(ValueError):
+    """Raised when an exam cannot be made without breaking its safeguards."""
+
+
+def _existing_exam_question_sets(history_limit):
+    """Return question IDs for the most recent saved exam forms.
+
+    Rotation usage is intentionally kept forever within its active round, but
+    similarity is a recency safeguard.  Comparing against every historical
+    exam would eventually make a finite question bank impossible to use.
+    """
+    recent_exam_ids = list(
+        Exam.objects.order_by("-created_at", "-pk").values_list("id", flat=True)[:history_limit]
+    )
+    question_sets = {}
+    through_model = Exam.questions.through
+    for exam_id, question_id in through_model.objects.filter(
+        exam_id__in=recent_exam_ids
+    ).values_list("exam_id", "question_id"):
+        question_sets.setdefault(exam_id, set()).add(question_id)
+    return list(question_sets.values())
+
+
+def _build_overlap_limited_candidate(required_ids, candidate_ids, size, previous_forms, max_shared):
+    """Build a form one question at a time while respecting overlap caps.
+
+    Selecting a whole random form and checking it afterwards almost never
+    succeeds once a rotation has completed.  For example, with 400 questions
+    split across 20 old forms, the next form must draw one question from each
+    old form.  This incremental selector makes that valid arrangement directly.
+    """
+    selected = set(required_ids)
+    overlap_counts = [len(selected & form) for form in previous_forms]
+    if any(count > max_shared for count in overlap_counts):
+        return None
+
+    question_forms = {}
+    for form_index, form in enumerate(previous_forms):
+        for question_id in form:
+            question_forms.setdefault(question_id, []).append(form_index)
+
+    available_ids = list(set(candidate_ids) - selected)
+    random.shuffle(available_ids)
+
+    while len(selected) < size:
+        allowed_ids = [
+            question_id
+            for question_id in available_ids
+            if all(
+                overlap_counts[form_index] < max_shared
+                for form_index in question_forms.get(question_id, [])
+            )
+        ]
+        if not allowed_ids:
+            return None
+
+        # Prefer the question constrained by the fewest historic forms.  This
+        # preserves choices for questions that appear in more old forms while
+        # retaining random variation among equally good options.
+        fewest_forms = min(len(question_forms.get(question_id, [])) for question_id in allowed_ids)
+        question_id = random.choice(
+            [
+                question_id
+                for question_id in allowed_ids
+                if len(question_forms.get(question_id, [])) == fewest_forms
+            ]
+        )
+        selected.add(question_id)
+        available_ids.remove(question_id)
+        for form_index in question_forms.get(question_id, []):
+            overlap_counts[form_index] += 1
+
+    return selected
+
+
+def reserve_rotated_questions(questions_per_exam=QUESTIONS_PER_EXAM):
+    """Reserve questions without repeats in a round or similar exam forms.
+
+    Call this inside the transaction that creates the ``Exam``.  The database
+    state makes the rotation survive restarts and serializes concurrent workers.
+    """
+    if questions_per_exam < 1:
+        raise ValueError("questions_per_exam must be at least 1.")
+
+    max_shared, history_limit = get_exam_generation_settings()
+    if max_shared < 0 or max_shared >= questions_per_exam:
+        raise ValueError(
+            "EXAM_MAX_SHARED_QUESTIONS must be between 0 and questions_per_exam - 1."
+        )
+    if history_limit < 1:
+        raise ValueError("EXAM_SIMILARITY_HISTORY_LIMIT must be at least 1.")
+
+    with transaction.atomic():
+        rotation, _ = ExamQuestionRotation.objects.get_or_create(scope=ROTATION_SCOPE)
+        rotation = ExamQuestionRotation.objects.select_for_update().get(pk=rotation.pk)
+
+        all_question_ids = list(Question.objects.order_by("id").values_list("id", flat=True))
+        if len(all_question_ids) < questions_per_exam:
+            raise ExamQuestionSelectionError(
+                f"At least {questions_per_exam} questions are required; only {len(all_question_ids)} exist."
+            )
+
+        used_ids = set(
+            ExamQuestionRotationUsage.objects.filter(
+                rotation=rotation,
+                round_number=rotation.current_round,
+            ).values_list("question_id", flat=True)
+        )
+        unused_ids = [question_id for question_id in all_question_ids if question_id not in used_ids]
+        previous_forms = _existing_exam_question_sets(history_limit)
+
+        # A boundary form finishes the current round before drawing its extra
+        # slots from the next one.  Therefore no question repeats before every
+        # question in the bank has appeared.
+        needed_from_next_round = max(0, questions_per_exam - len(unused_ids))
+        next_round_choices = (
+            [question_id for question_id in all_question_ids if question_id not in unused_ids]
+            if needed_from_next_round
+            else []
+        )
+
+        candidate_ids = None
+        for _ in range(500):
+            # At a round boundary every remaining question is mandatory; only
+            # the extra slots may come from the next round.  Otherwise all
+            # choices come from the as-yet-unused part of this round.
+            required_ids = unused_ids if needed_from_next_round else []
+            selectable_ids = next_round_choices if needed_from_next_round else unused_ids
+            candidate = _build_overlap_limited_candidate(
+                required_ids,
+                selectable_ids,
+                questions_per_exam,
+                previous_forms,
+                max_shared,
+            )
+            if candidate is not None:
+                candidate_ids = list(candidate)
+                break
+
+        if candidate_ids is None:
+            raise ExamQuestionSelectionError(
+                "No valid exam can be made with the current question bank and "
+                f"the limit of {max_shared} shared question(s) per existing exam. "
+                "Add more questions or intentionally increase EXAM_MAX_SHARED_QUESTIONS."
+            )
+
+        current_ids = set(candidate_ids) & set(unused_ids)
+        ExamQuestionRotationUsage.objects.bulk_create(
+            [
+                ExamQuestionRotationUsage(
+                    rotation=rotation,
+                    question_id=question_id,
+                    round_number=rotation.current_round,
+                )
+                for question_id in current_ids
+            ]
+        )
+        if needed_from_next_round:
+            next_round = rotation.current_round + 1
+            next_ids = set(candidate_ids) - current_ids
+            ExamQuestionRotationUsage.objects.bulk_create(
+                [
+                    ExamQuestionRotationUsage(
+                        rotation=rotation,
+                        question_id=question_id,
+                        round_number=next_round,
+                    )
+                    for question_id in next_ids
+                ]
+            )
+            rotation.current_round = next_round
+            rotation.save(update_fields=["current_round", "updated_at"])
+
+        return candidate_ids
 
 
 session = requests.Session()
@@ -91,6 +271,15 @@ def get_payment_site_settings():
         pk=1,
         defaults={"phone_number": settings.ADMIN_PHONE_NUMBER},
     )[0]
+
+
+def get_exam_generation_settings():
+    """Read exam-generation safeguards from the database-backed site settings."""
+    site_settings = get_payment_site_settings()
+    return (
+        site_settings.exam_max_shared_questions,
+        site_settings.exam_similarity_history_limit,
+    )
 
 
 def notify_admin(message):
@@ -244,7 +433,7 @@ def check_exam_availability(hour):
 #     print(f"✅{exams_created} Exams Created successfully!")
 #     return exams_created
 
-def auto_create_exams(number, for_scheduling=True, ):
+def auto_create_exams(number, for_scheduling=True, duration=20):
     exams_created = 0
     created_exam_ids = []
     skipped_reasons = []
@@ -259,29 +448,30 @@ def auto_create_exams(number, for_scheduling=True, ):
 
     for i in range(number):
         try:
-            exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
-            questions = Question.objects.order_by('?')[:20]
-            qcount = questions.count()
-            if qcount < 20:
-                skipped_reasons.append(f"Not enough questions for exam #{i+1} (found {qcount})")
-                continue
+            with transaction.atomic():
+                exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
+                question_ids = reserve_rotated_questions()
 
-            last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
-            next_hour = (last_exam.schedule_hour.hour + 1 if last_exam and last_exam.schedule_hour else 8) % 24
-            next_hour = next_hour if next_hour >= 8 and next_hour <= 15 else 8
+                last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
+                next_hour = (last_exam.schedule_hour.hour + 1 if last_exam and last_exam.schedule_hour else 8) % 24
+                next_hour = next_hour if next_hour >= 8 and next_hour <= 15 else 8
 
-            exam_schedule_hour = time(next_hour, 0)
+                exam_schedule_hour = time(next_hour, 0)
+                exam = Exam.objects.create(
+                    exam_type=exam_type,
+                    schedule_hour=exam_schedule_hour,
+                    duration=duration,
+                    for_scheduling=for_scheduling,
+                    is_active=False,
+                )
+                exam.questions.set(question_ids)
+                created_exam_ids.append(exam.id)
+                exams_created += 1
 
-            exam = Exam.objects.create(
-                exam_type=exam_type,
-                schedule_hour=exam_schedule_hour,
-                duration=20,
-                for_scheduling=for_scheduling,
-                is_active=False,
-            )
-            exam.questions.set(questions)
-            created_exam_ids.append(exam.id)
-            exams_created += 1
+        except ExamQuestionSelectionError as e:
+            logger.warning("Skipping exam #%s: %s", i + 1, e)
+            skipped_reasons.append(f"Exam #{i+1}: {e}")
+            break
 
         except Exception as e:
             logger.exception("Error creating exam #%s: %s", i + 1, e)

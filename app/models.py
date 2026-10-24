@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.utils.timezone import localtime
 from django.utils.html import format_html
-from django.core.validators import FileExtensionValidator, RegexValidator
+from django.core.validators import FileExtensionValidator, RegexValidator, MinValueValidator, MaxValueValidator
 import json  # Import the json module
 from django.db.models import Count, F, ExpressionWrapper, FloatField,OuterRef,Subquery
 from django.core.mail import send_mail, BadHeaderError
@@ -496,6 +496,16 @@ class SiteSettings(models.Model):
         default="Mwami Modeste",
         help_text="Account holder name displayed to customers.",
     )
+    exam_max_shared_questions = models.PositiveSmallIntegerField(
+        default=1,
+        validators=[MinValueValidator(0), MaxValueValidator(19)],
+        help_text="Maximum questions a new 20-question exam may share with each recent exam.",
+    )
+    exam_similarity_history_limit = models.PositiveIntegerField(
+        default=50,
+        validators=[MinValueValidator(1)],
+        help_text="Number of most recent exams checked for question similarity.",
+    )
 
     class Meta:
         verbose_name = "Site Setting"
@@ -710,6 +720,45 @@ class Question(models.Model):
 
     def __str__(self):
         return f"Q{self.order}: {self.question_text}... [type: {self.question_type.name if self.question_type else 'None'}]"
+
+
+class ExamQuestionRotation(models.Model):
+    """Persistent state for the no-repeat question rotation."""
+
+    scope = models.CharField(max_length=64, unique=True, default="all-exams")
+    current_round = models.PositiveIntegerField(default=1)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Exam question rotation"
+        verbose_name_plural = "Exam question rotations"
+
+    def __str__(self):
+        return f"{self.scope} (round {self.current_round})"
+
+
+class ExamQuestionRotationUsage(models.Model):
+    """Records that a question has been used during one rotation round."""
+
+    rotation = models.ForeignKey(
+        ExamQuestionRotation,
+        on_delete=models.CASCADE,
+        related_name="usages",
+    )
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    round_number = models.PositiveIntegerField()
+    used_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["rotation", "question", "round_number"],
+                name="unique_question_per_rotation_round",
+            )
+        ]
+        indexes = [models.Index(fields=["rotation", "round_number"])]
+        verbose_name = "Exam question rotation usage"
+        verbose_name_plural = "Exam question rotation usages"
 
 class ExamType(models.Model):
     name = models.CharField(max_length=500, unique=True)
