@@ -73,7 +73,8 @@ JAZZMIN_SETTINGS = {
         "app.UserProfile",
         "app.Subscription",
         "app.Exam",
-        "app.Question"
+        "app.Question",
+        "app.RoadSign",
     ],
 
     # UI
