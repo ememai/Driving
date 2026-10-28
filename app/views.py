@@ -1364,8 +1364,11 @@ def create_exam_page(request, exam_id=None):
                     # Single exam creation: use user input for schedule_hour and for_scheduling
                     if not schedule_hour:
                         raise ValueError("Schedule hour is required for single exam creation.")
+                    reduced_history_window = []
                     with transaction.atomic():
-                        question_ids = reserve_rotated_questions()
+                        question_ids = reserve_rotated_questions(
+                            history_reduced_callback=lambda original, used: reduced_history_window.append(used)
+                        )
                         new_exam = Exam.objects.create(
                             exam_type=exam_type,
                             schedule_hour=schedule_hour,
@@ -1374,6 +1377,12 @@ def create_exam_page(request, exam_id=None):
                         )
                         new_exam.questions.set(question_ids)
                         created_exam_ids.append(new_exam.id)
+                    if reduced_history_window:
+                        messages.warning(
+                            request,
+                            "Exam created with the similarity check limited to the last "
+                            f"{reduced_history_window[0]} exam(s); the shared-question limit was unchanged.",
+                        )
 
                 request.session['undo_exam_ids'] = created_exam_ids
                 if created_exam_ids:

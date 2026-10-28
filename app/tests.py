@@ -22,7 +22,6 @@ from app.models import (
 from app.utils import (
     _build_overlap_limited_candidate,
     auto_schedule_recent_exams,
-    ExamQuestionSelectionError,
     get_payment_site_settings,
     get_support_phone_number,
     notify_admin,
@@ -66,13 +65,27 @@ class ExamQuestionRotationTests(TestCase):
         self.assertFalse(first_ids & second_ids)
         self.assertEqual(first_ids | second_ids, set(Question.objects.values_list("id", flat=True)))
 
-    def test_impossible_overlap_requirement_does_not_create_a_duplicate(self):
+    def test_generation_shortens_history_when_a_full_rotation_blocks_the_overlap_cap(self):
         self.create_questions(40)
-        self.save_exam_with_reserved_questions()
-        self.save_exam_with_reserved_questions()
+        previous_exams = [
+            self.save_exam_with_reserved_questions(),
+            self.save_exam_with_reserved_questions(),
+        ]
+        history_reductions = []
+        with transaction.atomic():
+            question_ids = reserve_rotated_questions(
+                history_reduced_callback=lambda original, used: history_reductions.append(
+                    (original, used)
+                )
+            )
+            next_exam = Exam.objects.create(duration=20)
+            next_exam.questions.set(question_ids)
 
-        with self.assertRaises(ExamQuestionSelectionError):
-            reserve_rotated_questions()
+        next_ids = set(next_exam.questions.values_list("id", flat=True))
+        latest_ids = set(previous_exams[-1].questions.values_list("id", flat=True))
+        self.assertEqual(len(next_ids), 20)
+        self.assertEqual(history_reductions, [(2, 1)])
+        self.assertLessEqual(len(next_ids & latest_ids), 1)
 
     def test_question_selection_backtracks_when_an_early_choice_blocks_completion(self):
         previous_forms = [
@@ -96,6 +109,50 @@ class ExamQuestionRotationTests(TestCase):
         self.assertEqual(len(selected), 3)
         for previous_form in previous_forms:
             self.assertLessEqual(len(selected & previous_form), 2)
+
+    def test_selection_reduces_history_before_relaxing_the_overlap_limit(self):
+        self.create_questions(40)
+        question_ids = list(Question.objects.order_by("id").values_list("id", flat=True))
+        site_settings = get_payment_site_settings()
+        site_settings.exam_similarity_history_limit = 2
+        site_settings.exam_max_shared_questions = 1
+        site_settings.save()
+        for offset in (0, 20):
+            exam = Exam.objects.create(duration=20)
+            exam.questions.set(question_ids[offset : offset + 20])
+
+        original_builder = _build_overlap_limited_candidate
+
+        def require_shorter_history(required_ids, candidate_ids, size, previous_forms, max_shared):
+            if len(previous_forms) > 1:
+                return None
+            return original_builder(
+                required_ids,
+                candidate_ids,
+                size,
+                previous_forms,
+                max_shared,
+            )
+
+        history_reductions = []
+        with patch(
+            "app.utils._build_overlap_limited_candidate",
+            side_effect=require_shorter_history,
+        ):
+            selected = reserve_rotated_questions(
+                history_reduced_callback=lambda original, used: history_reductions.append(
+                    (original, used)
+                )
+            )
+
+        self.assertEqual(len(selected), 20)
+        self.assertEqual(history_reductions, [(2, 1)])
+        latest_exam_ids = set(
+            Exam.objects.order_by("-created_at", "-pk")
+            .first()
+            .questions.values_list("id", flat=True)
+        )
+        self.assertLessEqual(len(set(selected) & latest_exam_ids), 1)
 
     def test_400_questions_supports_a_new_form_after_a_full_rotation(self):
         self.create_questions(400)

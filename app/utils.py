@@ -41,7 +41,7 @@ def _existing_exam_question_sets(history_limit):
         exam_id__in=recent_exam_ids
     ).values_list("exam_id", "question_id"):
         question_sets.setdefault(exam_id, set()).add(question_id)
-    return list(question_sets.values())
+    return [question_sets[exam_id] for exam_id in recent_exam_ids if exam_id in question_sets]
 
 
 def _build_overlap_limited_candidate(required_ids, candidate_ids, size, previous_forms, max_shared):
@@ -113,7 +113,10 @@ def _build_overlap_limited_candidate(required_ids, candidate_ids, size, previous
     return search(selected, overlap_counts, available_ids)
 
 
-def reserve_rotated_questions(questions_per_exam=QUESTIONS_PER_EXAM):
+def reserve_rotated_questions(
+    questions_per_exam=QUESTIONS_PER_EXAM,
+    history_reduced_callback=None,
+):
     """Reserve questions without repeats in a round or similar exam forms.
 
     Call this inside the transaction that creates the ``Exam``.  The database
@@ -164,21 +167,64 @@ def reserve_rotated_questions(questions_per_exam=QUESTIONS_PER_EXAM):
         # questions in this round.
         required_ids = unused_ids if needed_from_next_round else []
         selectable_ids = next_round_choices if needed_from_next_round else unused_ids
-        candidate = _build_overlap_limited_candidate(
-            required_ids,
-            selectable_ids,
-            questions_per_exam,
-            previous_forms,
-            max_shared,
-        )
+        available_history = len(previous_forms)
+
+        def find_candidate(history_count):
+            return _build_overlap_limited_candidate(
+                required_ids,
+                selectable_ids,
+                questions_per_exam,
+                previous_forms[:history_count],
+                max_shared,
+            )
+
+        selected_history = available_history
+        candidate = find_candidate(selected_history)
+
+        if candidate is None:
+            upper_bound = available_history
+            lower_bound = None
+            probe = upper_bound // 2
+            while probe >= 1:
+                candidate = find_candidate(probe)
+                if candidate is not None:
+                    lower_bound = probe
+                    best_candidate = candidate
+                    break
+                upper_bound = probe
+                probe //= 2
+
+            if lower_bound is not None:
+                while upper_bound - lower_bound > 1:
+                    probe = (lower_bound + upper_bound) // 2
+                    candidate = find_candidate(probe)
+                    if candidate is not None:
+                        lower_bound = probe
+                        best_candidate = candidate
+                    else:
+                        upper_bound = probe
+                selected_history = lower_bound
+                candidate = best_candidate
+            else:
+                selected_history = 0
+                candidate = find_candidate(selected_history)
+
         candidate_ids = list(candidate) if candidate is not None else None
 
         if candidate_ids is None:
             raise ExamQuestionSelectionError(
-                "Could not find a valid exam within the search budget while respecting the limit of "
-                f"{max_shared} shared question(s) per recent exam. "
-                "Add questions or reduce the similarity history window if appropriate."
+                "Could not find a valid exam while respecting the no-repeat rotation and "
+                f"the limit of {max_shared} shared question(s) per recent exam."
             )
+
+        if selected_history < available_history:
+            logger.warning(
+                "Reduced the exam similarity check from %s to %s recent exams to generate a valid form.",
+                available_history,
+                selected_history,
+            )
+            if history_reduced_callback:
+                history_reduced_callback(available_history, selected_history)
 
         current_ids = set(candidate_ids) & set(unused_ids)
         ExamQuestionRotationUsage.objects.bulk_create(
@@ -450,6 +496,7 @@ def auto_create_exams(number, for_scheduling=True, duration=20):
     exams_created = 0
     created_exam_ids = []
     skipped_reasons = []
+    reduced_history_windows = []
 
     # If today is Sunday, skip creating exams
     if timezone.localtime(timezone.now()).weekday() == 6:  # Sunday is represented by 6
@@ -460,10 +507,13 @@ def auto_create_exams(number, for_scheduling=True, duration=20):
         return exams_created, created_exam_ids
 
     for i in range(number):
+        exam_history_window = []
         try:
             with transaction.atomic():
                 exam_type, _ = ExamType.objects.get_or_create(name='Ibivanze')
-                question_ids = reserve_rotated_questions()
+                question_ids = reserve_rotated_questions(
+                    history_reduced_callback=lambda original, used: exam_history_window.append(used)
+                )
 
                 last_exam = Exam.objects.filter(for_scheduling=True).order_by('-created_at').first()
                 next_hour = (last_exam.schedule_hour.hour + 1 if last_exam and last_exam.schedule_hour else 8) % 24
@@ -480,6 +530,7 @@ def auto_create_exams(number, for_scheduling=True, duration=20):
                 exam.questions.set(question_ids)
                 created_exam_ids.append(exam.id)
                 exams_created += 1
+            reduced_history_windows.extend(exam_history_window)
 
         except ExamQuestionSelectionError as e:
             logger.warning("Skipping exam #%s: %s", i + 1, e)
@@ -499,7 +550,17 @@ def auto_create_exams(number, for_scheduling=True, duration=20):
             f"{localtime().strftime('%d-%m-%Y %H:%M')} ❌ Done creating 0 exams. Reasons: {reason_summary}. Total questions available: {total_questions}"
         )
     else:
-        notify_admin(f"{localtime().strftime('%d-%m-%Y %H:%M')} ✅ Created {exams_created} exams. Skipped: {len(skipped_reasons)}")
+        history_notice = ""
+        if reduced_history_windows:
+            history_notice = (
+                " Similarity history was reduced to "
+                f"{min(reduced_history_windows)}-{max(reduced_history_windows)} recent exams "
+                f"for {len(reduced_history_windows)} exam(s); the shared-question limit was unchanged."
+            )
+        notify_admin(
+            f"{localtime().strftime('%d-%m-%Y %H:%M')} ✅ Created {exams_created} exams. "
+            f"Skipped: {len(skipped_reasons)}.{history_notice}"
+        )
 
     return exams_created, created_exam_ids
 
