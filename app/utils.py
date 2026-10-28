@@ -45,15 +45,9 @@ def _existing_exam_question_sets(history_limit):
 
 
 def _build_overlap_limited_candidate(required_ids, candidate_ids, size, previous_forms, max_shared):
-    """Build a form one question at a time while respecting overlap caps.
-
-    Selecting a whole random form and checking it afterwards almost never
-    succeeds once a rotation has completed.  For example, with 400 questions
-    split across 20 old forms, the next form must draw one question from each
-    old form.  This incremental selector makes that valid arrangement directly.
-    """
+    """Build a form while backtracking around choices that block completion."""
     selected = set(required_ids)
-    overlap_counts = [len(selected & form) for form in previous_forms]
+    overlap_counts = [sum(question_id in form for question_id in selected) for form in previous_forms]
     if any(count > max_shared for count in overlap_counts):
         return None
 
@@ -64,36 +58,59 @@ def _build_overlap_limited_candidate(required_ids, candidate_ids, size, previous
 
     available_ids = list(set(candidate_ids) - selected)
     random.shuffle(available_ids)
+    search_budget = 10000
+    visited_states = 0
 
-    while len(selected) < size:
+    def search(selected_ids, current_overlap_counts, remaining_ids):
+        nonlocal visited_states
+        visited_states += 1
+        if visited_states > search_budget:
+            return None
+
+        slots_needed = size - len(selected_ids)
+        if slots_needed == 0:
+            return selected_ids
+
         allowed_ids = [
             question_id
-            for question_id in available_ids
+            for question_id in remaining_ids
             if all(
-                overlap_counts[form_index] < max_shared
+                current_overlap_counts[form_index] < max_shared
                 for form_index in question_forms.get(question_id, [])
             )
         ]
-        if not allowed_ids:
+        if len(allowed_ids) < slots_needed:
             return None
 
-        # Prefer the question constrained by the fewest historic forms.  This
-        # preserves choices for questions that appear in more old forms while
-        # retaining random variation among equally good options.
-        fewest_forms = min(len(question_forms.get(question_id, [])) for question_id in allowed_ids)
-        question_id = random.choice(
-            [
-                question_id
-                for question_id in allowed_ids
-                if len(question_forms.get(question_id, [])) == fewest_forms
-            ]
+        unconstrained_count = sum(not question_forms.get(question_id) for question_id in allowed_ids)
+        remaining_capacity = sum(
+            max_shared - current_overlap_counts[form_index]
+            for form_index, form in enumerate(previous_forms)
+            if any(question_id in form for question_id in allowed_ids)
         )
-        selected.add(question_id)
-        available_ids.remove(question_id)
-        for form_index in question_forms.get(question_id, []):
-            overlap_counts[form_index] += 1
+        if unconstrained_count + remaining_capacity < slots_needed:
+            return None
 
-    return selected
+        # Try the least constrained questions first, but retain alternatives
+        # when a choice would leave too few compatible questions to finish.
+        allowed_ids.sort(key=lambda question_id: len(question_forms.get(question_id, [])))
+        for index, question_id in enumerate(allowed_ids):
+            next_overlap_counts = current_overlap_counts.copy()
+            for form_index in question_forms.get(question_id, []):
+                next_overlap_counts[form_index] += 1
+            result = search(
+                selected_ids | {question_id},
+                next_overlap_counts,
+                allowed_ids[index + 1 :],
+            )
+            if result is not None:
+                return result
+            if visited_states > search_budget:
+                return None
+
+        return None
+
+    return search(selected, overlap_counts, available_ids)
 
 
 def reserve_rotated_questions(questions_per_exam=QUESTIONS_PER_EXAM):
@@ -142,29 +159,25 @@ def reserve_rotated_questions(questions_per_exam=QUESTIONS_PER_EXAM):
             else []
         )
 
-        candidate_ids = None
-        for _ in range(500):
-            # At a round boundary every remaining question is mandatory; only
-            # the extra slots may come from the next round.  Otherwise all
-            # choices come from the as-yet-unused part of this round.
-            required_ids = unused_ids if needed_from_next_round else []
-            selectable_ids = next_round_choices if needed_from_next_round else unused_ids
-            candidate = _build_overlap_limited_candidate(
-                required_ids,
-                selectable_ids,
-                questions_per_exam,
-                previous_forms,
-                max_shared,
-            )
-            if candidate is not None:
-                candidate_ids = list(candidate)
-                break
+        # At a round boundary every remaining question is mandatory; only the
+        # extra slots may come from the next one. Otherwise, draw from unused
+        # questions in this round.
+        required_ids = unused_ids if needed_from_next_round else []
+        selectable_ids = next_round_choices if needed_from_next_round else unused_ids
+        candidate = _build_overlap_limited_candidate(
+            required_ids,
+            selectable_ids,
+            questions_per_exam,
+            previous_forms,
+            max_shared,
+        )
+        candidate_ids = list(candidate) if candidate is not None else None
 
         if candidate_ids is None:
             raise ExamQuestionSelectionError(
-                "No valid exam can be made with the current question bank and "
-                f"the limit of {max_shared} shared question(s) per existing exam. "
-                "Add more questions or intentionally increase EXAM_MAX_SHARED_QUESTIONS."
+                "Could not find a valid exam within the search budget while respecting the limit of "
+                f"{max_shared} shared question(s) per recent exam. "
+                "Add questions or reduce the similarity history window if appropriate."
             )
 
         current_ids = set(candidate_ids) & set(unused_ids)

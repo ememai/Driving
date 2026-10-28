@@ -20,6 +20,7 @@ from app.models import (
     TrafficLog,
 )
 from app.utils import (
+    _build_overlap_limited_candidate,
     auto_schedule_recent_exams,
     ExamQuestionSelectionError,
     get_payment_site_settings,
@@ -73,6 +74,29 @@ class ExamQuestionRotationTests(TestCase):
         with self.assertRaises(ExamQuestionSelectionError):
             reserve_rotated_questions()
 
+    def test_question_selection_backtracks_when_an_early_choice_blocks_completion(self):
+        previous_forms = [
+            {3},
+            {2, 3},
+            {0, 2},
+            {0, 1, 2},
+            {2},
+            {0, 1, 3},
+        ]
+
+        with patch("app.utils.random.shuffle", side_effect=lambda question_ids: question_ids.sort()):
+            selected = _build_overlap_limited_candidate(
+                required_ids=[],
+                candidate_ids=[0, 1, 2, 3],
+                size=3,
+                previous_forms=previous_forms,
+                max_shared=2,
+            )
+
+        self.assertEqual(len(selected), 3)
+        for previous_form in previous_forms:
+            self.assertLessEqual(len(selected & previous_form), 2)
+
     def test_400_questions_supports_a_new_form_after_a_full_rotation(self):
         self.create_questions(400)
 
@@ -84,6 +108,21 @@ class ExamQuestionRotationTests(TestCase):
         for previous_exam in completed_round:
             previous_ids = set(previous_exam.questions.values_list("id", flat=True))
             self.assertLessEqual(len(next_ids & previous_ids), 1)
+
+    def test_398_questions_support_the_round_boundary_with_two_shared_questions(self):
+        self.create_questions(398)
+        site_settings = get_payment_site_settings()
+        site_settings.exam_max_shared_questions = 2
+        site_settings.save()
+
+        previous_exams = [self.save_exam_with_reserved_questions() for _ in range(19)]
+        next_exam = self.save_exam_with_reserved_questions()
+        next_ids = set(next_exam.questions.values_list("id", flat=True))
+
+        self.assertEqual(len(next_ids), 20)
+        for previous_exam in previous_exams:
+            previous_ids = set(previous_exam.questions.values_list("id", flat=True))
+            self.assertLessEqual(len(next_ids & previous_ids), 2)
 
     def test_similarity_limit_only_considers_recent_exams(self):
         self.create_questions(40)
