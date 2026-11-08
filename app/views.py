@@ -1127,7 +1127,7 @@ def approve_payment(request, user_id, plan_id):
 
     return render(request, 'admin/approve_payment.html', {
         'user': user,
-        'plan': requested_plan,
+        'requested_plan': requested_plan,
         'plans': all_plans
     })
 

@@ -18,12 +18,13 @@
 
 <div class="container mt-4 overflow-auto">
   <h2>Admin Subscription Dashboard</h2>
-  <form method="get" class="mb-3 d-flex gap-2 align-items-center">
+  <form method="get" id="subscriptionSearchForm" class="mb-3 d-flex gap-2 align-items-center">
     <input
       type="text"
       name="q"
       value="{% if query %}{{ query }}{% endif %}"
       placeholder="Search by name, email, phone"
+      aria-label="Search subscriptions by name, email, or phone"
       class="form-control"
       style="max-width: 300px"
     />
@@ -466,46 +467,89 @@
   // initialize on first load
   initSubscriptions();
 
+  let subscriptionRequest;
+
+  function loadSubscriptions(url, addHistoryEntry) {
+    const container = document.getElementById("subscriptions-container");
+    if (!container) return;
+
+    if (subscriptionRequest) subscriptionRequest.abort();
+    subscriptionRequest = new AbortController();
+    const currentRequest = subscriptionRequest;
+
+    fetch(url, {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      signal: currentRequest.signal,
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Subscription search failed: ${res.status}`);
+        return res.text();
+      })
+      .then((html) => {
+        if (currentRequest !== subscriptionRequest) return;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const newContainer = doc.getElementById("subscriptions-container");
+        if (!newContainer) {
+          throw new Error("Subscription results were missing from the response.");
+        }
+
+        container.innerHTML = newContainer.innerHTML;
+        initSubscriptions();
+        if (addHistoryEntry) {
+          history.pushState({ ajax: true }, "", url);
+        } else {
+          history.replaceState({ ajax: true }, "", url);
+        }
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError") console.error(err);
+      });
+  }
+
+  const searchForm = document.getElementById("subscriptionSearchForm");
+  const searchInput = searchForm && searchForm.querySelector('input[name="q"]');
+  let searchTimer;
+
+  if (searchForm && searchInput) {
+    function searchSubscriptions() {
+      const url = new URL(window.location.href);
+      const query = searchInput.value.trim();
+      if (query) {
+        url.searchParams.set("q", query);
+      } else {
+        url.searchParams.delete("q");
+      }
+      url.searchParams.delete("page");
+      loadSubscriptions(url.toString(), false);
+    }
+
+    searchInput.addEventListener("input", function () {
+      window.clearTimeout(searchTimer);
+      searchTimer = window.setTimeout(searchSubscriptions, 250);
+    });
+
+    searchForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      window.clearTimeout(searchTimer);
+      searchSubscriptions();
+    });
+  }
+
   // AJAX pagination: intercept clicks on pagination links
   document.addEventListener("click", function (e) {
     const a = e.target.closest && e.target.closest(".pagination a");
     if (!a) return;
-    const container = document.getElementById("subscriptions-container");
-    if (!container) return;
     e.preventDefault();
-    const url = a.href;
-    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-      .then((res) => res.text())
-      .then((html) => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
-        const newContainer = doc.getElementById("subscriptions-container");
-        if (newContainer) {
-          container.innerHTML = newContainer.innerHTML;
-          initSubscriptions();
-          history.pushState({ ajax: true }, "", url);
-        }
-      })
-      .catch((err) => console.error(err));
+    loadSubscriptions(a.href, true);
   });
 
   // Handle back/forward navigation
   window.addEventListener("popstate", function (e) {
-    const url = location.href;
-    const container = document.getElementById("subscriptions-container");
-    if (!container) return;
-    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-      .then((res) => res.text())
-      .then((html) => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
-        const newContainer = doc.getElementById("subscriptions-container");
-        if (newContainer) {
-          container.innerHTML = newContainer.innerHTML;
-          initSubscriptions();
-        }
-      })
-      .catch((err) => console.error(err));
+    if (searchInput) {
+      searchInput.value = new URL(location.href).searchParams.get("q") || "";
+    }
+    loadSubscriptions(location.href, false);
   });
 </script>
 
