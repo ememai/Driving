@@ -57,7 +57,7 @@ def handle_subscription_change(sender, instance, created, **kwargs):
                 f"User: {instance.user.name}\n"
                 f"Phone: {instance.user.phone_number}\n"
                 f"Plan: {instance.plan.plan if instance and instance.plan_id else 'Not selected'}\n"
-                f"Status: {'Verified' if instance.otp_verified else 'Pending OTP'}"
+                f"Status: {'Verified' if instance.otp_verified else 'Pending OTP'}\n\n"
                 f"End Subscription Link: {link}\n"
             )
             notify_admin(message)
