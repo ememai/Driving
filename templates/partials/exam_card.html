@@ -5,7 +5,7 @@
     <li><strong>Wagikoze:</strong> {{ exam.completed_at|date:"d/m/Y H:i" }}</li>
     <li><strong>Amanota:</strong> {{ exam.score }} / {{ exam.exam.total_score }}</li>
     <li><strong>Ijanisha:</strong> {{ exam.percent_score }}%</li>
-    <li><strong>Igihe:</strong> Iminota {{ exam.time_taken }}</li>
+    <li><strong>Igihe:</strong> {{ exam.time_taken }}</li>
   </ul>
   <a href="{% url 'exam_results' exam.id %}" class="btn btn-sm btn-outline-info">
     <i class="bi bi-eye"></i> Reba cyose

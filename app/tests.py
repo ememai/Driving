@@ -18,6 +18,7 @@ from app.models import (
     Question,
     ScheduledExam,
     TrafficLog,
+    UserExam,
 )
 from app.utils import (
     _build_overlap_limited_candidate,
@@ -32,6 +33,44 @@ from dashboard.forms import ScheduledExamForm
 
 
 # Create your tests here.
+
+
+class ExamCountdownTests(TestCase):
+    def setUp(self):
+        self.user = UserProfile.objects.create_user(
+            phone_number='250780000004',
+            email='countdown@example.com',
+            password='password123',
+        )
+        self.client.force_login(self.user)
+        exam_type = ExamType.objects.create(name='Ibivanze')
+        self.exam = Exam.objects.create(exam_type=exam_type, for_scheduling=False)
+        question = Question.objects.create(
+            question_text='Countdown question',
+            choice1_text='Correct',
+            choice2_text='Incorrect',
+            correct_choice=1,
+        )
+        self.exam.questions.add(question)
+
+    def test_countdown_uses_server_remaining_time_and_not_device_clock(self):
+        response = self.client.get(reverse('exam', args=[self.exam.id, 1]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(response.context['exam_time_remaining_ms'], 0)
+        self.assertContains(response, 'const examDeadline = performance.now() + examTimeRemainingMs;')
+        self.assertNotContains(response, 'Date.now()')
+
+    def test_time_taken_includes_minutes_and_seconds(self):
+        started_at = timezone.now()
+        user_exam = UserExam(
+            user=self.user,
+            exam=self.exam,
+            started_at=started_at,
+            completed_at=started_at + timedelta(minutes=2, seconds=13),
+        )
+
+        self.assertEqual(user_exam.time_taken, '2 min 13 sec')
 
 
 class ExamQuestionRotationTests(TestCase):

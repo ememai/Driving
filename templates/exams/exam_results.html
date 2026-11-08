@@ -87,7 +87,7 @@
     <h2 class="text-center rounded-pill fw-bolder text-white px-3 {% if user_exam.percent_score >= 60 %} fs-3 bg-success {% else %} bg-danger fs-5 {% endif %}">{{ decision }}
     </h2>
   </div>
-  <h5 class="text-center">Igihe wakoresheje: <strong>Iminota({{ time_taken }})</strong></h5>
+  <h5 class="text-center">Igihe wakoresheje: <strong>{{ time_taken }}</strong></h5>
   <!-- Desktop View (Table Layout) -->
   <div class="desktop-view justify-content-center align-items-center flex-column mb-4 ">
     <table class="table table-striped table-bordered table-hover" style="width: 90vw; height: auto;">

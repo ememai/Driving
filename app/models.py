@@ -951,8 +951,11 @@ class UserExam(models.Model):
     @property
     def time_taken(self):
         if self.completed_at:
-            duration = int((self.completed_at - self.started_at).total_seconds() / 60)
-            return duration if duration <= 20 else 'Ntiwasoje'
+            duration_seconds = int((self.completed_at - self.started_at).total_seconds())
+            if duration_seconds > 20 * 60:
+                return 'Ntiwasoje'
+            minutes, seconds = divmod(duration_seconds, 60)
+            return f'{minutes} min {seconds} sec'
         return 'None'
 
     @staticmethod

@@ -479,15 +479,15 @@
     // Attach initial event listeners using event delegation
     attachQuestionEventListeners();
 
-    {% if  exam_end_time   %}
+    {% if exam_time_remaining_ms is not None %}
     
     // Countdown Timer
-    const examEndTimeTimestamp = parseInt("{{ exam_end_time|default:0 }}", 10) * 1000;
+    const examTimeRemainingMs = parseInt("{{ exam_time_remaining_ms }}", 10);
+    const examDeadline = performance.now() + examTimeRemainingMs;
     const countdownElement = document.getElementById("countdown");
     
     function updateCountdown() {
-      const now = Date.now();
-      const distance = examEndTimeTimestamp - now;
+      const distance = examDeadline - performance.now();
       
       if (distance <= 0) {
         clearInterval(timerInterval);

@@ -751,9 +751,14 @@ def exam(request, exam_id, question_number):
 
     current_question = questions[question_number - 1]
 
-    # Time left for countdown
+    # Send a duration rather than an absolute timestamp so the countdown does
+    # not depend on the user's device clock matching the server clock.
+    exam_time_remaining_ms = None
     if not request.user.is_staff:
-        exam_end_time = (user_exam.started_at + timedelta(minutes=exam.duration)).timestamp()
+        time_remaining = (
+            user_exam.started_at + timedelta(minutes=exam.duration) - timezone.now()
+        ).total_seconds()
+        exam_time_remaining_ms = max(int(time_remaining * 1000), 0)
 
     # Initialize answer session if not present
     if 'answers' not in request.session:
@@ -837,7 +842,7 @@ def exam(request, exam_id, question_number):
         'q_nums': q_nums,
         'total_questions': total_questions,
         'choices': choices,
-        'exam_end_time': exam_end_time if not request.user.is_staff else None,
+        'exam_time_remaining_ms': exam_time_remaining_ms,
         'exam_duration': exam.duration * 60,
         'user_exam': user_exam,
         'questions': questions,
