@@ -118,6 +118,34 @@
               </select>
             </div>
             <div class="mb-3">
+              <span class="form-label d-block">Subscription type</span>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="subscription_type"
+                  id="subscription_type_plan"
+                  value="plan"
+                  checked
+                />
+                <label class="form-check-label" for="subscription_type_plan">
+                  Existing plan
+                </label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="subscription_type"
+                  id="subscription_type_custom"
+                  value="custom"
+                />
+                <label class="form-check-label" for="subscription_type_custom">
+                  Custom price and duration
+                </label>
+              </div>
+            </div>
+            <div class="mb-3" id="planSubscriptionFields">
               <label for="plan_id" class="form-label">Plan</label>
               <select name="plan_id" id="plan_id" class="form-select" required>
                 <option value="">---------</option>
@@ -125,6 +153,43 @@
                 <option value="{{ plan.id }}">{{ plan.plan }}</option>
                 {% endfor %}
               </select>
+            </div>
+            <div id="customSubscriptionFields" class="d-none">
+              <div class="mb-3">
+                <label for="custom_price" class="form-label">Price (RWF)</label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  name="custom_price"
+                  id="custom_price"
+                  class="form-control"
+                  disabled
+                />
+              </div>
+              <div class="mb-3">
+                <label for="duration_value" class="form-label">Duration</label>
+                <div class="input-group">
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    name="duration_value"
+                    id="duration_value"
+                    class="form-control"
+                    disabled
+                  />
+                  <select
+                    name="duration_unit"
+                    id="duration_unit"
+                    class="form-select"
+                    disabled
+                  >
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                  </select>
+                </div>
+              </div>
             </div>
             <div class="form-check mb-3">
               <input
@@ -686,6 +751,19 @@
         $(".select2-search__field").focus();
       }, 0);
     });
+
+    function toggleSubscriptionType() {
+      const isCustom = $("#subscription_type_custom").is(":checked");
+      $("#planSubscriptionFields").toggleClass("d-none", isCustom);
+      $("#plan_id").prop("required", !isCustom).prop("disabled", isCustom);
+      $("#customSubscriptionFields").toggleClass("d-none", !isCustom);
+      $("#custom_price, #duration_value, #duration_unit")
+        .prop("required", isCustom)
+        .prop("disabled", !isCustom);
+    }
+
+    $('input[name="subscription_type"]').on("change", toggleSubscriptionType);
+    toggleSubscriptionType();
 
     // Prevent modal from closing when interacting with Select2 dropdown
     $(document).on("mousedown", ".select2-dropdown", function (e) {

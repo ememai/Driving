@@ -1245,8 +1245,11 @@ def activate_subscription_view(request):
 
         success, message, expires_at = subscription.verify_and_start(otp)
         if success:
-            # Get human-readable plan name
-            plan_display = dict(Plan.PLAN_CHOICES).get(subscription.plan.plan, subscription.plan.plan)
+            plan_display = (
+                dict(Plan.PLAN_CHOICES).get(subscription.plan.plan, subscription.plan.plan)
+                if subscription.plan
+                else "Custom subscription"
+            )
             today = timezone.now().date()
             expires_date = "Taliki " + localtime(expires_at).strftime('%d-%m-%Y') if expires_at.date() != today else ''
             expires_hour = localtime(expires_at).strftime('%H:%M')

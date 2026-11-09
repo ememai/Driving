@@ -587,32 +587,69 @@ class CreateSubscriptionView(View):
 def dashboard_add_subscription(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
-        plan_id = request.POST.get('plan_id')
+        subscription_type = request.POST.get('subscription_type', 'plan')
         updated_flag = request.POST.get('updated') == '1'
-        if user_id and plan_id:
+        if not user_id:
+            messages.error(request, "Please select a user.")
+            return redirect('admin_subscription_dashboard')
+
+        try:
+            user = UserProfile.objects.get(id=user_id)
+        except UserProfile.DoesNotExist:
+            messages.error(request, "Selected user does not exist.")
+            return redirect('admin_subscription_dashboard')
+
+        if subscription_type == 'plan':
+            plan_id = request.POST.get('plan_id')
+            if not plan_id:
+                messages.error(request, "Please select a plan.")
+                return redirect('admin_subscription_dashboard')
             try:
-                user = UserProfile.objects.get(id=user_id)
                 plan = Plan.objects.get(id=plan_id)
-                subscription, created = Subscription.objects.get_or_create(user=user, defaults={'plan': plan})
-                subscription.plan = plan
-                # reflect updated checkbox
-                subscription.updated = updated_flag
-                if updated_flag:
-                    subscription.updated_at = timezone.now()
-                # generate otp for new or changed
-                subscription.generate_otp()
-                subscription.save()
-                messages.success(request, "New subscription added successfully.")
-                # notify user via websocket so modal can pop up immediately
-                channel_layer = get_channel_layer()
-                async_to_sync(channel_layer.group_send)(
-                    f"user_{user.id}",
-                    {"type": "unverified_subscription"},
-                )
-            except (UserProfile.DoesNotExist, Plan.DoesNotExist):
-                messages.error(request, "Invalid user or plan.")
+            except Plan.DoesNotExist:
+                messages.error(request, "Selected plan does not exist.")
+                return redirect('admin_subscription_dashboard')
+        elif subscription_type == 'custom':
+            try:
+                price = int(request.POST.get('custom_price', ''))
+                duration = int(request.POST.get('duration_value', ''))
+            except (TypeError, ValueError):
+                messages.error(request, "Enter a valid custom price and duration.")
+                return redirect('admin_subscription_dashboard')
+
+            duration_unit = request.POST.get('duration_unit')
+            if price <= 0 or duration <= 0 or duration_unit not in ('hours', 'days'):
+                messages.error(request, "Custom price and duration must be greater than zero.")
+                return redirect('admin_subscription_dashboard')
         else:
-            messages.error(request, "Please provide both user and plan.")
+            messages.error(request, "Select a valid subscription type.")
+            return redirect('admin_subscription_dashboard')
+
+        subscription, _ = Subscription.objects.get_or_create(user=user)
+        if subscription_type == 'plan':
+            subscription.plan = plan
+            subscription.super_subscription = False
+            subscription.delta_hours = 0
+            subscription.delta_days = 0
+            subscription.price = plan.price
+        else:
+            subscription.plan = None
+            subscription.super_subscription = True
+            subscription.price = price
+            subscription.delta_hours = duration if duration_unit == 'hours' else 0
+            subscription.delta_days = duration if duration_unit == 'days' else 0
+
+        subscription.updated = updated_flag
+        if updated_flag:
+            subscription.updated_at = timezone.now()
+        subscription.generate_otp()
+        subscription.save()
+        messages.success(request, "New subscription added successfully.")
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"user_{user.id}",
+            {"type": "unverified_subscription"},
+        )
     return redirect('admin_subscription_dashboard')
 
 @login_required
@@ -630,57 +667,77 @@ def subscription_update(request, pk):
         delta_days = request.POST.get('delta_days')
         updated_flag = request.POST.get('updated') == '1'
 
-        # cache plan list once so that we don't hit the database inside the
-        # conditional branches (which would otherwise be N queries for N
-        # requests in a batch update page).
-        plan_map = {p.id: p for p in Plan.objects.only('id', 'price', 'plan')}
-
         try:
-            # Handle Super Subscription
-            if super_subscription and plan_id:
-                messages.error(request, "Cannot set both Super Subscription and a specific plan.")
-                return redirect('subscription_update', pk=pk)
-            
             if super_subscription:
+                if plan_id:
+                    messages.error(request, "Cannot set both Super Subscription and a specific plan.")
+                    return redirect('subscription_update', pk=pk)
+
+                custom_hours = int(delta_hours or 0)
+                custom_days = int(delta_days or 0)
+                custom_price = int(request.POST.get('price') or 0)
+                if custom_price <= 0 or (custom_hours <= 0 and custom_days <= 0):
+                    messages.error(
+                        request,
+                        "Custom price and at least one positive duration are required.",
+                    )
+                    return redirect('subscription_update', pk=pk)
+
+                changed = (
+                    not subscription.super_subscription
+                    or subscription.plan_id is not None
+                    or subscription.delta_hours != custom_hours
+                    or subscription.delta_days != custom_days
+                    or subscription.price != custom_price
+                    or subscription.updated != updated_flag
+                )
                 subscription.super_subscription = True
                 subscription.plan = None
-                subscription.delta_hours = int(delta_hours or 0)
-                subscription.delta_days = int(delta_days or 0)
-                subscription.price = int(request.POST.get('price') or 0)
+                subscription.delta_hours = custom_hours
+                subscription.delta_days = custom_days
+                subscription.price = custom_price
             else:
-                subscription.super_subscription = False
-                if plan_id:
-                    plan = plan_map.get(int(plan_id))
-                    if not plan:
-                        raise Plan.DoesNotExist
-                    
-                    # If plan changed → generate new OTP
-                    if subscription.plan != plan:
-                        subscription.plan = plan
-                        subscription.delta_hours = 0
-                        subscription.delta_days = 0
-                        subscription.price = plan.price
-                        subscription.generate_otp()
-                        # notify the owner
-                        channel_layer = get_channel_layer()
-                        async_to_sync(channel_layer.group_send)(
-                            f"user_{subscription.user.id}",
-                            {"type": "unverified_subscription"},
-                        )
-                    else:
-                        subscription.plan = plan
+                if not plan_id:
+                    messages.error(request, "Please select a plan.")
+                    return redirect('subscription_update', pk=pk)
+                plan = Plan.objects.filter(pk=plan_id).first()
+                if not plan:
+                    messages.error(request, "Selected plan does not exist.")
+                    return redirect('subscription_update', pk=pk)
 
-            # Handle updated flag
+                changed = (
+                    subscription.super_subscription
+                    or subscription.plan_id != plan.id
+                    or subscription.price != plan.price
+                    or subscription.delta_hours != 0
+                    or subscription.delta_days != 0
+                    or subscription.updated != updated_flag
+                )
+                subscription.super_subscription = False
+                subscription.plan = plan
+                subscription.delta_hours = 0
+                subscription.delta_days = 0
+                subscription.price = plan.price
+
             subscription.updated = updated_flag
             if updated_flag:
                 subscription.updated_at = timezone.now()
 
             subscription.save()
-            messages.success(request, "Subscription updated successfully.")
+            if changed:
+                subscription.generate_otp()
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{subscription.user.id}",
+                    {"type": "unverified_subscription"},
+                )
+                messages.success(
+                    request,
+                    "Subscription updated. The user must verify the new OTP to activate it.",
+                )
+            else:
+                messages.success(request, "Subscription updated successfully.")
             return redirect('admin_subscription_dashboard')
-
-        except Plan.DoesNotExist:
-            messages.error(request, "Selected plan does not exist.")
         except ValueError as e:
             messages.error(request, f"Error processing form data: {e}")
 

@@ -42,18 +42,117 @@ class SubscriptionDashboardUITest(TestCase):
         self.assertIn(expected, content)
 
     def test_update_shows_errors(self):
-        # create a subscription to update using the plan created in setUp
         from app.models import Subscription
+
         plan = Plan.objects.first()
         sub = Subscription.objects.create(user=self.user, plan=plan)
-        # post with invalid data (missing plan_id field)
         url = reverse('subscription_update', args=[sub.id])
-        response = self.client.post(url, {'plan': ''})
-        # view no longer renders form on error; it simply redirects back to
-        # dashboard after saving whatever was present.  Ensure we don't get a
-        # server error and that the redirect occurs.
-        self.assertEqual(response.status_code, 302)
+        response = self.client.post(url, {'super_subscription': ''}, follow=True)
+
+        self.assertRedirects(response, url)
+        self.assertContains(response, "Please select a plan.")
+        sub.refresh_from_db()
+        self.assertEqual(sub.plan, plan)
+
+    def test_editing_plan_subscription_persists_plan_and_issues_otp(self):
+        from app.models import Subscription
+
+        original_plan = Plan.objects.get(plan='Basic')
+        new_plan = Plan.objects.create(
+            plan='Daily',
+            price=2500,
+            delta_days=1,
+        )
+        subscription = Subscription.objects.create(
+            user=self.user,
+            plan=original_plan,
+            otp_verified=True,
+        )
+
+        response = self.client.post(
+            reverse('subscription_update', args=[subscription.id]),
+            {'plan_id': new_plan.id, 'updated': '0'},
+        )
+
         self.assertRedirects(response, reverse('admin_subscription_dashboard'))
+        subscription.refresh_from_db()
+        self.assertEqual(subscription.plan, new_plan)
+        self.assertEqual(subscription.price, 2500)
+        self.assertIsNotNone(subscription.otp_code)
+        self.assertFalse(subscription.otp_verified)
+
+    def test_editing_custom_subscription_persists_price_and_duration(self):
+        from app.models import Subscription
+
+        subscription = Subscription.objects.create(
+            user=self.user,
+            super_subscription=True,
+            price=1000,
+            delta_days=1,
+        )
+
+        response = self.client.post(
+            reverse('subscription_update', args=[subscription.id]),
+            {
+                'super_subscription': 'on',
+                'delta_hours': '6',
+                'delta_days': '0',
+                'price': '3000',
+            },
+        )
+
+        self.assertRedirects(response, reverse('admin_subscription_dashboard'))
+        subscription.refresh_from_db()
+        self.assertTrue(subscription.super_subscription)
+        self.assertEqual(subscription.price, 3000)
+        self.assertEqual(subscription.delta_hours, 6)
+        self.assertEqual(subscription.delta_days, 0)
+        self.assertIsNotNone(subscription.otp_code)
+
+    def test_add_custom_subscription_records_custom_price_and_duration(self):
+        from app.models import Subscription, SubscriptionPurchase
+
+        response = self.client.post(
+            reverse('dashboard_add_subscription'),
+            {
+                'user_id': self.user.id,
+                'subscription_type': 'custom',
+                'custom_price': '2500',
+                'duration_value': '3',
+                'duration_unit': 'days',
+            },
+        )
+
+        self.assertRedirects(response, reverse('admin_subscription_dashboard'))
+        subscription = Subscription.objects.get(user=self.user)
+        self.assertTrue(subscription.super_subscription)
+        self.assertIsNone(subscription.plan)
+        self.assertEqual(subscription.price, 2500)
+        self.assertEqual(subscription.delta_days, 3)
+        self.assertEqual(subscription.delta_hours, 0)
+        self.assertTrue(subscription.otp_code)
+
+        success, _, _ = subscription.verify_and_start(subscription.otp_code)
+        self.assertTrue(success)
+        purchase = SubscriptionPurchase.objects.get(user=self.user)
+        self.assertEqual(purchase.plan_name, 'Super subscription')
+        self.assertEqual(purchase.amount, 2500)
+
+    def test_invalid_custom_subscription_does_not_create_subscription(self):
+        from app.models import Subscription
+
+        self.client.post(
+            reverse('dashboard_add_subscription'),
+            {
+                'user_id': self.user.id,
+                'subscription_type': 'custom',
+                'custom_price': '2500',
+                'duration_value': '0',
+                'duration_unit': 'days',
+            },
+        )
+
+        self.assertFalse(Subscription.objects.filter(user=self.user).exists())
 
     def test_update_handles_deleted_user(self):
         """Simulate an orphaned subscription by removing the user via raw SQL.

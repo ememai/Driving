@@ -282,6 +282,27 @@ class UnverifiedSubscriptionTests(TestCase):
         self.plan = Plan.objects.create(plan='Basic', price=500)
         self.client.force_login(self.user)
 
+    def test_custom_subscription_otp_activation_succeeds(self):
+        subscription = Subscription.objects.create(
+            user=self.user,
+            plan=None,
+            super_subscription=True,
+            price=2500,
+            delta_days=3,
+        )
+        otp = subscription.generate_otp()
+
+        response = self.client.post(
+            reverse('activate_subscription'),
+            {'otp': otp},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Custom subscription')
+        subscription.refresh_from_db()
+        self.assertTrue(subscription.otp_verified)
+        self.assertTrue(subscription.expires_at)
+
     def test_payment_page_uses_payment_method_settings(self):
         SiteSettings.objects.update_or_create(
             pk=1,
