@@ -5,7 +5,7 @@ import random
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 
 from django.core.mail import send_mail
 from datetime import date, timedelta
@@ -371,29 +371,55 @@ class Subscription(models.Model):
 
     def verify_and_start(self, otp):
         """Verify OTP and start subscription timer."""
-        if not self.otp_code or self.otp_code != otp:
-            return False, "Code siyo.", None
+        with transaction.atomic():
+            subscription = (
+                Subscription.objects.select_for_update()
+                .select_related("plan")
+                .get(pk=self.pk)
+            )
+            now = timezone.now()
+            if not subscription.otp_code or subscription.otp_code != otp:
+                return False, "Code siyo.", None
 
-        if self.otp_created_at and timezone.now() > self.otp_expires_at:            
-            sub_link = format_html("<a href='/recreate-otp/'>Ongera usabe indi code</a>")
-            return False, f"OTP yararangiye. {sub_link}", None
+            if subscription.otp_verified:
+                return False, "Code yamaze gukoreshwa.", None
 
-        # Mark OTP as verified
-        self.otp_verified = True
-        self.started_at = timezone.now() if not self.started_at else self.started_at
-        self.updated_at = timezone.now() if self.updated else self.updated_at
-        delta = None
-        if self.super_subscription:
-            delta = self.get_delta()
-        elif self.plan:
-            self.price = self.plan.price
-            self.delta_hours = self.plan.delta_hours
-            self.delta_days = self.plan.delta_days
-            delta = self.plan.get_delta()
+            if subscription.otp_expires_at and now > subscription.otp_expires_at:
+                sub_link = format_html("<a href='/recreate-otp/'>Ongera usabe indi code</a>")
+                return False, f"OTP yararangiye. {sub_link}", None
 
-        if delta:
-            self.expires_at = timezone.now() + delta
-        self.save()
+            subscription.otp_verified = True
+            subscription.started_at = subscription.started_at or now
+            subscription.updated_at = now if subscription.updated else subscription.updated_at
+            if subscription.super_subscription:
+                delta = subscription.get_delta()
+            elif subscription.plan:
+                subscription.price = subscription.plan.price
+                subscription.delta_hours = subscription.plan.delta_hours
+                subscription.delta_days = subscription.plan.delta_days
+                delta = subscription.plan.get_delta()
+            else:
+                delta = None
+
+            if delta:
+                subscription.expires_at = now + delta
+            subscription.save()
+
+            amount = subscription.plan.price if subscription.plan else subscription.price or 0
+            plan_name = subscription.plan.plan if subscription.plan else "Super subscription"
+            sequence = (
+                SubscriptionPurchase.objects.filter(user_id=subscription.user_id).count() + 1
+            )
+            SubscriptionPurchase.objects.create(
+                user_id=subscription.user_id,
+                subscription=subscription,
+                plan=subscription.plan,
+                plan_name=plan_name,
+                amount=amount,
+                sequence=sequence,
+                subscribed_at=now,
+            )
+            self.refresh_from_db()
 
         return True, "", self.expires_at
 
@@ -434,6 +460,38 @@ class Subscription(models.Model):
     
     def __str__(self):
         return f"Subscription for {self.user}"
+
+
+class SubscriptionPurchase(models.Model):
+    user = models.ForeignKey(
+        'UserProfile',
+        on_delete=models.CASCADE,
+        related_name='subscription_purchases',
+    )
+    subscription = models.ForeignKey(
+        Subscription,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='purchase_history',
+    )
+    plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True, blank=True)
+    plan_name = models.CharField(max_length=50)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    sequence = models.PositiveIntegerField()
+    subscribed_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ('-subscribed_at',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'sequence'),
+                name='unique_subscription_purchase_sequence',
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - subscription {self.sequence}"
 
 
 class PaymentConfirm(models.Model):

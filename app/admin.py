@@ -222,6 +222,20 @@ class SubscriptionAdmin(admin.ModelAdmin):
         return redirect(request.META.get('HTTP_REFERER', '/admin/'))
 
 
+@admin.register(SubscriptionPurchase)
+class SubscriptionPurchaseAdmin(admin.ModelAdmin):
+    list_display = ('user', 'sequence', 'plan_name', 'amount', 'subscribed_at')
+    list_filter = ('plan', 'subscribed_at')
+    search_fields = ('user__name', 'user__email', 'user__phone_number', 'plan_name')
+    readonly_fields = ('user', 'subscription', 'plan', 'plan_name', 'amount', 'sequence', 'subscribed_at')
+    ordering = ('-subscribed_at',)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(PaymentConfirm)
 class PaymentConfirmAdmin(admin.ModelAdmin):

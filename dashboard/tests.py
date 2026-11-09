@@ -151,6 +151,39 @@ class SubscriptionDashboardUITest(TestCase):
         executed = len(connection.queries) - initial
         self.assertLessEqual(executed, 20, f"Too many queries: {executed}")
 
+    def test_subscription_dashboard_shows_revenue_and_purchase_history(self):
+        from app.models import SubscriptionPurchase
+        from django.utils import timezone
+
+        SubscriptionPurchase.objects.create(
+            user=self.user,
+            plan=Plan.objects.get(plan='Basic'),
+            plan_name='Basic',
+            amount=1000,
+            sequence=1,
+            subscribed_at=timezone.now(),
+        )
+        SubscriptionPurchase.objects.create(
+            user=self.user,
+            plan=Plan.objects.get(plan='Basic'),
+            plan_name='Basic',
+            amount=1000,
+            sequence=2,
+            subscribed_at=timezone.now(),
+        )
+
+        response = self.client.get(reverse('admin_subscription_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '2000.00 RWF')
+        self.assertContains(response, '#1: Basic')
+        self.assertContains(response, '#2: Basic')
+        self.assertContains(response, 'Subscription revenue recorded:')
+        history_table = response.content.decode('utf-8').split(
+            '<summary>Recent subscription history</summary>', 1
+        )[1].split('</table>', 1)[0]
+        self.assertEqual(history_table.count(f'<td>{self.user}</td>'), 1)
+
     def test_admin_dashboard_query_count(self):
         """Admins see recent lists; ensure each section is fetched efficiently."""
         from app.models import Payment, ScheduledExam, Exam, Subscription
@@ -197,4 +230,3 @@ class SubscriptionDashboardUITest(TestCase):
         # cleanup: restore DEBUG back to True for rest of tests
         os.environ['MY_DEBUG'] = 'True'
         reload(settings_module)
-

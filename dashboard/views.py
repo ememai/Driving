@@ -14,7 +14,7 @@ from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Count, Max, Q, Sum
 from django.core.cache import cache
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -727,6 +727,34 @@ def subscription_dashboard(request):
         plans = list(Plan.objects.only('id', 'plan', 'price').order_by('price'))
         cache.set('dashboard_plans', plans, 300)
 
+    purchase_totals = SubscriptionPurchase.objects.aggregate(
+        total=Sum('amount'),
+        count=Count('id'),
+    )
+    recent_user_ids = list(
+        SubscriptionPurchase.objects.values('user_id')
+        .annotate(last_subscribed_at=Max('subscribed_at'))
+        .order_by('-last_subscribed_at')
+        .values_list('user_id', flat=True)[:10]
+    )
+    purchase_history_by_user = {}
+    for purchase in (
+        SubscriptionPurchase.objects.filter(user_id__in=recent_user_ids)
+        .select_related('user')
+        .order_by('user_id', 'sequence')
+    ):
+        history = purchase_history_by_user.setdefault(
+            purchase.user_id,
+            {'user': purchase.user, 'purchases': [], 'total': 0},
+        )
+        history['purchases'].append(purchase)
+        history['total'] += purchase.amount
+    recent_subscription_histories = [
+        purchase_history_by_user[user_id]
+        for user_id in recent_user_ids
+        if user_id in purchase_history_by_user
+    ]
+
     # NOTE: users are no longer loaded here in the subscription_dashboard view.
     # They are now fetched dynamically via AJAX/search_users_api endpoint for better
     # performance and to avoid loading all users upfront. This reduces initial page
@@ -740,6 +768,9 @@ def subscription_dashboard(request):
             'page_obj': page_obj,
             'query': query,
             'plans': plans,
+            'subscription_revenue': purchase_totals['total'] or 0,
+            'subscription_purchase_count': purchase_totals['count'],
+            'recent_subscription_histories': recent_subscription_histories,
         },
     )
 
@@ -858,5 +889,3 @@ def dashboard_bulk_delete(request):
         else:
             messages.warning(request, "No subscriptions selected for deletion.")
     return redirect('admin_subscription_dashboard')
-
-

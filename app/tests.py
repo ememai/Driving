@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.test import RequestFactory
 from django.db import transaction
+from django.db.models import Sum
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
@@ -12,6 +13,7 @@ from app.models import (
     UserProfile,
     Plan,
     Subscription,
+    SubscriptionPurchase,
     SiteSettings,
     ExamType,
     Exam,
@@ -33,6 +35,41 @@ from dashboard.forms import ScheduledExamForm
 
 
 # Create your tests here.
+
+
+class SubscriptionPurchaseHistoryTests(TestCase):
+    def setUp(self):
+        self.user = UserProfile.objects.create_user(
+            phone_number='250780000005',
+            email='purchase-history@example.com',
+            password='password123',
+        )
+        self.plan = Plan.objects.create(
+            plan='Daily',
+            price=1200,
+            delta_days=1,
+        )
+        self.subscription = Subscription.objects.create(
+            user=self.user,
+            plan=self.plan,
+        )
+
+    def test_each_verified_activation_records_sequence_and_plan_price_once(self):
+        first_otp = self.subscription.generate_otp()
+        self.assertTrue(self.subscription.verify_and_start(first_otp)[0])
+        self.assertFalse(self.subscription.verify_and_start(first_otp)[0])
+
+        self.subscription.refresh_from_db()
+        second_otp = self.subscription.generate_otp()
+        self.assertTrue(self.subscription.verify_and_start(second_otp)[0])
+
+        purchases = SubscriptionPurchase.objects.filter(user=self.user).order_by('sequence')
+        self.assertEqual(list(purchases.values_list('sequence', flat=True)), [1, 2])
+        self.assertEqual(list(purchases.values_list('amount', flat=True)), [1200, 1200])
+        self.assertEqual(
+            purchases.aggregate(total=Sum('amount'))['total'],
+            2400,
+        )
 
 
 class ExamCountdownTests(TestCase):
