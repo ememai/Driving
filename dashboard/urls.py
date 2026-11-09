@@ -14,6 +14,7 @@ urlpatterns = [
     path('create-subscription/', CreateSubscriptionView.as_view(), name='create_subscription'),
     path('subscription/<int:pk>/update/', subscription_update, name='subscription_update'), 
     path('subscriptions/', subscription_dashboard, name='admin_subscription_dashboard'),
+    path('subscriptions/tracking/', subscription_tracking, name='subscription_tracking'),
     path('subscriptions/api/search-users/', search_users_api, name='search_users_api'),
     path('subscriptions/update-plans/', dashboard_update_plans, name='dashboard_update_plans'),
     path('subscriptions/<int:pk>/renew/', renew_subscription, name='dashboard_renew_subscription'),

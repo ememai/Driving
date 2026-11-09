@@ -380,6 +380,47 @@ class SubscriptionDashboardUITest(TestCase):
         self.assertContains(response, (now - timedelta(hours=1)).strftime('%d-%m-%Y %H:%M'))
         self.assertContains(response, (now + timedelta(hours=1)).strftime('%d-%m-%Y %H:%M'))
 
+    def test_subscription_tracking_groups_all_time_daily_weekly_monthly_and_yearly(self):
+        from app.models import SubscriptionPurchase
+        from datetime import datetime
+        from django.utils import timezone
+
+        plan = Plan.objects.get(plan='Basic')
+        records = (
+            (1000, datetime(2024, 1, 1, 10)),
+            (0, datetime(2024, 1, 1, 11)),
+            (100, datetime(2024, 1, 8, 10)),
+            (200, datetime(2024, 2, 1, 10)),
+            (300, datetime(2025, 1, 1, 10)),
+        )
+        for sequence, (amount, subscribed_at) in enumerate(records, start=1):
+            SubscriptionPurchase.objects.create(
+                user=self.user,
+                plan=plan,
+                plan_name='Basic',
+                amount=amount,
+                sequence=sequence,
+                subscribed_at=timezone.make_aware(subscribed_at),
+            )
+
+        response = self.client.get(reverse('subscription_tracking'))
+
+        self.assertEqual(response.status_code, 200)
+        tracking = {
+            period['key']: list(period['rows'])
+            for period in response.context['tracking_periods']
+        }
+        self.assertEqual(len(tracking['daily']), 4)
+        self.assertEqual(len(tracking['weekly']), 4)
+        self.assertEqual(len(tracking['monthly']), 3)
+        self.assertEqual(len(tracking['yearly']), 2)
+        self.assertEqual(sum(row['revenue'] for row in tracking['daily']), 1600)
+        self.assertEqual(sum(row['count'] for row in tracking['daily']), 4)
+        self.assertContains(response, 'Daily revenue')
+        self.assertContains(response, 'Weekly revenue')
+        self.assertContains(response, 'Monthly revenue')
+        self.assertContains(response, 'Yearly revenue')
+
     def test_admin_dashboard_query_count(self):
         """Admins see recent lists; ensure each section is fetched efficiently."""
         from app.models import Payment, ScheduledExam, Exam, Subscription

@@ -837,6 +837,56 @@ def subscription_dashboard(request):
 
 @login_required
 @user_passes_test(staff_required)
+def subscription_tracking(request):
+    from datetime import date, timedelta
+    from decimal import Decimal
+
+    tracking_periods = (
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
+    )
+    tracking = {key: {} for key, _ in tracking_periods}
+    for subscribed_at, amount in (
+        SubscriptionPurchase.objects.order_by()
+        .values_list('subscribed_at', 'amount')
+        .iterator(chunk_size=2000)
+    ):
+        local_date = timezone.localtime(subscribed_at).date()
+        period_dates = {
+            'daily': local_date,
+            'weekly': local_date - timedelta(days=local_date.weekday()),
+            'monthly': date(local_date.year, local_date.month, 1),
+            'yearly': date(local_date.year, 1, 1),
+        }
+        for key, period_date in period_dates.items():
+            row = tracking[key].setdefault(
+                period_date,
+                {'period': period_date, 'revenue': Decimal('0'), 'count': 0},
+            )
+            row['revenue'] += amount
+            if amount != 0:
+                row['count'] += 1
+
+    tracking_rows = {
+        key: sorted(rows.values(), key=lambda row: row['period'], reverse=True)
+        for key, rows in tracking.items()
+    }
+
+    return render(
+        request,
+        'dashboard/subscription_tracking.html',
+        {
+            'tracking_periods': [
+                {'key': key, 'label': label, 'rows': tracking_rows[key]}
+                for key, label in tracking_periods
+            ],
+        },
+    )
+
+@login_required
+@user_passes_test(staff_required)
 def search_users_api(request):
     """
     API endpoint for AJAX-based user search in subscription dashboard modal.
