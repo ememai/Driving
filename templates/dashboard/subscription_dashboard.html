@@ -18,47 +18,75 @@
 
 <div class="container mt-4 overflow-auto">
   <h2>Admin Subscription Dashboard</h2>
-  <div class="d-flex gap-4 mb-3">
+  <div class="d-flex flex-wrap gap-4 mb-3">
     <p class="mb-0">
       Subscription revenue recorded:
       <strong>{{ subscription_revenue }} RWF</strong>
+      {% if revenue_first_recorded_at and revenue_last_recorded_at %}
+      <span class="text-muted">
+        ({{ revenue_first_recorded_at|date:"d-m-Y H:i" }} to
+        {{ revenue_last_recorded_at|date:"d-m-Y H:i" }})
+      </span>
+      {% else %}
+      <span class="text-muted">(no non-zero purchases recorded)</span>
+      {% endif %}
     </p>
     <p class="mb-0">
-      Paid/activated subscription count:
+      Non-zero subscription count:
       <strong>{{ subscription_purchase_count }}</strong>
     </p>
   </div>
-  {% if recent_subscription_histories %}
+  {% if subscription_histories %}
   <details class="mb-3">
-    <summary>Recent subscription history</summary>
-    <div class="table-responsive">
-      <table class="table table-sm table-striped mt-2">
-        <thead>
-          <tr>
-            <th>User</th>
-            <th>Subscription history</th>
-            <th>Total spent</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for history in recent_subscription_histories %}
-          <tr>
-            <td>{{ history.user }}</td>
-            <td>
-              {% for purchase in history.purchases %}
-              <div>
-                #{{ purchase.sequence }}: {{ purchase.plan_name }} —
-                {{ purchase.amount }} RWF
-                ({{ purchase.subscribed_at|date:"d-m-y H:i" }})
-              </div>
-              {% endfor %}
-            </td>
-            <td>{{ history.total }} RWF</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+    <summary>All subscription history</summary>
+    <form method="post" action="{% url 'delete_subscription_purchases' %}"
+          onsubmit="return confirm('Delete the selected subscription history records?');">
+      {% csrf_token %}
+      <div class="table-responsive">
+        <table class="table table-sm table-striped mt-2">
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>User</th>
+              <th>Subscription history</th>
+              <th>Total spent</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for history in subscription_histories %}
+            <tr>
+              <td>
+                {% for purchase in history.purchases %}
+                <div>
+                  <input
+                    type="checkbox"
+                    name="purchase_ids"
+                    value="{{ purchase.id }}"
+                    aria-label="Select subscription #{{ purchase.sequence }} for {{ history.user }}"
+                  />
+                </div>
+                {% endfor %}
+              </td>
+              <td>{{ history.user }}</td>
+              <td>
+                {% for purchase in history.purchases %}
+                <div>
+                  #{{ purchase.sequence }}: {{ purchase.plan_name }} —
+                  {{ purchase.amount }} RWF
+                  ({{ purchase.subscribed_at|date:"d-m-y H:i" }})
+                </div>
+                {% endfor %}
+              </td>
+              <td>{{ history.total }} RWF</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <button type="submit" class="btn btn-danger btn-sm">
+        Delete selected history records
+      </button>
+    </form>
   </details>
   {% endif %}
   <form method="get" id="subscriptionSearchForm" class="mb-3 d-flex gap-2 align-items-center">
@@ -159,7 +187,7 @@
                 <label for="custom_price" class="form-label">Price (RWF)</label>
                 <input
                   type="number"
-                  min="1"
+                  min="0"
                   step="1"
                   name="custom_price"
                   id="custom_price"

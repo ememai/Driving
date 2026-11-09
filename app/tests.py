@@ -71,6 +71,44 @@ class SubscriptionPurchaseHistoryTests(TestCase):
             2400,
         )
 
+    def test_new_purchase_sequence_does_not_conflict_after_history_deletion(self):
+        first_otp = self.subscription.generate_otp()
+        self.assertTrue(self.subscription.verify_and_start(first_otp)[0])
+
+        self.subscription.refresh_from_db()
+        second_otp = self.subscription.generate_otp()
+        self.assertTrue(self.subscription.verify_and_start(second_otp)[0])
+        first_purchase = SubscriptionPurchase.objects.get(user=self.user, sequence=1)
+        first_purchase.delete()
+
+        self.subscription.refresh_from_db()
+        third_otp = self.subscription.generate_otp()
+        self.assertTrue(self.subscription.verify_and_start(third_otp)[0])
+
+        purchase = SubscriptionPurchase.objects.get(user=self.user, sequence=3)
+        self.assertEqual(purchase.amount, 1200)
+
+    def test_zero_price_plan_and_custom_subscription_are_valid(self):
+        free_plan = Plan(
+            plan='Weekly',
+            price=0,
+            delta_days=1,
+        )
+        free_plan.full_clean()
+
+        free_user = UserProfile.objects.create_user(
+            phone_number='250780000006',
+            email='free-subscription@example.com',
+            password='password123',
+        )
+        free_subscription = Subscription(
+            user=free_user,
+            super_subscription=True,
+            price=0,
+            delta_hours=1,
+        )
+        free_subscription.full_clean()
+
 
 class ExamCountdownTests(TestCase):
     def setUp(self):

@@ -124,6 +124,8 @@
                             <div class="mb-3">
                                 <label class="form-label">Price (RWF)</label>
                                 <input type="number"
+                                       min="0"
+                                       step="1"
                                        name="price"
                                        class="form-control"
                                        value="{{ subscription.price }}">

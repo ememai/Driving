@@ -20,4 +20,5 @@ urlpatterns = [
     path('subscriptions/<int:pk>/end/', end_subscription, name='dashboard_end_subscription'),
     path('subscriptions/add-subscription/', dashboard_add_subscription, name='dashboard_add_subscription'),
     path('subscriptions/bulk-delete/', dashboard_bulk_delete, name='dashboard_bulk_delete'),
+    path('subscription-history/delete/', delete_subscription_purchases, name='delete_subscription_purchases'),
 ]

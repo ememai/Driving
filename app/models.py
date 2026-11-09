@@ -298,8 +298,8 @@ class Plan(models.Model):
         if self.delta_hours < 0 or self.delta_days < 0:
             raise ValidationError("Delta values cannot be negative.")
 
-        if self.price <= 0:
-            raise ValidationError("'price' must be greater than zero.")
+        if self.price < 0:
+            raise ValidationError("'price' cannot be negative.")
     
     @property
     def get_plan_display(self):
@@ -407,9 +407,10 @@ class Subscription(models.Model):
 
             amount = subscription.plan.price if subscription.plan else subscription.price or 0
             plan_name = subscription.plan.plan if subscription.plan else "Super subscription"
-            sequence = (
-                SubscriptionPurchase.objects.filter(user_id=subscription.user_id).count() + 1
-            )
+            last_sequence = SubscriptionPurchase.objects.filter(
+                user_id=subscription.user_id
+            ).aggregate(max_sequence=models.Max('sequence'))['max_sequence'] or 0
+            sequence = last_sequence + 1
             SubscriptionPurchase.objects.create(
                 user_id=subscription.user_id,
                 subscription=subscription,
@@ -436,8 +437,8 @@ class Subscription(models.Model):
             if self.delta_hours < 0 or self.delta_days < 0:
                 raise ValidationError("Delta values cannot be negative.")
 
-            if not self.price or self.price <= 0:
-                raise ValidationError("'price' must be greater than zero.")
+            if self.price is None or self.price < 0:
+                raise ValidationError("'price' cannot be negative.")
             
         if self.super_subscription and self.plan:
             raise ValidationError("Super subscription should not be linked with a plan.")
@@ -447,7 +448,7 @@ class Subscription(models.Model):
 
                
         if self.plan:
-            if self.plan.delta_hours < 0 or self.plan.delta_days < 0  or self.plan.price <= 0:
+            if self.plan.delta_hours < 0 or self.plan.delta_days < 0 or self.plan.price < 0:
                 raise ValidationError("Plan must have a valid price and duration.")
    
     @property

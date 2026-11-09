@@ -14,7 +14,7 @@ from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from django.db.models import Count, Max, Q, Sum
+from django.db.models import Count, Max, Min, Q, Sum
 from django.core.cache import cache
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -618,8 +618,8 @@ def dashboard_add_subscription(request):
                 return redirect('admin_subscription_dashboard')
 
             duration_unit = request.POST.get('duration_unit')
-            if price <= 0 or duration <= 0 or duration_unit not in ('hours', 'days'):
-                messages.error(request, "Custom price and duration must be greater than zero.")
+            if price < 0 or duration <= 0 or duration_unit not in ('hours', 'days'):
+                messages.error(request, "Custom price cannot be negative and duration must be greater than zero.")
                 return redirect('admin_subscription_dashboard')
         else:
             messages.error(request, "Select a valid subscription type.")
@@ -676,10 +676,10 @@ def subscription_update(request, pk):
                 custom_hours = int(delta_hours or 0)
                 custom_days = int(delta_days or 0)
                 custom_price = int(request.POST.get('price') or 0)
-                if custom_price <= 0 or (custom_hours <= 0 and custom_days <= 0):
+                if custom_price < 0 or (custom_hours <= 0 and custom_days <= 0):
                     messages.error(
                         request,
-                        "Custom price and at least one positive duration are required.",
+                        "Custom price cannot be negative and at least one positive duration is required.",
                     )
                     return redirect('subscription_update', pk=pk)
 
@@ -786,17 +786,19 @@ def subscription_dashboard(request):
 
     purchase_totals = SubscriptionPurchase.objects.aggregate(
         total=Sum('amount'),
-        count=Count('id'),
+        count=Count('id', filter=~Q(amount=0)),
+        first_recorded_at=Min('subscribed_at', filter=Q(amount__gt=0)),
+        last_recorded_at=Max('subscribed_at', filter=Q(amount__gt=0)),
     )
-    recent_user_ids = list(
+    purchase_user_ids = list(
         SubscriptionPurchase.objects.values('user_id')
         .annotate(last_subscribed_at=Max('subscribed_at'))
         .order_by('-last_subscribed_at')
-        .values_list('user_id', flat=True)[:10]
+        .values_list('user_id', flat=True)
     )
     purchase_history_by_user = {}
     for purchase in (
-        SubscriptionPurchase.objects.filter(user_id__in=recent_user_ids)
+        SubscriptionPurchase.objects.filter(user_id__in=purchase_user_ids)
         .select_related('user')
         .order_by('user_id', 'sequence')
     ):
@@ -806,9 +808,9 @@ def subscription_dashboard(request):
         )
         history['purchases'].append(purchase)
         history['total'] += purchase.amount
-    recent_subscription_histories = [
+    subscription_histories = [
         purchase_history_by_user[user_id]
-        for user_id in recent_user_ids
+        for user_id in purchase_user_ids
         if user_id in purchase_history_by_user
     ]
 
@@ -827,7 +829,9 @@ def subscription_dashboard(request):
             'plans': plans,
             'subscription_revenue': purchase_totals['total'] or 0,
             'subscription_purchase_count': purchase_totals['count'],
-            'recent_subscription_histories': recent_subscription_histories,
+            'revenue_first_recorded_at': purchase_totals['first_recorded_at'],
+            'revenue_last_recorded_at': purchase_totals['last_recorded_at'],
+            'subscription_histories': subscription_histories,
         },
     )
 
@@ -945,4 +949,17 @@ def dashboard_bulk_delete(request):
             messages.success(request, f"Successfully deleted {deleted_count} subscription(s).")
         else:
             messages.warning(request, "No subscriptions selected for deletion.")
+    return redirect('admin_subscription_dashboard')
+
+
+@login_required
+@user_passes_test(staff_required)
+def delete_subscription_purchases(request):
+    if request.method == 'POST':
+        purchase_ids = request.POST.getlist('purchase_ids')
+        if purchase_ids:
+            deleted_count, _ = SubscriptionPurchase.objects.filter(id__in=purchase_ids).delete()
+            messages.success(request, f"Deleted {deleted_count} subscription history record(s).")
+        else:
+            messages.warning(request, "Select at least one history record to delete.")
     return redirect('admin_subscription_dashboard')

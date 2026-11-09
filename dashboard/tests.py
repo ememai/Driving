@@ -279,9 +279,106 @@ class SubscriptionDashboardUITest(TestCase):
         self.assertContains(response, '#2: Basic')
         self.assertContains(response, 'Subscription revenue recorded:')
         history_table = response.content.decode('utf-8').split(
-            '<summary>Recent subscription history</summary>', 1
+            '<summary>All subscription history</summary>', 1
         )[1].split('</table>', 1)[0]
         self.assertEqual(history_table.count(f'<td>{self.user}</td>'), 1)
+
+    def test_subscription_history_includes_all_users(self):
+        from app.models import SubscriptionPurchase
+        from django.utils import timezone
+
+        plan = Plan.objects.get(plan='Basic')
+        for index in range(11):
+            user = UserProfile.objects.create_user(
+                phone_number=f'2507834444{index:02d}',
+                email=f'history{index}@example.com',
+                password='password',
+                name=f'History{index}',
+            )
+            SubscriptionPurchase.objects.create(
+                user=user,
+                plan=plan,
+                plan_name='Basic',
+                amount=1000,
+                sequence=1,
+                subscribed_at=timezone.now(),
+            )
+
+        response = self.client.get(reverse('admin_subscription_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        history_table = response.content.decode('utf-8').split(
+            '<summary>All subscription history</summary>', 1
+        )[1].split('</table>', 1)[0]
+        self.assertEqual(history_table.count('<tr>'), 12)
+        self.assertContains(response, 'history0@example.com')
+
+    def test_selected_subscription_history_records_can_be_deleted(self):
+        from app.models import SubscriptionPurchase
+        from django.utils import timezone
+
+        plan = Plan.objects.get(plan='Basic')
+        purchases = [
+            SubscriptionPurchase.objects.create(
+                user=self.user,
+                plan=plan,
+                plan_name='Basic',
+                amount=amount,
+                sequence=sequence,
+                subscribed_at=timezone.now(),
+            )
+            for sequence, amount in ((1, 1000), (2, 2000))
+        ]
+
+        response = self.client.post(
+            reverse('delete_subscription_purchases'),
+            {'purchase_ids': [purchases[0].id]},
+        )
+
+        self.assertRedirects(response, reverse('admin_subscription_dashboard'))
+        self.assertFalse(SubscriptionPurchase.objects.filter(pk=purchases[0].id).exists())
+        self.assertTrue(SubscriptionPurchase.objects.filter(pk=purchases[1].id).exists())
+        dashboard_response = self.client.get(reverse('admin_subscription_dashboard'))
+        self.assertEqual(dashboard_response.context['subscription_revenue'], 2000)
+        self.assertEqual(dashboard_response.context['subscription_purchase_count'], 1)
+
+    def test_subscription_revenue_shows_recorded_datetime_range_and_nonzero_count(self):
+        from app.models import SubscriptionPurchase
+        from datetime import timedelta
+        from django.utils import timezone
+
+        now = timezone.localtime(timezone.now()).replace(microsecond=0)
+        plan = Plan.objects.get(plan='Basic')
+        purchases = [
+            (1000, now - timedelta(hours=1), 1),
+            (0, now - timedelta(hours=2), 2),
+            (500, now + timedelta(hours=1), 3),
+        ]
+        for amount, subscribed_at, sequence in purchases:
+            SubscriptionPurchase.objects.create(
+                user=self.user,
+                plan=plan,
+                plan_name='Basic',
+                amount=amount,
+                sequence=sequence,
+                subscribed_at=subscribed_at,
+            )
+
+        response = self.client.get(reverse('admin_subscription_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['subscription_revenue'], 1500)
+        self.assertEqual(response.context['subscription_purchase_count'], 2)
+        self.assertEqual(
+            response.context['revenue_first_recorded_at'],
+            now - timedelta(hours=1),
+        )
+        self.assertEqual(
+            response.context['revenue_last_recorded_at'],
+            now + timedelta(hours=1),
+        )
+        self.assertContains(response, (now - timedelta(hours=1)).strftime('%d-%m-%Y %H:%M'))
+        self.assertContains(response, (now + timedelta(hours=1)).strftime('%d-%m-%Y %H:%M'))
 
     def test_admin_dashboard_query_count(self):
         """Admins see recent lists; ensure each section is fetched efficiently."""
